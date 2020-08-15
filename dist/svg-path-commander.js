@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.1a (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.1-b (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -630,12 +630,11 @@
           result = [pathCommand,x1,y1,x2,y2,x,y];
       }
       return result
-    })
-    .concat(isClosed && [['Z']])
+    }).concat(isClosed && [['Z']])
   }
 
-  function splitPath(str) {
-    return str
+  function splitPath(pathString) {
+    return pathString
       .replace( /(m|M)/g, "|$1")
       .split('|')
       .map(function (s){ return s.trim(); })

@@ -66,7 +66,7 @@ let mySVGAbsolutePath = toString(pathToAbsolute(pathString))
 # Some Technical Considerations
 
 * the `reverse()` method may not return the same number of path commands as the input path when `arcTo` path commands have `largeArcFlag` set to 1
-* the `toCurve()` method will convert all path commands to `toCubicBezier` path command, including `Z`, which might make it difficult to work with and knowing the 
+* the `toCurve()` method will convert all path commands to `toCubicBezier` path command, including `Z`, which might make it difficult to work with and knowing if the path is closed or not 
 * all tools processing path segments will always round float values to 3 decimals, but only float numbers; EG: 0.5666 => 0.566
 
 # Tools
