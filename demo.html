@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0">
+  <meta name="description" content="SVGPathCommander Demo">
+  <meta name="keywords" content="javascript,svg,svg path,svgpathcommander">
+  <meta name="author" content="thednp">
+
+  <title>SVGPathCommander Test</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.js"></script>
+  <script src="./dist/svg-path-commander.js"></script>
+  <style>
+    body {
+      padding: 0 1.5rem; margin: 0;
+      background: #222; color: #999; 
+      font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
+    }
+    h1 {
+      border-bottom: 1px solid #555;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+    h1,h2,h3,h4,h5,b {color: #fff;}
+    .row {
+      display: flex;
+      flex: 1 0 100%;
+      flex-wrap: wrap;
+      /* margin-top: 1.5rem; */
+      margin-right: -1.5rem;
+      margin-left: -1.5rem;
+    }
+    .col {
+      flex: 1 0 0%;
+      flex-shrink: 0;
+      width: 100%;
+      max-width: 100%;
+      padding-right: 1.5rem;
+      padding-left: 1.5rem;
+    }
+    .form-input { background: #333; border: 1px solid #555; color: #eee; width: 100%; padding: 0.5rem 0.75rem; line-height: 1.5 }
+    button { background: #222; border: 1px solid #555; color: #777; padding: 0.25rem 0.75rem }
+    button:hover, button:focus { outline:none; background: #eee; border-color: #fff; color: #222; }
+    button + button {margin-left: 0.75rem}
+  </style>
+</head>
+<body>
+  <h1>SVGPathCommander</h1>
+  <div class="row">
+    <div class="col">
+      <p><b>SVG viewBox</b></p>
+      <!-- <input type="text" class="form-input" id="i1" placeholder="Type in viewBox value" value="65 65 150 150" /> -->
+      <input type="text" class="form-input" id="i1" placeholder="Type in viewBox value" value="0 0 16 16" />
+      
+      <p><b>PathValue Input</b></p>
+      <textarea class="form-input" id="t1" style="height:40px" placeholder="Type in d value">M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2zm7.5 11h-4a.5.5 0 01-.5-.5v-4a.5.5 0 011 0v2.793l4.146-4.147a.5.5 0 01.708.708L6.707 10H9.5a.5.5 0 010 1z</textarea>
+    
+      <p>
+        <button type="button" id="button1" onclick="toAbs()">toAbsolute</button>
+        <button type="button" id="button2" onclick="toRel()">toRelative</button>
+        <button type="button" id="button3" onclick="toCv()">toCurve</button>
+        <button type="button" id="button3" onclick="toRev()">toReversed</button>
+      </p>
+    
+      <p><b>PathValue Output</b></p>
+      <textarea class="form-input" id="t2" style="height:150px"></textarea>
+    </div>
+
+    <div class="col">
+      <p><b>Test</b></p>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+        <path d="M0 0L0 0" fill="cyan">
+      </svg>
+    </div>
+  </div>
+
+
+  <script>
+
+    var svg = document.querySelector('svg'),
+        path = svg.children[0],
+        pathValue = document.getElementById('t1').value;
+
+    function toAbs() { // To absolute coordinates
+      pathValue = document.getElementById('t1').value || pathValue
+      var absPath = new SVGPathCommander( pathValue ).toAbsolute().toString();
+
+      document.getElementById('t2').value = absPath;
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      path.setAttribute('d', absPath);
+    }    
+    function toRel() { // To relative coordinates
+
+      pathValue = document.getElementById('t1').value || pathValue
+
+      var relPath = new SVGPathCommander( pathValue ).toRelative().toString();
+
+      document.getElementById('t2').value = relPath;
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      path.setAttribute('d', relPath);
+    }
+    function toCv() { // To cubic coordinates
+      pathValue = document.getElementById('t1').value || pathValue
+
+      var cvPath = new SVGPathCommander( pathValue ).toCurve().toString();
+
+      document.getElementById('t2').value = cvPath;
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      path.setAttribute('d', cvPath);
+    }
+    function toRev() { // To reverse coordinates
+      pathValue = document.getElementById('t1').value || pathValue
+
+      var cvPath = new SVGPathCommander( pathValue ).reverse().toString();
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+
+      document.getElementById('t2').value = cvPath;
+      path.setAttribute('d', cvPath);
+    }
+  </script>
+</body>
+
+</html>

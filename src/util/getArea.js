@@ -1,0 +1,13 @@
+// https://github.com/paperjs/paper.js/blob/develop/src/path/Path.js
+// Jürg Lehni & Jonathan Puckey
+
+export default function getArea(v) {
+  // http://objectmix.com/graphics/133553-area-closed-bezier-curve.html
+  var x0 = v[0], y0 = v[1],
+      x1 = v[2], y1 = v[3],
+      x2 = v[4], y2 = v[5],
+      x3 = v[6], y3 = v[7];
+  return 3 * ((y3 - y0) * (x1 + x2) - (x3 - x0) * (y1 + y2)
+          + y1 * (x0 - x2) - x1 * (y0 - y2)
+          + y3 * (x2 + x0 / 3) - x3 * (y2 + y0 / 3)) / 20;
+}
