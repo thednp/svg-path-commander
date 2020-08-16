@@ -835,7 +835,6 @@
           return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
         }),
         path = hasSubpath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments);
-    console.log(pathToAbsolute(this.pathValue),path);
     this.segments = clonePath(path);
     return this
   };
