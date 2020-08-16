@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.1-d (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.1-e (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -835,7 +835,6 @@
           return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
         }),
         path = hasSubpath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments);
-    console.log(pathToAbsolute(this.pathValue),path);
     this.segments = clonePath(path);
     return this
   };
