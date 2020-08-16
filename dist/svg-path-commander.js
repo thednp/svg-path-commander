@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.1a (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.1-c (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -10,7 +10,7 @@
 }(this, (function () { 'use strict';
 
   function clonePath(pathArray){
-    return pathArray.map(function (x) { return Array.isArray(x) ? clonePath(x) : !isNaN(+x) ? +x : x; })
+    return pathArray.map(function (x) { return Array.isArray(x) ? clonePath(x) : !isNaN(+x) ? +x : x; } )
   }
 
   var SVGPCOps = {
@@ -18,75 +18,240 @@
     round:1
   };
 
-  function setPathSpecs(pathArray) {
-    pathArray.isClosed = 'isClosed' in pathArray ? pathArray.isClosed : pathArray[pathArray.length-1][0].toUpperCase() ==='Z';
-    pathArray.isAbsolute = 'isAbsolute' in pathArray ? pathArray.isClosed : pathArray.every(function (x){ return x[0]===x[0].toUpperCase(); });
-  }
-
   function roundPath(pathArray) {
-    var pa = SVGPCOps.round ? pathArray.map( function (s) { return s.map(function (c,i) {
-            var nr = +c, dc = Math.pow(10,SVGPCOps.decimals);
-            return i ? (nr % 1 === 0 ? nr : (nr*dc>>0)/dc) : c
-          }
-        ); }) : clonePath(pathArray);
-    setPathSpecs(pa);
-    return pa
+    return SVGPCOps.round ? pathArray.map( function (seg) { return seg.map(function (c,i) {
+              var nr = +c, dc = Math.pow(10,SVGPCOps.decimals);
+              return i ? (nr % 1 === 0 ? nr : (nr*dc>>0)/dc) : c
+            }
+          ); }) : clonePath(pathArray)
   }
 
-  function parsePathString(pathString) {
-    if (!pathString) {
-      return null;
+  function SVGPathArray(pathString){
+    this.segments = [];
+    this.isClosed = 0;
+    this.isAbsolute = 0;
+    this.pathValue = pathString;
+    this.max = pathString.length;
+    this.index  = 0;
+    this.param = 0.0;
+    this.segmentStart = 0;
+    this.data = [];
+    this.err = '';
+    return this
+  }
+
+  var paramCounts = { a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0 };
+  function isSpace(ch) {
+    var specialSpaces = [
+      0x1680, 0x180E, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006,
+      0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000, 0xFEFF ];
+    return (ch === 0x0A) || (ch === 0x0D) || (ch === 0x2028) || (ch === 0x2029) ||
+      (ch === 0x20) || (ch === 0x09) || (ch === 0x0B) || (ch === 0x0C) || (ch === 0xA0) ||
+      (ch >= 0x1680 && specialSpaces.indexOf(ch) >= 0);
+  }
+  function isCommand(code) {
+    switch (code | 0x20) {
+      case 0x6D:
+      case 0x7A:
+      case 0x6C:
+      case 0x68:
+      case 0x76:
+      case 0x63:
+      case 0x73:
+      case 0x71:
+      case 0x74:
+      case 0x61:
+      case 0x72:
+        return true;
     }
-    if( Array.isArray(pathString) ) {
-      return clonePath(pathString);
+    return false;
+  }
+  function isArc(code) {
+    return (code | 0x20) === 0x61;
+  }
+  function isDigit(code) {
+    return (code >= 48 && code <= 57);
+  }
+  function isDigitStart(code) {
+    return (code >= 48 && code <= 57) ||
+            code === 0x2B ||
+            code === 0x2D ||
+            code === 0x2E;
+  }
+  function skipSpaces(state) {
+    while (state.index < state.max && isSpace(state.pathValue.charCodeAt(state.index))) {
+      state.index++;
+    }
+  }
+  function scanFlag(state) {
+    var ch = state.pathValue.charCodeAt(state.index);
+    if (ch === 0x30) {
+      state.param = 0;
+      state.index++;
+      return;
+    }
+    if (ch === 0x31) {
+      state.param = 1;
+      state.index++;
+      return;
+    }
+    state.err = 'SvgPath: arc flag can be 0 or 1 only (at pos ' + state.index + ')';
+  }
+  function scanParam(state) {
+    var start = state.index,
+        index = start,
+        max = state.max,
+        zeroFirst = false,
+        hasCeiling = false,
+        hasDecimal = false,
+        hasDot = false,
+        ch;
+    if (index >= max) {
+      state.err = 'SvgPath: missed param (at pos ' + index + ')';
+      return;
+    }
+    ch = state.pathValue.charCodeAt(index);
+    if (ch === 0x2B || ch === 0x2D) {
+      index++;
+      ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
+    }
+    if (!isDigit(ch) && ch !== 0x2E) {
+      state.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
+      return;
+    }
+    if (ch !== 0x2E) {
+      zeroFirst = (ch === 0x30);
+      index++;
+      ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
+      if (zeroFirst && index < max) {
+        if (ch && isDigit(ch)) {
+          state.err = 'SvgPath: numbers started with `0` such as `09` are illegal (at pos ' + start + ')';
+          return;
+        }
+      }
+      while (index < max && isDigit(state.pathValue.charCodeAt(index))) {
+        index++;
+        hasCeiling = true;
+      }
+      ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
+    }
+    if (ch === 0x2E) {
+      hasDot = true;
+      index++;
+      while (isDigit(state.pathValue.charCodeAt(index))) {
+        index++;
+        hasDecimal = true;
+      }
+      ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
+    }
+    if (ch === 0x65 || ch === 0x45) {
+      if (hasDot && !hasCeiling && !hasDecimal) {
+        state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+        return;
+      }
+      index++;
+      ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
+      if (ch === 0x2B || ch === 0x2D) {
+        index++;
+      }
+      if (index < max && isDigit(state.pathValue.charCodeAt(index))) {
+        while (index < max && isDigit(state.pathValue.charCodeAt(index))) {
+          index++;
+        }
+      } else {
+        state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+        return;
+      }
+    }
+    state.index = index;
+    state.param = parseFloat(state.pathValue.slice(start, index)) + 0.0;
+  }
+  function finalizeSegment(state) {
+    var cmd = state.pathValue[state.segmentStart], cmdLC = cmd.toLowerCase(), params = state.data;
+    if (cmdLC === 'm' && params.length > 2) {
+      state.segments.push([ cmd, params[0], params[1] ]);
+      params = params.slice(2);
+      cmdLC = 'l';
+      cmd = (cmd === 'm') ? 'l' : 'L';
+    }
+    if (cmdLC === 'r') {
+      state.segments.push([ cmd ].concat(params));
     } else {
-      var spaces = "\\" + (("x09|x0a|x0b|x0c|x0d|x20|xa0|u1680|u180e|u2000|u2001|u2002|u2003|u2004|u2005|u2006|u2007|u2008|u2009|u200a|u202f|u205f|u3000|u2028|u2029").split('|').join('\\')),
-          pcReg = new RegExp(("([a-z])[" + spaces + ",]*((-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?[" + spaces + "]*,?[" + spaces + "]*)+)"), "ig"),
-          pathValues = new RegExp(("(-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?)[" + spaces + "]*,?[" + spaces + "]*"), "ig"),
-          paramCounts = {a: 7, c: 6, o: 2, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, u: 3, z: 0},
-          data = [];
-      pathString.replace(pcReg, function (a, b, c) {
-        var params = [], pathCommand = b.toLowerCase();
-        c.replace(pathValues, function (a, b) { return b && params.push(b); });
-        params = params.filter(function (x){ return x; });
-        if (pathCommand !== "a" && params.length < paramCounts[pathCommand]) {
-          throw Error((pathCommand + " path command requires " + (paramCounts[pathCommand]) + " coordinates, only " + (params.length + ' given: ['+params.join(',')) + "]"))
+      while (params.length >= paramCounts[cmdLC]) {
+        state.segments.push([ cmd ].concat(params.splice(0, paramCounts[cmdLC])));
+        if (!paramCounts[cmdLC]) {
+          break;
         }
-        if (pathCommand === "m" && params.length > 2) {
-          data.push([b].concat(params.splice(0, 2)));
-          pathCommand = "l";
-          b = b == "m" ? "l" : "L";
-        }
-        if (pathCommand === "o" && params.length === 1) {
-          data.push([b, params[0]]);
-        }
-        if (pathCommand === "r") {
-          data.push([b].concat(params));
-        }
-        if ( pathCommand === 'a' && params.length < paramCounts[pathCommand]){
-          for (var i=0, ln = params.length; i<ln; i++){
-            if ( (i === 3 || i === 4) && params[i].length > 1 ) {
-              params = params.slice(0,i)
-                            .concat(params[i][0])
-                            .concat(
-                                params[i].slice(1).replace(/(\-\d|\-\.\d|\.\d*(?=\.))/g,'|$1').split('|'),
-                                params.slice(i+1))
-                            .filter(function (x){ return x; });
-              ln = params.length;
-            }
-          }
-          if (params.length === paramCounts[pathCommand]) {
-            data.push([b].concat(params.splice(0, paramCounts[pathCommand])));
-          }
-        } else { while (params.length >= paramCounts[pathCommand]) {
-          data.push([b].concat(params.splice(0, paramCounts[pathCommand])));
-          if (!paramCounts[pathCommand]) {
-            break;
-          }
-        } }
-      });
-      return roundPath(data)
+      }
     }
+  }
+  function scanSegment(state) {
+    var max = state.max, cmdCode, is_arc, comma_found, need_params, i;
+    state.segmentStart = state.index;
+    cmdCode = state.pathValue.charCodeAt(state.index);
+    is_arc = isArc(cmdCode);
+    if (!isCommand(cmdCode)) {
+      state.err = 'SvgPath: bad command ' + state.pathValue[state.index] + ' (at pos ' + state.index + ')';
+      return;
+    }
+    need_params = paramCounts[state.pathValue[state.index].toLowerCase()];
+    state.index++;
+    skipSpaces(state);
+    state.data = [];
+    if (!need_params) {
+      state.isClosed = 1;
+      finalizeSegment(state);
+      return;
+    }
+    comma_found = false;
+    for (;;) {
+      for (i = need_params; i > 0; i--) {
+        if (is_arc && (i === 3 || i === 4)) { scanFlag(state); }
+        else { scanParam(state); }
+        if (state.err.length) {
+          return;
+        }
+        state.data.push(state.param);
+        skipSpaces(state);
+        comma_found = false;
+        if (state.index < max && state.pathValue.charCodeAt(state.index) === 0x2C) {
+          state.index++;
+          skipSpaces(state);
+          comma_found = true;
+        }
+      }
+      if (comma_found) {
+        continue;
+      }
+      if (state.index >= state.max) {
+        break;
+      }
+      if (!isDigitStart(state.pathValue.charCodeAt(state.index))) {
+        break;
+      }
+    }
+    finalizeSegment(state);
+  }
+  function parsePathString(pathString) {
+    if ( Array.isArray(pathString) ) {
+      return clonePath(pathString)
+    }
+    var state = new SVGPathArray(pathString), max = state.max;
+    skipSpaces(state);
+    while (state.index < max && !state.err.length) {
+      scanSegment(state);
+    }
+    if (state.err.length) {
+      state.segments = [];
+    } else if (state.segments.length) {
+      if ('mM'.indexOf(state.segments[0][0]) < 0) {
+        state.err = 'SvgPath: string should start with `M` or `m`';
+        state.segments = [];
+      } else {
+        state.segments[0][0] = 'M';
+      }
+    }
+    return roundPath(state.segments)
   }
 
   function catmullRom2bezier(crp, z) {
@@ -330,7 +495,7 @@
       }
     };
     for (var i = start; i < ii; i++) loop( i );
-    return roundPath(res);
+    return roundPath(res,path.isClosed)
   }
 
   function rotateVector(x, y, rad) {
@@ -567,37 +732,39 @@
     }).join(' ')
   }
 
-  function reverseCurve(pathArray){
-    var curveSegments = pathToCurve(pathArray),
-        segsCount = curveSegments.length - 1,
+  function reverseCurve(pathCurveArray){
+    var curveSegments = clonePath(pathCurveArray),
+        curveCount = curveSegments.length - 2,
         ci = 0, ni = 0,
         currentSeg = [],
         nextSeg = [],
-        x1, y1, x2, y2, x, y;
-    return [curveSegments[0]].concat(curveSegments.slice(1,segsCount).map(function (p,i){
-      ci = segsCount - 1 - i;
-      ni = ci - 1 < 0 ? segsCount : ci - 1;
-      currentSeg = clonePath(curveSegments[ci]);
-      nextSeg = clonePath(curveSegments[ni]);
-      x = nextSeg[nextSeg.length - 2];
-      y = nextSeg[nextSeg.length - 1];
-      x1 = currentSeg[3]; y1 = currentSeg[4];
-      x2 = currentSeg[1]; y2 = currentSeg[2];
-      return [p[0],x1,y1,x2,y2,x,y]
-    }))
+        x1, y1, x2, y2, x, y,
+        curveOnly = curveSegments.slice(1),
+        rotatedCurve = curveOnly.map(function (p,i){
+          ci = curveCount - i;
+          ni = ci - 1 < 0 ? curveCount : ci - 1;
+          currentSeg = curveOnly[ci];
+          nextSeg = curveOnly[ni];
+          x = nextSeg[nextSeg.length - 2];
+          y = nextSeg[nextSeg.length - 1];
+          x1 = currentSeg[3]; y1 = currentSeg[4];
+          x2 = currentSeg[1]; y2 = currentSeg[2];
+          return [p[0],x1,y1,x2,y2,x,y]
+        });
+    return [['M',rotatedCurve[curveCount][5],rotatedCurve[curveCount][6]]].concat(rotatedCurve)
   }
 
   function reversePath(pathArray){
-    var curveSegments = pathToCurve(pathArray),
-        isClosed = pathToAbsolute(pathArray).isClosed,
+    var isClosed = pathToAbsolute(pathArray).some(function (x){ return x[0].toUpperCase() === 'Z'; }),
+        pathCurveArray = reverseCurve(pathToCurve(pathArray)),
         result = [],
         pathCommand,
         x1, y1, x2, y2, x, y;
-    return reverseCurve(curveSegments).map(function (p,i){
-      x1 = p[1]; y1 = p[2];
-      x2 = p[3]; y2 = p[4];
+    return pathCurveArray.map(function (p,i){
       x  = p[p.length - 2];
       y  = p[p.length - 1];
+      x1 = p[1]; y1 = p[2];
+      x2 = p[3]; y2 = p[4];
       if (p.length === 3) {
         pathCommand = 'M';
       } else if (y1===y2===y) {
@@ -631,55 +798,58 @@
       }
       return result
     })
-    .concat(isClosed && [['Z']])
+    .concat(isClosed ? [['Z']] : [])
   }
 
-  function splitPath(str) {
-    return str
+  function splitPath(pathString) {
+    return pathString
       .replace( /(m|M)/g, "|$1")
       .split('|')
       .map(function (s){ return s.trim(); })
       .filter(function (s){ return s; })
   }
 
+  function optimizePath(pathArray){
+    var absolutePath = pathArray.isAbsolute ? clonePath(pathArray) : pathToAbsolute(pathArray),
+        relativePath = pathToRelative(pathArray),
+        absoluteString = pathToString(clonePath(absolutePath)),
+        relativeString = pathToString(clonePath(relativePath));
+    return absoluteString.length < relativeString.length ? clonePath(absolutePath) : clonePath(relativePath)
+  }
+
   var SVGPathCommander = function SVGPathCommander(pathValue){
-    this.original = pathValue;
-    this.pathKey = "path-" + (Math.floor((Math.random() * 9999)));
-    this.pathCache = {};
-    this.segments = parsePathString(pathValue);
-    this.pathValue = pathToString(clonePath(this.segments));
+    var path = parsePathString(pathValue);
+    this.segments = clonePath(path);
+    this.pathValue = pathValue;
     return this
   };
   SVGPathCommander.prototype.toAbsolute = function toAbsolute (){
     var path = pathToAbsolute(this.segments);
     this.segments = clonePath(path);
-    this.pathValue = pathToString(clonePath(path));
     return this
   };
   SVGPathCommander.prototype.toRelative = function toRelative (){
     var path = pathToRelative(this.segments);
     this.segments = clonePath(path);
-    this.pathValue = pathToString(clonePath(path));
     return this
   };
-  SVGPathCommander.prototype.toCurve = function toCurve (){
-    var path = pathToCurve(this.segments);
-    this.segments = clonePath(path);
-    this.pathValue = pathToString(clonePath(path));
-    return this
-  };
-  SVGPathCommander.prototype.reverse = function reverse (){
+  SVGPathCommander.prototype.reverse = function reverse (onlySubpath){
     var multiPath = splitPath(this.pathValue),
         hasSubpath = multiPath.length > 1,
-        absoluteMultiPath = hasSubpath && splitPath(pathToString(pathToAbsolute(this.segments))).map(function (x){ return reversePath(x); }),
+        absoluteMultiPath = hasSubpath && splitPath(pathToString(pathToAbsolute(this.segments))).map(function (x,i){
+          return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
+        }),
         path = hasSubpath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments);
-    !('isClosed' in path) && setPathSpecs(path);
     this.segments = clonePath(path);
-    this.pathValue = pathToString(clonePath(path));
+    return this
+  };
+  SVGPathCommander.prototype.optimize = function optimize (){
+    var path = optimizePath(this.segments);
+    this.segments = clonePath(path);
     return this
   };
   SVGPathCommander.prototype.toString = function toString (){
-    return this.pathValue
+    return pathToString(this.segments)
   };
 
   function getArea(v) {
