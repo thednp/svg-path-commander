@@ -1,6 +1,5 @@
 import clonePath from '../util/clonePath.js'
 import roundPath from '../util/roundPath.js'
-// import setPathSpecs from '../util/setPathSpecs.js';
 import SVGPathArray from '../util/svgPathArray.js'
 
 
@@ -97,7 +96,6 @@ function scanParam(state) {
 
   // This logic is shamelessly borrowed from Esprima
   // https://github.com/ariya/esprimas
-  //
   if (!isDigit(ch) && ch !== 0x2E/* . */) {
     state.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
     return;
@@ -205,7 +203,6 @@ function scanSegment(state) {
   state.data = [];
 
   if (!need_params) {
-    state.isClosed = 1
     // Z
     finalizeSegment(state);
     return;
@@ -251,18 +248,11 @@ function scanSegment(state) {
   finalizeSegment(state);
 }
 
-
-/* Returns array of segments:
- *
- * [
- *   [ command, coord1, coord2, ... ]
- * ]
- */
+// Returns array of segments:
 export default function(pathString) {
 
   if ( Array.isArray(pathString) ) {
     return clonePath(pathString)
-    // return pathString
   }
 
   let state = new SVGPathArray(pathString), max = state.max;
@@ -283,18 +273,6 @@ export default function(pathString) {
     } else {
       state.segments[0][0] = 'M';
     }
-    // state.segments = state.segments
   }
-
-  // return state.err.length ? state.err : {
-  //   isClosed: state.isClosed,
-  //   // segments: roundPath(state.segments),
-  //   segments: state.segments,
-  //   pathValue: pathString
-  // }
-  // console.log(state)
   return roundPath(state.segments)
-  // return state.segments
-  // return state
-
 }

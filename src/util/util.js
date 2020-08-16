@@ -11,6 +11,8 @@ import l2c from './l2c.js'
 import q2c from './q2c.js'
 import rotateVector from './rotateVector.js'
 import splitPath from './splitPath.js'
+import roundPath from './roundPath.js'
+
 import SVGPCOptions from '../options/options.js'
 
 import pathToAbsolute from '../convert/pathToAbsolute.js'
@@ -37,6 +39,7 @@ export default {
   q2c,
   rotateVector,
   splitPath,
+  roundPath,
   pathToAbsolute,
   pathToRelative,
   pathToCurve,
