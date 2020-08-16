@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.1-c (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.1-d (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -22,8 +22,6 @@ function roundPath(pathArray) {
 
 function SVGPathArray(pathString){
   this.segments = [];
-  this.isClosed = 0;
-  this.isAbsolute = 0;
   this.pathValue = pathString;
   this.max = pathString.length;
   this.index  = 0;
@@ -193,7 +191,6 @@ function scanSegment(state) {
   skipSpaces(state);
   state.data = [];
   if (!need_params) {
-    state.isClosed = 1;
     finalizeSegment(state);
     return;
   }
@@ -761,12 +758,12 @@ function reversePath(pathArray){
     x2 = p[3]; y2 = p[4];
     if (p.length === 3) {
       pathCommand = 'M';
+    } else if ( x2===x && y2===y ) {
+      pathCommand = 'L';
     } else if (y1===y2===y) {
       pathCommand = 'H';
     } else if (x1===x2===x) {
       pathCommand = 'V';
-    } else if ( x2===x && y2===y ) {
-      pathCommand = 'L';
     } else {
       pathCommand = p[0];
     }
@@ -804,11 +801,9 @@ function splitPath(pathString) {
 }
 
 function optimizePath(pathArray){
-  var absolutePath = pathArray.isAbsolute ? clonePath(pathArray) : pathToAbsolute(pathArray),
-      relativePath = pathToRelative(pathArray),
-      absoluteString = pathToString(clonePath(absolutePath)),
-      relativeString = pathToString(clonePath(relativePath));
-  return absoluteString.length < relativeString.length ? clonePath(absolutePath) : clonePath(relativePath)
+  var absolutePath = pathToAbsolute(pathArray),
+      relativePath = pathToRelative(pathArray);
+  return absolutePath.map(function (x,i) { return i ? (x.join('').length < relativePath[i].join('').length ? x : relativePath[i]) : x; } )
 }
 
 var SVGPathCommander = function SVGPathCommander(pathValue){
@@ -834,6 +829,7 @@ SVGPathCommander.prototype.reverse = function reverse (onlySubpath){
         return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
       }),
       path = hasSubpath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments);
+  console.log(pathToAbsolute(this.pathValue),path);
   this.segments = clonePath(path);
   return this
 };
@@ -887,6 +883,7 @@ var util = {
   q2c: q2c,
   rotateVector: rotateVector,
   splitPath: splitPath,
+  roundPath: roundPath,
   pathToAbsolute: pathToAbsolute,
   pathToRelative: pathToRelative,
   pathToCurve: pathToCurve,

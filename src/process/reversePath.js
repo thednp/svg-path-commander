@@ -17,12 +17,12 @@ export default function(pathArray){
 
     if (p.length === 3) {
       pathCommand = 'M'
+    } else if ( x2===x && y2===y ) {
+      pathCommand = 'L'
     } else if (y1===y2===y) {
       pathCommand = 'H'
     } else if (x1===x2===x) {
       pathCommand = 'V'
-    } else if ( x2===x && y2===y ) {
-      pathCommand = 'L'
     } else {
       pathCommand = p[0]
     }

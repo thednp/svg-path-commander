@@ -13,7 +13,6 @@ import optimizePath from '../util/optimizePath.js'
 export default class SVGPathCommander {
   constructor(pathValue){
     let path = parsePathString(pathValue)
-
     this.segments = clonePath(path)
     this.pathValue = pathValue
     return this
@@ -25,7 +24,6 @@ export default class SVGPathCommander {
   }
   toRelative(){
     let path = pathToRelative(this.segments)
-
     this.segments = clonePath(path)
     return this
   }
@@ -36,20 +34,16 @@ export default class SVGPathCommander {
           return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
         }),
         path = hasSubpath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments)
-
-    // console.log(path)
-    
+    console.log(pathToAbsolute(this.pathValue),path)
     this.segments = clonePath(path)
     return this
   }
   optimize(){
     let path = optimizePath(this.segments)
-
     this.segments = clonePath(path)
     return this
   }
   toString(){
-    // return (this.pathValue = pathToString(this.segments))
     return pathToString(this.segments)
   }
 }

@@ -118,7 +118,7 @@
     function toRev() { // reverse coordinates
       pathValue = document.getElementById('t1').value || pathValue
 
-      var revPath = new SVGPathCommander( pathValue ).reverse().toString();
+      var revPath = new SVGPathCommander( pathValue ).reverse().optimize().toString();
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
 
       document.getElementById('t2').value = revPath;
@@ -127,7 +127,7 @@
     function toRevSubs() { // reverse subpath coordinates
       pathValue = document.getElementById('t1').value || pathValue
 
-      var revPath = new SVGPathCommander( pathValue ).reverse(1).toString();
+      var revPath = new SVGPathCommander( pathValue ).reverse(1).optimize().toString();
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
 
       document.getElementById('t2').value = revPath;

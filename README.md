@@ -1,7 +1,7 @@
 # SVGPathCommander
 A modern set of ES6/ES7 JavaScript tools for *SVGPathElement* description attribute. This library was developed to try and solve over-optimized `arcTo` segment strings and provide a solid solution to parse, convert and reverse *SVGPathElement* draw direction, but keep in mind it's still under development.
 
-This library is made possible thanks to [Raphael.js](https://dmitrybaranovskiy.github.io/raphael/), [Paper.js](https://github.com/paperjs/paper.js/) and is used by [KUTE.js](https://github.com/thednp/kute.js) for SVG path morphing.
+This library is made possible thanks to [Raphael.js](https://dmitrybaranovskiy.github.io/raphael/), [SvgPath](https://github.com/fontello/svgpath), [Paper.js](https://github.com/paperjs/paper.js/) and is used by [KUTE.js](https://github.com/thednp/kute.js) for SVG path morphing.
 
 [![NPM Version](https://img.shields.io/npm/v/svg-path-commander.svg?style=flat-square)](https://www.npmjs.com/package/svg-path-commander)
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg?style=flat-square)](http://npm-stat.com/charts.html?svg-path-commander)
@@ -15,7 +15,7 @@ npm install svg-path-commander
 
 # CDN
 
-Find SVGPathCommander on [jsDelivr](https://www.jsdelivr.com/package/npm/svg-path-commander) or [cdnjs](https://cdnjs.com/libraries/svg-path-commander)
+Find SVGPathCommander on [jsDelivr](https://www.jsdelivr.com/package/npm/svg-path-commander).
 
 # Usage
 
@@ -30,8 +30,7 @@ let pathString = 'M0 0l50 0l50 50z';
 // initializing
 let mySVGPathCommanderInit = new SVGPathCommander(pathString);
 /* returns => {
-  segments: [ ['M',0,0], ['l',50,0], ['l',50,50], ['z'] ],
-  pathValue: 'M0 0l50 0l50 50z'
+  segments: [ ['M',0,0], ['l',50,0], ['l',50,50], ['z'] ]
 }
 */
 
@@ -61,9 +60,9 @@ In some cases, you can also import only the tool you need, without importing the
 
 ```js
 import pathToAbsolute from 'svg-path-commander/src/convert/pathToAbsolute.js'
-import toString from 'svg-path-commander/src/convert/toString.js'
+import pathToString from 'svg-path-commander/src/convert/pathToString.js'
 
-let mySVGAbsolutePath = toString(pathToAbsolute(pathString))
+let mySVGAbsolutePath = pathToString(pathToAbsolute(pathString))
 ```
 
 # Some Technical Considerations
