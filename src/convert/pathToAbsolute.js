@@ -2,6 +2,7 @@ import parsePathString from '../process/parsePathString.js'
 import catmullRom2bezier from '../util/catmullRom2bezier.js'
 import ellipsePath from '../util/ellipsePath.js'
 import roundPath from '../util/roundPath.js'
+import clonePath from '../util/clonePath.js'
 
 export default function(pathArray) {
   pathArray = parsePathString(pathArray)

@@ -1,19 +1,19 @@
-import pathToCurve from '../convert/pathToCurve.js';
 import pathToAbsolute from '../convert/pathToAbsolute.js';
 import reverseCurve from './reverseCurve.js';
+import pathToCurve from '../convert/pathToCurve.js';
 
 export default function(pathArray){
-  let curveSegments = pathToCurve(pathArray),
-      isClosed = pathToAbsolute(pathArray).isClosed,
+  let isClosed = pathToAbsolute(pathArray).some(x=>x[0].toUpperCase() === 'Z'),
+      pathCurveArray = reverseCurve(pathToCurve(pathArray)),
       result = [],
       pathCommand,
       x1, y1, x2, y2, x, y
 
-  return reverseCurve(curveSegments).map((p,i)=>{
-    x1 = p[1]; y1 = p[2]; 
-    x2 = p[3]; y2 = p[4]; 
+  return pathCurveArray.map((p,i)=>{
     x  = p[p.length - 2]; 
     y  = p[p.length - 1];
+    x1 = p[1]; y1 = p[2]; 
+    x2 = p[3]; y2 = p[4]; 
 
     if (p.length === 3) {
       pathCommand = 'M'
@@ -48,5 +48,6 @@ export default function(pathArray){
         result = [pathCommand,x1,y1,x2,y2,x,y]
     }
     return result
-  }).concat(isClosed && [['Z']])
+  })
+  .concat(isClosed ? [['Z']] : [])
 }

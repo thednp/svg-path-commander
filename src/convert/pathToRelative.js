@@ -2,7 +2,7 @@ import parsePathString from '../process/parsePathString.js'
 import roundPath from '../util/roundPath.js'
 
 export default function (pathArray) {
-  pathArray = parsePathString(pathArray);
+  pathArray = parsePathString(pathArray)
 
   let res = [], x = 0, y = 0, mx = 0, my = 0, start = 0, ii = pathArray.length;
 
@@ -68,5 +68,5 @@ export default function (pathArray) {
         y += res[i][len - 1];
     }
   }
-  return roundPath(res);
+  return roundPath(res,path.isClosed)
 }

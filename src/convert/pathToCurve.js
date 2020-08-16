@@ -3,6 +3,7 @@ import processPath from '../process/processPath.js'
 import fixM from '../util/fixM.js'
 import fixArc from '../util/fixArc.js'
 import roundPath from '../util/roundPath.js'
+import clonePath from '../util/clonePath.js'
 
 export default function(path, path2) {
   let p = pathToAbsolute(path), // holder for previous path command of original path
@@ -69,6 +70,5 @@ export default function(path, path2) {
     attrs2.x = p2 && seg2[seg2len - 2];
     attrs2.y = p2 && seg2[seg2len - 1];
   }
-
   return p2 ? [roundPath(p), roundPath(p2)] : roundPath(p);
 }
