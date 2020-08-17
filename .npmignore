@@ -1,4 +1,4 @@
 node_modules/
 .gitignore
-demo.html
+index.html
 package-lock.json

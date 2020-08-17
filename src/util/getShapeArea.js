@@ -4,10 +4,9 @@
 import getArea from './getArea.js'
 
 export default function getShapeArea(curveArray) {
-  let area = 0
-  curveArray.map((seg,i)=>{
-    let previous = curveArray[i === 0 ? curveArray.length-1 : i-1];
-    area += getArea(previous.slice(previous.length-2).concat(seg.slice(1)));
-  })
-  return area;
+  let cv = curveArray.slice(1), previous;
+  return cv.map(function (seg,i){
+    previous = cv[i === 0 ? cv.length-1 : i-1];
+    return getArea(previous.slice(previous.length-2).concat(seg.slice(1)))
+  }).reduce((a, b) => a + b, 0)
 }

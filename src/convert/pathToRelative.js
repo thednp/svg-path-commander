@@ -68,5 +68,5 @@ export default function (pathArray) {
         y += res[i][len - 1];
     }
   }
-  return roundPath(res,path.isClosed)
+  return roundPath(res)
 }
