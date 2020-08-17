@@ -64,6 +64,10 @@
 
     svg { max-height: 50%; }
 
+    @media (min-width: 1200px){
+      svg { max-width: 60%; }
+    }
+
     @media (min-width:768px){
       body {
         padding: 3rem 5rem; margin: 0;
@@ -81,6 +85,7 @@
         padding-left: 3rem;
       }
       .text-right { text-align: right;}
+      .text-center { text-align: center;}
     }
   </style>
 </head>
@@ -124,9 +129,11 @@
 
     <div class="col col-lg">
       <p><b>Test</b></p>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-        <path d="M0 0L0 0" fill="cyan">
-      </svg>
+      <div class="text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+          <path d="M0 0L0 0" fill="cyan">
+        </svg>
+      </div>
     </div>
   </div>
 
