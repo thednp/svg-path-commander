@@ -12,7 +12,7 @@
   <script src="./dist/svg-path-commander.js"></script>
   <style>
     body {
-      padding: 3rem 5rem; margin: 0;
+      padding: 1rem 2rem; margin: 0;
       background: #222; color: #999; 
       font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
     }
@@ -20,46 +20,81 @@
       border-bottom: 1px solid #555;
       margin-bottom: 0.75rem;
       padding-bottom: 0.75rem;
+      font-size: calc(1.5rem + .9vw);
     }
     h1,h2,h3,h4,h5,b {color: #fff;}
+    h1 small,h2 small,h3 small,h4 small,h5 small {
+      color: #ddd;
+      display:inline-block; 
+      font-weight: normal; font-size: 75%
+    }
     .row {
       display: flex;
       flex: 1 0 100%;
       flex-wrap: wrap;
-      /* margin-top: 1.5rem; */
-      margin-right: -3rem;
-      margin-left: -3rem;
+      margin-right: -1rem;
+      margin-left: -1rem;
     }
     .col {
-      /* flex: 1 0 0%;
-      flex-shrink: 0; */
       width: 100%;
       max-width: 100%;
-      padding-right: 3rem;
-      padding-left: 3rem;
+      padding-right: 1rem;
+      padding-left: 1rem;
     }
+    .form-input { 
+      background: #333; border: 1px solid #555; color: #eee; 
+      width: calc(100% - 1.5rem) !important; padding: 0.5rem 0.75rem; line-height: 1.5 
+    }
+    button { 
+      background: #222; 
+      border: 1px solid #555; color: #777; 
+      padding: 0.25rem 0.75rem; margin: 0 0.5rem 0.5rem 0 
+    }
+    button:hover, button:focus { 
+      outline:none; 
+      background: #eee; border-color: #fff; color: #222
+    }
+    a { color: #eee; text-decoration: none;}
+    a:hover { color: cyan; text-decoration: none;}
+
+    .copy {font-size: 12px;}
+
+    .p-0 {padding: 0 !important}
+    .m-0 {margin: 0 !important}
+
+    svg { max-height: 50%; }
+
     @media (min-width:768px){
+      body {
+        padding: 3rem 5rem; margin: 0;
+      }
+      .row-lg { 
+        margin-right: -3rem;
+        margin-left: -3rem;
+       }
       .col {
         flex: 1 0 0%;
         flex-shrink: 0;
       }
+      .col-lg {
+        padding-right: 3rem;
+        padding-left: 3rem;
+      }
+      .text-right { text-align: right;}
     }
-    .form-input { background: #333; border: 1px solid #555; color: #eee; width: 100% !important; padding: 0.5rem 0.75rem; line-height: 1.5 }
-    button { background: #222; border: 1px solid #555; color: #777; padding: 0.25rem 0.75rem; margin: 0 0.5rem 0.5rem 0 }
-    button:hover, button:focus { outline:none; background: #eee; border-color: #fff; color: #222; }
   </style>
 </head>
 <body>
-  <h1>SVGPathCommander <small></small></h1>
-  <div class="row">
-    <div class="col">
+  <h1><a href="https://github.com/thednp/svg-path-commander">SVGPathCommander <small>modern SVG path processing tool</small></a></h1>
+  <div class="row row-lg">
+    <div class="col col-lg">
       <p><b>SVG viewBox</b></p>
       <!-- <input type="text" class="form-input" id="i1" placeholder="Type in viewBox value" value="65 65 150 150" /> -->
       <input type="text" class="form-input" id="i1" placeholder="Type in viewBox value" value="0 0 16 16" />
       
       <p><b>PathValue Input</b></p>
       <!-- <textarea class="form-input" id="t1" style="height:40px" placeholder="Type in d value">M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2zm7.5 11h-4a.5.5 0 01-.5-.5v-4a.5.5 0 011 0v2.793l4.146-4.147a.5.5 0 01.708.708L6.707 10H9.5a.5.5 0 010 1z</textarea> -->
-      <textarea class="form-input" id="t1" style="height:40px" placeholder="Type in d value">M5.5.5A.5.5 0 016 0h4a.5.5 0 010 1H9v1.07a7.002 7.002 0 013.537 12.26l.817.816a.5.5 0 01-.708.708l-.924-.925A6.967 6.967 0 018 16a6.967 6.967 0 01-3.722-1.07l-.924.924a.5.5 0 01-.708-.708l.817-.816A7.002 7.002 0 017 2.07V1H5.999a.5.5 0 01-.5-.5zM.86 5.387A2.5 2.5 0 114.387 1.86 8.035 8.035 0 00.86 5.387zM13.5 1c-.753 0-1.429.333-1.887.86a8.035 8.035 0 013.527 3.527A2.5 2.5 0 0013.5 1zm-5 4a.5.5 0 00-1 0v3.882l-1.447 2.894a.5.5 0 10.894.448l1.5-3A.5.5 0 008.5 9V5z</textarea>
+      <textarea class="form-input" id="t1" style="min-height:150px" placeholder="Type in d value">M5.5.5A.5.5 0 016 0h4a.5.5 0 010 1H9v1.07a7.002 7.002 0 013.537 12.26l.817.816a.5.5 0 01-.708.708l-.924-.925A6.967 6.967 0 018 16a6.967 6.967 0 01-3.722-1.07l-.924.924a.5.5 0 01-.708-.708l.817-.816A7.002 7.002 0 017 2.07V1H5.999a.5.5 0 01-.5-.5zM.86 5.387A2.5 2.5 0 114.387 1.86 8.035 8.035 0 00.86 5.387zM13.5 1c-.753 0-1.429.333-1.887.86a8.035 8.035 0 013.527 3.527A2.5 2.5 0 0013.5 1zm-5 4a.5.5 0 00-1 0v3.882l-1.447 2.894a.5.5 0 10.894.448l1.5-3A.5.5 0 008.5 9V5z</textarea>
     
       <p>
         <button type="button" onclick="parse()">Init</button>
@@ -69,12 +104,25 @@
         <button type="button" onclick="toRevSubs()">Reverse Subpath</button>
         <button type="button" onclick="toOpt()">Optimize</button>
       </p>
-    
+
       <p><b>PathValue Output</b></p>
-      <textarea class="form-input" id="t2" style="height:150px"></textarea>
+      <textarea class="form-input" id="t2" style="min-height:150px"></textarea>
+
+      <div class="row m-0 copy">
+        <div class="col p-0" style="min-width: 57%;">
+          <p>
+            <a href="https://github.com/thednp/svg-path-commander">Gtihub</a> | 
+            <a href="https://www.npmjs.com/package/svg-path-commander">npm</a> |
+            <a href="https://www.jsdelivr.com/package/npm/svg-path-commander">cdn</a>
+          </p>
+        </div>
+        <div class="col p-0">
+          <p class="text-right">2020 &copy; <a href="https://github.com/thednp">thednp</a></p>
+        </div>
+      </div>
     </div>
 
-    <div class="col">
+    <div class="col col-lg">
       <p><b>Test</b></p>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
         <path d="M0 0L0 0" fill="cyan">
@@ -89,7 +137,7 @@
         path = svg.children[0],
         pathValue = document.getElementById('t1').value;
 
-    function parse() { // To absolute coordinates
+    function parse() { // Init
       pathValue = document.getElementById('t1').value || pathValue
       var pv = new SVGPathCommander( pathValue ).toString();
 

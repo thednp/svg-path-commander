@@ -3,7 +3,7 @@ export default function(pathArray) {
     if (typeof c === 'string') {
       return c
     } else {
-      return c.shift() + c.join(',') 
+      return c.shift() + c.join(' ') 
     }
-  }).join(' ')
+  }).join('')
 }

@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.1-e (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.1-h (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -33,48 +33,27 @@ function SVGPathArray(pathString){
 }
 
 var paramCounts = { a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0 };
-function isSpace(ch) {
-  var specialSpaces = [
-    0x1680, 0x180E, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006,
-    0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000, 0xFEFF ];
-  return (ch === 0x0A) || (ch === 0x0D) || (ch === 0x2028) || (ch === 0x2029) ||
-    (ch === 0x20) || (ch === 0x09) || (ch === 0x0B) || (ch === 0x0C) || (ch === 0xA0) ||
-    (ch >= 0x1680 && specialSpaces.indexOf(ch) >= 0);
-}
-function isCommand(code) {
-  switch (code | 0x20) {
-    case 0x6D:
-    case 0x7A:
-    case 0x6C:
-    case 0x68:
-    case 0x76:
-    case 0x63:
-    case 0x73:
-    case 0x71:
-    case 0x74:
-    case 0x61:
-    case 0x72:
-      return true;
+
+function finalizeSegment(state) {
+  var cmd = state.pathValue[state.segmentStart], cmdLC = cmd.toLowerCase(), params = state.data;
+  if (cmdLC === 'm' && params.length > 2) {
+    state.segments.push([ cmd, params[0], params[1] ]);
+    params = params.slice(2);
+    cmdLC = 'l';
+    cmd = (cmd === 'm') ? 'l' : 'L';
   }
-  return false;
-}
-function isArc(code) {
-  return (code | 0x20) === 0x61;
-}
-function isDigit(code) {
-  return (code >= 48 && code <= 57);
-}
-function isDigitStart(code) {
-  return (code >= 48 && code <= 57) ||
-          code === 0x2B ||
-          code === 0x2D ||
-          code === 0x2E;
-}
-function skipSpaces(state) {
-  while (state.index < state.max && isSpace(state.pathValue.charCodeAt(state.index))) {
-    state.index++;
+  if (cmdLC === 'r') {
+    state.segments.push([ cmd ].concat(params));
+  } else {
+    while (params.length >= paramCounts[cmdLC]) {
+      state.segments.push([ cmd ].concat(params.splice(0, paramCounts[cmdLC])));
+      if (!paramCounts[cmdLC]) {
+        break;
+      }
+    }
   }
 }
+
 function scanFlag(state) {
   var ch = state.pathValue.charCodeAt(state.index);
   if (ch === 0x30) {
@@ -89,6 +68,11 @@ function scanFlag(state) {
   }
   state.err = 'SvgPath: arc flag can be 0 or 1 only (at pos ' + state.index + ')';
 }
+
+function isDigit(code) {
+  return (code >= 48 && code <= 57);
+}
+
 function scanParam(state) {
   var start = state.index,
       index = start,
@@ -156,32 +140,57 @@ function scanParam(state) {
     }
   }
   state.index = index;
-  state.param = parseFloat(state.pathValue.slice(start, index)) + 0.0;
+  state.param = +state.pathValue.slice(start, index);
 }
-function finalizeSegment(state) {
-  var cmd = state.pathValue[state.segmentStart], cmdLC = cmd.toLowerCase(), params = state.data;
-  if (cmdLC === 'm' && params.length > 2) {
-    state.segments.push([ cmd, params[0], params[1] ]);
-    params = params.slice(2);
-    cmdLC = 'l';
-    cmd = (cmd === 'm') ? 'l' : 'L';
+
+function isCommand(code) {
+  switch (code | 0x20) {
+    case 0x6D:
+    case 0x7A:
+    case 0x6C:
+    case 0x68:
+    case 0x76:
+    case 0x63:
+    case 0x73:
+    case 0x71:
+    case 0x74:
+    case 0x61:
+    case 0x72:
+      return true;
   }
-  if (cmdLC === 'r') {
-    state.segments.push([ cmd ].concat(params));
-  } else {
-    while (params.length >= paramCounts[cmdLC]) {
-      state.segments.push([ cmd ].concat(params.splice(0, paramCounts[cmdLC])));
-      if (!paramCounts[cmdLC]) {
-        break;
-      }
-    }
+  return false;
+}
+
+function isDigitStart(code) {
+  return (code >= 48 && code <= 57) ||
+          code === 0x2B ||
+          code === 0x2D ||
+          code === 0x2E;
+}
+
+function isArc(code) {
+  return (code | 0x20) === 0x61;
+}
+
+function isSpace(ch) {
+  var specialSpaces = [
+    0x1680, 0x180E, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006,
+    0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000, 0xFEFF ];
+  return (ch === 0x0A) || (ch === 0x0D) || (ch === 0x2028) || (ch === 0x2029) ||
+    (ch === 0x20) || (ch === 0x09) || (ch === 0x0B) || (ch === 0x0C) || (ch === 0xA0) ||
+    (ch >= 0x1680 && specialSpaces.indexOf(ch) >= 0);
+}
+
+function skipSpaces(state) {
+  while (state.index < state.max && isSpace(state.pathValue.charCodeAt(state.index))) {
+    state.index++;
   }
 }
+
 function scanSegment(state) {
-  var max = state.max, cmdCode, is_arc, comma_found, need_params, i;
+  var max = state.max, cmdCode, comma_found, need_params, i;
   state.segmentStart = state.index;
   cmdCode = state.pathValue.charCodeAt(state.index);
-  is_arc = isArc(cmdCode);
   if (!isCommand(cmdCode)) {
     state.err = 'SvgPath: bad command ' + state.pathValue[state.index] + ' (at pos ' + state.index + ')';
     return;
@@ -197,7 +206,7 @@ function scanSegment(state) {
   comma_found = false;
   for (;;) {
     for (i = need_params; i > 0; i--) {
-      if (is_arc && (i === 3 || i === 4)) { scanFlag(state); }
+      if (isArc(cmdCode) && (i === 3 || i === 4)) { scanFlag(state); }
       else { scanParam(state); }
       if (state.err.length) {
         return;
@@ -223,6 +232,7 @@ function scanSegment(state) {
   }
   finalizeSegment(state);
 }
+
 function parsePathString(pathString) {
   if ( Array.isArray(pathString) ) {
     return clonePath(pathString)
@@ -331,7 +341,7 @@ function pathToAbsolute(pathArray) {
     res[0] = ["M", x, y];
   }
   var loop = function ( i ) {
-    var r = (void 0), pa = pathArray[i], pa0 = pa[0];
+    var r = [], pa = pathArray[i], pa0 = pa[0], dots = [];
     res.push(r = []);
     if (pa0 !== pa0.toUpperCase()) {
       r[0] = pa0.toUpperCase();
@@ -352,19 +362,19 @@ function pathToAbsolute(pathArray) {
           r[1] = +pa[1] + x;
           break;
         case "R":
-          var dots$1 = [x, y].concat(pa.slice(1));
-          for (var j = 2, jj = dots$1.length; j < jj; j++) {
-            dots$1[j] = +dots$1[j] + x;
-            dots$1[++j] = +dots$1[j] + y;
+          dots = [x, y].concat(pa.slice(1));
+          for (var j = 2, jj = dots.length; j < jj; j++) {
+            dots[j] = +dots[j] + x;
+            dots[++j] = +dots[j] + y;
           }
           res.pop();
-          res = res.concat(catmullRom2bezier(dots$1, crz));
+          res = res.concat(catmullRom2bezier(dots, crz));
           break;
         case "O":
           res.pop();
-          dots$1 = ellipsePath(x, y, +pa[1], +pa[2]);
-          dots$1.push(dots$1[0]);
-          res = res.concat(dots$1);
+          dots = ellipsePath(x, y, +pa[1], +pa[2]);
+          dots.push(dots[0]);
+          res = res.concat(dots);
           break;
         case "U":
           res.pop();
@@ -375,8 +385,8 @@ function pathToAbsolute(pathArray) {
           mx = +pa[1] + x;
           my = +pa[2] + y;
         default:
-          for (var j$1 = 1, jj$1 = pa.length; j$1 < jj$1; j$1++) {
-            r[j$1] = +pa[j$1] + ((j$1 % 2) ? x : y);
+          for (var k = 1, kk = pa.length; k < kk; k++) {
+            r[k] = +pa[k] + ((k % 2) ? x : y);
           }
       }
     } else if (pa0 === "R") {
@@ -598,7 +608,7 @@ function processPath(path, d, pcom) {
       path = ["C"].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
       break;
     case "S":
-      if (pcom == "C" || pcom == "S") {
+      if (pcom === "C" || pcom === "S") {
         nx = d.x * 2 - d.bx;
         ny = d.y * 2 - d.by;
       }
@@ -609,7 +619,7 @@ function processPath(path, d, pcom) {
       path = ["C", nx, ny].concat(path.slice(1));
       break;
     case "T":
-      if (pcom == "Q" || pcom == "T") {
+      if (pcom === "Q" || pcom === "T") {
         d.qx = d.x * 2 - d.qx;
         d.qy = d.y * 2 - d.qy;
       }
@@ -718,9 +728,9 @@ function pathToString(pathArray) {
     if (typeof c === 'string') {
       return c
     } else {
-      return c.shift() + c.join(',')
+      return c.shift() + c.join(' ')
     }
-  }).join(' ')
+  }).join('')
 }
 
 function reverseCurve(pathCurveArray){
@@ -869,26 +879,17 @@ function getDrawDirection(curveArray) {
 }
 
 var util = {
-  a2c: a2c,
-  catmullRom2bezier: catmullRom2bezier,
   clonePath: clonePath,
-  ellipsePath: ellipsePath,
-  fixArc: fixArc,
-  fixM: fixM,
-  getArea: getArea,
   getDrawDirection: getDrawDirection,
   getShapeArea: getShapeArea,
-  l2c: l2c,
-  q2c: q2c,
-  rotateVector: rotateVector,
   splitPath: splitPath,
   roundPath: roundPath,
+  optimizePath: optimizePath,
   pathToAbsolute: pathToAbsolute,
   pathToRelative: pathToRelative,
   pathToCurve: pathToCurve,
   pathToString: pathToString,
   parsePathString: parsePathString,
-  processPath: processPath,
   reverseCurve: reverseCurve,
   reversePath: reversePath,
   options: SVGPCOps

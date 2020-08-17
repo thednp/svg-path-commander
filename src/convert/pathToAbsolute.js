@@ -28,7 +28,7 @@ export default function(pathArray) {
   }
 
   for (let i = start; i < ii; i++) {
-    let r, pa = pathArray[i], pa0 = pa[0];
+    let r = [], pa = pathArray[i], pa0 = pa[0], dots = [];
     res.push(r = []);
 
     if (pa0 !== pa0.toUpperCase()) {
@@ -50,7 +50,7 @@ export default function(pathArray) {
           r[1] = +pa[1] + x;
           break;
         case "R":
-          let dots = [x, y].concat(pa.slice(1));
+          dots = [x, y].concat(pa.slice(1));
           for (let j = 2, jj = dots.length; j < jj; j++) {
             dots[j] = +dots[j] + x;
             dots[++j] = +dots[j] + y;
@@ -73,8 +73,8 @@ export default function(pathArray) {
           mx = +pa[1] + x;
           my = +pa[2] + y;
         default:
-          for (let j = 1, jj = pa.length; j < jj; j++) {
-            r[j] = +pa[j] + ((j % 2) ? x : y);
+          for (let k = 1, kk = pa.length; k < kk; k++) {
+            r[k] = +pa[k] + ((k % 2) ? x : y);
           }
       }
     } else if (pa0 === "R") {

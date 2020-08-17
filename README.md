@@ -51,7 +51,9 @@ mySVGPathCommanderInit.reverse(1).toString()
 mySVGPathCommanderInit.optimize().toString()
 
 // or return directly what you need
-let mySVGAbsolutePath = new SVGPathCommander(pathString).toAbsolute().toString()
+let mySVGAbsolutePath = new SVGPathCommander(pathString).reverse(1)
+                                                        .optimize()
+                                                        .toString()
 ```
 
 # Advanced Usage
@@ -65,24 +67,30 @@ import pathToString from 'svg-path-commander/src/convert/pathToString.js'
 let mySVGAbsolutePath = pathToString(pathToAbsolute(pathString))
 ```
 
-# Some Technical Considerations
-* the `reverse()` method may not return the same number of path commands as the input path when `arcTo` path commands have `largeArcFlag` set to 1; this method will split the original path string into multiple sub-path strings, reverse the draw direction of each sub-path and return a new *pathArray* instance;
-* all tools processing path segments will always round float values to 3 decimals, but only float numbers; EG: 0.5666 => 0.566, 0.50 => 0.5;
-
 # Tools
-Type in "SVGPathCommander." in your browser console and have a look, there are a wide range of tools to play with. Here are some notable utilities:
+When using the library as a package, type in "SVGPathCommander." in your browser console and have a look, there are a wide range of tools to play with. Here are some notable utilities:
 
-* `parsePathString(pathString)` - returns a *pathArray* and is used by/for most of SVGPathCommander conversion tools
-* `toAbsolute(pathString)` - returns a *pathArray* with all path commands with absolute coordinates
-* `clonePath(pathArray)` - returns a deep clone of a *pathArray*, which is the element of the SVGPathCommander initialization object, or the result of the `parsePath`
-* `getDrawDirection(pathCurve)` - returns *TRUE* if a shape draw direction is clockwise
-* `splitPath(pathString)` - returns and *Array* of path strings
+* `SVGPathCommander.parsePathString(pathString)` - returns a *pathArray* and is used by/for most of SVGPathCommander conversion tools
+* `SVGPathCommander.pathToAbsolute(pathString|pathArray)` - returns a new *pathArray* having all path commands as **absolute** coordinates
+* `SVGPathCommander.pathToRelative(pathString|pathArray)` - returns a new *pathArray* having all path commands as **relative** coordinates
+* `SVGPathCommander.pathToCurve(pathString|pathArray)` - returns a new *pathArray* having all path commands converted to `cubicBezierTo` (`C`) path commands
+* `SVGPathCommander.clonePath(pathArray)` - returns a **deep clone** of a *pathArray*, which is the result of any of the above functions
+* `SVGPathCommander.roundPath(pathArray)` - returns a new *pathArray* with all path command values rounded to 3 decimals by default
+* `SVGPathCommander.reversePath(pathArray)` - returns a new *pathArray* with all path commands in reverse order
+* `SVGPathCommander.optimizePath(pathArray)` - returns a new *pathArray* with all segments that have the shortest strings from either absolute or relative `pathArray` segments
+* `SVGPathCommander.getDrawDirection(pathCurve)` - returns **TRUE** if a shape draw direction is **clockwise**, it should not be used for shapes with sub-paths, but each sub-path individually
+* `SVGPathCommander.splitPath(pathString)` - returns an *Array* of path strings
+
+# Some Technical Considerations
+* the `reverse()` method will not return the same amount of path commands like the original path when `arcTo` path commands have `largeArcFlag` set to 1; this method will also split the original path string into multiple sub-path strings, reverse the draw direction of each sub-path (or only child sub-paths) and return a new *pathArray*;
+* all tools processing path segments will always round float values to 3 decimals, but only float numbers; EG: 0.5666 => 0.566, 0.50 => 0.5, 5 => 5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`
+
 
 # Special Thanks
 
-* Jürg Lehni & Jonathan Puckey for their [Paper.js](https://github.com/paperjs/paper.js/)
 * Dmitry Baranovskiy for his [Raphael.js](https://dmitrybaranovskiy.github.io/raphael/)
 * Vitaly Puzrin & Alex Kocharin for their [SvgPath](https://github.com/fontello/svgpath)
+* Jürg Lehni & Jonathan Puckey for their [Paper.js](https://github.com/paperjs/paper.js/)
 * Andrew Willems for his [awesome guide](https://stackoverflow.com/users/5218951/andrew-willems)
 
 # License
