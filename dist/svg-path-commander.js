@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.1-h (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.1-k (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -502,7 +502,7 @@
       }
     };
     for (var i = start; i < ii; i++) loop( i );
-    return roundPath(res,path.isClosed)
+    return roundPath(res)
   }
 
   function rotateVector(x, y, rad) {
@@ -868,12 +868,11 @@
   }
 
   function getShapeArea(curveArray) {
-    var area = 0;
-    curveArray.map(function (seg,i){
-      var previous = curveArray[i === 0 ? curveArray.length-1 : i-1];
-      area += getArea(previous.slice(previous.length-2).concat(seg.slice(1)));
-    });
-    return area;
+    var cv = curveArray.slice(1), previous;
+    return cv.map(function (seg,i){
+      previous = cv[i === 0 ? cv.length-1 : i-1];
+      return getArea(previous.slice(previous.length-2).concat(seg.slice(1)))
+    }).reduce(function (a, b) { return a + b; }, 0)
   }
 
   function getDrawDirection(curveArray) {
