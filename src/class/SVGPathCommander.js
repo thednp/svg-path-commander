@@ -1,6 +1,5 @@
 import pathToAbsolute from '../convert/pathToAbsolute.js'
 import pathToRelative from '../convert/pathToRelative.js'
-import pathToCurve from '../convert/pathToCurve.js'
 import pathToString from '../convert/pathToString.js'
 
 import parsePathString from '../process/parsePathString.js'
@@ -28,12 +27,13 @@ export default class SVGPathCommander {
     return this
   }
   reverse(onlySubpath){
-    let multiPath = splitPath(this.pathValue),
-        hasSubpath = multiPath.length > 1,
-        absoluteMultiPath = hasSubpath && splitPath(pathToString(pathToAbsolute(this.segments))).map((x,i)=> {
+    this.toAbsolute()
+
+    let subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()),
+        absoluteMultiPath = subPath && clonePath(subPath).map((x,i)=> {
           return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
         }),
-        path = hasSubpath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments)
+        path = subPath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments)
     this.segments = clonePath(path)
     return this
   }

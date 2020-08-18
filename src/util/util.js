@@ -14,7 +14,7 @@ import pathToString from '../convert/pathToString.js'
 import reverseCurve from '../process/reverseCurve.js'
 import reversePath from '../process/reversePath.js'
 
-import SVGPCOptions from '../options/options.js'
+import SVGPathCommanderOptions from '../options/options.js'
 
 export default {
   clonePath,
@@ -30,5 +30,5 @@ export default {
   parsePathString,
   reverseCurve,
   reversePath,
-  options: SVGPCOptions
+  options: SVGPathCommanderOptions
 }

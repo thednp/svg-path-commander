@@ -1,4 +1,4 @@
-import rotateVector from './rotateVector.js'
+import rotateVector from "./rotateVector.js"
 
 // for more information of where this math came from visit:
 // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
@@ -27,11 +27,11 @@ export default function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x
           * Math.sqrt(Math.abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x) 
           / (rx2 * y * y + ry2 * x * x)));
 
-    cx = k * rx * y / ry + (x1 + x2) / 2,
-    cy = k * -ry * x / rx + (y1 + y2) / 2;
+    cx = k * rx * y / ry + (x1 + x2) / 2
+    cy = k * -ry * x / rx + (y1 + y2) / 2
 
-    f1 = Math.asin(((y1 - cy) / ry)),
-    f2 = Math.asin(((y2 - cy) / ry));
+    f1 = Math.asin( (((y1 - cy) / ry) * 10000 >> 0) / 10000 ) // keep toFIxed(9)!
+    f2 = Math.asin( (((y2 - cy) / ry) * 10000 >> 0) / 10000 )
 
     f1 = x1 < cx ? Math.PI - f1 : f1;
     f2 = x2 < cx ? Math.PI - f2 : f2;

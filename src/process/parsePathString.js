@@ -6,8 +6,7 @@ import skipSpaces from '../util/skipSpaces.js'
 
 // Returns array of segments:
 export default function(pathString) {
-
-  if ( Array.isArray(pathString) ) {
+  if ( Array.isArray(pathString) && Array.isArray(pathString[0])) {
     return clonePath(pathString)
   }
 
@@ -24,7 +23,7 @@ export default function(pathString) {
   } else if (state.segments.length) {
 
     if ('mM'.indexOf(state.segments[0][0]) < 0) {
-      state.err = 'SvgPath: string should start with `M` or `m`';
+      state.err = 'Path string should start with `M` or `m`';
       state.segments = [];
     } else {
       state.segments[0][0] = 'M';

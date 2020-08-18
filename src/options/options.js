@@ -1,6 +1,6 @@
-let SVGPCOps = {
+let SVGPathCommanderOptions = {
   decimals:3,
   round:1
 }
 
-export default SVGPCOps
+export default SVGPathCommanderOptions

@@ -6,24 +6,31 @@ export default function(pathArray){
   let isClosed = pathToAbsolute(pathArray).some(x=>x[0].toUpperCase() === 'Z'),
       pathCurveArray = reverseCurve(pathToCurve(pathArray)),
       result = [],
-      pathCommand,
-      x1, y1, x2, y2, x, y
+      pathCommand, 
+      x1, y1, x2, y2, x, y,
+      prevSeg = [],
+      px, py
 
   return pathCurveArray.map((p,i)=>{
-    x  = p[p.length - 2]; 
+    x  = p[p.length - 2];
     y  = p[p.length - 1];
     x1 = p[1]; y1 = p[2]; 
-    x2 = p[3]; y2 = p[4]; 
+    x2 = p[3]; y2 = p[4];
 
-    if (p.length === 3) {
+    prevSeg = i - 1 < 0 ? pathCurveArray[pathCurveArray.length - 1] : pathCurveArray[i - 1]
+
+    px = prevSeg[prevSeg.length - 2]
+    py = prevSeg[prevSeg.length - 1]
+
+    if (p.length === 3) { // M
       pathCommand = 'M'
-    } else if ( x2===x && y2===y ) {
-      pathCommand = 'L'
-    } else if (y1===y2===y) {
+    } else if (py===y && py===y1) { // H
       pathCommand = 'H'
-    } else if (x1===x2===x) {
+    } else if (px===x && px===x1) { // V
       pathCommand = 'V'
-    } else {
+    } else if ( px===x1 && py===y1 && x===x2 && y===y2 ) { // L
+      pathCommand = 'L'
+    } else { // C
       pathCommand = p[0]
     }
 
@@ -40,12 +47,11 @@ export default function(pathArray){
       case 'H':
         result = [pathCommand, x]
         break;
-      case 'Z':
-        result = [pathCommand]
-        break;
       case 'C':
-      default:
         result = [pathCommand,x1,y1,x2,y2,x,y]
+        break;
+      default:
+        result = [pathCommand]
     }
     return result
   })

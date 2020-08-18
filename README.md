@@ -1,7 +1,7 @@
 # SVGPathCommander
-A modern set of ES6/ES7 JavaScript tools for *SVGPathElement* description attribute. This library was developed to try and solve over-optimized `arcTo` segment strings and provide a solid solution to parse, convert and reverse *SVGPathElement* draw direction, but keep in mind it's still under development.
+A modern set of ES6/ES7 JavaScript tools for manipulating *SVGPathElement* description attribute. This library was developed to try and solve over-optimized `arcTo` segment strings and provide a solid solution to parse, convert and reverse *SVGPathElement* draw direction, but keep in mind it's still a work in progress.
 
-This library is made possible thanks to [Raphael.js](https://dmitrybaranovskiy.github.io/raphael/), [SvgPath](https://github.com/fontello/svgpath), [Paper.js](https://github.com/paperjs/paper.js/) and is used by [KUTE.js](https://github.com/thednp/kute.js) for SVG path morphing.
+This library is made possible thanks to [Raphael.js](https://dmitrybaranovskiy.github.io/raphael/), [SvgPath](https://github.com/fontello/svgpath), [Paper.js](https://github.com/paperjs/paper.js/) and is used by [KUTE.js](https://github.com/thednp/kute.js) for [SVG path morphing](https://thednp.github.io/kute.js/svgCubicMorph.html).
 
 [![NPM Version](https://img.shields.io/npm/v/svg-path-commander.svg?style=flat-square)](https://www.npmjs.com/package/svg-path-commander)
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg?style=flat-square)](http://npm-stat.com/charts.html?svg-path-commander)
@@ -47,13 +47,11 @@ mySVGPathCommanderInit.reverse().toString()
 // ONLY reverse subpaths and return the string path
 mySVGPathCommanderInit.reverse(1).toString()
 
-// converts to both absolute and relative then return the shorter path string
+// converts to both absolute and relative then return the shorter segment string
 mySVGPathCommanderInit.optimize().toString()
 
 // or return directly what you need
-let mySVGAbsolutePath = new SVGPathCommander(pathString).reverse(1)
-                                                        .optimize()
-                                                        .toString()
+let mySVGAbsolutePath = new SVGPathCommander(pathString).reverse(1).optimize().toString()
 ```
 
 # Advanced Usage

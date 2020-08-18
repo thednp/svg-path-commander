@@ -1,4 +1,4 @@
-export default function(p, p2, pc1, pc2, i) {
+export default function(p, p2, pc1, pc2, i, count) {
   if (p[i].length > 7) {
     p[i].shift();
     let pi = p[i];
@@ -8,5 +8,6 @@ export default function(p, p2, pc1, pc2, i) {
       p.splice(i++, 0, ["C"].concat(pi.splice(0, 6)));
     }
     p.splice(i, 1);
+    count = Math.max(p.length, p2 && p2.length || 0);
   }
 }

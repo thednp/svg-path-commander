@@ -4,7 +4,9 @@ import roundPath from '../util/roundPath.js'
 export default function (pathArray) {
   pathArray = parsePathString(pathArray)
 
-  let res = [], x = 0, y = 0, mx = 0, my = 0, start = 0, ii = pathArray.length;
+  let resultArray = [], 
+      x = 0, y = 0, mx = 0, my = 0, 
+      start = 0, ii = pathArray.length;
 
   if (pathArray[0][0] === "M") {
     x = +pathArray[0][1];
@@ -12,12 +14,12 @@ export default function (pathArray) {
     mx = x;
     my = y;
     start++;
-    res.push(["M", x, y]);
+    resultArray.push(["M", x, y]);
   }
 
   for (let i = start; i < ii; i++) {
     let r, pa = pathArray[i];
-    res.push(r = []);
+    resultArray.push(r = []);
 
     if (pa[0] !== pa[0].toLowerCase() ) {
       r[0] = pa[0].toLowerCase();
@@ -44,29 +46,29 @@ export default function (pathArray) {
       }
     } else {
       r = [];
-      res[i] = r;
+      resultArray[i] = r;
       if (pa[0] === "m") {
         mx = +pa[1] + x;
         my = +pa[2] + y;
       }
-      pa.map(k=>res[i].push(k))
+      pa.map(k=>resultArray[i].push(k))
     }
-    let len = res[i].length;
-    switch (res[i][0]) {
+    let len = resultArray[i].length;
+    switch (resultArray[i][0]) {
       case "z":
         x = mx;
         y = my;
         break;
       case "h":
-        x += res[i][len - 1];
+        x += resultArray[i][len - 1];
         break;
       case "v":
-        y += res[i][len - 1];
+        y += resultArray[i][len - 1];
         break;
       default:
-        x += res[i][len - 2];
-        y += res[i][len - 1];
+        x += resultArray[i][len - 2];
+        y += resultArray[i][len - 1];
     }
   }
-  return roundPath(res)
+  return roundPath(resultArray)
 }
