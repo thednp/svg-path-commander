@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.1-k (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.1-l (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -13,17 +13,18 @@
     return pathArray.map(function (x) { return Array.isArray(x) ? clonePath(x) : !isNaN(+x) ? +x : x; } )
   }
 
-  var SVGPCOps = {
+  var SVGPathCommanderOptions = {
     decimals:3,
     round:1
   };
 
   function roundPath(pathArray) {
-    return SVGPCOps.round ? pathArray.map( function (seg) { return seg.map(function (c,i) {
-              var nr = +c, dc = Math.pow(10,SVGPCOps.decimals);
-              return i ? (nr % 1 === 0 ? nr : (nr*dc>>0)/dc) : c
-            }
-          ); }) : clonePath(pathArray)
+    return SVGPathCommanderOptions.round ?
+      pathArray.map( function (seg) { return seg.map(function (c,i) {
+          var nr = +c, dc = Math.pow(10,SVGPathCommanderOptions.decimals);
+          return i ? (nr % 1 === 0 ? nr : (nr*dc>>0)/dc) : c
+        }
+      ); }) : clonePath(pathArray)
   }
 
   function SVGPathArray(pathString){
@@ -240,7 +241,7 @@
   }
 
   function parsePathString(pathString) {
-    if ( Array.isArray(pathString) ) {
+    if ( Array.isArray(pathString) && Array.isArray(pathString[0])) {
       return clonePath(pathString)
     }
     var state = new SVGPathArray(pathString), max = state.max;
@@ -252,7 +253,7 @@
       state.segments = [];
     } else if (state.segments.length) {
       if ('mM'.indexOf(state.segments[0][0]) < 0) {
-        state.err = 'SvgPath: string should start with `M` or `m`';
+        state.err = 'Path string should start with `M` or `m`';
         state.segments = [];
       } else {
         state.segments[0][0] = 'M';
@@ -332,8 +333,9 @@
     if (!pathArray || !pathArray.length) {
       return [["M", 0, 0]];
     }
-    var res = [], x = 0, y = 0, mx = 0, my = 0, start = 0,
-        ii = pathArray.length,
+    var resultArray = [],
+        x = 0, y = 0, mx = 0, my = 0,
+        start = 0, ii = pathArray.length,
         crz = pathArray.length === 3 &&
               pathArray[0][0] === "M" &&
               pathArray[1][0].toUpperCase() === "R" &&
@@ -344,11 +346,11 @@
       mx = x;
       my = y;
       start++;
-      res[0] = ["M", x, y];
+      resultArray[0] = ["M", x, y];
     }
     var loop = function ( i ) {
       var r = [], pa = pathArray[i], pa0 = pa[0], dots = [];
-      res.push(r = []);
+      resultArray.push(r = []);
       if (pa0 !== pa0.toUpperCase()) {
         r[0] = pa0.toUpperCase();
         switch (r[0]) {
@@ -373,19 +375,19 @@
               dots[j] = +dots[j] + x;
               dots[++j] = +dots[j] + y;
             }
-            res.pop();
-            res = res.concat(catmullRom2bezier(dots, crz));
+            resultArray.pop();
+            resultArray = resultArray.concat(catmullRom2bezier(dots, crz));
             break;
           case "O":
-            res.pop();
+            resultArray.pop();
             dots = ellipsePath(x, y, +pa[1], +pa[2]);
             dots.push(dots[0]);
-            res = res.concat(dots);
+            resultArray = resultArray.concat(dots);
             break;
           case "U":
-            res.pop();
-            res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
-            r = ["U"].concat(res[res.length - 1].slice(-2));
+            resultArray.pop();
+            resultArray = resultArray.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
+            r = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
             break;
           case "M":
             mx = +pa[1] + x;
@@ -397,18 +399,18 @@
         }
       } else if (pa0 === "R") {
         dots = [x, y].concat(pa.slice(1));
-        res.pop();
-        res = res.concat(catmullRom2bezier(dots, crz));
+        resultArray.pop();
+        resultArray = resultArray.concat(catmullRom2bezier(dots, crz));
         r = ["R"].concat(pa.slice(-2));
       } else if (pa0 === "O") {
-        res.pop();
+        resultArray.pop();
         dots = ellipsePath(x, y, +pa[1], +pa[2]);
         dots.push(dots[0]);
-        res = res.concat(dots);
+        resultArray = resultArray.concat(dots);
       } else if (pa0 === "U") {
-        res.pop();
-        res = res.concat(ellipsePath(x, y, +pa[1], +pa[2], +pa[3]));
-        r = ["U"].concat(res[res.length - 1].slice(-2));
+        resultArray.pop();
+        resultArray = resultArray.concat(ellipsePath(x, y, +pa[1], +pa[2], +pa[3]));
+        r = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
       } else {
         pa.map(function (k){ return r.push(k); });
       }
@@ -435,23 +437,25 @@
       }
     };
     for (var i = start; i < ii; i++) loop( i );
-    return roundPath(res)
+    return roundPath(resultArray)
   }
 
   function pathToRelative (pathArray) {
     pathArray = parsePathString(pathArray);
-    var res = [], x = 0, y = 0, mx = 0, my = 0, start = 0, ii = pathArray.length;
+    var resultArray = [],
+        x = 0, y = 0, mx = 0, my = 0,
+        start = 0, ii = pathArray.length;
     if (pathArray[0][0] === "M") {
       x = +pathArray[0][1];
       y = +pathArray[0][2];
       mx = x;
       my = y;
       start++;
-      res.push(["M", x, y]);
+      resultArray.push(["M", x, y]);
     }
     var loop = function ( i ) {
       var r = (void 0), pa = pathArray[i];
-      res.push(r = []);
+      resultArray.push(r = []);
       if (pa[0] !== pa[0].toLowerCase() ) {
         r[0] = pa[0].toLowerCase();
         switch (r[0]) {
@@ -477,37 +481,69 @@
         }
       } else {
         r = [];
-        res[i] = r;
+        resultArray[i] = r;
         if (pa[0] === "m") {
           mx = +pa[1] + x;
           my = +pa[2] + y;
         }
-        pa.map(function (k){ return res[i].push(k); });
+        pa.map(function (k){ return resultArray[i].push(k); });
       }
-      var len = res[i].length;
-      switch (res[i][0]) {
+      var len = resultArray[i].length;
+      switch (resultArray[i][0]) {
         case "z":
           x = mx;
           y = my;
           break;
         case "h":
-          x += res[i][len - 1];
+          x += resultArray[i][len - 1];
           break;
         case "v":
-          y += res[i][len - 1];
+          y += resultArray[i][len - 1];
           break;
         default:
-          x += res[i][len - 2];
-          y += res[i][len - 1];
+          x += resultArray[i][len - 2];
+          y += resultArray[i][len - 1];
       }
     };
     for (var i = start; i < ii; i++) loop( i );
-    return roundPath(res)
+    return roundPath(resultArray)
+  }
+
+  function pathToString(pathArray) {
+    return pathArray.map( function (c) {
+      if (typeof c === 'string') {
+        return c
+      } else {
+        return c.shift() + c.join(' ')
+      }
+    }).join('')
+  }
+
+  function reverseCurve(pathCurveArray){
+    var curveSegments = clonePath(pathCurveArray),
+        curveCount = curveSegments.length - 2,
+        ci = 0, ni = 0,
+        currentSeg = [],
+        nextSeg = [],
+        x1, y1, x2, y2, x, y,
+        curveOnly = curveSegments.slice(1),
+        rotatedCurve = curveOnly.map(function (p,i){
+          ci = curveCount - i;
+          ni = ci - 1 < 0 ? curveCount : ci - 1;
+          currentSeg = curveOnly[ci];
+          nextSeg = curveOnly[ni];
+          x = nextSeg[nextSeg.length - 2];
+          y = nextSeg[nextSeg.length - 1];
+          x1 = currentSeg[3]; y1 = currentSeg[4];
+          x2 = currentSeg[1]; y2 = currentSeg[2];
+          return ['C',x1,y1,x2,y2,x,y]
+        });
+    return [['M',x,y]].concat(rotatedCurve)
   }
 
   function rotateVector(x, y, rad) {
     var X = x * Math.cos(rad) - y * Math.sin(rad),
-          Y = x * Math.sin(rad) + y * Math.cos(rad);
+        Y = x * Math.sin(rad) + y * Math.cos(rad);
     return {x: X, y: Y}
   }
 
@@ -533,10 +569,10 @@
           k = (large_arc_flag == sweep_flag ? -1 : 1)
             * Math.sqrt(Math.abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x)
             / (rx2 * y * y + ry2 * x * x)));
-      cx = k * rx * y / ry + (x1 + x2) / 2,
+      cx = k * rx * y / ry + (x1 + x2) / 2;
       cy = k * -ry * x / rx + (y1 + y2) / 2;
-      f1 = Math.asin(((y1 - cy) / ry)),
-      f2 = Math.asin(((y2 - cy) / ry));
+      f1 = Math.asin( (((y1 - cy) / ry) * 10000 >> 0) / 10000 );
+      f2 = Math.asin( (((y2 - cy) / ry) * 10000 >> 0) / 10000 );
       f1 = x1 < cx ? Math.PI - f1 : f1;
       f2 = x2 < cx ? Math.PI - f2 : f2;
       f1 < 0 && (f1 = Math.PI * 2 + f1);
@@ -590,83 +626,82 @@
             _13 * y1 + _23 * ay,
             _13 * x2 + _23 * ax,
             _13 * y2 + _23 * ay,
-            x2,
-            y2
-          ]
+            x2, y2 ]
   }
 
   function l2c(x1, y1, x2, y2) {
-    return [x1, y1, x2, y2, x2, y2];
+    return [x1, y1, x2, y2, x2, y2]
   }
 
-  function processPath(path, d, pcom) {
+  function processSegment(segment, params, pathCommand) {
     var nx, ny;
-    if (!path) {
-      return ["C", d.x, d.y, d.x, d.y, d.x, d.y];
+    if (!segment) {
+      return ["C", params.x, params.y, params.x, params.y, params.x, params.y];
     }
-    !(path[0] in {T: 1, Q: 1}) && (d.qx = d.qy = null);
-    switch (path[0]) {
+    !(segment[0] in {T: 1, Q: 1}) && (params.qx = params.qy = null);
+    switch (segment[0]) {
       case "M":
-        d.X = path[1];
-        d.Y = path[2];
+        params.X = segment[1];
+        params.Y = segment[2];
         break;
       case "A":
-        path = ["C"].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
+        segment = ["C"].concat(a2c.apply(0, [params.x, params.y].concat(segment.slice(1))));
         break;
       case "S":
-        if (pcom === "C" || pcom === "S") {
-          nx = d.x * 2 - d.bx;
-          ny = d.y * 2 - d.by;
+        if (pathCommand === "C" || pathCommand === "S") {
+          nx = params.x * 2 - params.bx;
+          ny = params.y * 2 - params.by;
         }
         else {
-          nx = d.x;
-          ny = d.y;
+          nx = params.x;
+          ny = params.y;
         }
-        path = ["C", nx, ny].concat(path.slice(1));
+        segment = ["C", nx, ny].concat(segment.slice(1));
         break;
       case "T":
-        if (pcom === "Q" || pcom === "T") {
-          d.qx = d.x * 2 - d.qx;
-          d.qy = d.y * 2 - d.qy;
+        if (pathCommand === "Q" || pathCommand === "T") {
+          params.qx = params.x * 2 - params.qx;
+          params.qy = params.y * 2 - params.qy;
         }
         else {
-          d.qx = d.x;
-          d.qy = d.y;
+          params.qx = params.x;
+          params.qy = params.y;
         }
-        path = ["C"].concat(q2c(d.x, d.y, d.qx, d.qy, path[1], path[2]));
+        segment = ["C"].concat(q2c(params.x, params.y, params.qx, params.qy, segment[1], segment[2]));
         break;
       case "Q":
-        d.qx = path[1];
-        d.qy = path[2];
-        path = ["C"].concat(q2c(d.x, d.y, path[1], path[2], path[3], path[4]));
+        params.qx = segment[1];
+        params.qy = segment[2];
+        segment = ["C"].concat(q2c(params.x, params.y, segment[1], segment[2], segment[3], segment[4]));
         break;
       case "L":
-        path = ["C"].concat(l2c(d.x, d.y, path[1], path[2]));
+        segment = ["C"].concat(l2c(params.x, params.y, segment[1], segment[2]));
         break;
       case "H":
-        path = ["C"].concat(l2c(d.x, d.y, path[1], d.y));
+        segment = ["C"].concat(l2c(params.x, params.y, segment[1], params.y));
         break;
       case "V":
-        path = ["C"].concat(l2c(d.x, d.y, d.x, path[1]));
+        segment = ["C"].concat(l2c(params.x, params.y, params.x, segment[1]));
         break;
       case "Z":
-        path = ["C"].concat(l2c(d.x, d.y, d.X, d.Y));
+        segment = ["C"].concat(l2c(params.x, params.y, params.X, params.Y));
         break;
     }
-    return path;
+    return segment;
   }
 
-  function fixM(path1, path2, a1, a2, i) {
+  function fixM(path1, path2, a1, a2, i, count) {
     if (path1 && path2 && path1[i][0] === "M" && path2[i][0] !== "M") {
       path2.splice(i, 0, ["M", a2.x, a2.y]);
       a1.bx = 0;
       a1.by = 0;
       a1.x = path1[i][1];
       a1.y = path1[i][2];
+      count = Math.max(p.length, p2 && p2.length || 0);
     }
   }
 
-  function fixArc(p, p2, pc1, pc2, i) {
+  function fixArc(p, p2, pc1, pc2, i, count) {
     if (p[i].length > 7) {
       p[i].shift();
       var pi = p[i];
@@ -676,6 +711,7 @@
         p.splice(i++, 0, ["C"].concat(pi.splice(0, 6)));
       }
       p.splice(i, 1);
+      count = Math.max(p.length, p2 && p2.length || 0);
     }
   }
 
@@ -685,80 +721,45 @@
         attrs = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
         attrs2 = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null};
     var pcoms1 = [], pcoms2 = [],
-        pfirst = "", pcom = "",
+        pathCommand = "", pcom = "",
         ii = Math.max(p.length, p2 && p2.length || 0);
-    for (var i = 0; i < ii; i++) {
-      p[i] && (pfirst = p[i][0]);
-      if (pfirst !== "C") {
-        pcoms1[i] = pfirst;
+    for (var i = 0; i < (ii = Math.max(p.length, p2 && p2.length || 0)); i++) {
+      p[i] && (pathCommand = p[i][0]);
+      if (pathCommand !== "C") {
+        pcoms1[i] = pathCommand;
         i && ( pcom = pcoms1[i - 1]);
       }
-      p[i] = processPath(p[i], attrs, pcom);
-      if (pcoms1[i] !== "A" && pfirst === "C") { pcoms1[i] = "C"; }
-      fixArc(p, p2, pcoms1, pcoms2, i);
-      ii = Math.max(p.length, p2 && p2.length || 0);
+      p[i] = processSegment(p[i], attrs, pcom);
+      if (pcoms1[i] !== "A" && pathCommand === "C") { pcoms1[i] = "C"; }
+      fixArc(p,p2,pcoms1,pcoms2,i,ii);
       if (p2) {
-        p2[i] && (pfirst = p2[i][0]);
-        if (pfirst !== "C") {
-          pcoms2[i] = pfirst;
+        p2[i] && (pathCommand = p2[i][0]);
+        if (pathCommand !== "C") {
+          pcoms2[i] = pathCommand;
           i && (pcom = pcoms2[i - 1]);
         }
-        p2[i] = processPath(p2[i], attrs2, pcom);
-        if (pcoms2[i] !== "A" && pfirst === "C") {
+        p2[i] = processSegment(p2[i], attrs2, pcom);
+        if (pcoms2[i] !== "A" && pathCommand === "C") {
           pcoms2[i] = "C";
         }
-        fixArc(p2, p, pcoms2, pcoms1, i);
-        ii = Math.max(p.length, p2 && p2.length || 0);
+        fixArc(p2,p,pcoms2,pcoms1,i,ii);
       }
-      fixM(p, p2, attrs, attrs2, i);
-      p2 && fixM(p2, p, attrs2, attrs, i);
-      ii = Math.max(p.length, p2 && p2.length || 0);
+      fixM(p, p2, attrs, attrs2, i, ii);
+      fixM(p2, p, attrs2, attrs, i, ii);
       var seg = p[i],
           seg2 = p2 && p2[i],
           seglen = seg.length,
           seg2len = p2 && seg2.length;
-      attrs.x = seg[seglen - 2];
-      attrs.y = seg[seglen - 1];
-      attrs.bx = parseFloat(seg[seglen - 4]) || attrs.x;
-      attrs.by = parseFloat(seg[seglen - 3]) || attrs.y;
-      attrs2.bx = p2 && (parseFloat(seg2[seg2len - 4]) || attrs2.x);
-      attrs2.by = p2 && (parseFloat(seg2[seg2len - 3]) || attrs2.y);
+      attrs.x = +seg[seglen - 2];
+      attrs.y = +seg[seglen - 1];
+      attrs.bx = +(seg[seglen - 4]) || attrs.x;
+      attrs.by = +(seg[seglen - 3]) || attrs.y;
+      attrs2.bx = p2 && (+(seg2[seg2len - 4]) || attrs2.x);
+      attrs2.by = p2 && (+(seg2[seg2len - 3]) || attrs2.y);
       attrs2.x = p2 && seg2[seg2len - 2];
       attrs2.y = p2 && seg2[seg2len - 1];
     }
-    return p2 ? [roundPath(p), roundPath(p2)] : roundPath(p);
-  }
-
-  function pathToString(pathArray) {
-    return pathArray.map( function (c) {
-      if (typeof c === 'string') {
-        return c
-      } else {
-        return c.shift() + c.join(' ')
-      }
-    }).join('')
-  }
-
-  function reverseCurve(pathCurveArray){
-    var curveSegments = clonePath(pathCurveArray),
-        curveCount = curveSegments.length - 2,
-        ci = 0, ni = 0,
-        currentSeg = [],
-        nextSeg = [],
-        x1, y1, x2, y2, x, y,
-        curveOnly = curveSegments.slice(1),
-        rotatedCurve = curveOnly.map(function (p,i){
-          ci = curveCount - i;
-          ni = ci - 1 < 0 ? curveCount : ci - 1;
-          currentSeg = curveOnly[ci];
-          nextSeg = curveOnly[ni];
-          x = nextSeg[nextSeg.length - 2];
-          y = nextSeg[nextSeg.length - 1];
-          x1 = currentSeg[3]; y1 = currentSeg[4];
-          x2 = currentSeg[1]; y2 = currentSeg[2];
-          return [p[0],x1,y1,x2,y2,x,y]
-        });
-    return [['M',rotatedCurve[curveCount][5],rotatedCurve[curveCount][6]]].concat(rotatedCurve)
+    return p2 ? [roundPath(p), roundPath(p2)] : roundPath(p)
   }
 
   function reversePath(pathArray){
@@ -766,20 +767,25 @@
         pathCurveArray = reverseCurve(pathToCurve(pathArray)),
         result = [],
         pathCommand,
-        x1, y1, x2, y2, x, y;
+        x1, y1, x2, y2, x, y,
+        prevSeg = [],
+        px, py;
     return pathCurveArray.map(function (p,i){
       x  = p[p.length - 2];
       y  = p[p.length - 1];
       x1 = p[1]; y1 = p[2];
       x2 = p[3]; y2 = p[4];
+      prevSeg = i - 1 < 0 ? pathCurveArray[pathCurveArray.length - 1] : pathCurveArray[i - 1];
+      px = prevSeg[prevSeg.length - 2];
+      py = prevSeg[prevSeg.length - 1];
       if (p.length === 3) {
         pathCommand = 'M';
-      } else if ( x2===x && y2===y ) {
-        pathCommand = 'L';
-      } else if (y1===y2===y) {
+      } else if (py===y && py===y1) {
         pathCommand = 'H';
-      } else if (x1===x2===x) {
+      } else if (px===x && px===x1) {
         pathCommand = 'V';
+      } else if ( px===x1 && py===y1 && x===x2 && y===y2 ) {
+        pathCommand = 'L';
       } else {
         pathCommand = p[0];
       }
@@ -796,12 +802,11 @@
         case 'H':
           result = [pathCommand, x];
           break;
-        case 'Z':
-          result = [pathCommand];
-          break;
         case 'C':
-        default:
           result = [pathCommand,x1,y1,x2,y2,x,y];
+          break;
+        default:
+          result = [pathCommand];
       }
       return result
     })
@@ -839,12 +844,12 @@
     return this
   };
   SVGPathCommander.prototype.reverse = function reverse (onlySubpath){
-    var multiPath = splitPath(this.pathValue),
-        hasSubpath = multiPath.length > 1,
-        absoluteMultiPath = hasSubpath && splitPath(pathToString(pathToAbsolute(this.segments))).map(function (x,i){
+    this.toAbsolute();
+    var subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()),
+        absoluteMultiPath = subPath && clonePath(subPath).map(function (x,i){
           return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
         }),
-        path = hasSubpath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments);
+        path = subPath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments);
     this.segments = clonePath(path);
     return this
   };
@@ -876,7 +881,7 @@
   }
 
   function getDrawDirection(curveArray) {
-    if (Array.isArray(curveArray) && curveArray.slice(1).every(function (x){ return x[0].toUpperCase() === x[0]; })) {
+    if (Array.isArray(curveArray) && curveArray.slice(1).every(function (x){ return x[0] === 'C'; })) {
       return getShapeArea(curveArray) >= 0
     } else {
       throw("getDrawDirection expects a curveArray")
@@ -897,7 +902,7 @@
     parsePathString: parsePathString,
     reverseCurve: reverseCurve,
     reversePath: reversePath,
-    options: SVGPCOps
+    options: SVGPathCommanderOptions
   };
 
   for (var x in util) { SVGPathCommander[x] = util[x]; }
