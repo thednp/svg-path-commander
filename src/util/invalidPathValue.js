@@ -1,0 +1,1 @@
+export default 'Invalid path value'

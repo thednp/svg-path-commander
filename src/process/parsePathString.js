@@ -3,6 +3,7 @@ import roundPath from '../util/roundPath.js'
 import SVGPathArray from '../util/svgPathArray.js'
 import scanSegment from '../util/scanSegment.js'
 import skipSpaces from '../util/skipSpaces.js'
+import invalidPathValue from '../util/invalidPathValue.js'
 
 // Returns array of segments:
 export default function(pathString) {
@@ -23,7 +24,8 @@ export default function(pathString) {
   } else if (state.segments.length) {
 
     if ('mM'.indexOf(state.segments[0][0]) < 0) {
-      state.err = 'Path string should start with `M` or `m`';
+      // state.err = 'Path string should start with `M` or `m`';
+      state.err = invalidPathValue;
       state.segments = [];
     } else {
       state.segments[0][0] = 'M';

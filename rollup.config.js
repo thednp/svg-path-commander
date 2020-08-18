@@ -30,7 +30,6 @@ const OUTPUT = {
 const PLUGINS = [ 
   json(), 
   buble(),
-  // node({mainFields: ['jsnext', 'module']}) 
 ];
 
 if (MIN){

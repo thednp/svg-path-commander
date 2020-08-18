@@ -1,3 +1,5 @@
+import invalidPathValue from './invalidPathValue.js'
+
 export default function(state) {
   let ch = state.pathValue.charCodeAt(state.index);
 
@@ -13,5 +15,6 @@ export default function(state) {
     return;
   }
 
-  state.err = 'SvgPath: arc flag can be 0 or 1 only (at pos ' + state.index + ')';
+  // state.err = 'SvgPath: arc flag can be 0 or 1 only (at pos ' + state.index + ')';
+  state.err = invalidPathValue;
 }

@@ -1,4 +1,5 @@
 import isDigit from './isDigit.js'
+import invalidPathValue from './invalidPathValue.js'
 
 export default function(state) {
   let start = state.index,
@@ -11,7 +12,8 @@ export default function(state) {
       ch;
 
   if (index >= max) {
-    state.err = 'SvgPath: missed param (at pos ' + index + ')';
+    // state.err = 'SvgPath: missed param (at pos ' + index + ')';
+    state.err = invalidPathValue;
     return;
   }
   ch = state.pathValue.charCodeAt(index);
@@ -24,7 +26,8 @@ export default function(state) {
   // This logic is shamelessly borrowed from Esprima
   // https://github.com/ariya/esprimas
   if (!isDigit(ch) && ch !== 0x2E/* . */) {
-    state.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
+    // state.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
+    state.err = invalidPathValue;
     return;
   }
 
@@ -37,7 +40,8 @@ export default function(state) {
     if (zeroFirst && index < max) {
       // decimal number starts with '0' such as '09' is illegal.
       if (ch && isDigit(ch)) {
-        state.err = 'SvgPath: numbers started with `0` such as `09` are illegal (at pos ' + start + ')';
+        // state.err = 'SvgPath: numbers started with `0` such as `09` are illegal (at pos ' + start + ')';
+        state.err = invalidPathValue;
         return;
       }
     }
@@ -61,7 +65,8 @@ export default function(state) {
 
   if (ch === 0x65/* e */ || ch === 0x45/* E */) {
     if (hasDot && !hasCeiling && !hasDecimal) {
-      state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+      // state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+      state.err = invalidPathValue;
       return;
     }
 
@@ -76,12 +81,12 @@ export default function(state) {
         index++;
       }
     } else {
-      state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+      // state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+      state.err = invalidPathValue;
       return;
     }
   }
 
   state.index = index
-  // state.param = parseFloat(state.pathValue.slice(start, index)) + 0.0;
   state.param = +state.pathValue.slice(start, index)
 }

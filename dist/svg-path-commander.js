@@ -1,12 +1,12 @@
 /*!
-* SVGPathCommander v0.0.1-l (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.2 (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global = global || self, global.SVGPathCommander = factory());
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.SVGPathCommander = factory());
 }(this, (function () { 'use strict';
 
   function clonePath(pathArray){
@@ -61,6 +61,8 @@
     }
   }
 
+  var invalidPathValue = 'Invalid path value';
+
   function scanFlag(state) {
     var ch = state.pathValue.charCodeAt(state.index);
     if (ch === 0x30) {
@@ -73,7 +75,7 @@
       state.index++;
       return;
     }
-    state.err = 'SvgPath: arc flag can be 0 or 1 only (at pos ' + state.index + ')';
+    state.err = invalidPathValue;
   }
 
   function isDigit(code) {
@@ -90,7 +92,7 @@
         hasDot = false,
         ch;
     if (index >= max) {
-      state.err = 'SvgPath: missed param (at pos ' + index + ')';
+      state.err = invalidPathValue;
       return;
     }
     ch = state.pathValue.charCodeAt(index);
@@ -99,7 +101,7 @@
       ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
     }
     if (!isDigit(ch) && ch !== 0x2E) {
-      state.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
+      state.err = invalidPathValue;
       return;
     }
     if (ch !== 0x2E) {
@@ -108,7 +110,7 @@
       ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
       if (zeroFirst && index < max) {
         if (ch && isDigit(ch)) {
-          state.err = 'SvgPath: numbers started with `0` such as `09` are illegal (at pos ' + start + ')';
+          state.err = invalidPathValue;
           return;
         }
       }
@@ -129,7 +131,7 @@
     }
     if (ch === 0x65 || ch === 0x45) {
       if (hasDot && !hasCeiling && !hasDecimal) {
-        state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+        state.err = invalidPathValue;
         return;
       }
       index++;
@@ -142,7 +144,7 @@
           index++;
         }
       } else {
-        state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+        state.err = invalidPathValue;
         return;
       }
     }
@@ -199,7 +201,7 @@
     state.segmentStart = state.index;
     cmdCode = state.pathValue.charCodeAt(state.index);
     if (!isCommand(cmdCode)) {
-      state.err = 'SvgPath: bad command ' + state.pathValue[state.index] + ' (at pos ' + state.index + ')';
+      state.err = invalidPathValue;
       return;
     }
     need_params = paramCounts[state.pathValue[state.index].toLowerCase()];
@@ -253,7 +255,7 @@
       state.segments = [];
     } else if (state.segments.length) {
       if ('mM'.indexOf(state.segments[0][0]) < 0) {
-        state.err = 'Path string should start with `M` or `m`';
+        state.err = invalidPathValue;
         state.segments = [];
       } else {
         state.segments[0][0] = 'M';
@@ -571,8 +573,8 @@
             / (rx2 * y * y + ry2 * x * x)));
       cx = k * rx * y / ry + (x1 + x2) / 2;
       cy = k * -ry * x / rx + (y1 + y2) / 2;
-      f1 = Math.asin( (((y1 - cy) / ry) * 10000 >> 0) / 10000 );
-      f2 = Math.asin( (((y2 - cy) / ry) * 10000 >> 0) / 10000 );
+      f1 = Math.asin( ((y1 - cy) / ry).toFixed(9) );
+      f2 = Math.asin( ((y2 - cy) / ry).toFixed(9) );
       f1 = x1 < cx ? Math.PI - f1 : f1;
       f2 = x2 < cx ? Math.PI - f2 : f2;
       f1 < 0 && (f1 = Math.PI * 2 + f1);

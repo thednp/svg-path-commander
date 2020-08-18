@@ -1,5 +1,5 @@
 # SVGPathCommander
-A modern set of ES6/ES7 JavaScript tools for manipulating *SVGPathElement* description attribute. This library was developed to try and solve over-optimized `arcTo` segment strings and provide a solid solution to parse, convert and reverse *SVGPathElement* draw direction, but keep in mind it's still a work in progress.
+A modern set of ES6/ES7 JavaScript tools for manipulating *SVGPathElement* description attribute. This library was developed to try and solve over-optimized `arcTo` segment strings and provide a solid solution to parse, convert and reverse *SVGPathElement* draw direction.
 
 This library is made possible thanks to [Raphael.js](https://dmitrybaranovskiy.github.io/raphael/), [SvgPath](https://github.com/fontello/svgpath), [Paper.js](https://github.com/paperjs/paper.js/) and is used by [KUTE.js](https://github.com/thednp/kute.js) for [SVG path morphing](https://thednp.github.io/kute.js/svgCubicMorph.html).
 
@@ -77,11 +77,12 @@ When using the library as a package, type in "SVGPathCommander." in your browser
 * `SVGPathCommander.reversePath(pathArray)` - returns a new *pathArray* with all path commands in reverse order
 * `SVGPathCommander.optimizePath(pathArray)` - returns a new *pathArray* with all segments that have the shortest strings from either absolute or relative `pathArray` segments
 * `SVGPathCommander.getDrawDirection(pathCurve)` - returns **TRUE** if a shape draw direction is **clockwise**, it should not be used for shapes with sub-paths, but each sub-path individually
-* `SVGPathCommander.splitPath(pathString)` - returns an *Array* of path strings
+* `SVGPathCommander.splitPath(pathString)` - returns an *Array* of sub-path strings
 
 # Some Technical Considerations
 * the `reverse()` method will not return the same amount of path commands like the original path when `arcTo` path commands have `largeArcFlag` set to 1; this method will also split the original path string into multiple sub-path strings, reverse the draw direction of each sub-path (or only child sub-paths) and return a new *pathArray*;
-* all tools processing path segments will always round float values to 3 decimals, but only float numbers; EG: 0.5666 => 0.566, 0.50 => 0.5, 5 => 5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`
+* the `optimize()` method will only return the shortest segment string of the *pathArray*, it will not simplify/merge the path commands; to do that you can use [SVGO](https://github.com/svg/svgo) and its `convertPathData` plugin;
+* all tools processing path segments will always round float values to 3 decimals, but only float numbers; EG: 0.5666 => 0.566, 0.50 => 0.5, 5 => 5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`.
 
 
 # Special Thanks

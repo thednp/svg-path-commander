@@ -6,6 +6,7 @@ import isCommand from './isCommand.js'
 import isDigitStart from './isDigitStart.js'
 import isArc from './isArc.js'
 import skipSpaces from './skipSpaces.js'
+import invalidPathValue from './invalidPathValue.js'
 
 export default function(state) {
   let max = state.max, cmdCode, comma_found, need_params, i;
@@ -14,7 +15,8 @@ export default function(state) {
   cmdCode = state.pathValue.charCodeAt(state.index);
 
   if (!isCommand(cmdCode)) {
-    state.err = 'SvgPath: bad command ' + state.pathValue[state.index] + ' (at pos ' + state.index + ')';
+    // state.err = 'SvgPath: bad command ' + state.pathValue[state.index] + ' (at pos ' + state.index + ')';
+    state.err = invalidPathValue;
     return;
   }
 
