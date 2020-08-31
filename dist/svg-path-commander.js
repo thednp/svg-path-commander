@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.4 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.5 (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -461,7 +461,7 @@
     if (isRelativeArray(pathArray)){
       return clonePath(pathArray)
     }
-    pathArray = isPathArray(pathArray) ? clonePath(pathArray) : parsePathString(pathArray);
+    pathArray = parsePathString(pathArray);
     var resultArray = [],
         x = 0, y = 0, mx = 0, my = 0,
         start = 0, ii = pathArray.length;
@@ -883,7 +883,7 @@
     if (isCurveArray(pathArray)){
       return clonePath(pathArray)
     }
-    pathArray = isAbsoluteArray(pathArray) ? clonePath(pathArray) : pathToAbsolute(pathArray);
+    pathArray = pathToAbsolute(pathArray);
     var attrs = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
         segment = [], pathCommand = "", pcom = "", ii = pathArray.length;
     for (var i = 0; i < ii; i++) {
