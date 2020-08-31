@@ -1,8 +1,14 @@
 import parsePathString from '../process/parsePathString.js'
-import roundPath from '../util/roundPath.js'
+import roundPath from '../process/roundPath.js'
+import clonePath from '../process/clonePath.js'
+import isPathArray from '../util/isPathArray.js'
+import isRelativeArray from '../util/isRelativeArray.js'
 
 export default function (pathArray) {
-  pathArray = parsePathString(pathArray)
+  if (isRelativeArray(pathArray)){
+    return clonePath(pathArray)
+  }
+  pathArray = isPathArray(pathArray) ? clonePath(pathArray) : parsePathString(pathArray)
 
   let resultArray = [], 
       x = 0, y = 0, mx = 0, my = 0, 
@@ -18,7 +24,7 @@ export default function (pathArray) {
   }
 
   for (let i = start; i < ii; i++) {
-    let r, pa = pathArray[i];
+    let r = [], pa = pathArray[i];
     resultArray.push(r = []);
 
     if (pa[0] !== pa[0].toLowerCase() ) {

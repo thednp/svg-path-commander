@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.2 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -39,7 +39,7 @@
     return this
   }
 
-  var paramCounts = { a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0 };
+  var paramsCount = { a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0 };
 
   function finalizeSegment(state) {
     var cmd = state.pathValue[state.segmentStart], cmdLC = cmd.toLowerCase(), params = state.data;
@@ -52,9 +52,9 @@
     if (cmdLC === 'r') {
       state.segments.push([ cmd ].concat(params));
     } else {
-      while (params.length >= paramCounts[cmdLC]) {
-        state.segments.push([ cmd ].concat(params.splice(0, paramCounts[cmdLC])));
-        if (!paramCounts[cmdLC]) {
+      while (params.length >= paramsCount[cmdLC]) {
+        state.segments.push([ cmd ].concat(params.splice(0, paramsCount[cmdLC])));
+        if (!paramsCount[cmdLC]) {
           break;
         }
       }
@@ -177,7 +177,7 @@
             code === 0x2E;
   }
 
-  function isArc(code) {
+  function isArcCommand(code) {
     return (code | 0x20) === 0x61;
   }
 
@@ -204,7 +204,7 @@
       state.err = invalidPathValue;
       return;
     }
-    need_params = paramCounts[state.pathValue[state.index].toLowerCase()];
+    need_params = paramsCount[state.pathValue[state.index].toLowerCase()];
     state.index++;
     skipSpaces(state);
     state.data = [];
@@ -215,7 +215,7 @@
     comma_found = false;
     for (;;) {
       for (i = need_params; i > 0; i--) {
-        if (isArc(cmdCode) && (i === 3 || i === 4)) { scanFlag(state); }
+        if (isArcCommand(cmdCode) && (i === 3 || i === 4)) { scanFlag(state); }
         else { scanParam(state); }
         if (state.err.length) {
           return;
@@ -242,8 +242,15 @@
     finalizeSegment(state);
   }
 
+  function isPathArray(pathArray){
+    return Array.isArray(pathArray) && pathArray.every(function (x){
+      var pathCommand = x[0].toLowerCase();
+      return paramsCount[pathCommand] === x.length - 1 && /[achlmrqstvz]/g.test(pathCommand)
+    })
+  }
+
   function parsePathString(pathString) {
-    if ( Array.isArray(pathString) && Array.isArray(pathString[0])) {
+    if ( isPathArray(pathString) ) {
       return clonePath(pathString)
     }
     var state = new SVGPathArray(pathString), max = state.max;
@@ -330,11 +337,15 @@
     return res;
   }
 
+  function isAbsoluteArray(pathInput){
+    return isPathArray(pathInput) && pathInput.every(function (x){ return x[0] === x[0].toUpperCase(); })
+  }
+
   function pathToAbsolute(pathArray) {
-    pathArray = parsePathString(pathArray);
-    if (!pathArray || !pathArray.length) {
-      return [["M", 0, 0]];
+    if (isAbsoluteArray(pathArray)) {
+      return clonePath(pathArray)
     }
+    pathArray = parsePathString(pathArray);
     var resultArray = [],
         x = 0, y = 0, mx = 0, my = 0,
         start = 0, ii = pathArray.length,
@@ -442,8 +453,15 @@
     return roundPath(resultArray)
   }
 
+  function isRelativeArray(pathInput){
+    return isPathArray(pathInput) && pathInput.slice(1).every(function (x){ return x[0] === x[0].toLowerCase(); })
+  }
+
   function pathToRelative (pathArray) {
-    pathArray = parsePathString(pathArray);
+    if (isRelativeArray(pathArray)){
+      return clonePath(pathArray)
+    }
+    pathArray = isPathArray(pathArray) ? clonePath(pathArray) : parsePathString(pathArray);
     var resultArray = [],
         x = 0, y = 0, mx = 0, my = 0,
         start = 0, ii = pathArray.length;
@@ -456,7 +474,7 @@
       resultArray.push(["M", x, y]);
     }
     var loop = function ( i ) {
-      var r = (void 0), pa = pathArray[i];
+      var r = [], pa = pathArray[i];
       resultArray.push(r = []);
       if (pa[0] !== pa[0].toLowerCase() ) {
         r[0] = pa[0].toLowerCase();
@@ -512,35 +530,194 @@
   }
 
   function pathToString(pathArray) {
-    return pathArray.map( function (c) {
-      if (typeof c === 'string') {
-        return c
-      } else {
-        return c.shift() + c.join(' ')
+    return pathArray.map(function (x){ return x[0].concat(x.slice(1).join(' ')); }).join(' ')
+  }
+
+  function reversePath(pathString){
+    var absolutePath = pathToAbsolute(pathString),
+        isClosed = absolutePath.slice(-1)[0][0] === 'Z',
+        pathCommand, pLen,
+        x = 0, y = 0,
+        reversedPath;
+    reversedPath = absolutePath.map(function (seg,i,pathArray){
+      pLen = pathArray.length;
+      pathCommand = seg[0];
+      switch(pathCommand){
+        case 'M':
+          x = seg[1];
+          y = seg[2];
+          break
+        case 'Z':
+          x = pathArray[0][1];
+          y = pathArray[0][2];
+          break
+        case 'V':
+          x = x;
+          y = seg[1];
+          break
+        case 'H':
+          x = seg[1];
+          y = y;
+          break
+        default:
+          x = seg[seg.length - 2];
+          y = seg[seg.length - 1];
       }
-    }).join('')
+      return {
+        c: pathCommand,
+        x: x,
+        y: y,
+        seg: seg
+      }
+    })
+    .map(function (seg,i,pathArray){
+      var x1 = 0, y1 = 0, x2 = 0, y2 = 0,
+          xAxisRotation, largeArcFlag, sweepFlag,
+          segment = seg.seg,
+          result = [];
+      pLen = pathArray.length;
+      pathCommand = seg.c,
+      x = i ? pathArray[i-1].x : pathArray[pLen-1].x;
+      y = i ? pathArray[i-1].y : pathArray[pLen-1].y;
+      switch(pathCommand){
+        case 'M':
+          result = isClosed ? ['Z'] : [pathCommand,x,y];
+          break
+        case 'A':
+          x1 = segment[1];
+          y1 = segment[2];
+          xAxisRotation = segment[3];
+          largeArcFlag = segment[4];
+          sweepFlag = segment[5] === 1 ? 0 : 1;
+          result = [pathCommand, x1,y1, xAxisRotation,largeArcFlag,sweepFlag, x,y];
+          break
+        case 'C':
+          x1 = segment[3];
+          y1 = segment[4];
+          x2 = segment[1];
+          y2 = segment[2];
+          result = [pathCommand, x1,y1, x2,y2, x,y];
+          break
+        case 'Z':
+          result = ['M',x,y];
+          break
+        case 'H':
+          result = [pathCommand,x];
+          break
+        case 'V':
+          result = [pathCommand,y];
+          break
+        default:
+          result = segment.slice(0,-2).concat([x,y]);
+      }
+      return result
+    });
+    return isClosed ? reversedPath.reverse() : [reversedPath[0]].concat(reversedPath.slice(1).reverse())
+  }
+
+  function splitPath(pathString) {
+    return pathString
+      .replace( /(m|M)/g, "|$1")
+      .split('|')
+      .map(function (s){ return s.trim(); })
+      .filter(function (s){ return s; })
+  }
+
+  function optimizePath(pathArray){
+    var absolutePath = pathToAbsolute(pathArray),
+        relativePath = pathToRelative(pathArray);
+    return absolutePath.map(function (x,i) { return i ? (x.join('').length < relativePath[i].join('').length ? x : relativePath[i]) : x; } )
+  }
+
+  var SVGPathCommander = function SVGPathCommander(pathValue){
+    var path = parsePathString(pathValue);
+    this.segments = clonePath(path);
+    this.pathValue = pathValue;
+    return this
+  };
+  SVGPathCommander.prototype.toAbsolute = function toAbsolute (){
+    var path = pathToAbsolute(this.segments);
+    this.segments = clonePath(path);
+    return this
+  };
+  SVGPathCommander.prototype.toRelative = function toRelative (){
+    var path = pathToRelative(this.segments);
+    this.segments = clonePath(path);
+    return this
+  };
+  SVGPathCommander.prototype.reverse = function reverse (onlySubpath){
+    this.toAbsolute();
+    var subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()),
+        absoluteMultiPath = subPath && clonePath(subPath).map(function (x,i) {
+          return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
+        }),
+        path = subPath ? [].concat.apply([], absoluteMultiPath) : onlySubpath ? this.segments : reversePath(this.segments);
+    this.segments = clonePath(path);
+    return this
+  };
+  SVGPathCommander.prototype.optimize = function optimize (){
+    var path = optimizePath(this.segments);
+    this.segments = clonePath(path);
+    return this
+  };
+  SVGPathCommander.prototype.toString = function toString (){
+    return pathToString(this.segments)
+  };
+
+  function getArea(v) {
+    var x0 = v[0], y0 = v[1],
+        x1 = v[2], y1 = v[3],
+        x2 = v[4], y2 = v[5],
+        x3 = v[6], y3 = v[7];
+    return 3 * ((y3 - y0) * (x1 + x2) - (x3 - x0) * (y1 + y2)
+            + y1 * (x0 - x2) - x1 * (y0 - y2)
+            + y3 * (x2 + x0 / 3) - x3 * (y2 + y0 / 3)) / 20;
+  }
+  function getShapeArea(curveArray) {
+    return curveArray.slice(1).map(function (seg,i,cv){
+      var previous = cv[i === 0 ? cv.length-1 : i-1];
+      return getArea(previous.slice(previous.length-2).concat(seg.slice(1)))
+    }).reduce(function (a, b) { return a + b; }, 0)
+  }
+
+  function isCurveArray(pathArray){
+    return isPathArray(pathArray) && pathArray.slice(1).every(function (x){ return x[0] === 'C'; })
+  }
+
+  function getDrawDirection(curveArray) {
+    if (!isCurveArray(curveArray)) {
+      throw("getDrawDirection expects a curveArray")
+    }
+    return getShapeArea(curveArray) >= 0
+  }
+
+  function cubicLerp(a, b, t) {
+    return [a[0]*(1 - t) + b[0]*t, a[1]*(1 - t) + b[1]*t]
+  }
+  function splitCubic(pts,t) {
+    t = t || 0.5;
+    var p0 = pts.slice(0,2),
+        p1 = pts.slice(2,4),
+        p2 = pts.slice(4,6),
+        p3 = pts.slice(6,8),
+        p4 = cubicLerp(p0, p1, t),
+        p5 = cubicLerp(p1, p2, t),
+        p6 = cubicLerp(p2, p3, t),
+        p7 = cubicLerp(p4, p5, t),
+        p8 = cubicLerp(p5, p6, t),
+        p9 = cubicLerp(p7, p8, t),
+        firsthalf  = ['C'].concat( p4, p7, p9),
+        secondhalf = ['C'].concat( p8, p6, p3);
+    return [firsthalf, secondhalf]
   }
 
   function reverseCurve(pathCurveArray){
-    var curveSegments = clonePath(pathCurveArray),
-        curveCount = curveSegments.length - 2,
-        ci = 0, ni = 0,
-        currentSeg = [],
-        nextSeg = [],
-        x1, y1, x2, y2, x, y,
-        curveOnly = curveSegments.slice(1),
-        rotatedCurve = curveOnly.map(function (p,i){
-          ci = curveCount - i;
-          ni = ci - 1 < 0 ? curveCount : ci - 1;
-          currentSeg = curveOnly[ci];
-          nextSeg = curveOnly[ni];
-          x = nextSeg[nextSeg.length - 2];
-          y = nextSeg[nextSeg.length - 1];
-          x1 = currentSeg[3]; y1 = currentSeg[4];
-          x2 = currentSeg[1]; y2 = currentSeg[2];
-          return ['C',x1,y1,x2,y2,x,y]
-        });
-    return [['M',x,y]].concat(rotatedCurve)
+     var rotatedCurve = pathCurveArray.slice(1)
+                        .map(function (x,i,curveOnly) { return !i ? pathCurveArray[0].slice(1).concat(x.slice(1)) : curveOnly[i-1].slice(-2).concat(x.slice(1)); })
+                        .map(function (x) { return x.map(function (y,i) { return x[x.length - i - 2 * (1 - i % 2)]; } ); })
+                        .reverse();
+    return [ ['M'].concat( rotatedCurve[0].slice(0,2)) ]
+            .concat(rotatedCurve.map(function (x){ return ['C'].concat(x.slice(2) ); } ))
   }
 
   function rotateVector(x, y, rad) {
@@ -635,11 +812,8 @@
     return [x1, y1, x2, y2, x2, y2]
   }
 
-  function processSegment(segment, params, pathCommand) {
+  function segmentToCubic(segment, params, pathCommand) {
     var nx, ny;
-    if (!segment) {
-      return ["C", params.x, params.y, params.x, params.y, params.x, params.y];
-    }
     !(segment[0] in {T: 1, Q: 1}) && (params.qx = params.qy = null);
     switch (segment[0]) {
       case "M":
@@ -692,209 +866,54 @@
     return segment;
   }
 
-  function fixM(path1, path2, a1, a2, i, count) {
-    if (path1 && path2 && path1[i][0] === "M" && path2[i][0] !== "M") {
-      path2.splice(i, 0, ["M", a2.x, a2.y]);
-      a1.bx = 0;
-      a1.by = 0;
-      a1.x = path1[i][1];
-      a1.y = path1[i][2];
-      count = Math.max(p.length, p2 && p2.length || 0);
-    }
-  }
-
-  function fixArc(p, p2, pc1, pc2, i, count) {
+  function fixArc(p, pc1, i, count) {
     if (p[i].length > 7) {
       p[i].shift();
       var pi = p[i];
       while (pi.length) {
         pc1[i] = "A";
-        p2 && (pc2[i] = "A");
         p.splice(i++, 0, ["C"].concat(pi.splice(0, 6)));
       }
       p.splice(i, 1);
-      count = Math.max(p.length, p2 && p2.length || 0);
+      count = p.length;
     }
   }
 
-  function pathToCurve(path, path2) {
-    var p = pathToAbsolute(path),
-        p2 = path2 && pathToAbsolute(path2),
-        attrs = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
-        attrs2 = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null};
-    var pcoms1 = [], pcoms2 = [],
-        pathCommand = "", pcom = "",
-        ii = Math.max(p.length, p2 && p2.length || 0);
-    for (var i = 0; i < (ii = Math.max(p.length, p2 && p2.length || 0)); i++) {
-      p[i] && (pathCommand = p[i][0]);
+  function pathToCurve(pathArray) {
+    if (isCurveArray(pathArray)){
+      return clonePath(pathArray)
+    }
+    pathArray = isAbsoluteArray(pathArray) ? clonePath(pathArray) : pathToAbsolute(pathArray);
+    var attrs = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
+        segment = [], pathCommand = "", pcom = "", ii = pathArray.length;
+    for (var i = 0; i < ii; i++) {
+      pathArray[i] && (pathCommand = pathArray[i][0]);
       if (pathCommand !== "C") {
-        pcoms1[i] = pathCommand;
-        i && ( pcom = pcoms1[i - 1]);
+        segment[i] = pathCommand;
+        i && ( pcom = segment[i - 1]);
       }
-      p[i] = processSegment(p[i], attrs, pcom);
-      if (pcoms1[i] !== "A" && pathCommand === "C") { pcoms1[i] = "C"; }
-      fixArc(p,p2,pcoms1,pcoms2,i,ii);
-      if (p2) {
-        p2[i] && (pathCommand = p2[i][0]);
-        if (pathCommand !== "C") {
-          pcoms2[i] = pathCommand;
-          i && (pcom = pcoms2[i - 1]);
-        }
-        p2[i] = processSegment(p2[i], attrs2, pcom);
-        if (pcoms2[i] !== "A" && pathCommand === "C") {
-          pcoms2[i] = "C";
-        }
-        fixArc(p2,p,pcoms2,pcoms1,i,ii);
-      }
-      fixM(p, p2, attrs, attrs2, i, ii);
-      fixM(p2, p, attrs2, attrs, i, ii);
-      var seg = p[i],
-          seg2 = p2 && p2[i],
-          seglen = seg.length,
-          seg2len = p2 && seg2.length;
+      pathArray[i] = segmentToCubic(pathArray[i], attrs, pcom);
+      if (segment[i] !== "A" && pathCommand === "C") { segment[i] = "C"; }
+      fixArc(pathArray,segment,i,ii);
+      var seg = pathArray[i], seglen = seg.length;
       attrs.x = +seg[seglen - 2];
       attrs.y = +seg[seglen - 1];
       attrs.bx = +(seg[seglen - 4]) || attrs.x;
       attrs.by = +(seg[seglen - 3]) || attrs.y;
-      attrs2.bx = p2 && (+(seg2[seg2len - 4]) || attrs2.x);
-      attrs2.by = p2 && (+(seg2[seg2len - 3]) || attrs2.y);
-      attrs2.x = p2 && seg2[seg2len - 2];
-      attrs2.y = p2 && seg2[seg2len - 1];
     }
-    return p2 ? [roundPath(p), roundPath(p2)] : roundPath(p)
-  }
-
-  function reversePath(pathArray){
-    var isClosed = pathToAbsolute(pathArray).some(function (x){ return x[0].toUpperCase() === 'Z'; }),
-        pathCurveArray = reverseCurve(pathToCurve(pathArray)),
-        result = [],
-        pathCommand,
-        x1, y1, x2, y2, x, y,
-        prevSeg = [],
-        px, py;
-    return pathCurveArray.map(function (p,i){
-      x  = p[p.length - 2];
-      y  = p[p.length - 1];
-      x1 = p[1]; y1 = p[2];
-      x2 = p[3]; y2 = p[4];
-      prevSeg = i - 1 < 0 ? pathCurveArray[pathCurveArray.length - 1] : pathCurveArray[i - 1];
-      px = prevSeg[prevSeg.length - 2];
-      py = prevSeg[prevSeg.length - 1];
-      if (p.length === 3) {
-        pathCommand = 'M';
-      } else if (py===y && py===y1) {
-        pathCommand = 'H';
-      } else if (px===x && px===x1) {
-        pathCommand = 'V';
-      } else if ( px===x1 && py===y1 && x===x2 && y===y2 ) {
-        pathCommand = 'L';
-      } else {
-        pathCommand = p[0];
-      }
-      switch(pathCommand) {
-        case 'M':
-          result = ['M', x,y];
-          break;
-        case 'L':
-          result = [pathCommand, x,y];
-          break;
-        case 'V':
-          result = [pathCommand, y];
-          break;
-        case 'H':
-          result = [pathCommand, x];
-          break;
-        case 'C':
-          result = [pathCommand,x1,y1,x2,y2,x,y];
-          break;
-        default:
-          result = [pathCommand];
-      }
-      return result
-    })
-    .concat(isClosed ? [['Z']] : [])
-  }
-
-  function splitPath(pathString) {
-    return pathString
-      .replace( /(m|M)/g, "|$1")
-      .split('|')
-      .map(function (s){ return s.trim(); })
-      .filter(function (s){ return s; })
-  }
-
-  function optimizePath(pathArray){
-    var absolutePath = pathToAbsolute(pathArray),
-        relativePath = pathToRelative(pathArray);
-    return absolutePath.map(function (x,i) { return i ? (x.join('').length < relativePath[i].join('').length ? x : relativePath[i]) : x; } )
-  }
-
-  var SVGPathCommander = function SVGPathCommander(pathValue){
-    var path = parsePathString(pathValue);
-    this.segments = clonePath(path);
-    this.pathValue = pathValue;
-    return this
-  };
-  SVGPathCommander.prototype.toAbsolute = function toAbsolute (){
-    var path = pathToAbsolute(this.segments);
-    this.segments = clonePath(path);
-    return this
-  };
-  SVGPathCommander.prototype.toRelative = function toRelative (){
-    var path = pathToRelative(this.segments);
-    this.segments = clonePath(path);
-    return this
-  };
-  SVGPathCommander.prototype.reverse = function reverse (onlySubpath){
-    this.toAbsolute();
-    var subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()),
-        absoluteMultiPath = subPath && clonePath(subPath).map(function (x,i){
-          return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
-        }),
-        path = subPath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments);
-    this.segments = clonePath(path);
-    return this
-  };
-  SVGPathCommander.prototype.optimize = function optimize (){
-    var path = optimizePath(this.segments);
-    this.segments = clonePath(path);
-    return this
-  };
-  SVGPathCommander.prototype.toString = function toString (){
-    return pathToString(this.segments)
-  };
-
-  function getArea(v) {
-    var x0 = v[0], y0 = v[1],
-        x1 = v[2], y1 = v[3],
-        x2 = v[4], y2 = v[5],
-        x3 = v[6], y3 = v[7];
-    return 3 * ((y3 - y0) * (x1 + x2) - (x3 - x0) * (y1 + y2)
-            + y1 * (x0 - x2) - x1 * (y0 - y2)
-            + y3 * (x2 + x0 / 3) - x3 * (y2 + y0 / 3)) / 20;
-  }
-
-  function getShapeArea(curveArray) {
-    var cv = curveArray.slice(1), previous;
-    return cv.map(function (seg,i){
-      previous = cv[i === 0 ? cv.length-1 : i-1];
-      return getArea(previous.slice(previous.length-2).concat(seg.slice(1)))
-    }).reduce(function (a, b) { return a + b; }, 0)
-  }
-
-  function getDrawDirection(curveArray) {
-    if (Array.isArray(curveArray) && curveArray.slice(1).every(function (x){ return x[0] === 'C'; })) {
-      return getShapeArea(curveArray) >= 0
-    } else {
-      throw("getDrawDirection expects a curveArray")
-    }
+    return isCurveArray(pathArray) ? roundPath(pathArray) : pathToCurve(pathArray)
   }
 
   var util = {
-    clonePath: clonePath,
-    getDrawDirection: getDrawDirection,
     getShapeArea: getShapeArea,
+    getDrawDirection: getDrawDirection,
+    clonePath: clonePath,
     splitPath: splitPath,
+    splitCubic: splitCubic,
+    isPathArray: isPathArray,
+    isCurveArray: isCurveArray,
+    isAbsoluteArray: isAbsoluteArray,
+    isRelativeArray: isRelativeArray,
     roundPath: roundPath,
     optimizePath: optimizePath,
     pathToAbsolute: pathToAbsolute,

@@ -1,59 +1,89 @@
 import pathToAbsolute from '../convert/pathToAbsolute.js';
-import reverseCurve from './reverseCurve.js';
-import pathToCurve from '../convert/pathToCurve.js';
 
-export default function(pathArray){
-  let isClosed = pathToAbsolute(pathArray).some(x=>x[0].toUpperCase() === 'Z'),
-      pathCurveArray = reverseCurve(pathToCurve(pathArray)),
-      result = [],
-      pathCommand, 
-      x1, y1, x2, y2, x, y,
-      prevSeg = [],
-      px, py
+export default function(pathString){ // pathArray | pathString
+  let absolutePath = pathToAbsolute(pathString),
+      isClosed = absolutePath.slice(-1)[0][0] === 'Z',
+      pathCommand, pLen, 
+      x = 0, y = 0,
+      reversedPath;
 
-  return pathCurveArray.map((p,i)=>{
-    x  = p[p.length - 2];
-    y  = p[p.length - 1];
-    x1 = p[1]; y1 = p[2]; 
-    x2 = p[3]; y2 = p[4];
+  reversedPath = absolutePath.map((seg,i,pathArray)=>{
+    pLen = pathArray.length
+    pathCommand = seg[0]
 
-    prevSeg = i - 1 < 0 ? pathCurveArray[pathCurveArray.length - 1] : pathCurveArray[i - 1]
-
-    px = prevSeg[prevSeg.length - 2]
-    py = prevSeg[prevSeg.length - 1]
-
-    if (p.length === 3) { // M
-      pathCommand = 'M'
-    } else if (py===y && py===y1) { // H
-      pathCommand = 'H'
-    } else if (px===x && px===x1) { // V
-      pathCommand = 'V'
-    } else if ( px===x1 && py===y1 && x===x2 && y===y2 ) { // L
-      pathCommand = 'L'
-    } else { // C
-      pathCommand = p[0]
+    switch(pathCommand){
+      case 'M':
+        x = seg[1]
+        y = seg[2]
+        break
+      case 'Z':
+        x = pathArray[0][1]
+        y = pathArray[0][2]
+        break
+      case 'V':
+        x = x
+        y = seg[1]
+        break
+      case 'H':
+        x = seg[1]
+        y = y 
+        break
+      default:
+        x = seg[seg.length - 2]
+        y = seg[seg.length - 1]
     }
 
-    switch(pathCommand) {
+    return {
+      c: pathCommand, 
+      x: x,
+      y: y,
+      seg: seg
+    }
+  })
+  .map((seg,i,pathArray)=>{
+    let x1 = 0, y1 = 0, x2 = 0, y2 = 0,
+        xAxisRotation, largeArcFlag, sweepFlag,
+        segment = seg.seg,
+        result = []
+
+    pLen = pathArray.length
+    pathCommand = seg.c,
+
+    x = i ? pathArray[i-1].x : pathArray[pLen-1].x
+    y = i ? pathArray[i-1].y : pathArray[pLen-1].y
+
+    switch(pathCommand){
       case 'M':
-        result = ['M', x,y]
-        break;
-      case 'L':
-        result = [pathCommand, x,y]
-        break;
-      case 'V':
-        result = [pathCommand, y]
-        break;
-      case 'H':
-        result = [pathCommand, x]
-        break;
+        result = isClosed ? ['Z'] : [pathCommand,x,y]
+        break
+      case 'A': // rx ry x-axis-rotation large-arc-flag sweep-flag x y
+        x1 = segment[1]
+        y1 = segment[2]
+        xAxisRotation = segment[3]
+        largeArcFlag = segment[4]
+        sweepFlag = segment[5] === 1 ? 0 : 1
+        result = [pathCommand, x1,y1, xAxisRotation,largeArcFlag,sweepFlag, x,y]
+        break
       case 'C':
-        result = [pathCommand,x1,y1,x2,y2,x,y]
-        break;
+        x1 = segment[3]
+        y1 = segment[4]
+        x2 = segment[1]
+        y2 = segment[2]
+        result = [pathCommand, x1,y1, x2,y2, x,y]
+        break
+      case 'Z':
+        result = ['M',x,y]
+        break
+      case 'H':
+        result = [pathCommand,x]
+        break
+      case 'V':
+        result = [pathCommand,y]
+        break
       default:
-        result = [pathCommand]
+        result = segment.slice(0,-2).concat([x,y])
     }
     return result
   })
-  .concat(isClosed ? [['Z']] : [])
+  return isClosed ? reversedPath.reverse() : [reversedPath[0]].concat(reversedPath.slice(1).reverse())
 }

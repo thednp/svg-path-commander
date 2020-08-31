@@ -1,4 +1,5 @@
 node_modules/
+experiments/
 .gitignore
 index.html
 package-lock.json

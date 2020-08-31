@@ -5,9 +5,9 @@ import pathToString from '../convert/pathToString.js'
 import parsePathString from '../process/parsePathString.js'
 import reversePath from '../process/reversePath.js'
 
-import clonePath from '../util/clonePath.js'
-import splitPath from '../util/splitPath.js'
-import optimizePath from '../util/optimizePath.js'
+import clonePath from '../process/clonePath.js'
+import splitPath from '../process/splitPath.js'
+import optimizePath from '../process/optimizePath.js'
 
 export default class SVGPathCommander {
   constructor(pathValue){
@@ -28,12 +28,13 @@ export default class SVGPathCommander {
   }
   reverse(onlySubpath){
     this.toAbsolute()
-
-    let subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()),
-        absoluteMultiPath = subPath && clonePath(subPath).map((x,i)=> {
+    
+    let subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()), 
+        absoluteMultiPath = subPath && clonePath(subPath).map((x,i) => {
           return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
-        }),
-        path = subPath ? [].concat.apply([], absoluteMultiPath) : reversePath(this.segments)
+        }), 
+        path = subPath ? [].concat.apply([], absoluteMultiPath) : onlySubpath ? this.segments : reversePath(this.segments)
+
     this.segments = clonePath(path)
     return this
   }

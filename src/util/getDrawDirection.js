@@ -1,9 +1,9 @@
 import getShapeArea from './getShapeArea.js'
+import isCurveArray from './isCurveArray.js'
 
 export default function(curveArray) {
-  if (Array.isArray(curveArray) && curveArray.slice(1).every(x=>x[0] === 'C')) {
-    return getShapeArea(curveArray) >= 0
-  } else {
+  if (!isCurveArray(curveArray)) {
     throw(`getDrawDirection expects a curveArray`)
   }
+  return getShapeArea(curveArray) >= 0
 }

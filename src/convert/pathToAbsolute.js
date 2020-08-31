@@ -1,14 +1,15 @@
 import parsePathString from '../process/parsePathString.js'
+import roundPath from '../process/roundPath.js'
+import clonePath from '../process/clonePath.js'
 import catmullRom2bezier from '../util/catmullRom2bezier.js'
 import ellipsePath from '../util/ellipsePath.js'
-import roundPath from '../util/roundPath.js'
+import isAbsoluteArray from '../util/isAbsoluteArray.js'
 
 export default function(pathArray) {
-  pathArray = parsePathString(pathArray)
-
-  if (!pathArray || !pathArray.length) {
-    return [["M", 0, 0]];
+  if (isAbsoluteArray(pathArray)) {
+    return clonePath(pathArray)
   }
+  pathArray = parsePathString(pathArray)
 
   let resultArray = [], 
       x = 0, y = 0, mx = 0, my = 0, 

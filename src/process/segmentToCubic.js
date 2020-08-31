@@ -4,10 +4,9 @@ import l2c from '../util/l2c.js'
 
 export default function(segment, params, pathCommand) {
   let nx, ny;
-  if (!segment) {
-    return ["C", params.x, params.y, params.x, params.y, params.x, params.y];
-  }
+
   !(segment[0] in {T: 1, Q: 1}) && (params.qx = params.qy = null);
+
   switch (segment[0]) {
     case "M":
       params.X = segment[1];

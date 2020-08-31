@@ -4,7 +4,7 @@ import scanFlag from './scanFlag.js'
 import scanParam from './scanParam.js'
 import isCommand from './isCommand.js'
 import isDigitStart from './isDigitStart.js'
-import isArc from './isArc.js'
+import isArcCommand from './isArcCommand.js'
 import skipSpaces from './skipSpaces.js'
 import invalidPathValue from './invalidPathValue.js'
 
@@ -37,7 +37,7 @@ export default function(state) {
 
   for (;;) {
     for (i = need_params; i > 0; i--) {
-      if (isArc(cmdCode) && (i === 3 || i === 4)) scanFlag(state);
+      if (isArcCommand(cmdCode) && (i === 3 || i === 4)) scanFlag(state);
       else scanParam(state);
 
       if (state.err.length) {

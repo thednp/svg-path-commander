@@ -45,6 +45,7 @@ mySVGPathCommanderInit.toRelative().toString()
 mySVGPathCommanderInit.reverse().toString()
 
 // ONLY reverse subpaths and return the string path
+// if the shape has no sub-path, this call will produce no effect
 mySVGPathCommanderInit.reverse(1).toString()
 
 // converts to both absolute and relative then return the shorter segment string
@@ -74,15 +75,14 @@ When using the library as a package, type in "SVGPathCommander." in your browser
 * `SVGPathCommander.pathToCurve(pathString|pathArray)` - returns a new *pathArray* having all path commands converted to `cubicBezierTo` (`C`) path commands
 * `SVGPathCommander.clonePath(pathArray)` - returns a **deep clone** of a *pathArray*, which is the result of any of the above functions
 * `SVGPathCommander.roundPath(pathArray)` - returns a new *pathArray* with all path command values rounded to 3 decimals by default
-* `SVGPathCommander.reversePath(pathArray)` - returns a new *pathArray* with all path commands in reverse order
+* `SVGPathCommander.reversePath(pathString|pathArray)` - returns a new *pathArray* with all path commands having absolute values and in reverse order, but only for a single M->Z shape, for *SVGPathElement* items with sub-path, you need to use `pathToAbsolute` -> `pathToString` -> `splitPath` -> `reversePath` for each subpath
 * `SVGPathCommander.optimizePath(pathArray)` - returns a new *pathArray* with all segments that have the shortest strings from either absolute or relative `pathArray` segments
 * `SVGPathCommander.getDrawDirection(pathCurve)` - returns **TRUE** if a shape draw direction is **clockwise**, it should not be used for shapes with sub-paths, but each sub-path individually
 * `SVGPathCommander.splitPath(pathString)` - returns an *Array* of sub-path strings
 
 # Some Technical Considerations
-* the `reverse()` method will not return the same amount of path commands like the original path when `arcTo` path commands have `largeArcFlag` set to 1; this method will also split the original path string into multiple sub-path strings, reverse the draw direction of each sub-path (or only child sub-paths) and return a new *pathArray*;
 * the `optimize()` method will only return the shortest segment string of the *pathArray*, it will not simplify/merge the path commands; to do that you can use [SVGO](https://github.com/svg/svgo) and its `convertPathData` plugin;
-* all tools processing path segments will always round float values to 3 decimals, but only float numbers; EG: 0.5666 => 0.566, 0.50 => 0.5, 5 => 5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`.
+* all tools processing path segments will always round float values to 3 decimals, remember: only float numbers; EG: 0.5666 => 0.566, 0.50 => 0.5, 5 => 5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`.
 
 
 # Special Thanks
@@ -91,6 +91,7 @@ When using the library as a package, type in "SVGPathCommander." in your browser
 * Vitaly Puzrin & Alex Kocharin for their [SvgPath](https://github.com/fontello/svgpath)
 * Jürg Lehni & Jonathan Puckey for their [Paper.js](https://github.com/paperjs/paper.js/)
 * Andrew Willems for his [awesome guide](https://stackoverflow.com/users/5218951/andrew-willems)
+* Mike 'Pomax' Kamermans for his awesome [svg-path-reverse](https://github.com/Pomax/svg-path-reverse) and [bezierjs](https://github.com/Pomax/bezierjs)
 
 # License
 SVGPathCommander is released under [MIT Licence](https://github.com/thednp/svg-path-commander/blob/master/LICENSE).

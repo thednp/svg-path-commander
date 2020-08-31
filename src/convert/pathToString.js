@@ -1,9 +1,3 @@
 export default function(pathArray) {
-  return pathArray.map( (c) => {
-    if (typeof c === 'string') {
-      return c
-    } else {
-      return c.shift() + c.join(' ') 
-    }
-  }).join('')
+  return pathArray.map(x=>x[0].concat(x.slice(1).join(' '))).join(' ')
 }
