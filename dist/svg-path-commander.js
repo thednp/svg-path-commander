@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.3 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -453,8 +453,12 @@
     return roundPath(resultArray)
   }
 
+  function isRelativeArray(pathInput){
+    return isPathArray(pathInput) && pathInput.slice(1).every(function (x){ return x[0] === x[0].toLowerCase(); })
+  }
+
   function pathToRelative (pathArray) {
-    if (isPathArray(pathArray)){
+    if (isRelativeArray(pathArray)){
       return clonePath(pathArray)
     }
     pathArray = isPathArray(pathArray) ? clonePath(pathArray) : parsePathString(pathArray);
@@ -685,10 +689,6 @@
       throw("getDrawDirection expects a curveArray")
     }
     return getShapeArea(curveArray) >= 0
-  }
-
-  function isRelativeArray(pathInput){
-    return isPathArray(pathInput) && pathInput.slice(1).every(function (x){ return x[0] === x[0].toLowerCase(); })
   }
 
   function cubicLerp(a, b, t) {
