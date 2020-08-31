@@ -1,14 +1,13 @@
 import parsePathString from '../process/parsePathString.js'
 import roundPath from '../process/roundPath.js'
 import clonePath from '../process/clonePath.js'
-import isPathArray from '../util/isPathArray.js'
 import isRelativeArray from '../util/isRelativeArray.js'
 
 export default function (pathArray) {
   if (isRelativeArray(pathArray)){
     return clonePath(pathArray)
   }
-  pathArray = isPathArray(pathArray) ? clonePath(pathArray) : parsePathString(pathArray)
+  pathArray = parsePathString(pathArray)
 
   let resultArray = [], 
       x = 0, y = 0, mx = 0, my = 0, 

@@ -108,7 +108,6 @@
         <button type="button" onclick="toRel()">toRelative</button>
         <button type="button" onclick="toRev()">Reverse</button>
         <button type="button" onclick="toRevSubs()">Reverse Subpath</button>
-        <button type="button" onclick="toOpt()">Optimize</button>
         <button type="button" onclick="toSplit()">Split</button>
       </p>
 
@@ -195,16 +194,6 @@
       document.getElementById('t2').value = revPath;
       path.setAttribute('d', revPath);
     }
-    function toOpt() { // optimize coordinates
-      pathValue = document.getElementById('t1').value || pathValue
-
-      var optPath = new SVGPathCommander( pathValue ).optimize().toString();
-      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
-
-      document.getElementById('t2').value = optPath;
-      path.setAttribute('d', optPath);
-    }
-
     function toSplit() { // split coordinates
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       pathValue = document.getElementById('t1').value || pathValue

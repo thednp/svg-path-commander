@@ -33,12 +33,17 @@ let mySVGPathCommanderInit = new SVGPathCommander(pathString);
   segments: [ ['M',0,0], ['l',50,0], ['l',50,50], ['z'] ]
 }
 */
+```
 
+# Methods
+
+The SVGPathCommander construct comes with various methods you can call one-by-one or 
+```js
 // reuse same init object to call different methods
-// for instance convert to ABSOLUTE and return the string path
-mySVGPathCommanderInit.toAbsolute().toString()
+// for instance convert to ABSOLUTE and return the initialization object
+mySVGPathCommanderInit.toAbsolute()
 
-// or convert to RELATIVE and return the string path
+// or convert to RELATIVE and return the string path directly
 mySVGPathCommanderInit.toRelative().toString()
 
 // reverse and return the string path
@@ -52,7 +57,10 @@ mySVGPathCommanderInit.reverse(1).toString()
 mySVGPathCommanderInit.optimize().toString()
 
 // or return directly what you need
-let mySVGAbsolutePath = new SVGPathCommander(pathString).reverse(1).optimize().toString()
+let mySVGAbsolutePath = new SVGPathCommander(pathString)
+                        .reverse(1)
+                        .optimize()
+                        .toString()
 ```
 
 # Advanced Usage

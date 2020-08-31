@@ -4,14 +4,13 @@ import roundPath from '../process/roundPath.js'
 import fixArc from '../util/fixArc.js'
 import isCurveArray from '../util/isCurveArray.js'
 import clonePath from '../process/clonePath.js'
-import isAbsoluteArray from '../util/isAbsoluteArray.js'
 
 export default function pathToCurve(pathArray) { // pathArray|pathString
   if (isCurveArray(pathArray)){
     return clonePath(pathArray)
   }
 
-  pathArray = isAbsoluteArray(pathArray) ? clonePath(pathArray) : pathToAbsolute(pathArray)
+  pathArray = pathToAbsolute(pathArray)
   
   // path commands of original path pathArray
   // path commands of original path p2
