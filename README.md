@@ -1,5 +1,5 @@
-# SVGPathCommander
-A modern set of ES6/ES7 JavaScript tools for manipulating *SVGPathElement* description attribute. This library was developed to try and solve over-optimized `arcTo` segment strings and provide a solid solution to parse, convert and reverse *SVGPathElement* draw direction.
+# SVG Path Commander
+A modern set of ES6/ES7 JavaScript tools for manipulating *SVGPathElement* description attribute. The library was developed to try and solve over-optimized path strings and provide a solid solution to parse, normalize, convert and reverse *SVGPathElement* draw direction.
 
 This library is made possible thanks to [Raphael.js](https://dmitrybaranovskiy.github.io/raphael/), [SvgPath](https://github.com/fontello/svgpath), [Paper.js](https://github.com/paperjs/paper.js/) and is used by [KUTE.js](https://github.com/thednp/kute.js) for [SVG path morphing](https://thednp.github.io/kute.js/svgCubicMorph.html).
 
@@ -17,7 +17,7 @@ npm install svg-path-commander
 
 Find SVGPathCommander on [jsDelivr](https://www.jsdelivr.com/package/npm/svg-path-commander).
 
-# Usage
+# ES6/ES7 Usage
 
 On a regular basis, you can import, initialize and access methods, or return the values right away.
 
@@ -35,9 +35,26 @@ let mySVGPathCommanderInit = new SVGPathCommander(pathString);
 */
 ```
 
+# Node.js
+
+```js
+// import the constructor
+let SVGPathCommander = require('svg-path-commander')
+
+let pathString = 'M0 0l50 0l50 50z';
+
+// initializing
+let mySVGPathCommanderInit = new SVGPathCommander(pathString);
+/* returns => {
+  segments: [ ['M',0,0], ['l',50,0], ['l',50,50], ['z'] ]
+}
+*/
+```
+*Some tools inside would like to have access to a mockup browser.*
+
 # Methods
 
-The SVGPathCommander construct comes with various methods you can call one-by-one or 
+The SVGPathCommander construct comes with various methods you can call:
 ```js
 // reuse same init object to call different methods
 // for instance convert to ABSOLUTE and return the initialization object
@@ -57,10 +74,7 @@ mySVGPathCommanderInit.reverse(1).toString()
 mySVGPathCommanderInit.optimize().toString()
 
 // or return directly what you need
-let mySVGAbsolutePath = new SVGPathCommander(pathString)
-                        .reverse(1)
-                        .optimize()
-                        .toString()
+let myReversedPath = new SVGPathCommander(pathString).reverse(1).optimize().toString()
 ```
 
 # Advanced Usage
@@ -85,16 +99,16 @@ When using the library as a package, type in "SVGPathCommander." in your browser
 * `SVGPathCommander.roundPath(pathArray)` - returns a new *pathArray* with all path command values rounded to 3 decimals by default
 * `SVGPathCommander.reversePath(pathString|pathArray)` - returns a new *pathArray* with all path commands having absolute values and in reverse order, but only for a single M->Z shape, for *SVGPathElement* items with sub-path, you need to use `pathToAbsolute` -> `pathToString` -> `splitPath` -> `reversePath` for each subpath
 * `SVGPathCommander.optimizePath(pathArray)` - returns a new *pathArray* with all segments that have the shortest strings from either absolute or relative `pathArray` segments
+* `SVGPathCommander.normalizePath(pathString|pathArray)` - returns a new *pathArray* with all segments with shorthand path commands such as `S`, `T`, `V` and `H` converted to `C`, `Q` and `L` respectivelly and is used by `pathToCurve` and `reversePath`
 * `SVGPathCommander.getDrawDirection(pathCurve)` - returns **TRUE** if a shape draw direction is **clockwise**, it should not be used for shapes with sub-paths, but each sub-path individually
 * `SVGPathCommander.splitPath(pathString)` - returns an *Array* of sub-path strings
 
-# Some Technical Considerations
+# Technical Considerations
 * the `optimize()` method will only return the shortest segment string of the *pathArray*, it will not simplify/merge the path commands; to do that you can use [SVGO](https://github.com/svg/svgo) and its `convertPathData` plugin;
 * all tools processing path segments will always round float values to 3 decimals, remember: only float numbers; EG: 0.5666 => 0.566, 0.50 => 0.5, 5 => 5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`.
 
 
 # Special Thanks
-
 * Dmitry Baranovskiy for his [Raphael.js](https://dmitrybaranovskiy.github.io/raphael/)
 * Vitaly Puzrin & Alex Kocharin for their [SvgPath](https://github.com/fontello/svgpath)
 * Jürg Lehni & Jonathan Puckey for their [Paper.js](https://github.com/paperjs/paper.js/)

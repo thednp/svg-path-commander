@@ -1,4 +1,4 @@
-import rotateVector from "./rotateVector.js"
+import rotateVector from "../util/rotateVector.js"
 
 // for more information of where this math came from visit:
 // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes

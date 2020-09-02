@@ -12,13 +12,6 @@ function getArea(v) {
           + y3 * (x2 + x0 / 3) - x3 * (y2 + y0 / 3)) / 20;
 }
 
-// export default function getShapeArea(curveArray) {
-//   let cv = curveArray.slice(1), previous;
-//   return cv.map(function (seg,i){
-//     previous = cv[i === 0 ? cv.length-1 : i-1];
-//     return getArea(previous.slice(previous.length-2).concat(seg.slice(1)))
-//   }).reduce((a, b) => a + b, 0)
-// }
 export default function getShapeArea(curveArray) {
   return curveArray.slice(1).map(function (seg,i,cv){
     let previous = cv[i === 0 ? cv.length-1 : i-1];

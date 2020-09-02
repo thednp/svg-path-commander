@@ -1,8 +1,8 @@
 import parsePathString from '../process/parsePathString.js'
 import roundPath from '../process/roundPath.js'
 import clonePath from '../process/clonePath.js'
-import catmullRom2bezier from '../util/catmullRom2bezier.js'
-import ellipsePath from '../util/ellipsePath.js'
+import catmullRom2bezier from '../process/catmullRom2bezier.js'
+import ellipseToArc from '../process/ellipseToArc.js'
 import isAbsoluteArray from '../util/isAbsoluteArray.js'
 
 export default function(pathArray) {
@@ -61,13 +61,13 @@ export default function(pathArray) {
           break;
         case "O":
           resultArray.pop();
-          dots = ellipsePath(x, y, +pa[1], +pa[2]);
+          dots = ellipseToArc(x, y, +pa[1], +pa[2]);
           dots.push(dots[0]);
           resultArray = resultArray.concat(dots);
           break;
         case "U":
           resultArray.pop();
-          resultArray = resultArray.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
+          resultArray = resultArray.concat(ellipseToArc(x, y, pa[1], pa[2], pa[3]));
           r = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
           break;
         case "M":
@@ -85,12 +85,12 @@ export default function(pathArray) {
       r = ["R"].concat(pa.slice(-2));
     } else if (pa0 === "O") {
       resultArray.pop();
-      dots = ellipsePath(x, y, +pa[1], +pa[2]);
+      dots = ellipseToArc(x, y, +pa[1], +pa[2]);
       dots.push(dots[0]);
       resultArray = resultArray.concat(dots);
     } else if (pa0 === "U") {
       resultArray.pop();
-      resultArray = resultArray.concat(ellipsePath(x, y, +pa[1], +pa[2], +pa[3]));
+      resultArray = resultArray.concat(ellipseToArc(x, y, +pa[1], +pa[2], +pa[3]));
       r = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
     } else {
       pa.map(k=>r.push(k))

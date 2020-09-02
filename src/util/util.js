@@ -12,9 +12,9 @@ import clonePath from '../process/clonePath.js'
 import roundPath from '../process/roundPath.js'
 import splitPath from '../process/splitPath.js'
 import optimizePath from '../process/optimizePath.js'
-import splitCubic from '../process/splitCubic.js'
 import reverseCurve from '../process/reverseCurve.js'
 import reversePath from '../process/reversePath.js'
+import normalizePath from '../process/normalizePath.js'
 
 import pathToAbsolute from '../convert/pathToAbsolute.js'
 import pathToRelative from '../convert/pathToRelative.js'
@@ -26,7 +26,6 @@ export default {
   getDrawDirection,
   clonePath,
   splitPath,
-  splitCubic,
   isPathArray,
   isCurveArray,
   isAbsoluteArray,
@@ -40,5 +39,6 @@ export default {
   parsePathString,
   reverseCurve,
   reversePath,
+  normalizePath,
   options: SVGPathCommanderOptions
 }

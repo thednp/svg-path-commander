@@ -1,42 +1,43 @@
-import pathToAbsolute from './pathToAbsolute.js'
-import segmentToCubic from '../process/segmentToCubic.js'
 import roundPath from '../process/roundPath.js'
 import fixArc from '../util/fixArc.js'
 import isCurveArray from '../util/isCurveArray.js'
 import clonePath from '../process/clonePath.js'
+import normalizePath from '../process/normalizePath.js'
+import segmentToCubicBezier from '../process/segmentToCubicBezier.js'
 
-export default function pathToCurve(pathArray) { // pathArray|pathString
+export default function(pathArray) { // pathArray|pathString
   if (isCurveArray(pathArray)){
     return clonePath(pathArray)
   }
 
-  pathArray = pathToAbsolute(pathArray)
+  pathArray = normalizePath(pathArray)
   
-  // path commands of original path pathArray
-  // path commands of original path p2
-  // temporary holder for original path command
-  let attrs = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
-      segment = [], pathCommand = "", pcom = "", ii = pathArray.length;
+  let params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
+      allPathCommands = [], pathCommand = '', ii = pathArray.length, 
+      segment, seglen;
 
   for (let i = 0; i < ii; i++) {
-    pathArray[i] && (pathCommand = pathArray[i][0]); // save current path command
+    pathArray[i] && (pathCommand = pathArray[i][0])     // save current path command
 
-    if (pathCommand !== "C") { // C is not saved yet, because it may be result of conversion
-      segment[i] = pathCommand; // Save current path command
-      i && ( pcom = segment[i - 1]); // Get previous path command pcom
+    if (pathCommand !== 'C') {                          // C is not saved yet, because it may be result of conversion
+      allPathCommands[i] = pathCommand                  // save current path command
     }
-    pathArray[i] = segmentToCubic(pathArray[i], attrs, pcom); // Previous path command is inputted to processSegment
+    pathArray[i] = segmentToCubicBezier(pathArray[i], params)
 
-    // A is the only command
-    // which may produce multiple C:s
+    // A is the only command which may produce multiple C:s
     // so we have to make sure that C is also C in original path
-    if (segment[i] !== "A" && pathCommand === "C") segment[i] = "C";
-    fixArc(pathArray,segment,i,ii);
-    let seg = pathArray[i], seglen = seg.length;
-    attrs.x = +seg[seglen - 2];
-    attrs.y = +seg[seglen - 1];
-    attrs.bx = +(seg[seglen - 4]) || attrs.x;
-    attrs.by = +(seg[seglen - 3]) || attrs.y;
+    allPathCommands[i] !== 'A' && pathCommand === 'C' && ( allPathCommands[i] = 'C' )
+
+    fixArc(pathArray,allPathCommands,i)
+    ii = pathArray.length // solves curveArrays ending in Z
+
+    segment = pathArray[i]
+    seglen = segment.length
+
+    params.x1 = +segment[seglen - 2]
+    params.y1 = +segment[seglen - 1]
+    params.x2 = +(segment[seglen - 4]) || params.x1
+    params.y2 = +(segment[seglen - 3]) || params.y1
   }
-  return isCurveArray(pathArray) ? roundPath(pathArray) : pathToCurve(pathArray) // solve curves ending with Z
+  return roundPath(pathArray)
 }

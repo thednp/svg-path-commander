@@ -2,7 +2,7 @@ import finalizeSegment from './finalizeSegment.js'
 import paramCounts from './paramsCount.js'
 import scanFlag from './scanFlag.js'
 import scanParam from './scanParam.js'
-import isCommand from './isCommand.js'
+import isPathCommand from './isPathCommand.js'
 import isDigitStart from './isDigitStart.js'
 import isArcCommand from './isArcCommand.js'
 import skipSpaces from './skipSpaces.js'
@@ -14,7 +14,7 @@ export default function(state) {
   state.segmentStart = state.index;
   cmdCode = state.pathValue.charCodeAt(state.index);
 
-  if (!isCommand(cmdCode)) {
+  if (!isPathCommand(cmdCode)) {
     // state.err = 'SvgPath: bad command ' + state.pathValue[state.index] + ' (at pos ' + state.index + ')';
     state.err = invalidPathValue;
     return;
