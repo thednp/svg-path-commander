@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.5 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.6 (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -152,7 +152,7 @@
     state.param = +state.pathValue.slice(start, index);
   }
 
-  function isCommand(code) {
+  function isPathCommand(code) {
     switch (code | 0x20) {
       case 0x6D:
       case 0x7A:
@@ -200,7 +200,7 @@
     var max = state.max, cmdCode, comma_found, need_params, i;
     state.segmentStart = state.index;
     cmdCode = state.pathValue.charCodeAt(state.index);
-    if (!isCommand(cmdCode)) {
+    if (!isPathCommand(cmdCode)) {
       state.err = invalidPathValue;
       return;
     }
@@ -309,7 +309,7 @@
     return d
   }
 
-  function ellipsePath(x, y, rx, ry, a) {
+  function ellipseToArc(x, y, rx, ry, a) {
     if (a == null && ry == null) {
       ry = rx;
     }
@@ -393,13 +393,13 @@
             break;
           case "O":
             resultArray.pop();
-            dots = ellipsePath(x, y, +pa[1], +pa[2]);
+            dots = ellipseToArc(x, y, +pa[1], +pa[2]);
             dots.push(dots[0]);
             resultArray = resultArray.concat(dots);
             break;
           case "U":
             resultArray.pop();
-            resultArray = resultArray.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
+            resultArray = resultArray.concat(ellipseToArc(x, y, pa[1], pa[2], pa[3]));
             r = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
             break;
           case "M":
@@ -417,12 +417,12 @@
         r = ["R"].concat(pa.slice(-2));
       } else if (pa0 === "O") {
         resultArray.pop();
-        dots = ellipsePath(x, y, +pa[1], +pa[2]);
+        dots = ellipseToArc(x, y, +pa[1], +pa[2]);
         dots.push(dots[0]);
         resultArray = resultArray.concat(dots);
       } else if (pa0 === "U") {
         resultArray.pop();
-        resultArray = resultArray.concat(ellipsePath(x, y, +pa[1], +pa[2], +pa[3]));
+        resultArray = resultArray.concat(ellipseToArc(x, y, +pa[1], +pa[2], +pa[3]));
         r = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
       } else {
         pa.map(function (k){ return r.push(k); });
@@ -530,73 +530,124 @@
   }
 
   function pathToString(pathArray) {
-    return pathArray.map(function (x){ return x[0].concat(x.slice(1).join(' ')); }).join(' ')
+    return pathArray.map(function (x){ return x[0].concat(x.slice(1).join(' ')); }).join('')
+  }
+
+  function shorthandToQuadratic(x1,y1,qx,qy,prevCommand){
+    return 'QT'.indexOf(prevCommand)>-1 ? { qx: x1 * 2 - qx, qy: y1 * 2 - qy}
+                                        : { qx : x1, qy : y1 }
+  }
+
+  function shorthandToCubic(x1,y1,x2,y2,prevCommand){
+    return 'CS'.indexOf(prevCommand)>-1 ? { x1: x1 * 2 - x2, y1: y1 * 2 - y2}
+                                        : { x1 : x1, y1 : y1 }
+  }
+
+  function normalizeSegment(segment, params, prevCommand) {
+    var nqxy, nxy;
+    switch (segment[0]) {
+      case "S":
+        nxy = shorthandToCubic(params.x1,params.y1, params.x2,params.y2, prevCommand);
+        params.x1 = nxy.x1;
+        params.y1 = nxy.y1;
+        segment = ["C", nxy.x1, nxy.y1].concat(segment.slice(1));
+        break
+      case "T":
+        nqxy = shorthandToQuadratic(params.x1,params.y1, params.qx, params.qy, prevCommand);
+        params.qx = nqxy.qx;
+        params.qy = nqxy.qy;
+        segment = ["Q", params.qx, params.qy].concat(segment.slice(1));
+        break
+      case "Q":
+        params.qx = segment[1];
+        params.qy = segment[2];
+        break
+      case "H":
+        segment = ["L", segment[1], params.y1];
+        break
+      case "V":
+        segment = ["L", params.x1, segment[1]];
+        break
+    }
+    return segment
+  }
+
+  function normalizePath(pathArray) {
+    pathArray = pathToAbsolute(pathArray);
+    var params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
+        allPathCommands = [], pathCommand = '', prevCommand = '', ii = pathArray.length,
+        segment, seglen;
+    for (var i = 0; i < ii; i++) {
+      pathArray[i] && (pathCommand = pathArray[i][0]);
+      allPathCommands[i] = pathCommand;
+      i && ( prevCommand = allPathCommands[i - 1]);
+      pathArray[i] = normalizeSegment(pathArray[i], params, prevCommand);
+      segment = pathArray[i];
+      seglen = segment.length;
+      params.x1 = +segment[seglen - 2];
+      params.y1 = +segment[seglen - 1];
+      params.x2 = +(segment[seglen - 4]) || params.x1;
+      params.y2 = +(segment[seglen - 3]) || params.y1;
+    }
+    return roundPath(pathArray)
   }
 
   function reversePath(pathString){
     var absolutePath = pathToAbsolute(pathString),
         isClosed = absolutePath.slice(-1)[0][0] === 'Z',
-        pathCommand, pLen,
-        x = 0, y = 0,
-        reversedPath;
-    reversedPath = absolutePath.map(function (seg,i,pathArray){
-      pLen = pathArray.length;
-      pathCommand = seg[0];
-      switch(pathCommand){
-        case 'M':
-          x = seg[1];
-          y = seg[2];
-          break
-        case 'Z':
-          x = pathArray[0][1];
-          y = pathArray[0][2];
-          break
-        case 'V':
-          x = x;
-          y = seg[1];
-          break
-        case 'H':
-          x = seg[1];
-          y = y;
-          break
-        default:
-          x = seg[seg.length - 2];
-          y = seg[seg.length - 1];
-      }
+        reversedPath = [];
+    reversedPath = normalizePath(absolutePath).map(function (segment,i){
       return {
-        c: pathCommand,
-        x: x,
-        y: y,
-        seg: seg
+        c: absolutePath[i][0],
+        x: segment[segment.length - 2],
+        y: segment[segment.length - 1],
+        seg: absolutePath[i],
+        normalized: segment
       }
-    })
-    .map(function (seg,i,pathArray){
-      var x1 = 0, y1 = 0, x2 = 0, y2 = 0,
-          xAxisRotation, largeArcFlag, sweepFlag,
-          segment = seg.seg,
+    }).map(function (seg,i,pathArray){
+      var segment = seg.seg,
+          data = seg.normalized,
+          prevSeg = i && pathArray[i-1],
+          nextSeg = pathArray[i+1] && pathArray[i+1],
+          pathCommand = seg.c,
+          pLen = pathArray.length,
+          x = i ? pathArray[i-1].x : pathArray[pLen-1].x,
+          y = i ? pathArray[i-1].y : pathArray[pLen-1].y,
           result = [];
-      pLen = pathArray.length;
-      pathCommand = seg.c,
-      x = i ? pathArray[i-1].x : pathArray[pLen-1].x;
-      y = i ? pathArray[i-1].y : pathArray[pLen-1].y;
       switch(pathCommand){
         case 'M':
-          result = isClosed ? ['Z'] : [pathCommand,x,y];
+          result = isClosed ? ['Z'] : [pathCommand, x,y];
           break
         case 'A':
-          x1 = segment[1];
-          y1 = segment[2];
-          xAxisRotation = segment[3];
-          largeArcFlag = segment[4];
-          sweepFlag = segment[5] === 1 ? 0 : 1;
-          result = [pathCommand, x1,y1, xAxisRotation,largeArcFlag,sweepFlag, x,y];
+          result = segment.slice(0,-3).concat([(segment[5] === 1 ? 0 : 1), x,y]);
           break
         case 'C':
-          x1 = segment[3];
-          y1 = segment[4];
-          x2 = segment[1];
-          y2 = segment[2];
-          result = [pathCommand, x1,y1, x2,y2, x,y];
+          if (nextSeg && nextSeg.c === 'S') {
+            result = ['S', segment[1],segment[2], x,y];
+          } else {
+            result = [pathCommand, segment[3],segment[4], segment[1],segment[2], x,y];
+          }
+          break
+        case 'S':
+          if ( prevSeg && 'CS'.indexOf(prevSeg.c)>-1 && (!nextSeg || nextSeg && nextSeg.c !== 'S')) {
+            result = ['C', data[3],data[4], data[1],data[2], x,y];
+          } else {
+            result = [pathCommand, data[1],data[2], x,y];
+          }
+          break
+        case 'Q':
+          if (nextSeg && nextSeg.c === 'T') {
+            result = ['T', x,y];
+          } else {
+            result = segment.slice(-2).concat([x,y]);
+          }
+          break
+        case 'T':
+          if (prevSeg && 'QT'.indexOf(prevSeg.c)>-1 && (!nextSeg || nextSeg && nextSeg.c !== 'T')) {
+            result = ['Q', data[1],data[2], x,y];
+          } else {
+            result = [pathCommand, x,y];
+          }
           break
         case 'Z':
           result = ['M',x,y];
@@ -691,33 +742,25 @@
     return getShapeArea(curveArray) >= 0
   }
 
-  function cubicLerp(a, b, t) {
-    return [a[0]*(1 - t) + b[0]*t, a[1]*(1 - t) + b[1]*t]
-  }
-  function splitCubic(pts,t) {
-    t = t || 0.5;
-    var p0 = pts.slice(0,2),
-        p1 = pts.slice(2,4),
-        p2 = pts.slice(4,6),
-        p3 = pts.slice(6,8),
-        p4 = cubicLerp(p0, p1, t),
-        p5 = cubicLerp(p1, p2, t),
-        p6 = cubicLerp(p2, p3, t),
-        p7 = cubicLerp(p4, p5, t),
-        p8 = cubicLerp(p5, p6, t),
-        p9 = cubicLerp(p7, p8, t),
-        firsthalf  = ['C'].concat( p4, p7, p9),
-        secondhalf = ['C'].concat( p8, p6, p3);
-    return [firsthalf, secondhalf]
-  }
-
-  function reverseCurve(pathCurveArray){
-     var rotatedCurve = pathCurveArray.slice(1)
-                        .map(function (x,i,curveOnly) { return !i ? pathCurveArray[0].slice(1).concat(x.slice(1)) : curveOnly[i-1].slice(-2).concat(x.slice(1)); })
+  function reverseCurve(pathArray){
+     var rotatedCurve = pathArray.slice(1)
+                        .map(function (x,i,curveOnly) { return !i ? pathArray[0].slice(1).concat(x.slice(1)) : curveOnly[i-1].slice(-2).concat(x.slice(1)); })
                         .map(function (x) { return x.map(function (y,i) { return x[x.length - i - 2 * (1 - i % 2)]; } ); })
                         .reverse();
     return [ ['M'].concat( rotatedCurve[0].slice(0,2)) ]
             .concat(rotatedCurve.map(function (x){ return ['C'].concat(x.slice(2) ); } ))
+  }
+
+  function fixArc(pathArray, allPathCommands, i) {
+    if (pathArray[i].length > 7) {
+      pathArray[i].shift();
+      var pi = pathArray[i];
+      while (pi.length) {
+        allPathCommands[i] = "A";
+        pathArray.splice(i++, 0, ["C"].concat(pi.splice(0, 6)));
+      }
+      pathArray.splice(i, 1);
+    }
   }
 
   function rotateVector(x, y, rad) {
@@ -798,7 +841,7 @@
     }
   }
 
-  function q2c (x1, y1, ax, ay, x2, y2) {
+  function quadraticToCubicBezier (x1, y1, ax, ay, x2, y2) {
     var _13 = 1 / 3, _23 = 2 / 3;
     return [
             _13 * x1 + _23 * ax,
@@ -808,100 +851,60 @@
             x2, y2 ]
   }
 
-  function l2c(x1, y1, x2, y2) {
+  function lineToCubicBezier(x1, y1, x2, y2) {
     return [x1, y1, x2, y2, x2, y2]
   }
 
-  function segmentToCubic(segment, params, pathCommand) {
-    var nx, ny;
-    !(segment[0] in {T: 1, Q: 1}) && (params.qx = params.qy = null);
+  function segmentToCubicBezier(segment, params) {
+    'TQ'.indexOf(segment[0])<0 && (params.qx = params.qy = null);
     switch (segment[0]) {
-      case "M":
-        params.X = segment[1];
-        params.Y = segment[2];
-        break;
-      case "A":
-        segment = ["C"].concat(a2c.apply(0, [params.x, params.y].concat(segment.slice(1))));
-        break;
-      case "S":
-        if (pathCommand === "C" || pathCommand === "S") {
-          nx = params.x * 2 - params.bx;
-          ny = params.y * 2 - params.by;
-        }
-        else {
-          nx = params.x;
-          ny = params.y;
-        }
-        segment = ["C", nx, ny].concat(segment.slice(1));
-        break;
-      case "T":
-        if (pathCommand === "Q" || pathCommand === "T") {
-          params.qx = params.x * 2 - params.qx;
-          params.qy = params.y * 2 - params.qy;
-        }
-        else {
-          params.qx = params.x;
-          params.qy = params.y;
-        }
-        segment = ["C"].concat(q2c(params.x, params.y, params.qx, params.qy, segment[1], segment[2]));
-        break;
-      case "Q":
+      case 'M':
+        params.x = segment[1];
+        params.y = segment[2];
+        break
+      case 'A':
+        segment = ['C'].concat(a2c.apply(0, [params.x1, params.y1].concat(segment.slice(1))));
+        break
+      case 'Q':
         params.qx = segment[1];
         params.qy = segment[2];
-        segment = ["C"].concat(q2c(params.x, params.y, segment[1], segment[2], segment[3], segment[4]));
-        break;
-      case "L":
-        segment = ["C"].concat(l2c(params.x, params.y, segment[1], segment[2]));
-        break;
-      case "H":
-        segment = ["C"].concat(l2c(params.x, params.y, segment[1], params.y));
-        break;
-      case "V":
-        segment = ["C"].concat(l2c(params.x, params.y, params.x, segment[1]));
-        break;
-      case "Z":
-        segment = ["C"].concat(l2c(params.x, params.y, params.X, params.Y));
-        break;
+        segment = ['C'].concat(quadraticToCubicBezier(params.x1, params.y1, segment[1], segment[2], segment[3], segment[4]));
+        break
+      case 'L':
+        segment = ['C'].concat(lineToCubicBezier(params.x1, params.y1, segment[1], segment[2]));
+        break
+      case 'Z':
+        segment = ['C'].concat(lineToCubicBezier(params.x1, params.y1, params.x, params.y));
+        break
     }
-    return segment;
-  }
-
-  function fixArc(p, pc1, i, count) {
-    if (p[i].length > 7) {
-      p[i].shift();
-      var pi = p[i];
-      while (pi.length) {
-        pc1[i] = "A";
-        p.splice(i++, 0, ["C"].concat(pi.splice(0, 6)));
-      }
-      p.splice(i, 1);
-      count = p.length;
-    }
+    return segment
   }
 
   function pathToCurve(pathArray) {
     if (isCurveArray(pathArray)){
       return clonePath(pathArray)
     }
-    pathArray = pathToAbsolute(pathArray);
-    var attrs = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
-        segment = [], pathCommand = "", pcom = "", ii = pathArray.length;
+    pathArray = normalizePath(pathArray);
+    var params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
+        allPathCommands = [], pathCommand = '', ii = pathArray.length,
+        segment, seglen;
     for (var i = 0; i < ii; i++) {
       pathArray[i] && (pathCommand = pathArray[i][0]);
-      if (pathCommand !== "C") {
-        segment[i] = pathCommand;
-        i && ( pcom = segment[i - 1]);
+      if (pathCommand !== 'C') {
+        allPathCommands[i] = pathCommand;
       }
-      pathArray[i] = segmentToCubic(pathArray[i], attrs, pcom);
-      if (segment[i] !== "A" && pathCommand === "C") { segment[i] = "C"; }
-      fixArc(pathArray,segment,i,ii);
-      var seg = pathArray[i], seglen = seg.length;
-      attrs.x = +seg[seglen - 2];
-      attrs.y = +seg[seglen - 1];
-      attrs.bx = +(seg[seglen - 4]) || attrs.x;
-      attrs.by = +(seg[seglen - 3]) || attrs.y;
+      pathArray[i] = segmentToCubicBezier(pathArray[i], params);
+      allPathCommands[i] !== 'A' && pathCommand === 'C' && ( allPathCommands[i] = 'C' );
+      fixArc(pathArray,allPathCommands,i);
+      ii = pathArray.length;
+      segment = pathArray[i];
+      seglen = segment.length;
+      params.x1 = +segment[seglen - 2];
+      params.y1 = +segment[seglen - 1];
+      params.x2 = +(segment[seglen - 4]) || params.x1;
+      params.y2 = +(segment[seglen - 3]) || params.y1;
     }
-    return isCurveArray(pathArray) ? roundPath(pathArray) : pathToCurve(pathArray)
+    return roundPath(pathArray)
   }
 
   var util = {
@@ -909,7 +912,6 @@
     getDrawDirection: getDrawDirection,
     clonePath: clonePath,
     splitPath: splitPath,
-    splitCubic: splitCubic,
     isPathArray: isPathArray,
     isCurveArray: isCurveArray,
     isAbsoluteArray: isAbsoluteArray,
@@ -923,6 +925,7 @@
     parsePathString: parsePathString,
     reverseCurve: reverseCurve,
     reversePath: reversePath,
+    normalizePath: normalizePath,
     options: SVGPathCommanderOptions
   };
 
