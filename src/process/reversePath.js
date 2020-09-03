@@ -4,19 +4,20 @@ import normalizePath from '../process/normalizePath.js'
 export default function(pathString){ // pathArray | pathString
   let absolutePath = pathToAbsolute(pathString),
       isClosed = absolutePath.slice(-1)[0][0] === 'Z',
-      reversedPath = []
+      reversedPath = [], segLength = 0
 
   reversedPath = normalizePath(absolutePath).map((segment,i)=>{
+    segLength = segment.length
     return {
       c: absolutePath[i][0], 
-      x: segment[segment.length - 2],
-      y: segment[segment.length - 1],
+      x: segment[segLength - 2],
+      y: segment[segLength - 1],
       seg: absolutePath[i],
-      normalized: segment
+      normSeg: segment
     }
   }).map((seg,i,pathArray)=>{
     let segment = seg.seg,
-        data = seg.normalized,
+        data = seg.normSeg,
         prevSeg = i && pathArray[i-1],
         nextSeg = pathArray[i+1] && pathArray[i+1],
         pathCommand = seg.c, 
@@ -76,5 +77,6 @@ export default function(pathString){ // pathArray | pathString
     return result
   })
 
-  return isClosed ? reversedPath.reverse() : [reversedPath[0]].concat(reversedPath.slice(1).reverse())
+  return isClosed ? reversedPath.reverse() 
+                  : [reversedPath[0]].concat(reversedPath.slice(1).reverse())
 }

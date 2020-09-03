@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.6 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.6a (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -7,18 +7,18 @@ function clonePath(pathArray){
   return pathArray.map(function (x) { return Array.isArray(x) ? clonePath(x) : !isNaN(+x) ? +x : x; } )
 }
 
-var SVGPathCommanderOptions = {
+var options = {
   decimals:3,
   round:1
 };
 
 function roundPath(pathArray) {
-  return SVGPathCommanderOptions.round ?
+  return options.round ?
     pathArray.map( function (seg) { return seg.map(function (c,i) {
-        var nr = +c, dc = Math.pow(10,SVGPathCommanderOptions.decimals);
-        return i ? (nr % 1 === 0 ? nr : (nr*dc>>0)/dc) : c
-      }
-    ); }) : clonePath(pathArray)
+      var nr = +c, dc = Math.pow(10,options.decimals);
+      return i ? (nr % 1 === 0 ? nr : (nr*dc>>0)/dc) : c
+    }
+  ); }) : clonePath(pathArray)
 }
 
 function SVGPathArray(pathString){
@@ -343,6 +343,8 @@ function pathToAbsolute(pathArray) {
   var resultArray = [],
       x = 0, y = 0, mx = 0, my = 0,
       start = 0, ii = pathArray.length,
+      pathCommand = '', segment = [],
+      absoluteSegment = [], segmentCoordinates = [],
       crz = pathArray.length === 3 &&
             pathArray[0][0] === "M" &&
             pathArray[1][0].toUpperCase() === "R" &&
@@ -355,95 +357,96 @@ function pathToAbsolute(pathArray) {
     start++;
     resultArray[0] = ["M", x, y];
   }
-  var loop = function ( i ) {
-    var r = [], pa = pathArray[i], pa0 = pa[0], dots = [];
-    resultArray.push(r = []);
-    if (pa0 !== pa0.toUpperCase()) {
-      r[0] = pa0.toUpperCase();
-      switch (r[0]) {
+  for (var i = start; i < ii; i++) {
+    segment = pathArray[i];
+    pathCommand = segment[0];
+    segmentCoordinates = [];
+    resultArray.push(absoluteSegment = []);
+    if (pathCommand !== pathCommand.toUpperCase()) {
+      absoluteSegment[0] = pathCommand.toUpperCase();
+      switch (absoluteSegment[0]) {
         case "A":
-          r[1] = pa[1];
-          r[2] = pa[2];
-          r[3] = pa[3];
-          r[4] = pa[4];
-          r[5] = pa[5];
-          r[6] = +pa[6] + x;
-          r[7] = +pa[7] + y;
+          absoluteSegment[1] = segment[1];
+          absoluteSegment[2] = segment[2];
+          absoluteSegment[3] = segment[3];
+          absoluteSegment[4] = segment[4];
+          absoluteSegment[5] = segment[5];
+          absoluteSegment[6] = +segment[6] + x;
+          absoluteSegment[7] = +segment[7] + y;
           break;
         case "V":
-          r[1] = +pa[1] + y;
+          absoluteSegment[1] = +segment[1] + y;
           break;
         case "H":
-          r[1] = +pa[1] + x;
+          absoluteSegment[1] = +segment[1] + x;
           break;
         case "R":
-          dots = [x, y].concat(pa.slice(1));
-          for (var j = 2, jj = dots.length; j < jj; j++) {
-            dots[j] = +dots[j] + x;
-            dots[++j] = +dots[j] + y;
+          segmentCoordinates = [x, y].concat(segment.slice(1));
+          for (var j = 2, jj = segmentCoordinates.length; j < jj; j++) {
+            segmentCoordinates[j] = +segmentCoordinates[j] + x;
+            segmentCoordinates[++j] = +segmentCoordinates[j] + y;
           }
           resultArray.pop();
-          resultArray = resultArray.concat(catmullRom2bezier(dots, crz));
+          resultArray = resultArray.concat(catmullRom2bezier(segmentCoordinates, crz));
           break;
         case "O":
           resultArray.pop();
-          dots = ellipseToArc(x, y, +pa[1], +pa[2]);
-          dots.push(dots[0]);
-          resultArray = resultArray.concat(dots);
+          segmentCoordinates = ellipseToArc(x, y, +segment[1], +segment[2]);
+          segmentCoordinates.push(segmentCoordinates[0]);
+          resultArray = resultArray.concat(segmentCoordinates);
           break;
         case "U":
           resultArray.pop();
-          resultArray = resultArray.concat(ellipseToArc(x, y, pa[1], pa[2], pa[3]));
-          r = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
+          resultArray = resultArray.concat(ellipseToArc(x, y, segment[1], segment[2], segment[3]));
+          absoluteSegment = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
           break;
         case "M":
-          mx = +pa[1] + x;
-          my = +pa[2] + y;
+          mx = +segment[1] + x;
+          my = +segment[2] + y;
         default:
-          for (var k = 1, kk = pa.length; k < kk; k++) {
-            r[k] = +pa[k] + ((k % 2) ? x : y);
+          for (var k = 1, kk = segment.length; k < kk; k++) {
+            absoluteSegment[k] = +segment[k] + ((k % 2) ? x : y);
           }
       }
-    } else if (pa0 === "R") {
-      dots = [x, y].concat(pa.slice(1));
+    } else if (pathCommand === "R") {
+      segmentCoordinates = [x, y].concat(segment.slice(1));
       resultArray.pop();
-      resultArray = resultArray.concat(catmullRom2bezier(dots, crz));
-      r = ["R"].concat(pa.slice(-2));
-    } else if (pa0 === "O") {
+      resultArray = resultArray.concat(catmullRom2bezier(segmentCoordinates, crz));
+      absoluteSegment = ["R"].concat(segment.slice(-2));
+    } else if (pathCommand === "O") {
       resultArray.pop();
-      dots = ellipseToArc(x, y, +pa[1], +pa[2]);
-      dots.push(dots[0]);
-      resultArray = resultArray.concat(dots);
-    } else if (pa0 === "U") {
+      segmentCoordinates = ellipseToArc(x, y, +segment[1], +segment[2]);
+      segmentCoordinates.push(segmentCoordinates[0]);
+      resultArray = resultArray.concat(segmentCoordinates);
+    } else if (pathCommand === "U") {
       resultArray.pop();
-      resultArray = resultArray.concat(ellipseToArc(x, y, +pa[1], +pa[2], +pa[3]));
-      r = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
+      resultArray = resultArray.concat(ellipseToArc(x, y, +segment[1], +segment[2], +segment[3]));
+      absoluteSegment = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
     } else {
-      pa.map(function (k){ return r.push(k); });
+      segment.map(function (k){ return absoluteSegment.push(k); });
     }
-    pa0 = pa0.toUpperCase();
-    if (pa0 !== "O") {
-      switch (r[0]) {
+    pathCommand = pathCommand.toUpperCase();
+    if (pathCommand !== "O") {
+      switch (absoluteSegment[0]) {
         case "Z":
           x = mx;
           y = my;
           break;
         case "H":
-          x = +r[1];
+          x = +absoluteSegment[1];
           break;
         case "V":
-          y = +r[1];
+          y = +absoluteSegment[1];
           break;
         case "M":
-          mx = +r[r.length - 2];
-          my = +r[r.length - 1];
+          mx = +absoluteSegment[absoluteSegment.length - 2];
+          my = +absoluteSegment[absoluteSegment.length - 1];
         default:
-          x = +r[r.length - 2];
-          y = +r[r.length - 1];
+          x = +absoluteSegment[absoluteSegment.length - 2];
+          y = +absoluteSegment[absoluteSegment.length - 1];
       }
     }
-  };
-  for (var i = start; i < ii; i++) loop( i );
+  }
   return roundPath(resultArray)
 }
 
@@ -458,6 +461,7 @@ function pathToRelative (pathArray) {
   pathArray = parsePathString(pathArray);
   var resultArray = [],
       x = 0, y = 0, mx = 0, my = 0,
+      segment = [], pathCommand = '', relativeSegment = [],
       start = 0, ii = pathArray.length;
   if (pathArray[0][0] === "M") {
     x = +pathArray[0][1];
@@ -468,39 +472,40 @@ function pathToRelative (pathArray) {
     resultArray.push(["M", x, y]);
   }
   var loop = function ( i ) {
-    var r = [], pa = pathArray[i];
-    resultArray.push(r = []);
-    if (pa[0] !== pa[0].toLowerCase() ) {
-      r[0] = pa[0].toLowerCase();
-      switch (r[0]) {
+    segment = pathArray[i];
+    pathCommand = segment[0];
+    resultArray.push(relativeSegment = []);
+    if (pathCommand !== pathCommand.toLowerCase() ) {
+      relativeSegment[0] = pathCommand.toLowerCase();
+      switch (relativeSegment[0]) {
         case "a":
-          r[1] = pa[1];
-          r[2] = pa[2];
-          r[3] = pa[3];
-          r[4] = pa[4];
-          r[5] = pa[5];
-          r[6] = +pa[6] - x;
-          r[7] = +pa[7] - y;
+          relativeSegment[1] = segment[1];
+          relativeSegment[2] = segment[2];
+          relativeSegment[3] = segment[3];
+          relativeSegment[4] = segment[4];
+          relativeSegment[5] = segment[5];
+          relativeSegment[6] = +segment[6] - x;
+          relativeSegment[7] = +segment[7] - y;
           break;
         case "v":
-          r[1] = +pa[1] - y;
+          relativeSegment[1] = +segment[1] - y;
           break;
         case "m":
-          mx = +pa[1];
-          my = +pa[2];
+          mx = +segment[1];
+          my = +segment[2];
         default:
-          for (var j = 1, jj = pa.length; j < jj; j++) {
-            r[j] = +pa[j] - ((j % 2) ? x : y);
+          for (var j = 1, jj = segment.length; j < jj; j++) {
+            relativeSegment[j] = +segment[j] - ((j % 2) ? x : y);
           }
       }
     } else {
-      r = [];
-      resultArray[i] = r;
-      if (pa[0] === "m") {
-        mx = +pa[1] + x;
-        my = +pa[2] + y;
+      relativeSegment = [];
+      resultArray[i] = relativeSegment;
+      if (pathCommand === "m") {
+        mx = +segment[1] + x;
+        my = +segment[2] + y;
       }
-      pa.map(function (k){ return resultArray[i].push(k); });
+      segment.map(function (k){ return resultArray[i].push(k); });
     }
     var len = resultArray[i].length;
     switch (resultArray[i][0]) {
@@ -589,18 +594,19 @@ function normalizePath(pathArray) {
 function reversePath(pathString){
   var absolutePath = pathToAbsolute(pathString),
       isClosed = absolutePath.slice(-1)[0][0] === 'Z',
-      reversedPath = [];
+      reversedPath = [], segLength = 0;
   reversedPath = normalizePath(absolutePath).map(function (segment,i){
+    segLength = segment.length;
     return {
       c: absolutePath[i][0],
-      x: segment[segment.length - 2],
-      y: segment[segment.length - 1],
+      x: segment[segLength - 2],
+      y: segment[segLength - 1],
       seg: absolutePath[i],
-      normalized: segment
+      normSeg: segment
     }
   }).map(function (seg,i,pathArray){
     var segment = seg.seg,
-        data = seg.normalized,
+        data = seg.normSeg,
         prevSeg = i && pathArray[i-1],
         nextSeg = pathArray[i+1] && pathArray[i+1],
         pathCommand = seg.c,
@@ -657,7 +663,8 @@ function reversePath(pathString){
     }
     return result
   });
-  return isClosed ? reversedPath.reverse() : [reversedPath[0]].concat(reversedPath.slice(1).reverse())
+  return isClosed ? reversedPath.reverse()
+                  : [reversedPath[0]].concat(reversedPath.slice(1).reverse())
 }
 
 function splitPath(pathString) {
@@ -920,7 +927,7 @@ var util = {
   reverseCurve: reverseCurve,
   reversePath: reversePath,
   normalizePath: normalizePath,
-  options: SVGPathCommanderOptions
+  options: options
 };
 
 for (var x in util) { SVGPathCommander[x] = util[x]; }

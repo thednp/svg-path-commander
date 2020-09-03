@@ -1,4 +1,4 @@
-import SVGPathCommanderOptions from '../options/options.js'
+import options from '../options/options.js'
 
 import getShapeArea from './getShapeArea.js'
 import getDrawDirection from './getDrawDirection.js'
@@ -40,5 +40,5 @@ export default {
   reverseCurve,
   reversePath,
   normalizePath,
-  options: SVGPathCommanderOptions
+  options
 }

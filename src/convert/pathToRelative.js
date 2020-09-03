@@ -10,7 +10,8 @@ export default function (pathArray) {
   pathArray = parsePathString(pathArray)
 
   let resultArray = [], 
-      x = 0, y = 0, mx = 0, my = 0, 
+      x = 0, y = 0, mx = 0, my = 0,
+      segment = [], pathCommand = '', relativeSegment = [],
       start = 0, ii = pathArray.length;
 
   if (pathArray[0][0] === "M") {
@@ -23,40 +24,41 @@ export default function (pathArray) {
   }
 
   for (let i = start; i < ii; i++) {
-    let r = [], pa = pathArray[i];
-    resultArray.push(r = []);
+    segment = pathArray[i]
+    pathCommand = segment[0]
+    resultArray.push(relativeSegment = [])
 
-    if (pa[0] !== pa[0].toLowerCase() ) {
-      r[0] = pa[0].toLowerCase();
-      switch (r[0]) {
+    if (pathCommand !== pathCommand.toLowerCase() ) {
+      relativeSegment[0] = pathCommand.toLowerCase();
+      switch (relativeSegment[0]) {
         case "a":
-          r[1] = pa[1];
-          r[2] = pa[2];
-          r[3] = pa[3];
-          r[4] = pa[4];
-          r[5] = pa[5];
-          r[6] = +pa[6] - x;
-          r[7] = +pa[7] - y
+          relativeSegment[1] = segment[1];
+          relativeSegment[2] = segment[2];
+          relativeSegment[3] = segment[3];
+          relativeSegment[4] = segment[4];
+          relativeSegment[5] = segment[5];
+          relativeSegment[6] = +segment[6] - x;
+          relativeSegment[7] = +segment[7] - y
           break;
         case "v":
-          r[1] = +pa[1] - y;
+          relativeSegment[1] = +segment[1] - y;
           break;
         case "m":
-          mx = +pa[1];
-          my = +pa[2];
+          mx = +segment[1];
+          my = +segment[2];
         default:
-          for (let j = 1, jj = pa.length; j < jj; j++) {
-            r[j] = +pa[j] - ((j % 2) ? x : y)
+          for (let j = 1, jj = segment.length; j < jj; j++) {
+            relativeSegment[j] = +segment[j] - ((j % 2) ? x : y)
           }
       }
     } else {
-      r = [];
-      resultArray[i] = r;
-      if (pa[0] === "m") {
-        mx = +pa[1] + x;
-        my = +pa[2] + y;
+      relativeSegment = [];
+      resultArray[i] = relativeSegment;
+      if (pathCommand === "m") {
+        mx = +segment[1] + x;
+        my = +segment[2] + y;
       }
-      pa.map(k=>resultArray[i].push(k))
+      segment.map(k=>resultArray[i].push(k))
     }
     let len = resultArray[i].length;
     switch (resultArray[i][0]) {
