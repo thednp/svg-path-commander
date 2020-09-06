@@ -16,7 +16,7 @@ export default function(state) {
 
   if (!isPathCommand(cmdCode)) {
     // state.err = 'SvgPath: bad command ' + state.pathValue[state.index] + ' (at pos ' + state.index + ')';
-    state.err = invalidPathValue;
+    state.err = `${invalidPathValue}: ${state.pathValue[state.index]} not a path command`;
     return;
   }
 

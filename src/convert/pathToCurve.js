@@ -5,7 +5,7 @@ import clonePath from '../process/clonePath.js'
 import normalizePath from '../process/normalizePath.js'
 import segmentToCubicBezier from '../process/segmentToCubicBezier.js'
 
-export default function(pathArray) { // pathArray|pathString
+export default function(pathArray,round) { // pathArray|pathString
   if (isCurveArray(pathArray)){
     return clonePath(pathArray)
   }
@@ -39,5 +39,5 @@ export default function(pathArray) { // pathArray|pathString
     params.x2 = +(segment[seglen - 4]) || params.x1
     params.y2 = +(segment[seglen - 3]) || params.y1
   }
-  return roundPath(pathArray)
+  return roundPath(pathArray,round)
 }

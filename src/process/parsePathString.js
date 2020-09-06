@@ -7,7 +7,7 @@ import invalidPathValue from '../util/invalidPathValue.js'
 import isPathArray from '../util/isPathArray.js'
 
 // Returns array of segments:
-export default function(pathString) {
+export default function(pathString,round) {
   if ( isPathArray(pathString) ) {
     return clonePath(pathString)
   }
@@ -26,11 +26,11 @@ export default function(pathString) {
 
     if ('mM'.indexOf(state.segments[0][0]) < 0) {
       // state.err = 'Path string should start with `M` or `m`';
-      state.err = invalidPathValue;
+      state.err = `${invalidPathValue}: missing M/m`;
       state.segments = [];
     } else {
       state.segments[0][0] = 'M';
     }
   }
-  return roundPath(state.segments)
+  return roundPath(state.segments,round)
 }

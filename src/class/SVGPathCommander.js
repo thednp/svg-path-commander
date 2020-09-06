@@ -1,3 +1,5 @@
+import defaultOptions from '../options/options.js'
+
 import pathToAbsolute from '../convert/pathToAbsolute.js'
 import pathToRelative from '../convert/pathToRelative.js'
 import pathToString from '../convert/pathToString.js'
@@ -8,21 +10,27 @@ import reversePath from '../process/reversePath.js'
 import clonePath from '../process/clonePath.js'
 import splitPath from '../process/splitPath.js'
 import optimizePath from '../process/optimizePath.js'
+import normalizePath from '../process/normalizePath.js'
 
 export default class SVGPathCommander {
-  constructor(pathValue){
-    let path = parsePathString(pathValue)
+  constructor(pathValue,ops){
+    this.round =  ops && ops.round === 0 ? 0 : 
+                  ops && ops.decimals ? ops.decimals : 
+                  defaultOptions.round && defaultOptions.decimals ? 
+                  defaultOptions.decimals : 0
+
+    let path = parsePathString(pathValue,this.round)
     this.segments = clonePath(path)
     this.pathValue = pathValue
     return this
   }
   toAbsolute(){
-    let path = pathToAbsolute(this.segments)
+    let path = pathToAbsolute(this.segments,this.round)
     this.segments = clonePath(path)
     return this
   }
   toRelative(){
-    let path = pathToRelative(this.segments)
+    let path = pathToRelative(this.segments,this.round)
     this.segments = clonePath(path)
     return this
   }
@@ -33,13 +41,19 @@ export default class SVGPathCommander {
         absoluteMultiPath = subPath && clonePath(subPath).map((x,i) => {
           return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
         }), 
-        path = subPath ? [].concat.apply([], absoluteMultiPath) : onlySubpath ? this.segments : reversePath(this.segments)
+        path =  subPath ? [].concat.apply([], absoluteMultiPath) 
+              : onlySubpath ? this.segments : reversePath(this.segments)
 
     this.segments = clonePath(path)
     return this
   }
+  normalize(){
+    let path = normalizePath(this.segments,this.round)
+    this.segments = clonePath(path)
+    return this
+  }
   optimize(){
-    let path = optimizePath(this.segments)
+    let path = optimizePath(this.segments,this.round)
     this.segments = clonePath(path)
     return this
   }

@@ -13,7 +13,7 @@ export default function(state) {
 
   if (index >= max) {
     // state.err = 'SvgPath: missed param (at pos ' + index + ')';
-    state.err = invalidPathValue;
+    state.err = `${invalidPathValue}: missing param ${state.pathValue[index]}`;
     return;
   }
   ch = state.pathValue.charCodeAt(index);
@@ -27,7 +27,7 @@ export default function(state) {
   // https://github.com/ariya/esprimas
   if (!isDigit(ch) && ch !== 0x2E/* . */) {
     // state.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
-    state.err = invalidPathValue;
+    state.err = `${invalidPathValue}: ${state.pathValue[index]} not number`;
     return;
   }
 
@@ -41,7 +41,7 @@ export default function(state) {
       // decimal number starts with '0' such as '09' is illegal.
       if (ch && isDigit(ch)) {
         // state.err = 'SvgPath: numbers started with `0` such as `09` are illegal (at pos ' + start + ')';
-        state.err = invalidPathValue;
+        state.err = `${invalidPathValue}: ${state.pathValue[start]} illegal number`;
         return;
       }
     }
@@ -66,7 +66,7 @@ export default function(state) {
   if (ch === 0x65/* e */ || ch === 0x45/* E */) {
     if (hasDot && !hasCeiling && !hasDecimal) {
       // state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
-      state.err = invalidPathValue;
+      state.err = `${invalidPathValue}: ${state.pathValue[index]} invalid float exponent`;
       return;
     }
 
@@ -82,7 +82,7 @@ export default function(state) {
       }
     } else {
       // state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
-      state.err = invalidPathValue;
+      state.err = `${invalidPathValue}: ${state.pathValue[index]} invalid float exponent`;
       return;
     }
   }

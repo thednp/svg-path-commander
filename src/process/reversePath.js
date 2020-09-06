@@ -1,8 +1,8 @@
 import pathToAbsolute from '../convert/pathToAbsolute.js'
 import normalizePath from '../process/normalizePath.js'
 
-export default function(pathString){ // pathArray | pathString
-  let absolutePath = pathToAbsolute(pathString),
+export default function(pathString,round){ // pathArray | pathString
+  let absolutePath = pathToAbsolute(pathString,round),
       isClosed = absolutePath.slice(-1)[0][0] === 'Z',
       reversedPath = [], segLength = 0
 
@@ -51,7 +51,7 @@ export default function(pathString){ // pathArray | pathString
         if (nextSeg && nextSeg.c === 'T') {
           result = ['T', x,y]
         } else {
-          result = segment.slice(-2).concat([x,y])
+          result = segment.slice(0,-2).concat([x,y])
         }
         break
       case 'T':

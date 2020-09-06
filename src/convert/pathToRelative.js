@@ -3,13 +3,13 @@ import roundPath from '../process/roundPath.js'
 import clonePath from '../process/clonePath.js'
 import isRelativeArray from '../util/isRelativeArray.js'
 
-export default function (pathArray) {
+export default function (pathArray,round) {
   if (isRelativeArray(pathArray)){
     return clonePath(pathArray)
   }
   pathArray = parsePathString(pathArray)
 
-  let resultArray = [], 
+  let resultArray = [], segLength = 0,
       x = 0, y = 0, mx = 0, my = 0,
       segment = [], pathCommand = '', relativeSegment = [],
       start = 0, ii = pathArray.length;
@@ -32,13 +32,9 @@ export default function (pathArray) {
       relativeSegment[0] = pathCommand.toLowerCase();
       switch (relativeSegment[0]) {
         case "a":
-          relativeSegment[1] = segment[1];
-          relativeSegment[2] = segment[2];
-          relativeSegment[3] = segment[3];
-          relativeSegment[4] = segment[4];
-          relativeSegment[5] = segment[5];
-          relativeSegment[6] = +segment[6] - x;
-          relativeSegment[7] = +segment[7] - y
+          segment.slice(1,-2)
+                 .concat([+segment[6] - x, +segment[7] - y])
+                 .map(s=>relativeSegment.push(s))
           break;
         case "v":
           relativeSegment[1] = +segment[1] - y;
@@ -47,9 +43,7 @@ export default function (pathArray) {
           mx = +segment[1];
           my = +segment[2];
         default:
-          for (let j = 1, jj = segment.length; j < jj; j++) {
-            relativeSegment[j] = +segment[j] - ((j % 2) ? x : y)
-          }
+          segment.map((s,j)=>j && relativeSegment.push(+s - ((j % 2) ? x : y)))
       }
     } else {
       relativeSegment = [];
@@ -58,24 +52,25 @@ export default function (pathArray) {
         mx = +segment[1] + x;
         my = +segment[2] + y;
       }
-      segment.map(k=>resultArray[i].push(k))
+      segment.map(s=>resultArray[i].push(s))
     }
-    let len = resultArray[i].length;
+
+    segLength = resultArray[i].length;
     switch (resultArray[i][0]) {
       case "z":
         x = mx;
         y = my;
         break;
       case "h":
-        x += resultArray[i][len - 1];
+        x += resultArray[i][segLength - 1];
         break;
       case "v":
-        y += resultArray[i][len - 1];
+        y += resultArray[i][segLength - 1];
         break;
       default:
-        x += resultArray[i][len - 2];
-        y += resultArray[i][len - 1];
+        x += resultArray[i][segLength - 2];
+        y += resultArray[i][segLength - 1];
     }
   }
-  return roundPath(resultArray)
+  return roundPath(resultArray,round)
 }

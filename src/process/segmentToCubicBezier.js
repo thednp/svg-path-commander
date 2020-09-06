@@ -17,7 +17,7 @@ export default function(segment, params) {
     case 'Q':
       params.qx = segment[1];
       params.qy = segment[2];
-      segment = ['C'].concat(quadraticToCubicBezier(params.x1, params.y1, segment[1], segment[2], segment[3], segment[4]))
+      segment = ['C'].concat(quadraticToCubicBezier.apply(0, [params.x1, params.y1].concat(segment.slice(1))))
       break
     case 'L':
       segment = ['C'].concat(lineToCubicBezier(params.x1, params.y1, segment[1], segment[2]))

@@ -2,7 +2,7 @@ import pathToAbsolute from '../convert/pathToAbsolute.js'
 import normalizeSegment from './normalizeSegment.js'
 import roundPath from './roundPath.js';
 
-export default function(pathArray) { // pathArray|pathString
+export default function(pathArray,round) { // pathArray|pathString
 
   pathArray = pathToAbsolute(pathArray)
   
@@ -25,5 +25,5 @@ export default function(pathArray) { // pathArray|pathString
     params.x2 = +(segment[seglen - 4]) || params.x1
     params.y2 = +(segment[seglen - 3]) || params.y1
   }
-  return roundPath(pathArray)
+  return roundPath(pathArray,round)
 }
