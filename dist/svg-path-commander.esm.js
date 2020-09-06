@@ -1,22 +1,23 @@
 /*!
-* SVGPathCommander v0.0.6a (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.6b (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
-function clonePath(pathArray){
-  return pathArray.map(function (x) { return Array.isArray(x) ? clonePath(x) : !isNaN(+x) ? +x : x; } )
-}
-
 var options = {
   decimals:3,
   round:1
 };
 
-function roundPath(pathArray) {
-  return options.round ?
+function clonePath(pathArray){
+  return pathArray.map(function (x) { return Array.isArray(x) ? clonePath(x) : !isNaN(+x) ? +x : x; } )
+}
+
+function roundPath(pathArray,round) {
+  var decimalsOption = !isNaN(+round) ? +round : options.round && options.decimals;
+  return decimalsOption ?
     pathArray.map( function (seg) { return seg.map(function (c,i) {
-      var nr = +c, dc = Math.pow(10,options.decimals);
-      return i ? (nr % 1 === 0 ? nr : (nr*dc>>0)/dc) : c
+      var nr = +c, dc = Math.pow(10,decimalsOption);
+      return i ? (nr % 1 === 0 ? nr : Math.round(nr*dc)/dc) : c
     }
   ); }) : clonePath(pathArray)
 }
@@ -86,7 +87,7 @@ function scanParam(state) {
       hasDot = false,
       ch;
   if (index >= max) {
-    state.err = invalidPathValue;
+    state.err = invalidPathValue + ": missing param " + (state.pathValue[index]);
     return;
   }
   ch = state.pathValue.charCodeAt(index);
@@ -95,7 +96,7 @@ function scanParam(state) {
     ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
   }
   if (!isDigit(ch) && ch !== 0x2E) {
-    state.err = invalidPathValue;
+    state.err = invalidPathValue + ": " + (state.pathValue[index]) + " not number";
     return;
   }
   if (ch !== 0x2E) {
@@ -104,7 +105,7 @@ function scanParam(state) {
     ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
     if (zeroFirst && index < max) {
       if (ch && isDigit(ch)) {
-        state.err = invalidPathValue;
+        state.err = invalidPathValue + ": " + (state.pathValue[start]) + " illegal number";
         return;
       }
     }
@@ -125,7 +126,7 @@ function scanParam(state) {
   }
   if (ch === 0x65 || ch === 0x45) {
     if (hasDot && !hasCeiling && !hasDecimal) {
-      state.err = invalidPathValue;
+      state.err = invalidPathValue + ": " + (state.pathValue[index]) + " invalid float exponent";
       return;
     }
     index++;
@@ -138,7 +139,7 @@ function scanParam(state) {
         index++;
       }
     } else {
-      state.err = invalidPathValue;
+      state.err = invalidPathValue + ": " + (state.pathValue[index]) + " invalid float exponent";
       return;
     }
   }
@@ -195,7 +196,7 @@ function scanSegment(state) {
   state.segmentStart = state.index;
   cmdCode = state.pathValue.charCodeAt(state.index);
   if (!isPathCommand(cmdCode)) {
-    state.err = invalidPathValue;
+    state.err = invalidPathValue + ": " + (state.pathValue[state.index]) + " not a path command";
     return;
   }
   need_params = paramsCount[state.pathValue[state.index].toLowerCase()];
@@ -243,7 +244,7 @@ function isPathArray(pathArray){
   })
 }
 
-function parsePathString(pathString) {
+function parsePathString(pathString,round) {
   if ( isPathArray(pathString) ) {
     return clonePath(pathString)
   }
@@ -256,86 +257,20 @@ function parsePathString(pathString) {
     state.segments = [];
   } else if (state.segments.length) {
     if ('mM'.indexOf(state.segments[0][0]) < 0) {
-      state.err = invalidPathValue;
+      state.err = invalidPathValue + ": missing M/m";
       state.segments = [];
     } else {
       state.segments[0][0] = 'M';
     }
   }
-  return roundPath(state.segments)
-}
-
-function catmullRom2bezier(crp, z) {
-  var d = [];
-  for (var i = 0, iLen = crp.length; iLen - 2 * !z > i; i += 2) {
-    var p = [
-              {x: +crp[i - 2], y: +crp[i - 1]},
-              {x: +crp[i],     y: +crp[i + 1]},
-              {x: +crp[i + 2], y: +crp[i + 3]},
-              {x: +crp[i + 4], y: +crp[i + 5]}
-            ];
-    if (z) {
-      if (!i) {
-        p[0] = {x: +crp[iLen - 2], y: +crp[iLen - 1]};
-      } else if (iLen - 4 == i) {
-        p[3] = {x: +crp[0], y: +crp[1]};
-      } else if (iLen - 2 == i) {
-        p[2] = {x: +crp[0], y: +crp[1]};
-        p[3] = {x: +crp[2], y: +crp[3]};
-      }
-    } else {
-      if (iLen - 4 == i) {
-        p[3] = p[2];
-      } else if (!i) {
-        p[0] = {x: +crp[i], y: +crp[i + 1]};
-      }
-    }
-    d.push([
-      "C",
-      (-p[0].x + 6 * p[1].x + p[2].x) / 6,
-      (-p[0].y + 6 * p[1].y + p[2].y) / 6,
-      (p[1].x + 6 * p[2].x - p[3].x) / 6,
-      (p[1].y + 6*p[2].y - p[3].y) / 6,
-      p[2].x,
-      p[2].y
-    ]);
-  }
-  return d
-}
-
-function ellipseToArc(x, y, rx, ry, a) {
-  if (a == null && ry == null) {
-    ry = rx;
-  }
-  x = +x;
-  y = +y;
-  rx = +rx;
-  ry = +ry;
-  var res;
-  if (a != null) {
-    var rad = Math.PI / 180,
-        x1 = x + rx * Math.cos(-ry * rad),
-        x2 = x + rx * Math.cos(-a * rad),
-        y1 = y + rx * Math.sin(-ry * rad),
-        y2 = y + rx * Math.sin(-a * rad);
-    res = [["M", x1, y1], ["A", rx, rx, 0, +(a - ry > 180), 0, x2, y2]];
-  } else {
-    res = [
-        ["M", x, y],
-        ["m", 0, -ry],
-        ["a", rx, ry, 0, 1, 1, 0, 2 * ry],
-        ["a", rx, ry, 0, 1, 1, 0, -2 * ry],
-        ["z"]
-    ];
-  }
-  return res;
+  return roundPath(state.segments,round)
 }
 
 function isAbsoluteArray(pathInput){
   return isPathArray(pathInput) && pathInput.every(function (x){ return x[0] === x[0].toUpperCase(); })
 }
 
-function pathToAbsolute(pathArray) {
+function pathToAbsolute(pathArray,round) {
   if (isAbsoluteArray(pathArray)) {
     return clonePath(pathArray)
   }
@@ -343,12 +278,8 @@ function pathToAbsolute(pathArray) {
   var resultArray = [],
       x = 0, y = 0, mx = 0, my = 0,
       start = 0, ii = pathArray.length,
-      pathCommand = '', segment = [],
-      absoluteSegment = [], segmentCoordinates = [],
-      crz = pathArray.length === 3 &&
-            pathArray[0][0] === "M" &&
-            pathArray[1][0].toUpperCase() === "R" &&
-            pathArray[2][0].toUpperCase() === "Z";
+      pathCommand = '', segment = [], segLength = 0,
+      absoluteSegment = [];
   if (pathArray[0][0] === "M") {
     x = +pathArray[0][1];
     y = +pathArray[0][2];
@@ -360,19 +291,14 @@ function pathToAbsolute(pathArray) {
   for (var i = start; i < ii; i++) {
     segment = pathArray[i];
     pathCommand = segment[0];
-    segmentCoordinates = [];
     resultArray.push(absoluteSegment = []);
     if (pathCommand !== pathCommand.toUpperCase()) {
       absoluteSegment[0] = pathCommand.toUpperCase();
       switch (absoluteSegment[0]) {
         case "A":
-          absoluteSegment[1] = segment[1];
-          absoluteSegment[2] = segment[2];
-          absoluteSegment[3] = segment[3];
-          absoluteSegment[4] = segment[4];
-          absoluteSegment[5] = segment[5];
-          absoluteSegment[6] = +segment[6] + x;
-          absoluteSegment[7] = +segment[7] + y;
+          segment.slice(1,-2)
+                 .concat([+segment[6] + x, +segment[7] + y])
+                 .map(function (s){ return absoluteSegment.push(s); });
           break;
         case "V":
           absoluteSegment[1] = +segment[1] + y;
@@ -380,86 +306,48 @@ function pathToAbsolute(pathArray) {
         case "H":
           absoluteSegment[1] = +segment[1] + x;
           break;
-        case "R":
-          segmentCoordinates = [x, y].concat(segment.slice(1));
-          for (var j = 2, jj = segmentCoordinates.length; j < jj; j++) {
-            segmentCoordinates[j] = +segmentCoordinates[j] + x;
-            segmentCoordinates[++j] = +segmentCoordinates[j] + y;
-          }
-          resultArray.pop();
-          resultArray = resultArray.concat(catmullRom2bezier(segmentCoordinates, crz));
-          break;
-        case "O":
-          resultArray.pop();
-          segmentCoordinates = ellipseToArc(x, y, +segment[1], +segment[2]);
-          segmentCoordinates.push(segmentCoordinates[0]);
-          resultArray = resultArray.concat(segmentCoordinates);
-          break;
-        case "U":
-          resultArray.pop();
-          resultArray = resultArray.concat(ellipseToArc(x, y, segment[1], segment[2], segment[3]));
-          absoluteSegment = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
-          break;
         case "M":
           mx = +segment[1] + x;
           my = +segment[2] + y;
         default:
-          for (var k = 1, kk = segment.length; k < kk; k++) {
-            absoluteSegment[k] = +segment[k] + ((k % 2) ? x : y);
-          }
+          segment.map(function (s,j){ return j && absoluteSegment.push(+s + ((j % 2) ? x : y)); });
       }
-    } else if (pathCommand === "R") {
-      segmentCoordinates = [x, y].concat(segment.slice(1));
-      resultArray.pop();
-      resultArray = resultArray.concat(catmullRom2bezier(segmentCoordinates, crz));
-      absoluteSegment = ["R"].concat(segment.slice(-2));
-    } else if (pathCommand === "O") {
-      resultArray.pop();
-      segmentCoordinates = ellipseToArc(x, y, +segment[1], +segment[2]);
-      segmentCoordinates.push(segmentCoordinates[0]);
-      resultArray = resultArray.concat(segmentCoordinates);
-    } else if (pathCommand === "U") {
-      resultArray.pop();
-      resultArray = resultArray.concat(ellipseToArc(x, y, +segment[1], +segment[2], +segment[3]));
-      absoluteSegment = ["U"].concat(resultArray[resultArray.length - 1].slice(-2));
     } else {
       segment.map(function (k){ return absoluteSegment.push(k); });
     }
-    pathCommand = pathCommand.toUpperCase();
-    if (pathCommand !== "O") {
-      switch (absoluteSegment[0]) {
-        case "Z":
-          x = mx;
-          y = my;
-          break;
-        case "H":
-          x = +absoluteSegment[1];
-          break;
-        case "V":
-          y = +absoluteSegment[1];
-          break;
-        case "M":
-          mx = +absoluteSegment[absoluteSegment.length - 2];
-          my = +absoluteSegment[absoluteSegment.length - 1];
-        default:
-          x = +absoluteSegment[absoluteSegment.length - 2];
-          y = +absoluteSegment[absoluteSegment.length - 1];
-      }
+    segLength = absoluteSegment.length;
+    switch (absoluteSegment[0]) {
+      case "Z":
+        x = mx;
+        y = my;
+        break;
+      case "H":
+        x = +absoluteSegment[1];
+        break;
+      case "V":
+        y = +absoluteSegment[1];
+        break;
+      case "M":
+        mx = +absoluteSegment[segLength - 2];
+        my = +absoluteSegment[segLength - 1];
+      default:
+        x = +absoluteSegment[segLength - 2];
+        y = +absoluteSegment[segLength - 1];
     }
   }
-  return roundPath(resultArray)
+  return roundPath(resultArray,round)
 }
 
 function isRelativeArray(pathInput){
   return isPathArray(pathInput) && pathInput.slice(1).every(function (x){ return x[0] === x[0].toLowerCase(); })
 }
 
-function pathToRelative (pathArray) {
+function pathToRelative (pathArray,round) {
   if (isRelativeArray(pathArray)){
     return clonePath(pathArray)
   }
   pathArray = parsePathString(pathArray);
-  var resultArray = [],
+  var resultArray = [], segLength = 0,
       x = 0, y = 0, mx = 0, my = 0,
       segment = [], pathCommand = '', relativeSegment = [],
       start = 0, ii = pathArray.length;
@@ -479,13 +367,9 @@ function pathToRelative (pathArray) {
       relativeSegment[0] = pathCommand.toLowerCase();
       switch (relativeSegment[0]) {
         case "a":
-          relativeSegment[1] = segment[1];
-          relativeSegment[2] = segment[2];
-          relativeSegment[3] = segment[3];
-          relativeSegment[4] = segment[4];
-          relativeSegment[5] = segment[5];
-          relativeSegment[6] = +segment[6] - x;
-          relativeSegment[7] = +segment[7] - y;
+          segment.slice(1,-2)
+                 .concat([+segment[6] - x, +segment[7] - y])
+                 .map(function (s){ return relativeSegment.push(s); });
           break;
         case "v":
           relativeSegment[1] = +segment[1] - y;
@@ -494,9 +378,7 @@ function pathToRelative (pathArray) {
           mx = +segment[1];
           my = +segment[2];
         default:
-          for (var j = 1, jj = segment.length; j < jj; j++) {
-            relativeSegment[j] = +segment[j] - ((j % 2) ? x : y);
-          }
+          segment.map(function (s,j){ return j && relativeSegment.push(+s - ((j % 2) ? x : y)); });
       }
     } else {
       relativeSegment = [];
@@ -505,27 +387,27 @@ function pathToRelative (pathArray) {
         mx = +segment[1] + x;
         my = +segment[2] + y;
       }
-      segment.map(function (k){ return resultArray[i].push(k); });
+      segment.map(function (s){ return resultArray[i].push(s); });
     }
-    var len = resultArray[i].length;
+    segLength = resultArray[i].length;
     switch (resultArray[i][0]) {
       case "z":
         x = mx;
         y = my;
         break;
       case "h":
-        x += resultArray[i][len - 1];
+        x += resultArray[i][segLength - 1];
         break;
       case "v":
-        y += resultArray[i][len - 1];
+        y += resultArray[i][segLength - 1];
         break;
       default:
-        x += resultArray[i][len - 2];
-        y += resultArray[i][len - 1];
+        x += resultArray[i][segLength - 2];
+        y += resultArray[i][segLength - 1];
     }
   };
   for (var i = start; i < ii; i++) loop( i );
-  return roundPath(resultArray)
+  return roundPath(resultArray,round)
 }
 
 function pathToString(pathArray) {
@@ -534,12 +416,12 @@ function pathToString(pathArray) {
 
 function shorthandToQuadratic(x1,y1,qx,qy,prevCommand){
   return 'QT'.indexOf(prevCommand)>-1 ? { qx: x1 * 2 - qx, qy: y1 * 2 - qy}
-                                      : { qx : x1, qy : y1 }
+                                      : { qx: x1, qy: y1 }
 }
 
 function shorthandToCubic(x1,y1,x2,y2,prevCommand){
   return 'CS'.indexOf(prevCommand)>-1 ? { x1: x1 * 2 - x2, y1: y1 * 2 - y2}
-                                      : { x1 : x1, y1 : y1 }
+                                      : { x1: x1, y1: y1 }
 }
 
 function normalizeSegment(segment, params, prevCommand) {
@@ -571,7 +453,7 @@ function normalizeSegment(segment, params, prevCommand) {
   return segment
 }
 
-function normalizePath(pathArray) {
+function normalizePath(pathArray,round) {
   pathArray = pathToAbsolute(pathArray);
   var params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
       allPathCommands = [], pathCommand = '', prevCommand = '', ii = pathArray.length,
@@ -588,11 +470,11 @@ function normalizePath(pathArray) {
     params.x2 = +(segment[seglen - 4]) || params.x1;
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
-  return roundPath(pathArray)
+  return roundPath(pathArray,round)
 }
 
-function reversePath(pathString){
-  var absolutePath = pathToAbsolute(pathString),
+function reversePath(pathString,round){
+  var absolutePath = pathToAbsolute(pathString,round),
       isClosed = absolutePath.slice(-1)[0][0] === 'Z',
       reversedPath = [], segLength = 0;
   reversedPath = normalizePath(absolutePath).map(function (segment,i){
@@ -639,7 +521,7 @@ function reversePath(pathString){
         if (nextSeg && nextSeg.c === 'T') {
           result = ['T', x,y];
         } else {
-          result = segment.slice(-2).concat([x,y]);
+          result = segment.slice(0,-2).concat([x,y]);
         }
         break
       case 'T':
@@ -675,25 +557,29 @@ function splitPath(pathString) {
     .filter(function (s){ return s; })
 }
 
-function optimizePath(pathArray){
-  var absolutePath = pathToAbsolute(pathArray),
-      relativePath = pathToRelative(pathArray);
+function optimizePath(pathArray,round){
+  var absolutePath = pathToAbsolute(pathArray,round),
+      relativePath = pathToRelative(pathArray,round);
   return absolutePath.map(function (x,i) { return i ? (x.join('').length < relativePath[i].join('').length ? x : relativePath[i]) : x; } )
 }
 
-var SVGPathCommander = function SVGPathCommander(pathValue){
-  var path = parsePathString(pathValue);
+var SVGPathCommander = function SVGPathCommander(pathValue,ops){
+  this.round =ops && ops.round === 0 ? 0 :
+                ops && ops.decimals ? ops.decimals :
+                options.round && options.decimals ?
+                options.decimals : 0;
+  var path = parsePathString(pathValue,this.round);
   this.segments = clonePath(path);
   this.pathValue = pathValue;
   return this
 };
 SVGPathCommander.prototype.toAbsolute = function toAbsolute (){
-  var path = pathToAbsolute(this.segments);
+  var path = pathToAbsolute(this.segments,this.round);
   this.segments = clonePath(path);
   return this
 };
 SVGPathCommander.prototype.toRelative = function toRelative (){
-  var path = pathToRelative(this.segments);
+  var path = pathToRelative(this.segments,this.round);
   this.segments = clonePath(path);
   return this
 };
@@ -703,12 +589,18 @@ SVGPathCommander.prototype.reverse = function reverse (onlySubpath){
       absoluteMultiPath = subPath && clonePath(subPath).map(function (x,i) {
         return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x)
       }),
-      path = subPath ? [].concat.apply([], absoluteMultiPath) : onlySubpath ? this.segments : reversePath(this.segments);
+      path =subPath ? [].concat.apply([], absoluteMultiPath)
+            : onlySubpath ? this.segments : reversePath(this.segments);
+  this.segments = clonePath(path);
+  return this
+};
+SVGPathCommander.prototype.normalize = function normalize (){
+  var path = normalizePath(this.segments,this.round);
   this.segments = clonePath(path);
   return this
 };
 SVGPathCommander.prototype.optimize = function optimize (){
-  var path = optimizePath(this.segments);
+  var path = optimizePath(this.segments,this.round);
   this.segments = clonePath(path);
   return this
 };
@@ -869,7 +761,7 @@ function segmentToCubicBezier(segment, params) {
     case 'Q':
       params.qx = segment[1];
       params.qy = segment[2];
-      segment = ['C'].concat(quadraticToCubicBezier(params.x1, params.y1, segment[1], segment[2], segment[3], segment[4]));
+      segment = ['C'].concat(quadraticToCubicBezier.apply(0, [params.x1, params.y1].concat(segment.slice(1))));
       break
     case 'L':
       segment = ['C'].concat(lineToCubicBezier(params.x1, params.y1, segment[1], segment[2]));
@@ -881,7 +773,7 @@ function segmentToCubicBezier(segment, params) {
   return segment
 }
 
-function pathToCurve(pathArray) {
+function pathToCurve(pathArray,round) {
   if (isCurveArray(pathArray)){
     return clonePath(pathArray)
   }
@@ -905,7 +797,7 @@ function pathToCurve(pathArray) {
     params.x2 = +(segment[seglen - 4]) || params.x1;
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
-  return roundPath(pathArray)
+  return roundPath(pathArray,round)
 }
 
 var util = {
