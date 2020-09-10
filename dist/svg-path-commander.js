@@ -565,6 +565,8 @@
     return absolutePath.map(function (x,i) { return i ? (x.join('').length < relativePath[i].join('').length ? x : relativePath[i]) : x; } )
   }
 
+  var epsilon = 0.0000000001;
+
   function Rotate(rx, ry, rz){
   	rx *= Math.PI / 180;
   	ry *= Math.PI / 180;
@@ -1051,8 +1053,7 @@
   }
 
   function transformEllipse(m,rx,ry,ax) {
-    var epsilon = 0.0000000001,
-        c = Math.cos(ax * Math.PI / 180), s = Math.sin(ax * Math.PI / 180),
+    var c = Math.cos(ax * Math.PI / 180), s = Math.sin(ax * Math.PI / 180),
         ma = [
           rx * (m[0]*c + m[2]*s),
           rx * (m[1]*c + m[3]*s),
@@ -1131,7 +1132,7 @@
             segment[5] = +segment[5] ? 0 : 1;
           }
           (assign = point2DLerp(matrix, seg.x, seg.y), x = assign[0], y = assign[1]);
-          if ( segment[6] === x && segment[7] === y ) {
+          if ( segment[6] === x && segment[7] === y || TE.rx < epsilon * TE.ry || TE.ry < epsilon * TE.rx ) {
             return [ 'L', x, y ];
           }
           return [ pathCommand, TE.rx, TE.ry, TE.ax, segment[4], segment[5], x, y ];
