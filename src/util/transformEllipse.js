@@ -1,9 +1,10 @@
+import epsilon from './epsilon.js'
+
 export default function(m,rx,ry,ax) {
   // We consider the current ellipse as image of the unit circle
   // by first scale(rx,ry) and then rotate(ax) ...
   // So we apply ma =  m x rotate(ax) x scale(rx,ry) to the unit circle.
-  let epsilon = 0.0000000001,
-      c = Math.cos(ax * Math.PI / 180), s = Math.sin(ax * Math.PI / 180),
+  let c = Math.cos(ax * Math.PI / 180), s = Math.sin(ax * Math.PI / 180),
       ma = [
         rx * (m[0]*c + m[2]*s),
         rx * (m[1]*c + m[3]*s),

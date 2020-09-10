@@ -3,6 +3,7 @@ import roundPath from './roundPath.js'
 import pathToAbsolute from '../convert/pathToAbsolute.js'
 // import segmentToCubic from './segmentToCubic.js'       // REQUIRED FOR CONVERTING A=>C
 // import fixArc from '../util/fixArc.js'                 // REQUIRED FOR CONVERTING A=>C
+import epsilon from '../util/epsilon.js'
 import getSVGMatrix from '../util/getSVGMatrix.js'
 import transformEllipse from '../util/transformEllipse.js'
 import pathToCurve from '../convert/pathToCurve.js'
@@ -80,7 +81,7 @@ export default function(pathArray,transformObject,{round,origin}){
 
         [x,y] = point2DLerp(matrix, seg.x, seg.y)
 
-        if ( segment[6] === x && segment[7] === y ) {
+        if ( segment[6] === x && segment[7] === y || TE.rx < epsilon * TE.ry || TE.ry < epsilon * TE.rx ) {
           return [ 'L', x, y ];
         }
         return [ pathCommand, TE.rx, TE.ry, TE.ax, segment[4], segment[5], x, y ];
