@@ -4,9 +4,10 @@
 
 A modern set of ES6/ES7 JavaScript tools for manipulating *SVGPathElement* `d` (description) attribute, developed to solve over-optimized path strings and provide a solid solution for parsing, normalizing, converting, transforming and reversing *SVGPathElement* draw direction and produce reusable path strings with lossless quality.
 
-*SVGPathCommander* implements the [DOMMatrix API](https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix) for the browser client transform processing and falls back to an updated [CSSMatrix shim](https://github.com/arian/CSSMatrix/) on older browsers as well as Node.js environment. The reasons for this implementation:
-* WebKitCSSMatrix and SVGMatrix APIs will merge into DOMMatrix and this modern API calls for modern implementations
-* in the future we might actually be able to apply a [3D transformation](https://github.com/ndebeiss/svg3d) matrix to SVG path commands
+*SVGPathCommander* implements the [DOMMatrix API](https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix) on a modern browser and falls back to an updated [CSSMatrix shim](https://github.com/arian/CSSMatrix/) on older browsers as well as Node.js environment. The reasons for this implementation:
+* WebKitCSSMatrix and SVGMatrix APIs will merge into DOMMatrix and this modern API calls for modern implementations;
+* in the future we might actually be able to apply a [3D transformation](https://github.com/ndebeiss/svg3d) matrix to SVG path commands;
+* most tools available are outdated and inefficient for relying on older APIs or incompatible with today's modern web.
 
 This library is available on [CDN](https://www.jsdelivr.com/package/npm/svg-path-commander) and [npm](https://www.npmjs.com/package/svg-path-commander). 
 
@@ -14,11 +15,12 @@ This library is available on [CDN](https://www.jsdelivr.com/package/npm/svg-path
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg?style=flat-square)](http://npm-stat.com/charts.html?svg-path-commander)
 [![jsDeliver](https://data.jsdelivr.com/v1/package/npm/svg-path-commander/badge)](https://www.jsdelivr.com/package/npm/svg-path-commander)
 
+
 # What is it for?
 
-* our [KUTE.js](https://github.com/thednp/kute.js) animation engine is using it to process *SVGPathElement* coordinates for [SVG morphing](https://thednp.github.io/kute.js/svgMorph.html) and [SVG cubic morphing](https://thednp.github.io/kute.js/svgCubicMorph.html);
+* converting and optimizing *SVGPathElement* for use on third party application; our [KUTE.js](https://github.com/thednp/kute.js) animation engine is using it to process *SVGPathElement* coordinates for [SVG morphing](https://thednp.github.io/kute.js/svgMorph.html) and [SVG cubic morphing](https://thednp.github.io/kute.js/svgCubicMorph.html);
 * animators that work with SVGs and need to normalize, convert or optimize path strings;
-* creators of font-icons can use it to normalize, reverse and optimize svg path strings in both Node.js and browser applications.
+* creators of font-icons can use it to normalize, reverse, transform and optimize SVG path strings in both Node.js and browser applications.
 
 
 # Install
@@ -144,11 +146,24 @@ You can either use the *SVGPathCommander* methods to call `flipX()` or `flipY()`
 // define properties you want to transform
 let transformObject = {
   scale: 0.3,
+  translate: 20,
+  rotate:45,
+  skew:20
+}
 
+// the above is equivalent with the following
+let transformObject = {
+  scale: [0.3,0.3,0.3], // all axes scale
+  translate: [20,0,0],  // translateX
+  rotate:[0,0,45],      // rotateZ
+  skew:[20,0]           // skewX
 }
 
 let myPathString = new SVGPathCommander('M0 0L0 0').transform(transformObject).toString()
 ```
+As you can see we've provided all X, Y, Z axes values for most transform functions, but SVG currently only supports 2D transform functions. That is because again, this library implements the DOMMatrix API for calculating the values we need but have no worry, the library will make sure to get the most of it.
+
+For simplicity reasons and other considerations, we've decided not to include support for axis specific transform functions like `rotateX` or `scaleY`, since DOMMatrix and older WebKitCSSMatrix APIs both support shorthand functions and would not make sense to .
 
 
 # Advanced Usage
@@ -210,7 +225,8 @@ You can now build your own custom builds, go to the root of `svg-path-commander`
 * as mentioned above, the `optimize()` method will not simplify/merge the path commands or determine and create shorthand notations; you might need [SVGO](https://github.com/svg/svgo) and its `convertPathData` plugin;
 * all tools processing path segments will always round float values to 3 decimals, remember: ***only float numbers***; EG: 0.5666 => 0.566, 0.50 => 0.5, 5 => 5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`;
 * the `getSVGMatrix` utility will always compute the matrix by applying the transform functions in the following order: `translate`, `rotate`, `skew` and `scale`, which is the default composition/recomposition order specified in the W3C draft;
-* other processing you might use, not included with *SVGPathCommander*, may require the `SVGMatrix` or `SVGPathElement` APIs (those that do are not exported to global), these will likelly need a mockup browser in Node.js environment.
+* other processing you might use, not included with *SVGPathCommander*, may require the `SVGMatrix` or `SVGPathElement` APIs (those that do are not exported to global), these will likelly need a mockup browser in Node.js environment;
+* this script is very fast and superior to its ancestors in many ways
 
 
 # Special Thanks
