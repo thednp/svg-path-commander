@@ -1,4 +1,4 @@
-import shorthandToQuadratic from './shorthandToQuadratic.js';
+import shorthandToQuad from './shorthandToQuad.js';
 import shorthandToCubic from './shorthandToCubic.js';
 
 export default function(segment, params, prevCommand) {
@@ -9,24 +9,19 @@ export default function(segment, params, prevCommand) {
       nxy = shorthandToCubic(params.x1,params.y1, params.x2,params.y2, prevCommand)
       params.x1 = nxy.x1
       params.y1 = nxy.y1
-      segment = ["C", nxy.x1, nxy.y1].concat(segment.slice(1))
-      break
+      return ["C", nxy.x1, nxy.y1].concat(segment.slice(1))
     case "T":
-      nqxy = shorthandToQuadratic(params.x1,params.y1, params.qx, params.qy, prevCommand)
+      nqxy = shorthandToQuad(params.x1,params.y1, params.qx, params.qy, prevCommand)
       params.qx = nqxy.qx
       params.qy = nqxy.qy
-      segment = ["Q", params.qx, params.qy].concat(segment.slice(1))
-      break
+      return ["Q", params.qx, params.qy].concat(segment.slice(1))
     case "Q":
       params.qx = segment[1]
       params.qy = segment[2]
-      break
     case "H":
-      segment = ["L", segment[1], params.y1]
-      break
+      return ["L", segment[1], params.y1]
     case "V":
-      segment = ["L", params.x1, segment[1]]
-      break
+      return ["L", params.x1, segment[1]]
   }
   return segment
 }

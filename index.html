@@ -4,13 +4,15 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0">
+  <title>SVGPathCommander Test</title>
   <meta name="description" content="SVGPathCommander Demo">
   <meta name="keywords" content="javascript,svg,svg path,svgpathcommander">
   <meta name="author" content="thednp">
   <link rel="shortcut icon" href="./img/favicon.ico">
   <link rel="apple-touch-icon" href="./img/apple-touch-icon.png">
-  <title>SVGPathCommander Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap.native/dist/bootstrap-native.min.js"></script>
   <script src="./dist/svg-path-commander.js"></script>
+  <script src="./experiments/svgPath.js"></script>
   <style>
     body {
       padding: 1rem 2rem; margin: 0;
@@ -63,7 +65,7 @@
     .p-0 {padding: 0 !important}
     .m-0 {margin: 0 !important}
 
-    svg { max-height: 50%; }
+    svg { max-height: 50%; overflow: visible}
 
     @media (min-width: 1200px){
       svg { max-width: 60%; }
@@ -88,6 +90,21 @@
       .text-right { text-align: right;}
       .text-center { text-align: center;}
     }
+    /* BS Tooltip */
+    .tooltip{position:absolute;z-index:1070;display:block;margin:0;font-family:var(--bs-font-sans-serif);font-style:normal;font-weight:400;line-height:1.5;text-align:left;text-align:start;text-decoration:none;text-shadow:none;text-transform:none;letter-spacing:normal;word-break:normal;word-spacing:normal;white-space:normal;line-break:auto;font-size:0.875rem;word-wrap:break-word;opacity:0}
+    .tooltip.show{opacity:0.95}
+    .tooltip .arrow{position:absolute;display:block;width:0.8rem;height:0.4rem}
+    .tooltip .arrow::before{position:absolute;content:"";border-color:transparent;border-style:solid}
+    .bs-tooltip-auto[x-placement^="top"],.bs-tooltip-top{padding:0.4rem 0}
+    .bs-tooltip-auto[x-placement^="top"] .arrow,.bs-tooltip-top .arrow{bottom:0}
+    .bs-tooltip-auto[x-placement^="top"] .arrow::before,.bs-tooltip-top .arrow::before{top:0;border-width:0.4rem 0.4rem 0;border-top-color:#fff}
+    .bs-tooltip-auto[x-placement^="right"],.bs-tooltip-right{padding:0 0.4rem}.bs-tooltip-auto[x-placement^="right"] .arrow,.bs-tooltip-right .arrow{left:0;width:0.4rem;height:0.8rem}
+    .bs-tooltip-auto[x-placement^="right"] .arrow::before,.bs-tooltip-right .arrow::before{right:0;border-width:0.4rem 0.4rem 0.4rem 0;border-right-color:#fff}
+    .bs-tooltip-auto[x-placement^="bottom"],.bs-tooltip-bottom{padding:0.4rem 0}
+    .bs-tooltip-auto[x-placement^="bottom"] .arrow,.bs-tooltip-bottom .arrow{top:0}.bs-tooltip-auto[x-placement^="bottom"] .arrow::before,.bs-tooltip-bottom .arrow::before{bottom:0;border-width:0 0.4rem 0.4rem;border-bottom-color:#fff}
+    .bs-tooltip-auto[x-placement^="left"],.bs-tooltip-left{padding:0 0.4rem}.bs-tooltip-auto[x-placement^="left"] .arrow,.bs-tooltip-left .arrow{right:0;width:0.4rem;height:0.8rem}
+    .bs-tooltip-auto[x-placement^="left"] .arrow::before,.bs-tooltip-left .arrow::before{left:0;border-width:0.4rem 0 0.4rem 0.4rem;border-left-color:#fff}
+    .tooltip-inner{max-width:200px;padding:0.25rem 0.5rem;color:#222;text-align:center;background-color:#fff;border-radius:0.25rem}    
   </style>
 </head>
 <body>
@@ -99,34 +116,39 @@
       <!-- <input type="text" class="form-input" id="i1" placeholder="Type in viewBox value" value="0 0 270 160" /> -->
       
       <p><b>PathValue Input</b></p>
-      <textarea class="form-input" id="t1" style="height:180px" placeholder="Type in d value"></textarea>
-      <!-- <textarea class="form-input" id="t1" style="height:40px" placeholder="Type in d value"></textarea> -->
-      <!-- <textarea class="form-input" id="t1" style="min-height:150px" placeholder="Type in d value"></textarea> -->
-      <!-- <textarea class="form-input" id="t1" style="height:40px" placeholder="Type in d value">M8 15A7 7 0 108 1z</textarea> -->
-      <!-- <textarea class="form-input" id="t1" style="height:40px" placeholder="Type in d value">M 10 80 Q 52.5 10, 95 80 T 180 80 T 270 80</textarea> -->
-      <!-- <textarea class="form-input" id="t1" style="height:40px" placeholder="Type in d value">M 10 80 Q 52.5 10, 95 80</textarea> -->
+      <textarea class="form-input" id="t1" placeholder="Type in d value"></textarea>
+      <!-- <textarea class="form-input" id="t1" placeholder="Type in d value">M8 15A7 7 0 108 1z</textarea> -->
+      <!-- <textarea class="form-input" id="t1" placeholder="Type in d value">M 10 80 Q 52.5 10, 95 80 T 180 80 T 270 80</textarea> -->
+      <!-- <textarea class="form-input" id="t1" placeholder="Type in d value">M 10 80 Q 52.5 10, 95 80</textarea> -->
     
       <p><b>Instance Methods</b></p>
       <p>
-        <button type="button" title="Initialize and update pathString" onclick="parse()">Init</button>
-        <button type="button" title="Initialize, convert to absolute and update pathString" onclick="toAbs()">toAbsolute</button>
-        <button type="button" title="Initialize, convert to relative and update pathString" onclick="toRel()">toRelative</button>
-        <button type="button" title="Initialize, normalize and update pathString" onclick="toNormal()">Normalize</button>
-        <button type="button" title="Initialize, reverse, optimize and update pathString" onclick="toRev()">Reverse</button>
-        <button type="button" title="Initialize, reverse subpath, optimize and update pathString" onclick="toRev(1)">Reverse Subpath</button>
+        <button type="button" data-toggle="tooltip" title="Initialize and update pathString" onclick="parse()">Init</button>
+        <button type="button" data-toggle="tooltip" title="Initialize, convert to absolute and update pathString" onclick="toAbs()">toAbsolute</button>
+        <button type="button" data-toggle="tooltip" title="Initialize, convert to relative and update pathString" onclick="toRel()">toRelative</button>
+        <button type="button" data-toggle="tooltip" title="Initialize, normalize and update pathString" onclick="toNormal()">Normalize</button>
+        <button type="button" data-toggle="tooltip" title="Initialize, reverse, optimize and update pathString" onclick="toRev()">Reverse</button>
+        <button type="button" data-toggle="tooltip" title="Initialize, reverse subpath, optimize and update pathString" onclick="toRev(1)">Reverse Subpath</button>
       </p>
       
       <p><b>KUTE.js Tools</b></p>
       <p>
-        <button type="button" title="Initialize, convert path commands to cubic bezier, and update pathString. The resulted pathString has intentionally no rounded numbers. The utility is used by KUTE.js" onclick="toCurve()">toCurve</button>
-        <button type="button" title="Initialize, convert path commands to cubic bezier, reverse and update pathString. The utility is used by KUTE.js" onclick="toRevCurve()">Reverse Curve</button>
-        <button type="button" title="Initialize, convert path commands to cubic bezier, reverse only subpath and update pathString" onclick="toRevCurve(1)">Reverse Subpath Curve</button>
-        <button type="button" title="Convert to absolute, convert to string, split pathString, optimize each subpath then update the overall pathString. Also useful for KUTE.js" onclick="toSplit()">Split</button>
+        <button type="button" data-toggle="tooltip" title="Initialize, convert path commands to cubic bezier, and update pathString. The resulted pathString has intentionally no rounded numbers. The utility is used by KUTE.js" onclick="toCurve()">toCurve</button>
+        <button type="button" data-toggle="tooltip" title="Initialize, convert path commands to cubic bezier, reverse and update pathString. The utility is used by KUTE.js" onclick="toRevCurve()">Reverse Curve</button>
+        <button type="button" data-toggle="tooltip" title="Initialize, convert path commands to cubic bezier, reverse only subpath and update pathString" onclick="toRevCurve(1)">Reverse Subpath Curve</button>
+        <button type="button" data-toggle="tooltip" title="Convert to absolute, convert to string, split pathString, optimize each subpath then update the overall pathString. Also useful for KUTE.js" onclick="toSplit()">Split</button>
+      </p>
+
+      <p><b>Matrix Transformation</b></p>
+      <p>
+        <button type="button" data-toggle="tooltip" title="Rotate 180deg on X axis, the default transform origin is shape's center, Font-Icon creators love it" onclick="flipX()">FlipX</button>
+        <button type="button" data-toggle="tooltip" title="Rotate 180deg on Y axis, the default transform origin is shape's center" onclick="flipY()">FlipY</button>
+        <button type="button" data-toggle="tooltip" title="Transform multiple functions in object { translate: 0.5, rotate: 90, scale: 0.5 } and with {origin: {x:10,y:10}, decimals:4} options" onclick="transform()">Multi-transform</button>
       </p>
       
 
       <p><b>PathValue Output</b></p>
-      <textarea class="form-input" id="t2" style="min-height:150px"></textarea>
+      <textarea class="form-input" id="t2"></textarea>
 
       <div class="row m-0 copy">
         <div class="col p-0" style="min-width: 57%;">
@@ -164,6 +186,9 @@
 
         svg = document.querySelector('svg'),
         path = svg.children[0],
+        inputTextArea = document.getElementById('t1'),
+        outputTextArea = document.getElementById('t2'),
+        vertSpacing = parseFloat(getComputedStyle(outputTextArea).paddingTop) * 2,
         pathValue = '',
         shapes = [
           'M16 8C16 4.134 12.418 1 8 1S0 4.134 0 8c0 1.759 0.744 3.369 1.969 4.6c-0.096 1.016 -0.416 2.13 -0.77 2.966c-0.078 0.185 0.072 0.394 0.272 0.362c2.256 -0.37 3.597 -0.938 4.18 -1.234A9.06 9.06 0 0 0 8 15c4.417 0 8 -3.134 8 -7zM7.194 6.766c0.087 0.123 0.163 0.259 0.227 0.4c0.427 0.948 0.392 2.377 -0.942 3.705a0.446 0.446 0 0 1 -0.612 0.009A0.405 0.405 0 0 1 5.856 10.293C6.274 9.876 6.528 9.462 6.665 9.072C6.396 9.237 6.077 9.332 5.735 9.332C4.775 9.333 4 8.587 4 7.667C4 6.747 4.776 6 5.734 6C6.005 6 6.262 6.06 6.49 6.166L6.498 6.17c0.168 0.07 0.326 0.182 0.468 0.323c0.084 0.083 0.161 0.174 0.227 0.272zM11 9.073C10.731 9.238 10.412 9.333 10.07 9.333C9.112 9.333 8.335 8.587 8.335 7.667C8.335 6.747 9.112 6 10.069 6c0.27 0 0.527 0.059 0.755 0.166l0.008 0.003c0.169 0.07 0.326 0.182 0.468 0.323c0.085 0.083 0.16 0.174 0.227 0.272c0.086 0.123 0.163 0.259 0.227 0.4c0.428 0.948 0.391 2.377 -0.942 3.705a0.446 0.446 0 0 1 -0.612 0.009a0.405 0.405 0 0 1 -0.01 -0.589c0.419 -0.416 0.671 -0.83 0.809 -1.221z',
@@ -175,8 +200,8 @@
         ];
 
     pathValue = shapes[Math.random()*(shapes.length-1)>>0]
-    document.getElementById('t1').value = pathValue
-    console.log(pathValue)
+    inputTextArea.value = pathValue
+    inputTextArea.style.height = (inputTextArea.scrollHeight - vertSpacing) + 'px'
 
     path.setAttribute('d', pathValue);
 
@@ -188,94 +213,145 @@
     }
 
     function parse() { // Init
-      pathValue = document.getElementById('t1').value || pathValue
-      var pv = new SVGPathCommander( pathValue ).toString();
+      pathValue = inputTextArea.value || pathValue
+      var pv = new SVGPathCommander( pathValue ).toString()
 
-      document.getElementById('t2').value = pv;
-      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       path.setAttribute('d', pv);
       path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = pv;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
     function toNormal() { // normalize
-      pathValue = document.getElementById('t1').value || pathValue
+      pathValue = inputTextArea.value || pathValue
       var nm = new SVGPathCommander( pathValue ).normalize().toString();
 
-      document.getElementById('t2').value = nm;
-      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       path.setAttribute('d', nm);
       path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = nm;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
     function toAbs() { // To absolute coordinates
-      pathValue = document.getElementById('t1').value || pathValue
+      pathValue = inputTextArea.value || pathValue
       var absPath = new SVGPathCommander( pathValue ).toAbsolute().toString();
 
-      document.getElementById('t2').value = absPath;
-      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       path.setAttribute('d', absPath);
       path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = absPath;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
     function toRel() { // To relative coordinates
-
-      pathValue = document.getElementById('t1').value || pathValue
+      pathValue = inputTextArea.value || pathValue
 
       var relPath = new SVGPathCommander( pathValue ).toRelative().toString();
 
-      document.getElementById('t2').value = relPath;
-      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       path.setAttribute('d', relPath);
       path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = relPath;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
     function toCurve() { // To curve coordinates
+      pathValue = inputTextArea.value || pathValue
 
-      pathValue = document.getElementById('t1').value || pathValue
-
-      var cvInit = new SVGPathCommander(pathValue), cvPath
+      var cvInit = new SVGPathCommander(pathValue,{round:0}), cvPath
       cvInit.segments = pathToCurve( cvInit.segments, 0 )
       cvPath = cvInit.toString()
 
-      document.getElementById('t2').value = cvPath;
-      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       path.setAttribute('d', cvPath);
       path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = cvPath;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
     function toRevCurve(onlySubpath) { // To curve coordinates
-
-      pathValue = document.getElementById('t1').value || pathValue
+      pathValue = inputTextArea.value || pathValue
 
       var revCVinit = new SVGPathCommander(pathValue), revCPath
       revCVinit.segments = pathToCurve( revCVinit.segments )
       revCPath = revCVinit.reverse(onlySubpath).toString()
 
-      document.getElementById('t2').value = revCPath;
-      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       path.setAttribute('d', revCPath);
       path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = revCPath;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
     function toRev(onlySubpath) { // reverse coordinates
-      pathValue = document.getElementById('t1').value || pathValue
+      pathValue = inputTextArea.value || pathValue
 
       var revPath = new SVGPathCommander( pathValue ).reverse(onlySubpath).optimize().toString();
-      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
-
-      document.getElementById('t2').value = revPath;
+      
       path.setAttribute('d', revPath);
       path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = revPath;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
     function toSplit() { // split coordinates
-      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
-      pathValue = document.getElementById('t1').value || pathValue
-
+      pathValue = inputTextArea.value || pathValue
+      
       var absPath = new SVGPathCommander( pathValue ).toAbsolute().toString();
-      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
-
-      document.getElementById('t2').value = splitPath(absPath).map(x=>new SVGPathCommander( x ).toRelative().toString()).join('\r\n\r\n');
+      
       path.setAttribute('d', absPath);
       path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = splitPath(absPath).map(x=>new SVGPathCommander( x ).toRelative().toString()).join('\r\n\r\n');
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+    }
+    function flipX() { // transform
+      pathValue = inputTextArea.value || pathValue         
+      
+      var transformObject = { translate: 0.05, rotate: 90, scale: 0.9 },
+          tfPath = new SVGPathCommander( pathValue ).flipX().optimize().toString();
+      
+      path.setAttribute('d', tfPath);
+      path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = tfPath;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+    }
+    function flipY() { // transform
+      pathValue = inputTextArea.value || pathValue         
+      
+      var transformObject = { translate: 0.05, rotate: 90, scale: 0.9 },
+          tfPath = new SVGPathCommander( pathValue ).flipY().optimize().toString();
+      
+      path.setAttribute('d', tfPath);
+      path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = tfPath;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+    }
+    function transform() { // transform
+      pathValue = inputTextArea.value || pathValue         
+      
+      var transformObject = { translate: 0.5, rotate: 45, scale: 0.5 },
+          tfPath = new SVGPathCommander( pathValue, {origin: {x:10,y:10}, decimals:4} ).transform(transformObject).optimize().toString();
+      
+      path.setAttribute('d', tfPath);
+      path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = tfPath;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
   </script>
 </body>

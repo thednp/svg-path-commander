@@ -12,11 +12,11 @@ export default function(pathString,round) {
     return clonePath(pathString)
   }
 
-  let state = new SVGPathArray(pathString), max = state.max;
+  let state = new SVGPathArray(pathString);
 
   skipSpaces(state);
 
-  while (state.index < max && !state.err.length) {
+  while (state.index < state.max && !state.err.length) {
     scanSegment(state);
   }
 

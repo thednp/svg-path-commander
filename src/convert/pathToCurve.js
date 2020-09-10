@@ -3,7 +3,7 @@ import fixArc from '../util/fixArc.js'
 import isCurveArray from '../util/isCurveArray.js'
 import clonePath from '../process/clonePath.js'
 import normalizePath from '../process/normalizePath.js'
-import segmentToCubicBezier from '../process/segmentToCubicBezier.js'
+import segmentToCubic from '../process/segmentToCubic.js'
 
 export default function(pathArray,round) { // pathArray|pathString
   if (isCurveArray(pathArray)){
@@ -17,16 +17,10 @@ export default function(pathArray,round) { // pathArray|pathString
       segment, seglen;
 
   for (let i = 0; i < ii; i++) {
-    pathArray[i] && (pathCommand = pathArray[i][0])     // save current path command
+    pathCommand = pathArray[i][0]
 
-    if (pathCommand !== 'C') {                          // C is not saved yet, because it may be result of conversion
-      allPathCommands[i] = pathCommand                  // save current path command
-    }
-    pathArray[i] = segmentToCubicBezier(pathArray[i], params)
-
-    // A is the only command which may produce multiple C:s
-    // so we have to make sure that C is also C in original path
-    allPathCommands[i] !== 'A' && pathCommand === 'C' && ( allPathCommands[i] = 'C' )
+    allPathCommands[i] = pathCommand
+    pathArray[i] = segmentToCubic(pathArray[i], params)
 
     fixArc(pathArray,allPathCommands,i)
     ii = pathArray.length // solves curveArrays ending in Z

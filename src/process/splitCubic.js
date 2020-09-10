@@ -13,12 +13,15 @@ export default function(pts,t) {
       p6 = cubicLerp(p2, p3, t),
       p7 = cubicLerp(p4, p5, t),
       p8 = cubicLerp(p5, p6, t),
-      p9 = cubicLerp(p7, p8, t),
+      p9 = cubicLerp(p7, p8, t)
 
       // firsthalf  = [p0, p4, p7, p9] 
       // secondhalf = [p9, p8, p6, p3]
-      firsthalf  = ['C'].concat( p4, p7, p9), 
-      secondhalf = ['C'].concat( p8, p6, p3);
+      // firsthalf  = ['C'].concat( p4, p7, p9), 
+      // secondhalf = ['C'].concat( p8, p6, p3);
 
-  return [firsthalf, secondhalf]   
+  return [
+    ['C'].concat( p4, p7, p9),
+    ['C'].concat( p8, p6, p3)
+  ]   
 }

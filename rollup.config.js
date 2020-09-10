@@ -7,6 +7,8 @@ import * as pkg from "./package.json";
 
 const MIN = process.env.MIN === 'true' || false; // true/false|unset
 const FORMAT = process.env.FORMAT; // JS umd|iife|esm
+const INPUT = process.env.INPUTFILE;
+const OUTPUTC = process.env.OUTPUTFILE;
 
 const year = (new Date).getFullYear();
 
@@ -19,8 +21,8 @@ const banner =
 
 const miniBannerJS = `// SVGPathCommander v${pkg.version} | ${pkg.author} © ${year} | ${pkg.license}-License`;
 
-const INPUTFILE = 'src/index.js';
-const OUTPUTFILE = 'dist/svg-path-commander'+(FORMAT!=='umd'?'.'+FORMAT:'')+(MIN?'.min':'')+'.js';
+const INPUTFILE = INPUT ? INPUT : 'src/index.js';
+const OUTPUTFILE = OUTPUTC ? OUTPUTC : 'dist/svg-path-commander'+(FORMAT!=='umd'?'.'+FORMAT:'')+(MIN?'.min':'')+'.js';
 
 const OUTPUT = {
   file: OUTPUTFILE,

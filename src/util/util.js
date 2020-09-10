@@ -2,6 +2,7 @@ import options from '../options/options.js'
 
 import getShapeArea from './getShapeArea.js'
 import getDrawDirection from './getDrawDirection.js'
+import getPathBBox from './getPathBBox.js'
 import isPathArray from './isPathArray.js'
 import isAbsoluteArray from './isAbsoluteArray.js'
 import isCurveArray from './isCurveArray.js'
@@ -30,6 +31,7 @@ export default {
   isCurveArray,
   isAbsoluteArray,
   isRelativeArray,
+  getPathBBox,
   roundPath,
   optimizePath,
   pathToAbsolute,

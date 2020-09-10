@@ -9,15 +9,15 @@ export default function(pathString,round){ // pathArray | pathString
   reversedPath = normalizePath(absolutePath).map((segment,i)=>{
     segLength = segment.length
     return {
-      c: absolutePath[i][0], 
-      x: segment[segLength - 2],
-      y: segment[segLength - 1],
-      seg: absolutePath[i],
-      normSeg: segment
+      seg: absolutePath[i],       // absolute
+      n: segment,                 // normalized
+      c: absolutePath[i][0],      // pathCommand
+      x: segment[segLength - 2],  // x
+      y: segment[segLength - 1]   // y
     }
   }).map((seg,i,pathArray)=>{
     let segment = seg.seg,
-        data = seg.normSeg,
+        data = seg.n,
         prevSeg = i && pathArray[i-1],
         nextSeg = pathArray[i+1] && pathArray[i+1],
         pathCommand = seg.c, 
