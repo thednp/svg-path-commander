@@ -1,6 +1,8 @@
-import util from './util.js'
+import CSSMatrix from './CSSMatrix.js'
 
-DOMMatrix.prototype.toArray = function(){
+let CSS3Matrix = typeof DOMMatrix !== undefined ? DOMMatrix : CSSMatrix
+
+CSS3Matrix.prototype.toArray = function(){
   let m = this
   // return m.is2D ? [m.a, m.b, m.c, m.d, m.e, m.f] // COMING SOON
   //               : [
@@ -12,4 +14,4 @@ DOMMatrix.prototype.toArray = function(){
   return [m.a, m.b, m.c, m.d, m.e, m.f]
 }
 
-util.CSSMatrix = DOMMatrix
+export default CSS3Matrix

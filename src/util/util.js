@@ -1,5 +1,6 @@
 import options from '../options/options.js'
 
+import CSS3Matrix from './DOMMatrix.js'
 import getShapeArea from './getShapeArea.js'
 import getDrawDirection from './getDrawDirection.js'
 import getPathBBox from './getPathBBox.js'
@@ -23,6 +24,7 @@ import pathToCurve from '../convert/pathToCurve.js'
 import pathToString from '../convert/pathToString.js'
 
 export default {
+  CSS3Matrix,
   getShapeArea,
   getDrawDirection,
   clonePath,

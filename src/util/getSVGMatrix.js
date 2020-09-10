@@ -1,9 +1,9 @@
 
-import util from './util.js'
+import CSS3Matrix from './DOMMatrix.js'
 import getPathBBox from './getPathBBox.js'
 
 export default function(pathArray,transformObject,origin){
-  let matrix = new util.CSSMatrix(),
+  let matrix = new CSS3Matrix(),
       BBox = getPathBBox(pathArray),
       originX = origin && !isNaN(origin.x) ? +origin.x : BBox.cx, 
       originY = origin && !isNaN(origin.y) ? +origin.y : BBox.cy,
@@ -22,15 +22,20 @@ export default function(pathArray,transformObject,origin){
   if (rotate || skew || scale) {
     matrix = matrix.translate(originX,originY) // set SVG transform-origin
 
-    if (rotate) {
-      matrix = Array.isArray(rotate) ? matrix.rotate.apply(matrix,rotate) : matrix.rotate(rotate) // set rotation
+    if (rotate) { // set rotation
+      matrix = Array.isArray(rotate) ? matrix.rotate.apply(matrix,rotate) 
+                                     : matrix.rotate(rotate)
     }
-    if (skew) { // set skew
-      matrix = skew[0] ? matrix.skewX(skew[0]) : matrix;
-      matrix = skew[1] ? matrix.skewY(skew[1]) : matrix;
+    if (skew) { // set skew(s)
+      if (Array.isArray(skew)) {
+        matrix = skew[0] ? matrix.skewX(skew[0]) : matrix;
+        matrix = skew[1] ? matrix.skewY(skew[1]) : matrix;
+      } else {
+        matrix = matrix.skewX(skew);
+      }
     }
-    if (scale){
-      matrix = Array.isArray(scale) ? (matrix.scale.apply(matrix,scale)): matrix.scale(scale) // set scale
+    if (scale){ // set scale
+      matrix = Array.isArray(scale) ? (matrix.scale.apply(matrix,scale)): matrix.scale(scale)
     }
 
     matrix = matrix.translate(-originX,-originY) // set SVG transform-origin

@@ -143,7 +143,8 @@
       <p>
         <button type="button" data-toggle="tooltip" title="Rotate 180deg on X axis, the default transform origin is shape's center, Font-Icon creators love it" onclick="flipX()">FlipX</button>
         <button type="button" data-toggle="tooltip" title="Rotate 180deg on Y axis, the default transform origin is shape's center" onclick="flipY()">FlipY</button>
-        <button type="button" data-toggle="tooltip" title="Transform multiple functions in object { translate: 0.5, rotate: 90, scale: 0.5 } and with {origin: {x:10,y:10}, decimals:4} options" onclick="transform()">Multi-transform</button>
+        <button type="button" data-toggle="tooltip" title="Rotate 180deg on both X and Y axes, the default transform origin is shape's center" onclick="flipXY()">FlipXY</button>
+        <button type="button" data-toggle="tooltip" title="Transform multiple functions in object { translate: 0.5, rotate: 45, scale: 0.5 } and with {origin: {x:10,y:10}, decimals:4} options" onclick="transform()">Multi-transform</button>
       </p>
       
 
@@ -330,8 +331,19 @@
     function flipY() { // transform
       pathValue = inputTextArea.value || pathValue         
       
-      var transformObject = { translate: 0.05, rotate: 90, scale: 0.9 },
-          tfPath = new SVGPathCommander( pathValue ).flipY().optimize().toString();
+      var tfPath = new SVGPathCommander( pathValue ).flipY().optimize().toString();
+
+      path.setAttribute('d', tfPath);
+      path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = tfPath;
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+    }
+    function flipXY() { // transform
+      pathValue = inputTextArea.value || pathValue         
+      
+      var tfPath = new SVGPathCommander( pathValue ).flipY().flipX().optimize().toString();
       
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());
