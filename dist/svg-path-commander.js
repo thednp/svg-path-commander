@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.7 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.7a (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -855,7 +855,7 @@
     return {x: X, y: Y}
   }
 
-  function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
+  function arcToCubic(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
     var _120 = Math.PI * 120 / 180,
         rad = Math.PI / 180 * (angle || 0),
         res = [], xy, f1, f2, cx, cy;
@@ -903,7 +903,7 @@
       f2 = f1 + _120 * (sweep_flag && f2 > f1 ? 1 : -1);
       x2 = cx + rx * Math.cos(f2);
       y2 = cy + ry * Math.sin(f2);
-      res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
+      res = arcToCubic(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
     }
     df = f2 - f1;
     var c1 = Math.cos(f1),
@@ -949,7 +949,7 @@
         params.y = segment[2];
         return segment
       case 'A':
-        return ['C'].concat(a2c.apply(0, [params.x1, params.y1].concat(segment.slice(1))))
+        return ['C'].concat(arcToCubic.apply(0, [params.x1, params.y1].concat(segment.slice(1))))
       case 'Q':
         params.qx = segment[1];
         params.qy = segment[2];

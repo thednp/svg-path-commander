@@ -132,8 +132,15 @@ let mySVGPath = new SVGPathCommander('M0 0L0 0',{
 })
 
 // Apply a 45deg rotation on Z axis and use a custom transform origin 
-let mySVGPath = new SVGPathCommander('M0 0L0 0',{origin: [x:50,y:50]})
-                                    .transform({rotate:[0,0,45]}) // equivalent to rotate:45
+let mySVGPath = new SVGPathCommander(
+    'M0 0L0 0',           // the pathString
+    {
+      origin: {x:50,y:50} // origin option
+    }
+    ).transform(
+      {
+        rotate:[0,0,45]   // equivalent to rotate:45
+      }) 
 ```
 
 
