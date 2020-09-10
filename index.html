@@ -142,9 +142,9 @@
       <p><b>Matrix Transformation</b></p>
       <p>
         <button type="button" data-toggle="tooltip" title="Rotate 180deg on X axis, the default transform origin is shape's center, Font-Icon creators love it" onclick="flipX()">FlipX</button>
-        <button type="button" data-toggle="tooltip" title="Rotate 180deg on Y axis, the default transform origin is shape's center" onclick="flipY()">FlipY</button>
+        <button type="button" data-toggle="tooltip" title="Rotate 180deg on Y axis, the default transform origin is shape's center, and using {decimals:5} option" onclick="flipY()">FlipY</button>
         <button type="button" data-toggle="tooltip" title="Rotate 180deg on both X and Y axes, the default transform origin is shape's center" onclick="flipXY()">FlipXY</button>
-        <button type="button" data-toggle="tooltip" title="Transform multiple functions in object { translate: 0.5, rotate: 45, scale: 0.5 } and with {origin: {x:10,y:10}, decimals:4} options" onclick="transform()">Multi-transform</button>
+        <button type="button" data-toggle="tooltip" title="Transform multiple functions in object { translate: 1, skew: 15, rotate:-45, scale: 0.5 } and with {origin: {x:10,y:10}} options" onclick="transform()">Multi-transform</button>
       </p>
       
 
@@ -331,7 +331,7 @@
     function flipY() { // transform
       pathValue = inputTextArea.value || pathValue         
       
-      var tfPath = new SVGPathCommander( pathValue ).flipY().optimize().toString();
+      var tfPath = new SVGPathCommander( pathValue, {decimals:5} ).flipY().optimize().toString();
 
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());
@@ -355,8 +355,8 @@
     function transform() { // transform
       pathValue = inputTextArea.value || pathValue         
       
-      var transformObject = { translate: 0.5, rotate: 45, scale: 0.5 },
-          tfPath = new SVGPathCommander( pathValue, {origin: {x:10,y:10}, decimals:4} ).transform(transformObject).optimize().toString();
+      var transformObject = { translate: 1, skew: 15, rotate:-45, scale: 0.5 },
+          tfPath = new SVGPathCommander( pathValue, {origin: {x:10,y:10}} ).transform(transformObject).optimize().toString();
       
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());
