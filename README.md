@@ -111,7 +111,7 @@ let myReversedPath = new SVGPathCommander(pathString).reverse(1).optimize().toSt
 # Instance Options
 * `round` *Boolean* - option to enable/disable value rounding for the processing output; the default value is *TRUE*
 * `decimals` *Number* - option to set a certain amount of decimals to round values to; the default value is *3*
-* `origin` *Array* - `[x:Number, y:Number]` - option to set a transform origin for the transform, by default `50% 50%` of the shape's bounding box is used; ***absolute values*** are expected
+* `origin` *Object* - `{x:*Number*, y:*Number*}` - option to set a transform origin for the transform, by default `50% 50%` of the shape's bounding box is used; ***absolute values*** are expected
 
 ***Example***
 ```js 
