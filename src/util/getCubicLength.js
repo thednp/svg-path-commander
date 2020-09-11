@@ -1,46 +1,25 @@
-import findDotAtSegment from './findDotAtSegment.js'
+function base3(p1, p2, p3, p4, t) {
+  var t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4,
+      t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
+  return t * t2 - 3 * p1 + 3 * p2;
+}
 
-export default function(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
-  let a = (c2x - 2 * c1x + p1x) - (p2x - 2 * c2x + c1x),
-      b = 2 * (c1x - p1x) - 2 * (c2x - c1x),
-      c = p1x - c1x,
-      t1 = (-b + Math.sqrt(b * b - 4 * a * c)) / 2 / a,
-      t2 = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a,
-      y = [p1y, p2y],
-      x = [p1x, p2x],
-      dot;
-  Math.abs(t1) > "1e12" && (t1 = .5);
-  Math.abs(t2) > "1e12" && (t2 = .5);
-  if (t1 > 0 && t1 < 1) {
-    dot = findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
-    x.push(dot.x);
-    y.push(dot.y);
-  }
-  if (t2 > 0 && t2 < 1) {
-    dot = findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
-    x.push(dot.x);
-    y.push(dot.y);
-  }
-  a = (c2y - 2 * c1y + p1y) - (p2y - 2 * c2y + c1y);
-  b = 2 * (c1y - p1y) - 2 * (c2y - c1y);
-  c = p1y - c1y;
-  t1 = (-b + Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-  t2 = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-  Math.abs(t1) > "1e12" && (t1 = .5);
-  Math.abs(t2) > "1e12" && (t2 = .5);
+// returns the cubic bezier segment length
+export default function (x1, y1, x2, y2, x3, y3, x4, y4, z) {
+  z == null && (z = 1)
+  
+  z = z > 1 ? 1 : z < 0 ? 0 : z;
+  let z2 = z / 2, n = 12, ct = 0, xbase = 0, ybase = 0, comb = 0, sum = 0,
+      Tvalues = [-0.1252,0.1252,-0.3678,0.3678,-0.5873,0.5873,-0.7699,0.7699,-0.9041,0.9041,-0.9816,0.9816],
+      Cvalues = [0.2491,0.2491,0.2335,0.2335,0.2032,0.2032,0.1601,0.1601,0.1069,0.1069,0.0472,0.0472]
 
-  if (t1 > 0 && t1 < 1) {
-    dot = findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
-    x.push(dot.x);
-    y.push(dot.y);
-  }
-  if (t2 > 0 && t2 < 1) {
-    dot = findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
-    x.push(dot.x);
-    y.push(dot.y);
-  }
-  return {
-    min: {x: Math.min.apply(0, x), y: Math.min.apply(0, y)},
-    max: {x: Math.max.apply(0, x), y: Math.max.apply(0, y)}
-  }
+  Tvalues.map((T,i)=>{
+    ct = z2 * T + z2
+    xbase = base3( x1, x2, x3, x4, ct)
+    ybase = base3( y1, y2, y3, y4, ct)
+    comb = xbase * xbase + ybase * ybase
+    sum += Cvalues[i] * Math.sqrt(comb)
+  })
+
+  return z2 * sum;
 }
