@@ -1,4 +1,4 @@
-import CSSMatrix from './CSSMatrix.js'
+import CSSMatrix from 'dommatrix'
 
 let CSS3Matrix = typeof DOMMatrix !== undefined ? DOMMatrix : CSSMatrix
 

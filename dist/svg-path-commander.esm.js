@@ -715,6 +715,7 @@ CSSMatrix.prototype.multiply = function multiply$1 (m2){
 };
 CSSMatrix.prototype.translate = function translate (x, y, z){
 	if (z == null) { z = 0; }
+	if (y == null) { y = 0; }
 	this.m34 !== 0 && z && (this.is2D = false);
 	return multiply(this, Translate(x, y, z))
 };
@@ -783,7 +784,7 @@ function findDotAtSegment (p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
   };
 }
 
-function getCubicBezierSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
+function getCubicLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
   var a = (c2x - 2 * c1x + p1x) - (p2x - 2 * c2x + c1x),
       b = 2 * (c1x - p1x) - 2 * (c2x - c1x),
       c = p1x - c1x,
@@ -993,7 +994,7 @@ function getPathBBox(pathArray) {
       X.push(x);
       Y.push(y);
     } else {
-      var dim = getCubicBezierSize.apply(0, [x, y].concat(segment.slice(1)));
+      var dim = getCubicLength.apply(0, [x, y].concat(segment.slice(1)));
       X = X.concat(dim.min.x, dim.max.x);
       Y = Y.concat(dim.min.y, dim.max.y);
       x = segment[5];
@@ -1234,10 +1235,7 @@ function getShapeArea(curveArray) {
 }
 
 function getDrawDirection(curveArray) {
-  if (!isCurveArray(curveArray)) {
-    throw("getDrawDirection expects a curveArray")
-  }
-  return getShapeArea(curveArray) >= 0
+  return getShapeArea(curveArray = pathToCurve(curveArray)) >= 0
 }
 
 function reverseCurve(pathArray){
@@ -1250,7 +1248,7 @@ function reverseCurve(pathArray){
 }
 
 var util = {
-  CSS3Matrix: CSS3Matrix,
+  CSSMatrix : CSS3Matrix,
   getShapeArea: getShapeArea,
   getDrawDirection: getDrawDirection,
   clonePath: clonePath,

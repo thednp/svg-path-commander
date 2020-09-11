@@ -1,4 +1,4 @@
-import getCubicBezierSize from './getCubicBezierSize.js'
+import getCubicLength from './getCubicLength.js'
 import pathToCurve from '../convert/pathToCurve.js';
 
 export default function(pathArray) {
@@ -16,7 +16,7 @@ export default function(pathArray) {
       X.push(x);
       Y.push(y);
     } else {
-      let dim = getCubicBezierSize.apply(0, [x, y].concat(segment.slice(1)));
+      let dim = getCubicLength.apply(0, [x, y].concat(segment.slice(1)));
       X = X.concat(dim.min.x, dim.max.x);
       Y = Y.concat(dim.min.y, dim.max.y);
       x = segment[5];

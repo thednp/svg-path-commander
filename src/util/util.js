@@ -24,7 +24,7 @@ import pathToCurve from '../convert/pathToCurve.js'
 import pathToString from '../convert/pathToString.js'
 
 export default {
-  CSS3Matrix,
+  CSSMatrix : CSS3Matrix,
   getShapeArea,
   getDrawDirection,
   clonePath,
