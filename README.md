@@ -7,7 +7,7 @@ A modern set of ES6/ES7 JavaScript tools for manipulating the `d` (description) 
 While you may find familiar tools inside, this library brings ***new additions***:
 * a tool that can *reverse path draw direction* without altering path commands, even with specific shorthand path commands;
 * a unique tool that can *reverse path draw direction* for path strings with only 'C' path commands;
-* a new and unique tool to *apply transform functions to path commands* via most modern API;
+* a new and unique tool to *apply transform functions to path commands* via modern API.
 
 ***The key differences with other libraries***:
 * ES6/ES7 sourced with modernized codebase and build tools; all inherited codebase has been modernized as well;
