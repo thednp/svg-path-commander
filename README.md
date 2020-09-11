@@ -9,13 +9,13 @@ While you may find familiar tools inside, this library brings ***new additions**
 * a unique tool that can *reverse path draw direction* for path strings with only 'C' path commands;
 * a new and unique tool to *apply transform functions to path commands* via modern API.
 
-***The key differences with other libraries***:
+**The key differences with other libraries**:
 * ES6/ES7 sourced with modernized codebase and build tools; all inherited codebase has been modernized as well;
-* you can use this library in both web apps and Node.js, where others are restricted to Node.js;
-* path command transformations are all consistent with the SVG coordinates system, where others compute transform origin for rotation transformation only.
+* you can use this library in both web apps and Node.js, where others are restricted to a single environment;
+* path command transformations are all consistent with the SVG coordinates system, where others compute transform origin only for rotation transformation.
 
-***SVGPathCommander*** implements the [DOMMatrix API](https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix) for *SVGPathElement* path command transformation and falls back to a modernized [CSSMatrix shim](https://github.com/arian/CSSMatrix/) on older browsers as well as Node.js.
-The reasons for this implementation:
+**SVGPathCommander** implements the [DOMMatrix API](https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix) for *SVGPathElement* path command transformation and falls back to a modernized [CSSMatrix shim](https://github.com/thednp/DOMMatrix) on older browsers as well as Node.js.
+There are a couple of good reasons for this implementation:
 * *WebKitCSSMatrix* and *SVGMatrix* APIs are slowly pushed away by DOMMatrix, the green light for new and modern implementations;
 * in the future we might actually be able to apply a [3D transformation](https://github.com/ndebeiss/svg3d) matrix to SVG path commands;
 * when most tools available will be rendered absolete, we are ready for new challenges.
@@ -29,8 +29,8 @@ This library is available on [CDN](https://www.jsdelivr.com/package/npm/svg-path
 
 # What Is It For?
 
-* converting and optimizing *SVGPathElement* for use on third party application; our [KUTE.js](https://github.com/thednp/kute.js) animation engine is using it to process *SVGPathElement* coordinates for [SVG morphing](https://thednp.github.io/kute.js/svgMorph.html) and [SVG cubic morphing](https://thednp.github.io/kute.js/svgCubicMorph.html);
-* animators that work with SVGs and need toold for performing specific path command processing;
+* converting and optimizing *SVGPathElement* for use in third party application; our [KUTE.js](https://github.com/thednp/kute.js) animation engine is using it to process *SVGPathElement* coordinates for [SVG morphing](https://thednp.github.io/kute.js/svgMorph.html) and [SVG cubic morphing](https://thednp.github.io/kute.js/svgCubicMorph.html);
+* animators that work with SVGs and need tools for performing specific path command processing;
 * font-icon creators can use it in both Node.js and web applications to process and test their creations.
 
 
@@ -173,9 +173,27 @@ let myPathString = new SVGPathCommander('M0 0L0 0')
                       .transform(transformObject)
                       .toString()
 ```
-As you can see we've provided all X, Y, Z axes values for most transform functions, but SVG currently only supports 2D transform functions. That is because again, this library implements the DOMMatrix API for calculating the values we need but have no worry, the library will make sure to get the most of it.
+As you can see we've provided all X, Y, Z axes values for most transform functions, but SVG currently only supports 2D transform functions. That is because again, this library implements the DOMMatrix API for calculating the values we need. The library doesn't rely on *SVGMatrix* API. Instead of this:
 
-For simplicity reasons and other considerations, we've decided not to include support for axis specific transform functions like `rotateX` or `scaleY`, since DOMMatrix and WebKitCSSMatrix APIs both support shorthand functions and would not make sense to just alocate more memory for aliases.
+```js
+var transformMatrix = ownerSVGElement.createSVGTransform()
+
+transformMatrix.setMatrix(elem.getCTM())
+```
+
+we now can do this:
+
+```js
+let transformMatrix = new DOMMatrix()
+
+// apply transform from string
+transformMatrix.setMatrixValue('rotate(45deg)')
+
+// or call instance methods directly
+transformMatrix.rotate(45)
+```
+
+The `transformMatrix` is all we need really need to perform the path command transformation. Also, for simplicity reasons and other considerations, we've decided not to include support for axis specific transform functions like `rotateX` or `scaleY`, since DOMMatrix and WebKitCSSMatrix APIs both support shorthand functions and would not make sense to just alocate more memory for aliases.
 
 
 # Determine Shape Draw Direction
