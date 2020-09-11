@@ -49,6 +49,7 @@ Find ***SVGPathCommander*** on [jsDelivr](https://www.jsdelivr.com/package/npm/s
 
 On a regular basis, you can import, initialize and call multiple instance methods, or return the values right away.
 
+**Example**
 ```js
 // import the constructor
 import SVGPathCommander from 'svg-path-commander'
@@ -87,15 +88,15 @@ let mySVGPathCommanderInit = new SVGPathCommander(pathString);
 
 The SVGPathCommander construct comes with some instance methods you can call:
 
-* ***.toAbsolute()*** - will convert all path commands of a *SVGPathElement* with or without sub-path to ***absolute*** values; in addition it will convert `O` or shorthand `U` (ellipse) to `A` (arc) path commands, as well as `R` (catmulRom) path commands to `C` (cubicBezier), since the absolute path is used by all other tools for specific processing
-* ***.toRelative()*** - will convert all path commands of a shape with or without sub-path to ***relative*** values 
+* ***.toAbsolute()*** - will convert all path commands of a *SVGPathElement* with or without sub-path to ***absolute*** values; in addition it will convert `O` or shorthand `U` (ellipse) to `A` (arc) path commands, as well as `R` (catmulRom) path commands to `C` (cubicBezier), since the absolute path is used by all other tools for specific processing;
+* ***.toRelative()*** - will convert all path commands of a shape with or without sub-path to ***relative*** values;
 * ***.reverse(onlySubpath)*** - will reverse the shape draw direction by changing the order of all path segments and their coordinates; when the `onlySubpath` option is true, it will only reverse the draw direction of subpath shapes
-* ***.normalize()*** - will convert path command values to absolute and convert shorthand `S`, `T`, `H`, `V` to `C`, `Q` and `L` respectivelly
-* ***.optimize()*** - will compute two `pathArray`s one with absolute and the other with relative values, then update the `pathArray` segments using the values that convert to shortest string
-* ***.transform(transformObject)*** - will normalize all path commands and apply a 2D transformation matrix to all path commands
-* ***.flipX()*** - will call the above `transform()` method to apply a 180deg rotation on the X axis
-* ***.flipY()*** - will call the above `transform()` method to apply a 180deg rotation on the Y axis
-* ***.toString()*** - will return the `pathString` of the current `pathArray`
+* ***.normalize()*** - will convert path command values to absolute and convert shorthand `S`, `T`, `H`, `V` to `C`, `Q` and `L` respectivelly;
+* ***.optimize()*** - will compute two `pathArray`s one with absolute and the other with relative values, then update the `pathArray` segments using the values that convert to shortest string;
+* ***.transform(transformObject)*** - will normalize all path commands and apply a 2D transformation matrix to all path commands;
+* ***.flipX()*** - will call the above `transform()` method to apply a 180deg rotation on the X axis;
+* ***.flipY()*** - will call the above `transform()` method to apply a 180deg rotation on the Y axis;
+* ***.toString()*** - will return the `pathString` of the current `pathArray` stored in the `instance.segments` object.
 
 **Examples**
 ```js
@@ -150,7 +151,7 @@ let mySVGPath = new SVGPathCommander( 'M0 0L0 0', { origin: { x:50, y:50 } })
 # Apply Transform To Path Commands
 You can either call the *SVGPathCommander* methods `flipX()` or `flipY()` to perform a quick transformation or set custom functions, in which case you can provide a `transformObject` *Object*
 
-***Example***
+**Example**
 
 ```js
 // define properties you want to transform
@@ -199,6 +200,7 @@ The `transformMatrix` is all we need really need to perform the path command tra
 # Determine Shape Draw Direction
 When reversing path strings, you might want to know their draw direction first:
 
+**Example**
 ```js
 import pathToCurve from 'svg-path-commander/src/convert/pathToCurve.js'
 import getDrawDirection from 'svg-path-commander/src/util/getDrawDirection.js'
@@ -213,6 +215,7 @@ let shapeDrawDirection = getDrawDirection(pathToCurve(pathString))
 
 In most cases, you can import only the tools you need, without importing the entire library.
 
+**Example**
 ```js
 import pathToAbsolute from 'svg-path-commander/src/convert/pathToAbsolute.js'
 import pathToString from 'svg-path-commander/src/convert/pathToString.js'
@@ -234,12 +237,12 @@ Here are some notable utilities:
 * `SVGPathCommander.clonePath(pathArray)` - returns a **deep clone** of a *pathArray*, which is the result of any of the above functions;
 * `SVGPathCommander.roundPath(pathArray,decimals)` - returns a new *pathArray* with all float path command values rounded to 3 decimals by default, or provide a number to be used as the amount of decimals to round values to;
 * `SVGPathCommander.reversePath(pathString|pathArray,decimals)` - returns a new *pathArray* with all path commands having absolute values and in reverse order, but only for a single M->Z shape, for paths having sub-path(s) you need to use `pathToAbsolute` -> `pathToString` -> `splitPath` -> `reversePath` for each subpath;
-* `SVGPathCommander.optimizePath(pathArray)` - returns a new *pathArray* with all segments that have the shortest strings from either absolute or relative `pathArray` segments
+* `SVGPathCommander.optimizePath(pathArray,decimals)` - returns a new *pathArray* with all segments that have the shortest strings from either absolute or relative `pathArray` segments
 * `SVGPathCommander.normalizePath(pathString|pathArray,decimals)` - returns a new *pathArray* with all shorthand path command segments such as `S`, `T` are converted to `C` and `Q` respectively, `V` and `H` to `L`, all in absolute values; the utility is used by `pathToCurve` and `reversePath`;
 * `SVGPathCommander.getDrawDirection(pathCurveArray)` - returns **TRUE** if a shape draw direction is **clockwise**, it should not be used for shapes with sub-paths, but each path/sub-path individually;
 * `SVGPathCommander.getPathBBox(pathCurveArray)` - returns the bounding box of a shape in the form of the following object: `{x1,y1, x2,y2, width,height, cx,cy}`, where *cx* &amp; *cy* are the shape's center point;
-* `SVGPathCommander.splitPath(pathString)` - returns an *Array* of sub-path strings;
-*There are other tools not exported to SVGPathCommander object, some of which would like to have access to a mockup browser.*
+* `SVGPathCommander.splitPath(pathString)` - returns an *Array* of sub-path strings.
+The `decimals` option can be passed to override the `defaultOptions.decimals` value of `3`. 
 
 
 # Custom Builds
@@ -258,7 +261,7 @@ You can now build your own custom builds, go to the root of `svg-path-commander`
 * all tools processing path segments will always round float values to 3 decimals; EG: 0.5666 => 0.566, 0.50 => 0.5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`; you can also control this feature via instance options;
 * the `getSVGMatrix` utility will always compute the matrix by applying the transform functions in the following order: `translate`, `rotate`, `skew` and `scale`, which is the default composition/recomposition order specified in the W3C draft;
 * most tools included with **SVGPathCommander** should work in your Node.js apps, but if you choose to use other complimentary 3rd party libraries, make sure you have the proper tools for them;
-* normalization can mean many things to many people and this library is developed to convert path command values to absolute and shorthand to non-shorthand commands to provide a solid foundation for heavy duty processing
+* normalization can mean many things to many people and our library is developed to convert path command values to absolute and shorthand to non-shorthand commands to provide a solid foundation for the main processing
 
 
 # Special Thanks
@@ -270,4 +273,4 @@ You can now build your own custom builds, go to the root of `svg-path-commander`
 * Mike 'Pomax' Kamermans for his awesome [svg-path-reverse](https://github.com/Pomax/svg-path-reverse) and [bezierjs](https://github.com/Pomax/bezierjs)
 
 # License
-SVGPathCommander is released under [MIT Licence](https://github.com/thednp/svg-path-commander/blob/master/LICENSE).
+**SVGPathCommander** is released under [MIT Licence](https://github.com/thednp/svg-path-commander/blob/master/LICENSE).
