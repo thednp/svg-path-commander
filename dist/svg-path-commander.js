@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.7 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.7a (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -721,6 +721,7 @@
   };
   CSSMatrix.prototype.translate = function translate (x, y, z){
   	if (z == null) { z = 0; }
+  	if (y == null) { y = 0; }
   	this.m34 !== 0 && z && (this.is2D = false);
   	return multiply(this, Translate(x, y, z))
   };
@@ -789,7 +790,7 @@
     };
   }
 
-  function getCubicBezierSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
+  function getCubicLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
     var a = (c2x - 2 * c1x + p1x) - (p2x - 2 * c2x + c1x),
         b = 2 * (c1x - p1x) - 2 * (c2x - c1x),
         c = p1x - c1x,
@@ -855,7 +856,7 @@
     return {x: X, y: Y}
   }
 
-  function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
+  function arcToCubic(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
     var _120 = Math.PI * 120 / 180,
         rad = Math.PI / 180 * (angle || 0),
         res = [], xy, f1, f2, cx, cy;
@@ -903,7 +904,7 @@
       f2 = f1 + _120 * (sweep_flag && f2 > f1 ? 1 : -1);
       x2 = cx + rx * Math.cos(f2);
       y2 = cy + ry * Math.sin(f2);
-      res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
+      res = arcToCubic(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
     }
     df = f2 - f1;
     var c1 = Math.cos(f1),
@@ -949,7 +950,7 @@
         params.y = segment[2];
         return segment
       case 'A':
-        return ['C'].concat(a2c.apply(0, [params.x1, params.y1].concat(segment.slice(1))))
+        return ['C'].concat(arcToCubic.apply(0, [params.x1, params.y1].concat(segment.slice(1))))
       case 'Q':
         params.qx = segment[1];
         params.qy = segment[2];
@@ -999,7 +1000,7 @@
         X.push(x);
         Y.push(y);
       } else {
-        var dim = getCubicBezierSize.apply(0, [x, y].concat(segment.slice(1)));
+        var dim = getCubicLength.apply(0, [x, y].concat(segment.slice(1)));
         X = X.concat(dim.min.x, dim.max.x);
         Y = Y.concat(dim.min.y, dim.max.y);
         x = segment[5];
@@ -1240,10 +1241,7 @@
   }
 
   function getDrawDirection(curveArray) {
-    if (!isCurveArray(curveArray)) {
-      throw("getDrawDirection expects a curveArray")
-    }
-    return getShapeArea(curveArray) >= 0
+    return getShapeArea(curveArray = pathToCurve(curveArray)) >= 0
   }
 
   function reverseCurve(pathArray){
@@ -1256,7 +1254,7 @@
   }
 
   var util = {
-    CSS3Matrix: CSS3Matrix,
+    CSSMatrix : CSS3Matrix,
     getShapeArea: getShapeArea,
     getDrawDirection: getDrawDirection,
     clonePath: clonePath,
