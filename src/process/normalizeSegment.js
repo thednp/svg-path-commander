@@ -4,7 +4,13 @@ import shorthandToCubic from './shorthandToCubic.js';
 export default function(segment, params, prevCommand) {
   let nqxy, nxy;
 
+  'TQ'.indexOf(segment[0])<0 && (params.qx = params.qy = null) // optional but good to be cautious
+
   switch (segment[0]) {
+    case "H":
+      return ["L", segment[1], params.y1]
+    case "V":
+      return ["L", params.x1, segment[1]]    
     case "S":
       nxy = shorthandToCubic(params.x1,params.y1, params.x2,params.y2, prevCommand)
       params.x1 = nxy.x1
@@ -18,10 +24,7 @@ export default function(segment, params, prevCommand) {
     case "Q":
       params.qx = segment[1]
       params.qy = segment[2]
-    case "H":
-      return ["L", segment[1], params.y1]
-    case "V":
-      return ["L", params.x1, segment[1]]
+      // break // don't remove or leave it last !!
   }
   return segment
 }

@@ -1,4 +1,4 @@
-import defaultOptions from '../options/options.js'
+import SVGPCO from '../options/options.js'
 
 import pathToAbsolute from '../convert/pathToAbsolute.js'
 import pathToRelative from '../convert/pathToRelative.js'
@@ -14,10 +14,10 @@ import normalizePath from '../process/normalizePath.js'
 import transformPath from '../process/transformPath.js'
 
 export default class SVGPathCommander {
-  constructor(pathValue,ops){
-    let roundOption = ops && (+ops.round === 0 || ops.round === false) ? 0 : defaultOptions.round, // check for either true or > 0
-        decimalsOption = roundOption && (ops && ops.decimals || defaultOptions.decimals),
-        originOption = ops && ops.origin,
+  constructor(pathValue,options){
+    let roundOption = options && (+options.round === 0 || options.round === false) ? 0 : SVGPCO.round, // check for either true or > 0
+        decimalsOption = roundOption && (options && options.decimals || SVGPCO.decimals),
+        originOption = options && options.origin,
         path = parsePathString(pathValue,this.round)
         
     // set instance options

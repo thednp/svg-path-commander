@@ -1,7 +1,7 @@
 {
   "name": "svg-path-commander",
-  "version": "0.0.7b",
-  "description": "A modern set of ES6/ES7 JavaScript tools for SVGPathElement",
+  "version": "0.0.8",
+  "description": "A modern set of ES6+ JavaScript tools for SVGPathElement",
   "main": "dist/svg-path-commander.min.js",
   "module": "dist/svg-path-commander.esm.js",
   "jsnext": "src/index.js",

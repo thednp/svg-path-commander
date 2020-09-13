@@ -1,6 +1,6 @@
-import getShapeArea from './getShapeArea.js'
+import getPathArea from './getPathArea.js'
 import pathToCurve from '../convert/pathToCurve.js'
 
-export default function(curveArray) {
-  return getShapeArea(curveArray = pathToCurve(curveArray)) >= 0
+export default function(pathArray) {
+  return getPathArea(pathToCurve(pathArray)) >= 0
 }

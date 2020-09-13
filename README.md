@@ -2,7 +2,7 @@
 
 [![SVG Path Commander](img/apple-touch-icon.png)](https://thednp.github.io/svg-path-commander/)
 
-A modern set of ES6/ES7 JavaScript tools for manipulating the `d` (description) attribute for *SVGPathElement* items, and is implementing modern JavaScript API to produce reusable path strings with lossless quality.
+A modern set of ES6+ JavaScript tools for manipulating the `d` (description) attribute for *SVGPathElement* items, and is implementing modern JavaScript API to produce reusable path strings with lossless quality.
 
 While you may find familiar tools inside, this library brings ***new additions***:
 * a tool that can *reverse path draw direction* without altering path commands, even with specific shorthand path commands;
@@ -10,7 +10,7 @@ While you may find familiar tools inside, this library brings ***new additions**
 * a new and unique tool to *apply transform functions to path commands* via modern API.
 
 **The key differences with other libraries**:
-* ES6/ES7 sourced with modernized codebase and build tools; all inherited codebase has been modernized as well;
+* ES6+ sourced with modernized codebase and build tools; all inherited codebase has been modernized as well;
 * you can use this library in both web apps and Node.js, where others are restricted to a single environment;
 * path command transformations are all consistent with the SVG coordinates system, where others compute transform origin only for rotation transformation.
 
@@ -45,9 +45,9 @@ npm install svg-path-commander
 Find ***SVGPathCommander*** on [jsDelivr](https://www.jsdelivr.com/package/npm/svg-path-commander).
 
 
-# ES6/ES7 Usage
+# ES6+ Usage
 
-On a regular basis, you can import, initialize and call multiple instance methods, or return the values right away.
+Import, initialize and call multiple instance methods, or return the values right away.
 
 **Example**
 ```js
@@ -56,13 +56,20 @@ import SVGPathCommander from 'svg-path-commander'
 
 let pathString = 'M0 0l50 0l50 50z';
 
-// initializing
-let mySVGPathCommanderInit = new SVGPathCommander(pathString);
-/* returns => {
+// initialize
+let mySVGPCInit = new SVGPathCommander(pathString);
+/* 
+returns => {
   pathValue: 'M0 0l50 0l50 50z',
-  segments: [ ['M',0,0], ['l',50,0], ['l',50,50], ['z'] ]
+  segments: [ ['M',0,0], ['l',50,0], ['l',50,50], ['z'] ],
+  round: 3
 }
 */
+
+// direct access to methods
+let mySVGPCInit = new SVGPathCommander(pathString).flipX().toString();
+// returns => "M100 50L50 0L0 0z"
+
 ```
 
 
@@ -74,19 +81,20 @@ let SVGPathCommander = require('svg-path-commander');
 
 let pathString = 'M0 0l50 0l50 50z';
 
-// initializing
-let mySVGPathCommanderInit = new SVGPathCommander(pathString);
-/* returns => {
-  pathValue: 'M0 0l50 0l50 50z',
-  segments: [ ['M',0,0], ['l',50,0], ['l',50,50], ['z'] ]
-}
-*/
+// initialize
+let mySVGPCInit = new SVGPathCommander(pathString);
+
+// or do whatever you want, perhaps you're a font creator?
+let mySVGPCString = new SVGPathCommander(pathString)
+                  .flipX()
+                  .optimize()
+                  .toString();
 ```
 
 
 # Instance Methods
 
-The SVGPathCommander construct comes with some instance methods you can call:
+The **SVGPathCommander** construct comes with instance methods you can call, intuitive and easy to use:
 
 * ***.toAbsolute()*** - will convert all path commands of a *SVGPathElement* with or without sub-path to ***absolute*** values; in addition it will convert `O` or shorthand `U` (ellipse) to `A` (arc) path commands, as well as `R` (catmulRom) path commands to `C` (cubicBezier), since the absolute path is used by all other tools for specific processing;
 * ***.toRelative()*** - will convert all path commands of a shape with or without sub-path to ***relative*** values;
@@ -102,34 +110,35 @@ The SVGPathCommander construct comes with some instance methods you can call:
 ```js
 // reuse same init object to call different methods
 // for instance convert to ABSOLUTE and return the initialization object
-mySVGPathCommanderInit.toAbsolute()
+mySVGPCInit.toAbsolute()
 
 // or convert to RELATIVE and return the string path directly
-mySVGPathCommanderInit.toRelative().toString()
+mySVGPCInit.toRelative().toString()
 
 // reverse and return the string path
-mySVGPathCommanderInit.reverse().toString()
+mySVGPCInit.reverse().toString()
 
 // ONLY reverse subpaths and return the string path
 // if the shape has no sub-path, this call will produce no effect
-mySVGPathCommanderInit.reverse(1).toString()
+mySVGPCInit.reverse(1).toString()
 
 // converts to both absolute and relative then return the shorter segment string
-mySVGPathCommanderInit.optimize().toString()
+mySVGPCInit.optimize().toString()
 
 // or return directly what you need
 // reverse subpaths and return the optimized pathString
 let myReversedPath = new SVGPathCommander(pathString).reverse(1).optimize().toString()
 
 // flip the shape vertically and return the pathString
-mySVGPathCommanderInit.flipX().toString()
+mySVGPCInit.flipX().toString()
 
 // apply a skew transformation and return the pathString
-mySVGPathCommanderInit.transform({skew:25}).toString()
+mySVGPCInit.transform({skew:25}).toString()
 ```
 
 
 # Instance Options
+
 * `round` *Boolean* - option to enable/disable value rounding for the processing output; the default value is *TRUE*
 * `decimals` *Number* - option to set a certain amount of decimals to round values to; the default value is *3*
 * `origin` *Object* - `{x:Number, y:Number}` - option to set a transform origin for the transformation, by default `50% 50%` of the shape's bounding box is used; ***absolute values*** relative to a parent `SVGElement` are expected
@@ -149,6 +158,7 @@ let mySVGPath = new SVGPathCommander( 'M0 0L0 0', { origin: { x:50, y:50 } })
 
 
 # Apply Transform To Path Commands
+
 You can either call the *SVGPathCommander* methods `flipX()` or `flipY()` to perform a quick transformation or set custom functions, in which case you can provide a `transformObject` *Object*
 
 **Example**
@@ -198,6 +208,7 @@ The `transformMatrix` is all we need really need to perform the path command tra
 
 
 # Determine Shape Draw Direction
+
 When reversing path strings, you might want to know their draw direction first:
 
 **Example**
@@ -209,6 +220,7 @@ import getDrawDirection from 'svg-path-commander/src/util/getDrawDirection.js'
 let shapeDrawDirection = getDrawDirection(pathToCurve(pathString))
 // => returns TRUE if shape draw direction is clockwise or FALSE otherwise
 ```
+Keep in mind that paths with sub-paths may skew your result, you may want to split them and perform this check on each.
 
 
 # Advanced Usage
@@ -234,22 +246,28 @@ Here are some notable utilities:
 * `SVGPathCommander.pathToAbsolute(pathString|pathArray,decimals)` - returns a new *pathArray* having all path commands as **absolute** coordinates;
 * `SVGPathCommander.pathToRelative(pathString|pathArray,decimals)` - returns a new *pathArray* having all path commands as **relative** coordinates;
 * `SVGPathCommander.pathToCurve(pathString|pathArray,decimals)` - returns a new *pathArray* having all path commands converted to cubicBezier (`C`) and absolute values;
+* `SVGPathCommander.pathToString(pathArray)` - converts any *pathArray* to string and returns it;
 * `SVGPathCommander.clonePath(pathArray)` - returns a **deep clone** of a *pathArray*, which is the result of any of the above functions;
 * `SVGPathCommander.roundPath(pathArray,decimals)` - returns a new *pathArray* with all float path command values rounded to 3 decimals by default, or provide a number to be used as the amount of decimals to round values to;
-* `SVGPathCommander.reversePath(pathString|pathArray,decimals)` - returns a new *pathArray* with all path commands having absolute values and in reverse order, but only for a single M->Z shape, for paths having sub-path(s) you need to use `pathToAbsolute` -> `pathToString` -> `splitPath` -> `reversePath` for each subpath;
+* `SVGPathCommander.reversePath(pathString|pathArray,decimals)` - returns a new *pathArray* with all path commands having absolute values and in reverse order, but only for a single M->Z shape, for paths having sub-path(s) you need to use the **SVGPathCommander** constructor itself;
 * `SVGPathCommander.optimizePath(pathArray,decimals)` - returns a new *pathArray* with all segments that have the shortest strings from either absolute or relative `pathArray` segments
 * `SVGPathCommander.normalizePath(pathString|pathArray,decimals)` - returns a new *pathArray* with all shorthand path command segments such as `S`, `T` are converted to `C` and `Q` respectively, `V` and `H` to `L`, all in absolute values; the utility is used by `pathToCurve` and `reversePath`;
-* `SVGPathCommander.getDrawDirection(pathCurveArray)` - returns **TRUE** if a shape draw direction is **clockwise**, it should not be used for shapes with sub-paths, but each path/sub-path individually;
-* `SVGPathCommander.getPathBBox(pathCurveArray)` - returns the bounding box of a shape in the form of the following object: `{x1,y1, x2,y2, width,height, cx,cy}`, where *cx* &amp; *cy* are the shape's center point;
+* `SVGPathCommander.getDrawDirection(pathArray)` - returns **TRUE** if a shape draw direction is **clockwise**, it should not be used for shapes with sub-paths, but each path/sub-path individually;
+* `SVGPathCommander.getPathBBox(pathArray)` - returns the bounding box of a shape in the form of the following object: `{x1,y1, x2,y2, width,height, cx,cy}`, where *cx* &amp; *cy* are the shape's center point;
+* `SVGPathCommander.getPathLength(pathArray)` - returns the total length of the shape; this is equivalent to `SVGPathElement.prototype.getTotalLength()` and should work in Node.js;
 * `SVGPathCommander.splitPath(pathString)` - returns an *Array* of sub-path strings.
-The `decimals` option can be passed to override the `defaultOptions.decimals` value of `3`. 
 
 
 # Custom Builds
-You can now build your own custom builds, go to the root of `svg-path-commander` and type
+
+If you like to build a custom **SVGPathCommander**, you also have the tools to build your own, here's a quick guide:
+* create a new file `src/index-custom.js`;
+* paste inside the content of `src/index.js` and customize to your need, probably using your own SVGPathCommander constructor;
+* in your terminal navigate to the root of `svg-path-commander` and type
 
 `npm run custom-build INPUTFILE:src/index-custom.js,OUTPUTFILE:path-to/svg-path-commander-custom.js,FORMAT:umd,MIN:false`
 
+**Build Options**
 * *INPUTFILE* - specify your custom build path, (create a copy of `src/index.js` to `src/index-custom.js` with your desired version);
 * *OUTPUTFILE* - specify the path to the file you want to build into;
 * *FORMAT* - specify either `umd`,`cjs`,`iife`, you know the thing;
@@ -257,11 +275,13 @@ You can now build your own custom builds, go to the root of `svg-path-commander`
 
 
 # Technical Considerations
-* as mentioned above, the `optimize()` method will not simplify/merge the path commands or determine and create shorthand notations; you might need [SVGO](https://github.com/svg/svgo) and its `convertPathData` plugin; however, while computing path command values, the library will try to deliver the best outcome in path reverse or transformation;
+
+* as already mentioned, the `optimize()` method will not simplify/merge the path commands or determine and create shorthand notations; you might need [SVGO](https://github.com/svg/svgo) and its `convertPathData` plugin; however, while computing path command values, the library will try to deliver the best outcome in path reverse or transformation;
 * all tools processing path segments will always round float values to 3 decimals; EG: 0.5666 => 0.566, 0.50 => 0.5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`; you can also control this feature via instance options;
-* the `getSVGMatrix` utility will always compute the matrix by applying the transform functions in the following order: `translate`, `rotate`, `skew` and `scale`, which is the default composition/recomposition order specified in the W3C draft;
+* the `getSVGMatrix` utility we developed will always compute the matrix by applying the transform functions in the following order: `translate`, `rotate`, `skew` and `scale`, which is the default composition/recomposition order specified in the W3C draft;
 * most tools included with **SVGPathCommander** should work in your Node.js apps, but if you choose to use other complimentary 3rd party libraries, make sure you have the proper tools for them;
-* normalization can mean many things to many people and our library is developed to convert path command values to absolute and shorthand to non-shorthand commands to provide a solid foundation for the main processing
+* other path commands like `R` (catmulRomBezier), `O`, `U` (ellipse and shorthand ellipse) are not present in the current draft and they are not supported;
+* normalization can mean many things to many people and our library is developed to convert path command values to absolute and shorthand to non-shorthand commands to provide a solid foundation for the main processing tools of our library.
 
 
 # Special Thanks

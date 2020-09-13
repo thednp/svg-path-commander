@@ -1,4 +1,4 @@
-import findDotAtSegment from './findDotAtSegment.js'
+import getPointAtSegLength from './getPointAtSegLength.js'
 
 // returns the cubic bezier segment length
 export default function(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
@@ -13,12 +13,12 @@ export default function(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
   Math.abs(t1) > "1e12" && (t1 = .5);
   Math.abs(t2) > "1e12" && (t2 = .5);
   if (t1 > 0 && t1 < 1) {
-    dot = findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
+    dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
     x.push(dot.x);
     y.push(dot.y);
   }
   if (t2 > 0 && t2 < 1) {
-    dot = findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
+    dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
     x.push(dot.x);
     y.push(dot.y);
   }
@@ -31,12 +31,12 @@ export default function(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
   Math.abs(t2) > "1e12" && (t2 = .5);
 
   if (t1 > 0 && t1 < 1) {
-    dot = findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
+    dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
     x.push(dot.x);
     y.push(dot.y);
   }
   if (t2 > 0 && t2 < 1) {
-    dot = findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
+    dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
     x.push(dot.x);
     y.push(dot.y);
   }

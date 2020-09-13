@@ -7,11 +7,11 @@ export default function(pathArray,round) { // pathArray|pathString
   pathArray = pathToAbsolute(pathArray)
   
   let params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
-      allPathCommands = [], pathCommand = '', prevCommand = '', ii = pathArray.length,
-      segment, seglen
+      allPathCommands = [], pathCommand = '', prevCommand = '', 
+      ii = pathArray.length, segment, seglen
 
   for (let i = 0; i < ii; i++) {
-    pathArray[i] && (pathCommand = pathArray[i][0]) // save current path command
+    pathCommand = pathArray[i][0] // save current path command
 
     allPathCommands[i] = pathCommand // Save current path command
     i && ( prevCommand = allPathCommands[i - 1]) // Get previous path command

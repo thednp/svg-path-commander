@@ -13,11 +13,11 @@ export default function(pathArray,round) { // pathArray|pathString
   pathArray = normalizePath(pathArray)
   
   let params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
-      allPathCommands = [], pathCommand = '', ii = pathArray.length, 
-      segment, seglen;
+      allPathCommands = [], pathCommand = '',
+      ii = pathArray.length, segment, seglen;
 
   for (let i = 0; i < ii; i++) {
-    pathCommand = pathArray[i][0]
+    pathArray[i] && (pathCommand = pathArray[i][0])
 
     allPathCommands[i] = pathCommand
     pathArray[i] = segmentToCubic(pathArray[i], params)

@@ -6,5 +6,5 @@ export default function(pathArray){
                       .reverse()
 
   return [ ['M'].concat( rotatedCurve[0].slice(0,2)) ]
-          .concat(rotatedCurve.map(x=>['C'].concat(x.slice(2) ) ))
+                .concat(rotatedCurve.map(x=>['C'].concat(x.slice(2) ) ))
 }

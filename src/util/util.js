@@ -1,8 +1,10 @@
-import options from '../options/options.js'
+import SVGPCO from '../options/options.js'
 
 import CSS3Matrix from './DOMMatrix.js'
-import getShapeArea from './getShapeArea.js'
+import getPathArea from './getPathArea.js'
+import getPathLength from './getPathLength.js'
 import getDrawDirection from './getDrawDirection.js'
+import getPointAtLength from './getPointAtLength.js'
 import getPathBBox from './getPathBBox.js'
 import isPathArray from './isPathArray.js'
 import isAbsoluteArray from './isAbsoluteArray.js'
@@ -25,24 +27,26 @@ import pathToString from '../convert/pathToString.js'
 
 export default {
   CSSMatrix : CSS3Matrix,
-  getShapeArea,
-  getDrawDirection,
-  clonePath,
-  splitPath,
+  parsePathString,
   isPathArray,
   isCurveArray,
   isAbsoluteArray,
   isRelativeArray,
-  getPathBBox,
-  roundPath,
-  optimizePath,
   pathToAbsolute,
   pathToRelative,
   pathToCurve,
   pathToString,
-  parsePathString,
+  getDrawDirection,
+  getPathArea,
+  getPathBBox,
+  getPathLength,
+  getPointAtLength,
+  clonePath,
+  splitPath,
+  roundPath,
+  optimizePath,
   reverseCurve,
   reversePath,
   normalizePath,
-  options
+  options: SVGPCO
 }

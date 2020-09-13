@@ -16,5 +16,5 @@ export default function(state) {
   }
 
   // state.err = 'SvgPath: arc flag can be 0 or 1 only (at pos ' + state.index + ')';
-  state.err = invalidPathValue;
+  state.err = `${invalidPathValue}: invalid Arc flag ${ch}`;
 }
