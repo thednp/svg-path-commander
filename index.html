@@ -11,7 +11,7 @@
   <link rel="shortcut icon" href="./img/favicon.ico">
   <link rel="apple-touch-icon" href="./img/apple-touch-icon.png">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap.native/dist/bootstrap-native.min.js"></script>
-  <script src="./dist/svg-path-commander.min.js"></script>
+  <script src="./dist/svg-path-commander.js"></script>
   <style>
     body {
       padding: 1rem 2rem; margin: 0;
@@ -116,7 +116,7 @@
       
       <p><b>PathValue Input</b></p>
       <textarea class="form-input" id="t1" placeholder="Type in d value"></textarea>
-      <!-- <textarea class="form-input" id="t1" placeholder="Type in d value">M8 15A7 7 0 108 1z</textarea> -->
+      <!-- <textarea class="form-input" id="t1" placeholder="Type in d value">M8 15 A7 7 0 1 0 8 1</textarea> -->
       <!-- <textarea class="form-input" id="t1" placeholder="Type in d value">M 10 80 Q 52.5 10, 95 80 T 180 80 T 270 80</textarea> -->
       <!-- <textarea class="form-input" id="t1" placeholder="Type in d value">M 10 80 Q 52.5 10, 95 80</textarea> -->
     
@@ -182,6 +182,7 @@
     var pathToCurve = SVGPathCommander.pathToCurve,
         pathToString = SVGPathCommander.pathToString,
         splitPath = SVGPathCommander.splitPath,
+        getPathLength = SVGPathCommander.getPathLength,
         reverseCurve = SVGPathCommander.reverseCurve,
 
         svg = document.querySelector('svg'),
@@ -201,6 +202,7 @@
 
     pathValue = shapes[Math.random()*(shapes.length-1)>>0]
     inputTextArea.value = pathValue
+    // pathValue = inputTextArea.innerText
     inputTextArea.style.height = (inputTextArea.scrollHeight - vertSpacing) + 'px'
 
     path.setAttribute('d', pathValue);
@@ -216,12 +218,16 @@
       pathValue = inputTextArea.value || pathValue
       var pv = new SVGPathCommander( pathValue ).toString()
 
+
       path.setAttribute('d', pv);
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
       outputTextArea.value = pv;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+
+      // console.log(getPathLength(pv),path.getTotalLength())
+
     }
 
     function toNormal() { // normalize
