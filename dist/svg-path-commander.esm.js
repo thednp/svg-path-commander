@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.8 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.8a (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -224,37 +224,6 @@ CSS3Matrix.prototype.toArray = function(){
   return [m.a, m.b, m.c, m.d, m.e, m.f]
 };
 
-function getArea(x0,y0, x1,y1, x2,y2, x3,y3) {
-  return 3 * ((y3 - y0) * (x1 + x2) - (x3 - x0) * (y1 + y2)
-           + y1 * (x0 - x2) - x1 * (y0 - y2)
-           + y3 * (x2 + x0 / 3) - x3 * (y2 + y0 / 3)) / 20;
-}
-function getPathArea(curveArray) {
-  return curveArray.slice(1).map(function (seg,i,cv){
-    return getArea.apply(0, cv[i === 0 ? cv.length-1 : i-1].slice(-2).concat(seg.slice(1) ))
-  }).reduce(function (a, b) { return a + b; }, 0)
-}
-
-function base3(p1, p2, p3, p4, t) {
-  var t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4,
-      t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
-  return t * t2 - 3 * p1 + 3 * p2;
-}
-function getSegCubicLength (x1, y1, x2, y2, x3, y3, x4, y4, z) {
-  (z === null || isNaN(+z)) && (z = 1);
-  z = z > 1 ? 1 : z < 0 ? 0 : z;
-  var z2 = z / 2, ct = 0, xbase = 0, ybase = 0, sum = 0,
-      Tvalues = [-0.1252,0.1252,-0.3678,0.3678,-0.5873,0.5873,-0.7699,0.7699,-0.9041,0.9041,-0.9816,0.9816],
-      Cvalues = [0.2491,0.2491,0.2335,0.2335,0.2032,0.2032,0.1601,0.1601,0.1069,0.1069,0.0472,0.0472];
-  Tvalues.map(function (T,i){
-    ct = z2 * T + z2;
-    xbase = base3( x1, x2, x3, x4, ct);
-    ybase = base3( y1, y2, y3, y4, ct);
-    sum += Cvalues[i] * Math.sqrt(xbase * xbase + ybase * ybase);
-  });
-  return z2 * sum
-}
-
 function clonePath(pathArray){
   return pathArray.map(function (x) { return Array.isArray(x) ? clonePath(x) : !isNaN(+x) ? +x : x; } )
 }
@@ -281,45 +250,35 @@ function fixArc(pathArray, allPathCommands, i) {
   }
 }
 
-var paramCounts = { a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0 };
+var paramsCount = { a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0 };
 
 function isPathArray(pathArray){
-  return Array.isArray(pathArray) && pathArray.every(function (x){
-    var pathCommand = x[0].toLowerCase();
-    return paramCounts[pathCommand] === x.length - 1 && /[achlmrqstvz]/g.test(pathCommand)
+  return Array.isArray(pathArray) && pathArray.every(function (seg){
+    var pathCommand = seg[0].toLowerCase();
+    return paramsCount[pathCommand] === seg.length - 1 && /[achlmrqstvz]/g.test(pathCommand)
   })
 }
 
 function isCurveArray(pathArray){
-  return isPathArray(pathArray) && pathArray.slice(1).every(function (x){ return x[0] === 'C'; })
-}
-
-function SVGPathArray(pathString){
-  this.segments = [];
-  this.pathValue = pathString;
-  this.max = pathString.length;
-  this.index  = 0;
-  this.param = 0.0;
-  this.segmentStart = 0;
-  this.data = [];
-  this.err = '';
-  return this
+  return isPathArray(pathArray) && pathArray.slice(1).every(function (seg){ return seg[0] === 'C'; })
 }
 
 function finalizeSegment(state) {
-  var cmd = state.pathValue[state.segmentStart], cmdLC = cmd.toLowerCase(), params = state.data;
-  if (cmdLC === 'm' && params.length > 2) {
-    state.segments.push([ cmd, params[0], params[1] ]);
+  var pathCommand = state.pathValue[state.segmentStart],
+      pathComLK = pathCommand.toLowerCase(),
+      params = state.data;
+  if (pathComLK === 'm' && params.length > 2) {
+    state.segments.push([ pathCommand, params[0], params[1] ]);
     params = params.slice(2);
-    cmdLC = 'l';
-    cmd = (cmd === 'm') ? 'l' : 'L';
+    pathComLK = 'l';
+    pathCommand = (pathCommand === 'm') ? 'l' : 'L';
   }
-  if (cmdLC === 'r') {
-    state.segments.push([ cmd ].concat(params));
+  if (pathComLK === 'r') {
+    state.segments.push([ pathCommand ].concat(params));
   } else {
-    while (params.length >= paramCounts[cmdLC]) {
-      state.segments.push([ cmd ].concat(params.splice(0, paramCounts[cmdLC])));
-      if (!paramCounts[cmdLC]) {
+    while (params.length >= paramsCount[pathComLK]) {
+      state.segments.push([ pathCommand ].concat(params.splice(0, paramsCount[pathComLK])));
+      if (!paramsCount[pathComLK]) {
         break;
       }
     }
@@ -417,6 +376,21 @@ function scanParam(state) {
   state.param = +state.pathValue.slice(start, index);
 }
 
+function isSpace(ch) {
+  var specialSpaces = [
+    0x1680, 0x180E, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006,
+    0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000, 0xFEFF ];
+  return (ch === 0x0A) || (ch === 0x0D) || (ch === 0x2028) || (ch === 0x2029) ||
+    (ch === 0x20) || (ch === 0x09) || (ch === 0x0B) || (ch === 0x0C) || (ch === 0xA0) ||
+    (ch >= 0x1680 && specialSpaces.indexOf(ch) >= 0);
+}
+
+function skipSpaces(state) {
+  while (state.index < state.max && isSpace(state.pathValue.charCodeAt(state.index))) {
+    state.index++;
+  }
+}
+
 function isPathCommand(code) {
   switch (code | 0x20) {
     case 0x6D:
@@ -446,21 +420,6 @@ function isArcCommand(code) {
   return (code | 0x20) === 0x61;
 }
 
-function isSpace(ch) {
-  var specialSpaces = [
-    0x1680, 0x180E, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006,
-    0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000, 0xFEFF ];
-  return (ch === 0x0A) || (ch === 0x0D) || (ch === 0x2028) || (ch === 0x2029) ||
-    (ch === 0x20) || (ch === 0x09) || (ch === 0x0B) || (ch === 0x0C) || (ch === 0xA0) ||
-    (ch >= 0x1680 && specialSpaces.indexOf(ch) >= 0);
-}
-
-function skipSpaces(state) {
-  while (state.index < state.max && isSpace(state.pathValue.charCodeAt(state.index))) {
-    state.index++;
-  }
-}
-
 function scanSegment(state) {
   var max = state.max, cmdCode, comma_found, need_params, i;
   state.segmentStart = state.index;
@@ -469,7 +428,7 @@ function scanSegment(state) {
     state.err = invalidPathValue + ": " + (state.pathValue[state.index]) + " not a path command";
     return;
   }
-  need_params = paramCounts[state.pathValue[state.index].toLowerCase()];
+  need_params = paramsCount[state.pathValue[state.index].toLowerCase()];
   state.index++;
   skipSpaces(state);
   state.data = [];
@@ -505,6 +464,18 @@ function scanSegment(state) {
     }
   }
   finalizeSegment(state);
+}
+
+function SVGPathArray(pathString){
+  this.segments = [];
+  this.pathValue = pathString;
+  this.max = pathString.length;
+  this.index  = 0;
+  this.param = 0.0;
+  this.segmentStart = 0;
+  this.data = [];
+  this.err = '';
+  return this
 }
 
 function parsePathString(pathString,round) {
@@ -636,7 +607,17 @@ function normalizeSegment(segment, params, prevCommand) {
   return segment
 }
 
+function isNormalizedArray(pathArray){
+  return Array.isArray(pathArray) && pathArray.every(function (seg){
+    var pathCommand = seg[0].toLowerCase();
+    return paramsCount[pathCommand] === seg.length - 1 && /[ACLMQZ]/.test(seg[0])
+  })
+}
+
 function normalizePath(pathArray,round) {
+  if (isNormalizedArray(pathArray)) {
+    return clonePath(pathArray)
+  }
   pathArray = pathToAbsolute(pathArray);
   var params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
       allPathCommands = [], pathCommand = '', prevCommand = '',
@@ -744,8 +725,30 @@ function quadToCubic (x1, y1, qx, qy, x2, y2) {
           x2, y2 ]
 }
 
+function getPointAtSegLength (p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
+  var t1 = 1 - t;
+  return {
+      x: Math.pow(t1, 3) * p1x + Math.pow(t1, 2) * 3 * t * c1x + t1 * 3 * t * t * c2x + Math.pow(t, 3) * p2x,
+      y: Math.pow(t1, 3) * p1y + Math.pow(t1, 2) * 3 * t * c1y + t1 * 3 * t * t * c2y + Math.pow(t, 3) * p2y
+  };
+}
+
+function getMedianPoint(a, b, pct) {
+  return [a[0] + (b[0] - a[0]) * pct, a[1] + (b[1] - a[1]) * pct];
+}
+
 function lineToCubic(x1, y1, x2, y2) {
-  return [x1, y1, x2, y2, x2, y2]
+  var t = 0.5,
+      p0 = [x1,y1],
+      p1 = [x2,y2],
+      p2 = getMedianPoint(p0, p1, t),
+      p3 = getMedianPoint(p1, p2, t),
+      p4 = getMedianPoint(p2, p3, t),
+      p5 = getMedianPoint(p3, p4, t),
+      p6 = getMedianPoint(p4, p5, t),
+      cp1 = getPointAtSegLength.apply(0, p0.concat( p2, p4, p6, t)),
+      cp2 = getPointAtSegLength.apply(0, p6.concat( p5, p3, p1, 0));
+  return [cp1.x, cp1.y, cp2.x, cp2.y, x2, y2]
 }
 
 function segmentToCubic(segment, params) {
@@ -793,6 +796,51 @@ function pathToCurve(pathArray,round) {
   return roundPath(pathArray,round)
 }
 
+function getCubicSegArea(x0,y0, x1,y1, x2,y2, x3,y3) {
+  return 3 * ((y3 - y0) * (x1 + x2) - (x3 - x0) * (y1 + y2)
+           + y1 * (x0 - x2) - x1 * (y0 - y2)
+           + y3 * (x2 + x0 / 3) - x3 * (y2 + y0 / 3)) / 20;
+}
+function getPathArea(pathArray) {
+  var x = 0, y = 0, mx = 0, my = 0, len = 0;
+  return pathToCurve(pathArray).map(function (seg,i) {
+    var assign;
+    switch (seg[0]){
+      case 'M':
+      case 'Z':
+        mx = seg[0] === 'M' ? seg[1] : mx;
+        my = seg[0] === 'M' ? seg[2] : my;
+        x = mx;
+        y = my;
+        return 0
+      default:
+        len = getCubicSegArea.apply(0, [x,y].concat(seg.slice(1) ));
+        (assign = seg.slice(-2), x = assign[0], y = assign[1]);
+        return len
+    }
+  }).reduce(function (a, b) { return a + b; }, 0)
+}
+
+function base3(p1, p2, p3, p4, t) {
+  var t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4,
+      t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
+  return t * t2 - 3 * p1 + 3 * p2;
+}
+function getSegCubicLength (x1, y1, x2, y2, x3, y3, x4, y4, z) {
+  (z === null || isNaN(+z)) && (z = 1);
+  z = z > 1 ? 1 : z < 0 ? 0 : z;
+  var z2 = z / 2, ct = 0, xbase = 0, ybase = 0, sum = 0,
+      Tvalues = [-0.1252,0.1252,-0.3678,0.3678,-0.5873,0.5873,-0.7699,0.7699,-0.9041,0.9041,-0.9816,0.9816],
+      Cvalues = [0.2491,0.2491,0.2335,0.2335,0.2032,0.2032,0.1601,0.1601,0.1069,0.1069,0.0472,0.0472];
+  Tvalues.map(function (T,i){
+    ct = z2 * T + z2;
+    xbase = base3( x1, x2, x3, x4, ct);
+    ybase = base3( y1, y2, y3, y4, ct);
+    sum += Cvalues[i] * Math.sqrt(xbase * xbase + ybase * ybase);
+  });
+  return z2 * sum
+}
+
 function getPathLength(pathArray){
   var totalLength = 0;
   pathToCurve(pathArray).map(function (s,i,curveArray) {
@@ -803,14 +851,6 @@ function getPathLength(pathArray){
 
 function getDrawDirection(pathArray) {
   return getPathArea(pathToCurve(pathArray)) >= 0
-}
-
-function getPointAtSegLength (p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
-  var t1 = 1 - t;
-  return {
-      x: Math.pow(t1, 3) * p1x + Math.pow(t1, 2) * 3 * t * c1x + t1 * 3 * t * t * c2x + Math.pow(t, 3) * p2x,
-      y: Math.pow(t1, 3) * p1y + Math.pow(t1, 2) * 3 * t * c1y + t1 * 3 * t * t * c2y + Math.pow(t, 3) * p2y
-  };
 }
 
 function getPointAtLength(pathArray,length){
@@ -902,7 +942,7 @@ function getPathBBox(pathArray) {
 }
 
 function isRelativeArray(pathInput){
-  return isPathArray(pathInput) && pathInput.slice(1).every(function (x){ return x[0] === x[0].toLowerCase(); })
+  return isPathArray(pathInput) && pathInput.slice(1).every(function (seg){ return seg[0] === seg[0].toLowerCase(); })
 }
 
 function splitPath(pathString) {
@@ -1083,6 +1123,7 @@ var util = {
   isCurveArray: isCurveArray,
   isAbsoluteArray: isAbsoluteArray,
   isRelativeArray: isRelativeArray,
+  isNormalizedArray: isNormalizedArray,
   pathToAbsolute: pathToAbsolute,
   pathToRelative: pathToRelative,
   pathToCurve: pathToCurve,
@@ -1102,7 +1143,7 @@ var util = {
   options: SVGPCO
 };
 
-var epsilon = 1e-10;
+var epsilon = 1e-9;
 
 function getSVGMatrix(pathArray,transformObject,origin){
   var matrix = new CSS3Matrix(),
