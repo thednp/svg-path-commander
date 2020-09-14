@@ -1,4 +1,4 @@
-import invalidPathValue from './invalidPathValue.js'
+import invalidPathValue from '../util/invalidPathValue.js'
 
 export default function(state) {
   let ch = state.pathValue.charCodeAt(state.index);

@@ -1,6 +1,6 @@
 node_modules/
 experiments/
-img/
+assets/
 index.html
 .gitignore
 package-lock.json

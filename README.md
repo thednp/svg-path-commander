@@ -1,6 +1,6 @@
 # SVG Path Commander
 
-[![SVG Path Commander](img/apple-touch-icon.png)](https://thednp.github.io/svg-path-commander/)
+[![SVG Path Commander](assets/apple-touch-icon.png)](https://thednp.github.io/svg-path-commander/)
 
 A modern set of ES6+ JavaScript tools for manipulating the `d` (description) attribute for *SVGPathElement* items, and is implementing modern JavaScript API to produce reusable path strings with lossless quality.
 
@@ -25,13 +25,6 @@ This library is available on [CDN](https://www.jsdelivr.com/package/npm/svg-path
 [![NPM Version](https://img.shields.io/npm/v/svg-path-commander.svg?style=flat-square)](https://www.npmjs.com/package/svg-path-commander)
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg?style=flat-square)](http://npm-stat.com/charts.html?svg-path-commander)
 [![jsDeliver](https://data.jsdelivr.com/v1/package/npm/svg-path-commander/badge)](https://www.jsdelivr.com/package/npm/svg-path-commander)
-
-
-# What Is It For?
-
-* converting and optimizing *SVGPathElement* for use in third party application; our [KUTE.js](https://github.com/thednp/kute.js) animation engine is using it to process *SVGPathElement* coordinates for [SVG morphing](https://thednp.github.io/kute.js/svgMorph.html) and [SVG cubic morphing](https://thednp.github.io/kute.js/svgCubicMorph.html);
-* animators that work with SVGs and need tools for performing specific path command processing;
-* font-icon creators can use it in both Node.js and web applications to process and test their creations.
 
 
 # Install
@@ -96,7 +89,7 @@ let mySVGPCString = new SVGPathCommander(pathString)
 
 The **SVGPathCommander** construct comes with instance methods you can call, intuitive and easy to use:
 
-* ***.toAbsolute()*** - will convert all path commands of a *SVGPathElement* with or without sub-path to ***absolute*** values; in addition it will convert `O` or shorthand `U` (ellipse) to `A` (arc) path commands, as well as `R` (catmulRom) path commands to `C` (cubicBezier), since the absolute path is used by all other tools for specific processing;
+* ***.toAbsolute()*** - will convert all path commands of a *SVGPathElement* with or without sub-path to ***absolute*** values; the absolute path is used by all other tools for specific processing;
 * ***.toRelative()*** - will convert all path commands of a shape with or without sub-path to ***relative*** values;
 * ***.reverse(onlySubpath)*** - will reverse the shape draw direction by changing the order of all path segments and their coordinates; when the `onlySubpath` option is true, it will only reverse the draw direction of subpath shapes
 * ***.normalize()*** - will convert path command values to absolute and convert shorthand `S`, `T`, `H`, `V` to `C`, `Q` and `L` respectivelly;
@@ -252,9 +245,10 @@ Here are some notable utilities:
 * `SVGPathCommander.reversePath(pathString|pathArray,decimals)` - returns a new *pathArray* with all path commands having absolute values and in reverse order, but only for a single M->Z shape, for paths having sub-path(s) you need to use the **SVGPathCommander** constructor itself;
 * `SVGPathCommander.optimizePath(pathArray,decimals)` - returns a new *pathArray* with all segments that have the shortest strings from either absolute or relative `pathArray` segments
 * `SVGPathCommander.normalizePath(pathString|pathArray,decimals)` - returns a new *pathArray* with all shorthand path command segments such as `S`, `T` are converted to `C` and `Q` respectively, `V` and `H` to `L`, all in absolute values; the utility is used by `pathToCurve` and `reversePath`;
-* `SVGPathCommander.getDrawDirection(pathArray)` - returns **TRUE** if a shape draw direction is **clockwise**, it should not be used for shapes with sub-paths, but each path/sub-path individually;
-* `SVGPathCommander.getPathBBox(pathArray)` - returns the bounding box of a shape in the form of the following object: `{x1,y1, x2,y2, width,height, cx,cy}`, where *cx* &amp; *cy* are the shape's center point;
-* `SVGPathCommander.getPathLength(pathArray)` - returns the total length of the shape; this is equivalent to `SVGPathElement.prototype.getTotalLength()` and should work in Node.js;
+* `SVGPathCommander.getDrawDirection(pathArray)` - converts the **pathArray** to curve and returns **TRUE** if a shape draw direction is **clockwise**, it *should work* for shapes with sub-paths, but it might skew your results, so make sure you split your path and test each subpath separatelly;
+* `SVGPathCommander.getPathBBox(pathArray)` - converts the **pathArray** to curve and returns the bounding box of a shape in the form of the following object: `{x1,y1, x2,y2, width,height, cx,cy}`, where *cx* &amp; *cy* are the shape's center point; for faster processing, you might want to split the path with subpaths and return the bounding box you know is the largest;
+* `SVGPathCommander.getPathLength(pathArray)` - converts the **pathArray** to curve and returns the total length of the shape; this is equivalent to `SVGPathElement.prototype.getTotalLength()` and should work in Node.js;
+* `SVGPathCommander.getPointAtLength(pathArray)` - converts the **pathArray** to curve and looks into each segment and returns an `{x,y}` object;
 * `SVGPathCommander.splitPath(pathString)` - returns an *Array* of sub-path strings.
 
 
@@ -272,6 +266,13 @@ If you like to build a custom **SVGPathCommander**, you also have the tools to b
 * *OUTPUTFILE* - specify the path to the file you want to build into;
 * *FORMAT* - specify either `umd`,`cjs`,`iife`, you know the thing;
 * *MIN* - set `TRUE`/`FALSE` to minify the output or NOT.
+
+
+# What Is It For?
+
+* converting and optimizing *SVGPathElement* for use in third party application; our [KUTE.js](https://github.com/thednp/kute.js) animation engine is using it to process *SVGPathElement* coordinates for [SVG morphing](https://thednp.github.io/kute.js/svgMorph.html) and [SVG cubic morphing](https://thednp.github.io/kute.js/svgCubicMorph.html);
+* animators that work with SVGs and need tools for performing specific path command processing;
+* font-icon creators can use it in both Node.js and web applications to process and test their creations.
 
 
 # Technical Considerations

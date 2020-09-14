@@ -10,6 +10,7 @@ import isPathArray from './isPathArray.js'
 import isAbsoluteArray from './isAbsoluteArray.js'
 import isCurveArray from './isCurveArray.js'
 import isRelativeArray from './isRelativeArray.js'
+import isNormalizedArray from './isNormalizedArray.js'
 
 import parsePathString from '../process/parsePathString.js'
 import clonePath from '../process/clonePath.js'
@@ -32,6 +33,7 @@ export default {
   isCurveArray,
   isAbsoluteArray,
   isRelativeArray,
+  isNormalizedArray,
   pathToAbsolute,
   pathToRelative,
   pathToCurve,

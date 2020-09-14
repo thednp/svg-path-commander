@@ -1,8 +1,8 @@
 import clonePath from './clonePath.js'
 import roundPath from './roundPath.js'
+import scanSegment from './scanSegment.js'
+import skipSpaces from './skipSpaces.js'
 import SVGPathArray from '../util/svgPathArray.js'
-import scanSegment from '../util/scanSegment.js'
-import skipSpaces from '../util/skipSpaces.js'
 import invalidPathValue from '../util/invalidPathValue.js'
 import isPathArray from '../util/isPathArray.js'
 

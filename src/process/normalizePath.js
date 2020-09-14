@@ -1,8 +1,14 @@
 import pathToAbsolute from '../convert/pathToAbsolute.js'
 import normalizeSegment from './normalizeSegment.js'
 import roundPath from './roundPath.js';
+import clonePath from './clonePath.js';
+import isNormalizedArray from '../util/isNormalizedArray.js';
+
 
 export default function(pathArray,round) { // pathArray|pathString
+  if (isNormalizedArray(pathArray)) {
+    return clonePath(pathArray)
+  }
 
   pathArray = pathToAbsolute(pathArray)
   

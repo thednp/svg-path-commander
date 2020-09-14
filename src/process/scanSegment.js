@@ -1,12 +1,12 @@
 import finalizeSegment from './finalizeSegment.js'
-import paramCounts from './paramsCount.js'
+import paramCounts from '../util/paramsCount.js'
 import scanFlag from './scanFlag.js'
 import scanParam from './scanParam.js'
-import isPathCommand from './isPathCommand.js'
-import isDigitStart from './isDigitStart.js'
-import isArcCommand from './isArcCommand.js'
 import skipSpaces from './skipSpaces.js'
-import invalidPathValue from './invalidPathValue.js'
+import isPathCommand from '../util/isPathCommand.js'
+import isDigitStart from '../util/isDigitStart.js'
+import isArcCommand from '../util/isArcCommand.js'
+import invalidPathValue from '../util/invalidPathValue.js'
 
 export default function(state) {
   let max = state.max, cmdCode, comma_found, need_params, i;

@@ -1,5 +1,5 @@
-import isDigit from './isDigit.js'
-import invalidPathValue from './invalidPathValue.js'
+import isDigit from '../util/isDigit.js'
+import invalidPathValue from '../util/invalidPathValue.js'
 
 export default function(state) {
   let start = state.index,
