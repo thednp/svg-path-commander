@@ -45,7 +45,9 @@ export default class SVGPathCommander {
         absoluteMultiPath, path 
 
     absoluteMultiPath = subPath && clonePath(subPath)
-                      .map((x,i) => onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x))
+                      .map((x,i) => onlySubpath 
+                      ? (i ? reversePath(x) : parsePathString(x))
+                      : reversePath(x))
 
     path = subPath ? [].concat.apply([], absoluteMultiPath) 
           : onlySubpath ? this.segments : reversePath(this.segments)

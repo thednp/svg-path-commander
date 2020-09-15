@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.8a (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.8b (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -225,7 +225,9 @@ CSS3Matrix.prototype.toArray = function(){
 };
 
 function clonePath(pathArray){
-  return pathArray.map(function (x) { return Array.isArray(x) ? clonePath(x) : !isNaN(+x) ? +x : x; } )
+  return pathArray.map(function (x) { return Array.isArray(x)
+    ? clonePath(x)
+    : !isNaN(+x) ? +x : x; } )
 }
 
 function roundPath(pathArray,round) {
@@ -233,7 +235,7 @@ function roundPath(pathArray,round) {
   return decimalsOption ?
     pathArray.map( function (seg) { return seg.map(function (c,i) {
       var nr = +c, dc = Math.pow(10,decimalsOption);
-      return i ? (nr % 1 === 0 ? nr : Math.round(nr*dc)/dc) : c
+      return nr ? (nr % 1 === 0 ? nr : Math.round(nr*dc)/dc) : c
     }
   ); }) : clonePath(pathArray)
 }
@@ -733,19 +735,20 @@ function getPointAtSegLength (p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
   };
 }
 
-function getMedianPoint(a, b, pct) {
-  return [a[0] + (b[0] - a[0]) * pct, a[1] + (b[1] - a[1]) * pct];
+function midPoint(a, b, t) {
+  var ax = a[0], ay = a[1], bx = b[0], by = b[1];
+  return [ ax + (bx - ax) * t, ay + (by - ay) * t];
 }
 
 function lineToCubic(x1, y1, x2, y2) {
   var t = 0.5,
       p0 = [x1,y1],
       p1 = [x2,y2],
-      p2 = getMedianPoint(p0, p1, t),
-      p3 = getMedianPoint(p1, p2, t),
-      p4 = getMedianPoint(p2, p3, t),
-      p5 = getMedianPoint(p3, p4, t),
-      p6 = getMedianPoint(p4, p5, t),
+      p2 = midPoint(p0, p1, t),
+      p3 = midPoint(p1, p2, t),
+      p4 = midPoint(p2, p3, t),
+      p5 = midPoint(p3, p4, t),
+      p6 = midPoint(p4, p5, t),
       cp1 = getPointAtSegLength.apply(0, p0.concat( p2, p4, p6, t)),
       cp2 = getPointAtSegLength.apply(0, p6.concat( p5, p3, p1, 0));
   return [cp1.x, cp1.y, cp2.x, cp2.y, x2, y2]
@@ -803,7 +806,7 @@ function getCubicSegArea(x0,y0, x1,y1, x2,y2, x3,y3) {
 }
 function getPathArea(pathArray) {
   var x = 0, y = 0, mx = 0, my = 0, len = 0;
-  return pathToCurve(pathArray).map(function (seg,i) {
+  return pathToCurve(pathArray).map(function (seg) {
     var assign;
     switch (seg[0]){
       case 'M':
@@ -1230,7 +1233,8 @@ function transformPath(pathArray,transformObject,ref){
       normalizedPath = normalizePath(absolutePath),
       matrix = getSVGMatrix(curvePath,transformObject,origin),
       params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0},
-      transformedPath = [], segment = [], seglen = 0, pathCommand = '',
+      segment = [], seglen = 0, pathCommand = '',
+      transformedPath = [],
       result = [];
   for (i=0, ii = absolutePath.length; i<ii; i++ ) {
     segment = absolutePath[i];
@@ -1248,7 +1252,7 @@ function transformPath(pathArray,transformObject,ref){
     }
     transformedPath = transformedPath.concat(result);
   }
-  transformedPath = transformedPath.map(function (seg,i,tfArray){
+  transformedPath = transformedPath.map(function (seg){
     var assign, assign$1, assign$2;
     pathCommand = seg.c;
     segment = seg.s;
@@ -1314,7 +1318,9 @@ SVGPathCommander.prototype.reverse = function reverse (onlySubpath){
   var subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()),
       absoluteMultiPath, path;
   absoluteMultiPath = subPath && clonePath(subPath)
-                    .map(function (x,i) { return onlySubpath ? (i ? reversePath(x) : parsePathString(x)) : reversePath(x); });
+                    .map(function (x,i) { return onlySubpath
+                    ? (i ? reversePath(x) : parsePathString(x))
+                    : reversePath(x); });
   path = subPath ? [].concat.apply([], absoluteMultiPath)
         : onlySubpath ? this.segments : reversePath(this.segments);
   this.segments = clonePath(path);

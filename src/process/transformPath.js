@@ -25,8 +25,9 @@ export default function(pathArray,transformObject,{round,origin}){
       normalizedPath = normalizePath(absolutePath),
       matrix = getSVGMatrix(curvePath,transformObject,origin),
       params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0}, 
-      transformedPath = [], allPathCommands = [],
       segment = [], seglen = 0, pathCommand = '',
+      transformedPath = [], 
+      // allPathCommands = [], // needed for art to curve transformation
       result = [];
 
   for (i=0, ii = absolutePath.length; i<ii; i++ ) {
@@ -68,7 +69,7 @@ export default function(pathArray,transformObject,{round,origin}){
     transformedPath = transformedPath.concat(result)
   }
 
-  transformedPath = transformedPath.map((seg,i,tfArray)=>{
+  transformedPath = transformedPath.map(seg=>{
     pathCommand = seg.c
     segment = seg.s
     switch (pathCommand){

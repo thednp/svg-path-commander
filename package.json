@@ -1,6 +1,6 @@
 {
   "name": "svg-path-commander",
-  "version": "0.0.8a",
+  "version": "0.0.8b",
   "description": "ES6+ JavaScript tools for manipulating SVG path data",
   "main": "dist/svg-path-commander.min.js",
   "module": "dist/svg-path-commander.esm.js",
@@ -49,7 +49,6 @@
     "rollup-plugin-terser": "^5.3.1"
   },
   "dependencies": {
-    "dommatrix": "^0.0.3",
-    "d3-polygon": "^2.0.0"    
+    "dommatrix": "^0.0.3"
   }
 }

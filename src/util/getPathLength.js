@@ -1,6 +1,7 @@
 import getSegCubicLength from './getSegCubicLength.js'
 import pathToCurve from '../convert/pathToCurve.js'
 
+
 // calculates the shape total length
 // equivalent to shape.getTotalLength()
 // pathToCurve version
@@ -11,3 +12,4 @@ export default function(pathArray){
   })
   return totalLength
 }
+

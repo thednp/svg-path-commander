@@ -92,9 +92,13 @@
 
     var pathToCurve = SVGPathCommander.pathToCurve,
         pathToString = SVGPathCommander.pathToString,
+        roundPath = SVGPathCommander.roundPath,
         splitPath = SVGPathCommander.splitPath,
         getPathLength = SVGPathCommander.getPathLength,
         reverseCurve = SVGPathCommander.reverseCurve,
+        // splitCubicSegment = SVGPathCommander.splitCubicSegment,
+        // splitCubic = SVGPathCommander.splitCubic,
+        // getPathArea = SVGPathCommander.getPathArea,
 
         svg = document.querySelector('svg'),
         path = svg.children[0],
@@ -137,6 +141,7 @@
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
 
       // console.log(getPathLength(pv),path.getTotalLength())
+      // console.log(getShapeArea(pv),getPathArea(pv))
 
     }
 
@@ -181,7 +186,7 @@
       pathValue = inputTextArea.value || pathValue
 
       var cvInit = new SVGPathCommander(pathValue,{round:0}), cvPath
-      cvInit.segments = pathToCurve( cvInit.segments, 0 )
+      cvInit.segments = pathToCurve( cvInit.segments )
       cvPath = cvInit.toString()
 
       path.setAttribute('d', cvPath);
@@ -196,7 +201,7 @@
       pathValue = inputTextArea.value || pathValue
 
       var revCVinit = new SVGPathCommander(pathValue), revCPath
-      revCVinit.segments = pathToCurve( revCVinit.segments )
+      revCVinit.segments = pathToCurve( revCVinit.segments, 3 )
       revCPath = revCVinit.reverse(onlySubpath).toString()
 
       path.setAttribute('d', revCPath);

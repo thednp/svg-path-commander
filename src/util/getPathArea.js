@@ -12,7 +12,7 @@ function getCubicSegArea(x0,y0, x1,y1, x2,y2, x3,y3) {
 
 export default function(pathArray) {
   let x = 0, y = 0, mx = 0, my = 0, len = 0
-  return pathToCurve(pathArray).map((seg,i) => {
+  return pathToCurve(pathArray).map(seg => {
     switch (seg[0]){
       case 'M':
       case 'Z':

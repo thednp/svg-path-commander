@@ -6,7 +6,7 @@ export default function(pathArray,round) {
   return decimalsOption ? 
     pathArray.map( seg => seg.map((c,i) => {
       let nr = +c, dc = Math.pow(10,decimalsOption)
-      return i ? (nr % 1 === 0 ? nr : Math.round(nr*dc)/dc) : c
+      return nr ? (nr % 1 === 0 ? nr : Math.round(nr*dc)/dc) : c
     }
   )) : clonePath(pathArray)
 }
