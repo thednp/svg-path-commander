@@ -20,6 +20,7 @@ import optimizePath from '../process/optimizePath.js'
 import reverseCurve from '../process/reverseCurve.js'
 import reversePath from '../process/reversePath.js'
 import normalizePath from '../process/normalizePath.js'
+import transformPath from '../process/transformPath.js'
 
 import pathToAbsolute from '../convert/pathToAbsolute.js'
 import pathToRelative from '../convert/pathToRelative.js'
@@ -50,5 +51,6 @@ export default {
   reverseCurve,
   reversePath,
   normalizePath,
+  transformPath,
   options: SVGPCO
 }

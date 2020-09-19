@@ -1,47 +1,48 @@
 
 import CSS3Matrix from './DOMMatrix.js'
-import getPathBBox from './getPathBBox.js'
 
-export default function(pathArray,transformObject,origin){
+export default function(transformObject){ 
   let matrix = new CSS3Matrix(),
-      BBox = getPathBBox(pathArray),
-      originX = origin && !isNaN(origin.x) ? +origin.x : BBox.cx, 
-      originY = origin && !isNaN(origin.y) ? +origin.y : BBox.cy,
-      // perspective = transformObject.perspective, // WORK IN PROGRESS
+      origin = transformObject.origin,
+      originX = +origin[0], 
+      originY = +origin[1],
+      // originZ = +origin[2] || originX, // maybe later. maybe not required
+      // perspective = transformObject.perspective,
       translate = transformObject.translate,
       rotate = transformObject.rotate,
       skew = transformObject.skew,
       scale = transformObject.scale;
 
-  // !isNaN(perspective) && +perspective && (matrix.m34 = -1/perspective) // set perspective LATER
+  // !isNaN(perspective) && (matrix.m34 = -1/perspective)
 
-  if (translate){ // set translate
-    matrix = Array.isArray(translate) ? (matrix.translate.apply(matrix, translate)) : matrix.translate(translate) 
+  if (!isNaN(translate) || Array.isArray(translate) && translate.some(x=>+x!==0)){ // set translate
+    matrix = Array.isArray(translate) ? matrix.translate(+translate[0]||0,+translate[1]||0,+translate[2]||0) 
+                                      : matrix.translate(+translate||0,0,0)
   }
 
   if (rotate || skew || scale) {
-    matrix = matrix.translate(originX,originY) // set SVG transform-origin
+    matrix = matrix.translate(+originX,+originY) // set SVG transform-origin, always defined
 
     if (rotate) { // set rotation
-      matrix = Array.isArray(rotate) ? matrix.rotate.apply(matrix,rotate) 
-                                     : matrix.rotate(rotate)
+      matrix = Array.isArray(rotate) && rotate.some(x=>+x!==0) 
+              ? matrix.rotate(+rotate[0]||0,+rotate[1]||0,+rotate[2]||0)
+              : matrix.rotate(+rotate||0)
     }
-    if (skew) { // set skew(s)
+    if (Array.isArray(skew) && skew.some(x=>+x!==0)) { // set skew(s)
       if (Array.isArray(skew)) {
-        matrix = skew[0] ? matrix.skewX(skew[0]) : matrix;
-        matrix = skew[1] ? matrix.skewY(skew[1]) : matrix;
+        matrix = skew[0] ? matrix.skewX(+skew[0]||0) : matrix;
+        matrix = skew[1] ? matrix.skewY(+skew[1]||0) : matrix;
       } else {
-        matrix = matrix.skewX(skew);
+        matrix = matrix.skewX(+skew||0);
       }
     }
-    if (scale){ // set scale
-      matrix = Array.isArray(scale) ? (matrix.scale.apply(matrix,scale)): matrix.scale(scale)
+    if (!isNaN(scale) || Array.isArray(scale) && scale.some(x=>+x!==1) ){ // set scale
+      matrix = Array.isArray(scale) 
+             ? (matrix.scale(+scale[0]||1,+scale[1]||1,+scale[2]||1))
+             : matrix.scale(+scale||1)
     }
-
     matrix = matrix.translate(-originX,-originY) // set SVG transform-origin
   }
 
-  // return matrix
-  // return [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f]
-  return matrix.toArray()
+  return matrix
 }

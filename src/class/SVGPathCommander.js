@@ -12,6 +12,8 @@ import splitPath from '../process/splitPath.js'
 import optimizePath from '../process/optimizePath.js'
 import normalizePath from '../process/normalizePath.js'
 import transformPath from '../process/transformPath.js'
+import getPathBBox from '../util/getPathBBox.js'
+
 
 export default class SVGPathCommander {
   constructor(pathValue,options){
@@ -66,10 +68,17 @@ export default class SVGPathCommander {
     return this
   }
   transform(transformObject){
+    transformObject = transformObject || {}
+    if (!transformObject.origin) {
+      let BBox = getPathBBox(this.segments)
+      transformObject.origin = [BBox.cx,BBox.cy,BBox.cx]
+    }
+
     let path = transformPath(
-      this.segments, // the pathArray
-      transformObject, // transform functions object
-      {round:this.round,origin:this.origin}) // options
+      this.segments,   // the pathArray
+      transformObject, // transform functions object, now includes the transform origin
+      this.round)      // decimals option
+
     this.segments = clonePath(path)
     return this
   }

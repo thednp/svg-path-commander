@@ -54,19 +54,30 @@ a:hover { color: cyan; text-decoration: none;}
 .m-0 {margin: 0 !important}
 
 svg { max-height: 50%; overflow: visible}
+path {transition: fill 0.5s ease}
 
 @media (min-width: 1200px){
   svg { max-width: 60%; }
 }
 
+.d-inline {display: inline}
 .d-block {display: block}
 .d-none {display: none}
 .text-right { text-align: right;}
+
+.form-input.d-inline {
+  width: 2.2rem !important;
+  padding: 0.25rem 0.75rem;
+  line-height: inherit;
+  margin: 0 0.15rem 0.5rem 0;
+  outline: none
+}
 
 /* .d-md-block {display: none}
 .d-md-none {display: block} */
 
 @media (min-width:768px){
+  .d-md-inline {display: inline}
   .d-md-block {display: block}
   .d-md-none {display: none}
   body {
