@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.8b (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.0.9 (http://thednp.github.io/svg-path-commander)
 * Copyright 2020 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -223,11 +223,22 @@
   	m.m41 = m.e = 0; m.m42 = m.f = 0; m.m43 = 0; m.m44 = 1;
   	return this
   };
+  CSSMatrix.prototype.transformPoint = function transformPoint (t  ){
+  	var m = this,
+  			x = m.m11 * t.x + m.m12 * t.y + m.m13 * t.z + m.m14 * t.w,
+  			y = m.m21 * t.x + m.m22 * t.y + m.m23 * t.z + m.m24 * t.w,
+  			z = m.m31 * t.x + m.m32 * t.y + m.m33 * t.z + m.m34 * t.w,
+  			w = m.m41 * t.x + m.m42 * t.y + m.m43 * t.z + m.m44 * t.w;
+  	t.x = x / w;
+  	t.y = y / w;
+  	t.z = z / w;
+  	return t;
+  };
 
   var CSS3Matrix = typeof DOMMatrix !== undefined ? DOMMatrix : CSSMatrix;
-  CSS3Matrix.prototype.toArray = function(){
+  CSS3Matrix.prototype.is3D = function(){
     var m = this;
-    return [m.a, m.b, m.c, m.d, m.e, m.f]
+    return !(m.m31 == 0 && m.m32 == 0 && m.m33 == 1 && m.m34 == 0 && m.m43 == 0 && m.m44 == 1)
   };
 
   function clonePath(pathArray){
@@ -954,8 +965,12 @@
     return isPathArray(pathInput) && pathInput.slice(1).every(function (seg){ return seg[0] === seg[0].toLowerCase(); })
   }
 
-  function splitPath(pathString) {
-    return pathString
+  function pathToString(pathArray) {
+    return pathArray.map(function (x){ return x[0].concat(x.slice(1).join(' ')); }).join('')
+  }
+
+  function splitPath(pathInput) {
+    return pathToString(pathToAbsolute(pathInput,0))
       .replace( /(m|M)/g, "|$1")
       .split('|')
       .map(function (s){ return s.trim(); })
@@ -1121,75 +1136,49 @@
                     : [reversedPath[0]].concat(reversedPath.slice(1).reverse())
   }
 
-  function pathToString(pathArray) {
-    return pathArray.map(function (x){ return x[0].concat(x.slice(1).join(' ')); }).join('')
-  }
-
-  var util = {
-    CSSMatrix : CSS3Matrix,
-    parsePathString: parsePathString,
-    isPathArray: isPathArray,
-    isCurveArray: isCurveArray,
-    isAbsoluteArray: isAbsoluteArray,
-    isRelativeArray: isRelativeArray,
-    isNormalizedArray: isNormalizedArray,
-    pathToAbsolute: pathToAbsolute,
-    pathToRelative: pathToRelative,
-    pathToCurve: pathToCurve,
-    pathToString: pathToString,
-    getDrawDirection: getDrawDirection,
-    getPathArea: getPathArea,
-    getPathBBox: getPathBBox,
-    getPathLength: getPathLength,
-    getPointAtLength: getPointAtLength,
-    clonePath: clonePath,
-    splitPath: splitPath,
-    roundPath: roundPath,
-    optimizePath: optimizePath,
-    reverseCurve: reverseCurve,
-    reversePath: reversePath,
-    normalizePath: normalizePath,
-    options: SVGPCO
-  };
-
   var epsilon = 1e-9;
 
-  function getSVGMatrix(pathArray,transformObject,origin){
+  function getSVGMatrix(transformObject){
     var matrix = new CSS3Matrix(),
-        BBox = getPathBBox(pathArray),
-        originX = origin && !isNaN(origin.x) ? +origin.x : BBox.cx,
-        originY = origin && !isNaN(origin.y) ? +origin.y : BBox.cy,
+        origin = transformObject.origin,
+        originX = +origin[0],
+        originY = +origin[1],
         translate = transformObject.translate,
         rotate = transformObject.rotate,
         skew = transformObject.skew,
         scale = transformObject.scale;
-    if (translate){
-      matrix = Array.isArray(translate) ? (matrix.translate.apply(matrix, translate)) : matrix.translate(translate);
+    if (!isNaN(translate) || Array.isArray(translate) && translate.some(function (x){ return +x!==0; })){
+      matrix = Array.isArray(translate) ? matrix.translate(+translate[0]||0,+translate[1]||0,+translate[2]||0)
+                                        : matrix.translate(+translate||0,0,0);
     }
     if (rotate || skew || scale) {
-      matrix = matrix.translate(originX,originY);
+      matrix = matrix.translate(+originX,+originY);
       if (rotate) {
-        matrix = Array.isArray(rotate) ? matrix.rotate.apply(matrix,rotate)
-                                       : matrix.rotate(rotate);
+        matrix = Array.isArray(rotate) && rotate.some(function (x){ return +x!==0; })
+                ? matrix.rotate(+rotate[0]||0,+rotate[1]||0,+rotate[2]||0)
+                : matrix.rotate(+rotate||0);
       }
-      if (skew) {
+      if (Array.isArray(skew) && skew.some(function (x){ return +x!==0; })) {
         if (Array.isArray(skew)) {
-          matrix = skew[0] ? matrix.skewX(skew[0]) : matrix;
-          matrix = skew[1] ? matrix.skewY(skew[1]) : matrix;
+          matrix = skew[0] ? matrix.skewX(+skew[0]||0) : matrix;
+          matrix = skew[1] ? matrix.skewY(+skew[1]||0) : matrix;
         } else {
-          matrix = matrix.skewX(skew);
+          matrix = matrix.skewX(+skew||0);
         }
       }
-      if (scale){
-        matrix = Array.isArray(scale) ? (matrix.scale.apply(matrix,scale)): matrix.scale(scale);
+      if (!isNaN(scale) || Array.isArray(scale) && scale.some(function (x){ return +x!==1; }) ){
+        matrix = Array.isArray(scale)
+               ? (matrix.scale(+scale[0]||1,+scale[1]||1,+scale[2]||1))
+               : matrix.scale(+scale||1);
       }
       matrix = matrix.translate(-originX,-originY);
     }
-    return matrix.toArray()
+    return matrix
   }
 
   function transformEllipse(m,rx,ry,ax) {
-    var c = Math.cos(ax * Math.PI / 180), s = Math.sin(ax * Math.PI / 180),
+    var c = Math.cos(ax * Math.PI / 180),
+        s = Math.sin(ax * Math.PI / 180),
         ma = [
           rx * (m[0]*c + m[2]*s),
           rx * (m[1]*c + m[3]*s),
@@ -1224,79 +1213,132 @@
     return { rx: rx, ry: ry, ax: ax }
   }
 
-  function point2DLerp(m, x, y) {
+  function projection2d(m, point2D, origin){
+    var point3D = m.transformPoint({x:point2D[0], y:point2D[1], z:0, w:1}),
+        originX = origin[0]||0, originY = origin[1]||0, originZ = origin[2]||0,
+        projectedPoint = {}, relativePosition = {};
+    relativePosition.x = point3D.x - originX;
+    relativePosition.y = point3D.y - originY;
+    relativePosition.z = point3D.z - originZ;
+    projectedPoint.x = relativePosition.x * (Math.abs(originZ) / Math.abs(relativePosition.z));
+    projectedPoint.y = relativePosition.y * (Math.abs(originZ) / Math.abs(relativePosition.z));
     return [
-      x * m[0] + y * m[2] + m[4],
-      x * m[1] + y * m[3] + m[5]
+      projectedPoint.x + originX,
+      projectedPoint.y + originY
     ]
   }
-  function transformPath(pathArray,transformObject,ref){
-    var round = ref.round;
-    var origin = ref.origin;
+
+  function transformPath(pathArray,transformObject,round){
     var x, y, i, j, ii, jj, lx, ly,
         absolutePath = pathToAbsolute(pathArray),
-        curvePath = pathToCurve(absolutePath),
         normalizedPath = normalizePath(absolutePath),
-        matrix = getSVGMatrix(curvePath,transformObject,origin),
+        matrixInstance = getSVGMatrix(transformObject),
+        origin = transformObject.origin,
+        matrix2d = [matrixInstance.a, matrixInstance.b, matrixInstance.c, matrixInstance.d, matrixInstance.e, matrixInstance.f],
         params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0},
         segment = [], seglen = 0, pathCommand = '',
         transformedPath = [],
+        allPathCommands = [],
         result = [];
-    for (i=0, ii = absolutePath.length; i<ii; i++ ) {
-      segment = absolutePath[i];
-      absolutePath[i] && (pathCommand = segment[0]);
-      segment = normalizedPath[i];
-      seglen = segment.length;
-      params.x1 = +segment[seglen - 2];
-      params.y1 = +segment[seglen - 1];
-      params.x2 = +(segment[seglen - 4]) || params.x1;
-      params.y2 = +(segment[seglen - 3]) || params.y1;
-      result = {s:absolutePath[i], c:absolutePath[i][0]};
-      if (pathCommand !== 'Z') {
-        result.x = params.x1;
-        result.y = params.y1;
+    if (!matrixInstance.isIdentity) {
+      for ( i=0, ii = absolutePath.length; i<ii; i++ ) {
+        segment = absolutePath[i];
+        absolutePath[i] && (pathCommand = segment[0]);
+        allPathCommands[i] = pathCommand;
+        if (pathCommand ==='A' && matrixInstance.is3D()) {
+          segment = segmentToCubic(normalizedPath[i], params);
+          absolutePath[i] = segmentToCubic(normalizedPath[i], params);
+          fixArc(absolutePath,allPathCommands,i);
+          normalizedPath[i] = segmentToCubic(normalizedPath[i], params);
+          fixArc(normalizedPath,allPathCommands,i);
+          ii = Math.max(absolutePath.length,normalizedPath.length);
+        }
+        segment = normalizedPath[i];
+        seglen = segment.length;
+        params.x1 = +segment[seglen - 2];
+        params.y1 = +segment[seglen - 1];
+        params.x2 = +(segment[seglen - 4]) || params.x1;
+        params.y2 = +(segment[seglen - 3]) || params.y1;
+        result = {s:absolutePath[i], c:absolutePath[i][0]};
+        if (pathCommand !== 'Z') {
+          result.x = params.x1;
+          result.y = params.y1;
+        }
+        transformedPath = transformedPath.concat(result);
       }
-      transformedPath = transformedPath.concat(result);
+      transformedPath = transformedPath.map(function (seg){
+        var assign, assign$1, assign$2;
+        pathCommand = seg.c;
+        segment = seg.s;
+        switch (pathCommand){
+          case 'A':
+            var TE = transformEllipse(matrix2d, segment[1], segment[2], segment[3]);
+            if (matrix2d[0] * matrix2d[3] - matrix2d[1] * matrix2d[2] < 0) {
+              segment[5] = +segment[5] ? 0 : 1;
+            }
+            (assign = projection2d(matrixInstance, [segment[6], segment[7]], origin), lx = assign[0], ly = assign[1]);
+            if ( x === lx && y === ly || TE.rx < epsilon * TE.ry || TE.ry < epsilon * TE.rx ) {
+              segment = [ 'L', lx, ly ];
+            } else {
+              segment = [ pathCommand, TE.rx, TE.ry, TE.ax, segment[4], segment[5], lx, ly ];
+            }
+            x = lx; y = ly;
+            return segment
+          case 'L':
+          case 'H':
+          case 'V':
+            (assign$1 = projection2d(matrixInstance, [seg.x, seg.y], origin), lx = assign$1[0], ly = assign$1[1]);
+            if ( x !== lx && y !== ly ) {
+              segment = ['L',lx,ly];
+            } else if (y === ly){
+              segment = ['H',lx];
+            } else if (x === lx){
+              segment = ['V',ly];
+            }
+            x = lx; y = ly;
+            return segment
+          default:
+            for (j = 1, jj = segment.length; j < jj; j += 2) {
+              (assign$2 = projection2d(matrixInstance, [segment[j], segment[j+1]], origin), x = assign$2[0], y = assign$2[1]);
+              segment[j] = x;
+              segment[j + 1] = y;
+            }
+            return segment
+        }
+      });
+      return roundPath(transformedPath,round);
+    } else {
+      return clonePath(absolutePath);
     }
-    transformedPath = transformedPath.map(function (seg){
-      var assign, assign$1, assign$2;
-      pathCommand = seg.c;
-      segment = seg.s;
-      switch (pathCommand){
-        case 'A':
-          var TE = transformEllipse(matrix, segment[1], segment[2], segment[3]);
-          if (matrix[0] * matrix[3] - matrix[1] * matrix[2] < 0) {
-            segment[5] = +segment[5] ? 0 : 1;
-          }
-          (assign = point2DLerp(matrix, seg.x, seg.y), x = assign[0], y = assign[1]);
-          if ( segment[6] === x && segment[7] === y || TE.rx < epsilon * TE.ry || TE.ry < epsilon * TE.rx ) {
-            return [ 'L', x, y ];
-          }
-          return [ pathCommand, TE.rx, TE.ry, TE.ax, segment[4], segment[5], x, y ];
-        case 'L':
-        case 'H':
-        case 'V':
-          (assign$1 = point2DLerp(matrix, seg.x, seg.y), lx = assign$1[0], ly = assign$1[1]);
-          if ( x !== lx && y !== ly ) {
-            segment = ['L',lx,ly];
-          } else if (y === ly){
-            segment = ['H',lx];
-          } else if (x === lx){
-            segment = ['V',ly];
-          }
-          x = lx; y = ly;
-          return segment
-        default:
-          for (j = 1, jj = segment.length; j < jj; j += 2) {
-            (assign$2 = point2DLerp(matrix, segment[j], segment[j + 1]), x = assign$2[0], y = assign$2[1]);
-            segment[j] = x;
-            segment[j + 1] = y;
-          }
-          return segment
-      }
-    });
-    return roundPath(transformedPath,round);
   }
+
+  var util = {
+    CSSMatrix : CSS3Matrix,
+    parsePathString: parsePathString,
+    isPathArray: isPathArray,
+    isCurveArray: isCurveArray,
+    isAbsoluteArray: isAbsoluteArray,
+    isRelativeArray: isRelativeArray,
+    isNormalizedArray: isNormalizedArray,
+    pathToAbsolute: pathToAbsolute,
+    pathToRelative: pathToRelative,
+    pathToCurve: pathToCurve,
+    pathToString: pathToString,
+    getDrawDirection: getDrawDirection,
+    getPathArea: getPathArea,
+    getPathBBox: getPathBBox,
+    getPathLength: getPathLength,
+    getPointAtLength: getPointAtLength,
+    clonePath: clonePath,
+    splitPath: splitPath,
+    roundPath: roundPath,
+    optimizePath: optimizePath,
+    reverseCurve: reverseCurve,
+    reversePath: reversePath,
+    normalizePath: normalizePath,
+    transformPath: transformPath,
+    options: SVGPCO
+  };
 
   var SVGPathCommander = function SVGPathCommander(pathValue,options){
     var roundOption = options && (+options.round === 0 || options.round === false) ? 0 : SVGPCO.round,
@@ -1343,10 +1385,15 @@
     return this
   };
   SVGPathCommander.prototype.transform = function transform (transformObject){
+    transformObject = transformObject || {};
+    if (!transformObject.origin) {
+      var BBox = getPathBBox(this.segments);
+      transformObject.origin = [BBox.cx,BBox.cy,BBox.cx];
+    }
     var path = transformPath(
       this.segments,
       transformObject,
-      {round:this.round,origin:this.origin});
+      this.round);
     this.segments = clonePath(path);
     return this
   };
