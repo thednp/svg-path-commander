@@ -13,7 +13,7 @@ export default function(transformObject){
       skew = transformObject.skew,
       scale = transformObject.scale;
 
-  // !isNaN(perspective) && (matrix.m34 = -1/perspective)
+  // !isNaN(perspective) && perspective && (matrix.m34 = -1/perspective)
 
   if (!isNaN(translate) || Array.isArray(translate) && translate.some(x=>+x!==0)){ // set translate
     matrix = Array.isArray(translate) ? matrix.translate(+translate[0]||0,+translate[1]||0,+translate[2]||0) 
@@ -21,6 +21,7 @@ export default function(transformObject){
   }
 
   if (rotate || skew || scale) {
+    // matrix = matrix.translate(+originX,+originY,+originZ) // set SVG transform-origin, always defined
     matrix = matrix.translate(+originX,+originY) // set SVG transform-origin, always defined
 
     if (rotate) { // set rotation
@@ -41,8 +42,8 @@ export default function(transformObject){
              ? (matrix.scale(+scale[0]||1,+scale[1]||1,+scale[2]||1))
              : matrix.scale(+scale||1)
     }
+    // matrix = matrix.translate(-originX,-originY,-originZ) // set SVG transform-origin
     matrix = matrix.translate(-originX,-originY) // set SVG transform-origin
   }
-
   return matrix
 }

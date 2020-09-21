@@ -8,6 +8,7 @@ import fixArc from '../util/fixArc.js'
 import getSVGMatrix from '../util/getSVGMatrix.js'
 import transformEllipse from '../util/transformEllipse.js'
 import projection2d from '../util/projection2d.js'
+import midPoint from '../math/midPoint.js'
 
 export default function(pathArray,transformObject,round){
 
@@ -33,7 +34,7 @@ export default function(pathArray,transformObject,round){
       /////////////////////////////////////////// 
       allPathCommands[i] = pathCommand
       
-      if (pathCommand ==='A' && matrixInstance.is3D()) {
+      if (pathCommand ==='A' && !matrixInstance.is2D) {
         segment = segmentToCubic(normalizedPath[i], params)
       
         absolutePath[i] = segmentToCubic(normalizedPath[i], params)
@@ -68,11 +69,11 @@ export default function(pathArray,transformObject,round){
       switch (pathCommand){
         case 'A': // only apply to 2D transformations
           let TE = transformEllipse(matrix2d, segment[1], segment[2], segment[3]);
-  
+
           if (matrix2d[0] * matrix2d[3] - matrix2d[1] * matrix2d[2] < 0) {
             segment[5] = +segment[5] ? 0 : 1;
           }
-
+          
           [lx,ly] = projection2d(matrixInstance, [segment[6], segment[7]], origin)
           
           if ( x === lx && y === ly || TE.rx < epsilon * TE.ry || TE.ry < epsilon * TE.rx ) {

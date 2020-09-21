@@ -81,7 +81,7 @@
         <input class="form-input d-inline" data-toggle="tooltip" data-title="Scale" type="number" name="scale" id="scale" placeholder="Scale" value="1" min="0" max="10" step="0.1">
         <button 
         type="button" data-toggle="tooltip" title="Transform multiple functions in the form" 
-          onclick="transform({ translate: [translateX.value||0,translateY.value||0,translateZ.value||0], rotate:[rotateX.value||0,rotateY.value||0,rotateZ.value||0], skew:[skewX.value||0,skewY.value||0], scale:[scale.value||1,scale.value||1,scale.value||1]})">
+          onclick="transform({translate: [translateX.value||0,translateY.value||0,translateZ.value||0], rotate:[rotateX.value||0,rotateY.value||0,rotateZ.value||0], skew:[skewX.value||0,skewY.value||0], scale:[scale.value||1,scale.value||1,scale.value||1]})">
           Transform
         </button>
       </p>
@@ -101,6 +101,8 @@
           <!-- <glyph d="M0 0L0 0" fill="cyan"> -->
         </svg>
       </div>
+      <!-- <div id='test3d' style="background: rgba(155,155,155,0.3); width: 100%;height:150px"></div> -->
+
     </div>
   </div>
 
@@ -299,6 +301,11 @@
       outputTextArea.style.height = ''
       outputTextArea.value = tfPath;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+
+      // let test3d = document.getElementById('test3d'),
+      //     m = SVGPathCommander.getSVGMatrix(transformObject)
+      // test3d.style.transform = m.toString()
+
     }
   </script>
 </body>
