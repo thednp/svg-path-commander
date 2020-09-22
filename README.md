@@ -200,11 +200,10 @@ When reversing path strings, you might want to know their draw direction first:
 
 **Example**
 ```js
-import pathToCurve from 'svg-path-commander/src/convert/pathToCurve.js'
 import getDrawDirection from 'svg-path-commander/src/util/getDrawDirection.js'
 
 // init
-let shapeDrawDirection = getDrawDirection(pathToCurve(pathString))
+let shapeDrawDirection = getDrawDirection(pathString)
 // => returns TRUE if shape draw direction is clockwise or FALSE otherwise
 ```
 Keep in mind that paths with sub-paths may skew your result, you may want to split them and perform this check on each.

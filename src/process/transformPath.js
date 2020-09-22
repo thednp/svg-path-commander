@@ -8,11 +8,10 @@ import fixArc from '../util/fixArc.js'
 import getSVGMatrix from '../util/getSVGMatrix.js'
 import transformEllipse from '../util/transformEllipse.js'
 import projection2d from '../util/projection2d.js'
-import midPoint from '../math/midPoint.js'
 
 export default function(pathArray,transformObject,round){
 
-  let x, y, i, j, ii, jj, lx, ly,
+  let x, y, i, j, ii, jj, lx, ly, te,
       absolutePath = pathToAbsolute(pathArray),
       normalizedPath = normalizePath(absolutePath),
       matrixInstance = getSVGMatrix(transformObject),
@@ -63,23 +62,23 @@ export default function(pathArray,transformObject,round){
       transformedPath = transformedPath.concat(result)
     }
   
-    transformedPath = transformedPath.map(seg=>{
+    transformedPath = transformedPath.map( seg => {
       pathCommand = seg.c
       segment = seg.s
       switch (pathCommand){
         case 'A': // only apply to 2D transformations
-          let TE = transformEllipse(matrix2d, segment[1], segment[2], segment[3]);
+          te = transformEllipse(matrix2d, segment[1], segment[2], segment[3])
 
           if (matrix2d[0] * matrix2d[3] - matrix2d[1] * matrix2d[2] < 0) {
             segment[5] = +segment[5] ? 0 : 1;
           }
-          
+
           [lx,ly] = projection2d(matrixInstance, [segment[6], segment[7]], origin)
-          
-          if ( x === lx && y === ly || TE.rx < epsilon * TE.ry || TE.ry < epsilon * TE.rx ) {
+
+          if ( x === lx && y === ly || te.rx < epsilon * te.ry || te.ry < epsilon * te.rx ) {
             segment = [ 'L', lx, ly ];
           } else {
-            segment = [ pathCommand, TE.rx, TE.ry, TE.ax, segment[4], segment[5], lx, ly ];
+            segment = [ pathCommand, te.rx, te.ry, te.ax, segment[4], segment[5], lx, ly ];
           }
 
           x = lx; y = ly
@@ -102,11 +101,9 @@ export default function(pathArray,transformObject,round){
           x = lx; y = ly // now update x and y
   
           return segment
-  
         default:
           for (j = 1, jj = segment.length; j < jj; j += 2) {
             [x,y] = projection2d(matrixInstance, [segment[j], segment[j+1]], origin) // compute line coordinates without altering previous coordinates
-
             segment[j] = x;
             segment[j + 1] = y;
           }
