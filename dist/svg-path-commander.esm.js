@@ -9,146 +9,6 @@ var SVGPCO = {
   round:1
 };
 
-function Translate(x, y, z){
-  var m = new CSSMatrix();
-  m.m41 = m.e = x;
-  m.m42 = m.f = y;
-  m.m43 = z;
-  return m
-}
-function Rotate(rx, ry, rz){
-  var m = new CSSMatrix();
-  rx *= Math.PI / 180;
-  ry *= Math.PI / 180;
-  rz *= Math.PI / 180;
-  var cosx = Math.cos(rx), sinx = -Math.sin(rx),
-      cosy = Math.cos(ry), siny = -Math.sin(ry),
-      cosz = Math.cos(rz), sinz = -Math.sin(rz);
-  m.m11 = m.a = cosy * cosz;
-  m.m12 = m.b = -cosy * sinz;
-  m.m13 = siny;
-  m.m21 = m.c = sinx * siny * cosz + cosx * sinz;
-  m.m22 = m.d = cosx * cosz - sinx * siny * sinz;
-  m.m23 = -sinx * cosy;
-  m.m31 = sinx * sinz - cosx * siny * cosz;
-  m.m32 = sinx * cosz + cosx * siny * sinz;
-  m.m33 = cosx * cosy;
-  return m
-}
-function RotateAxisAngle(x, y, z, angle){
-  angle *= Math.PI / 360;
-  var sinA = Math.sin(angle),
-      cosA = Math.cos(angle),
-      sinA2 = sinA * sinA,
-      length = Math.sqrt(x * x + y * y + z * z);
-  if (length === 0){
-    x = 0;
-    y = 0;
-    z = 1;
-  } else {
-    x /= length;
-    y /= length;
-    z /= length;
-  }
-  var x2 = x * x, y2 = y * y, z2 = z * z;
-  var m = new CSSMatrix();
-  m.m11 = m.a = 1 - 2 * (y2 + z2) * sinA2;
-  m.m12 = m.b = 2 * (x * y * sinA2 + z * sinA * cosA);
-  m.m13 = 2 * (x * z * sinA2 - y * sinA * cosA);
-  m.m21 = m.c = 2 * (y * x * sinA2 - z * sinA * cosA);
-  m.m22 = m.d = 1 - 2 * (z2 + x2) * sinA2;
-  m.m23 = 2 * (y * z * sinA2 + x * sinA * cosA);
-  m.m31 = 2 * (z * x * sinA2 + y * sinA * cosA);
-  m.m32 = 2 * (z * y * sinA2 - x * sinA * cosA);
-  m.m33 = 1 - 2 * (x2 + y2) * sinA2;
-  m.m14 = m.m24 = m.m34 = 0;
-  m.m41 = m.e = m.m42 = m.f = m.m43 = 0;
-  m.m44 = 1;
-  return m
-}
-function Scale(x, y, z){
-  var m = new CSSMatrix();
-  m.m11 = m.a = x;
-  m.m22 = m.d = y;
-  m.m33 = z;
-  return m
-}
-function SkewX(angle){
-  angle *= Math.PI / 180;
-  var m = new CSSMatrix();
-  m.m21 = m.c = Math.tan(angle);
-  return m
-}
-function SkewY(angle){
-  angle *= Math.PI / 180;
-  var m = new CSSMatrix();
-  m.m12 = m.b = Math.tan(angle);
-  return m
-}
-function Multiply(m1, m2){
-  var m11 = m2.m11 * m1.m11 + m2.m12 * m1.m21 + m2.m13 * m1.m31 + m2.m14 * m1.m41,
-      m12 = m2.m11 * m1.m12 + m2.m12 * m1.m22 + m2.m13 * m1.m32 + m2.m14 * m1.m42,
-      m13 = m2.m11 * m1.m13 + m2.m12 * m1.m23 + m2.m13 * m1.m33 + m2.m14 * m1.m43,
-      m14 = m2.m11 * m1.m14 + m2.m12 * m1.m24 + m2.m13 * m1.m34 + m2.m14 * m1.m44,
-      m21 = m2.m21 * m1.m11 + m2.m22 * m1.m21 + m2.m23 * m1.m31 + m2.m24 * m1.m41,
-      m22 = m2.m21 * m1.m12 + m2.m22 * m1.m22 + m2.m23 * m1.m32 + m2.m24 * m1.m42,
-      m23 = m2.m21 * m1.m13 + m2.m22 * m1.m23 + m2.m23 * m1.m33 + m2.m24 * m1.m43,
-      m24 = m2.m21 * m1.m14 + m2.m22 * m1.m24 + m2.m23 * m1.m34 + m2.m24 * m1.m44,
-      m31 = m2.m31 * m1.m11 + m2.m32 * m1.m21 + m2.m33 * m1.m31 + m2.m34 * m1.m41,
-      m32 = m2.m31 * m1.m12 + m2.m32 * m1.m22 + m2.m33 * m1.m32 + m2.m34 * m1.m42,
-      m33 = m2.m31 * m1.m13 + m2.m32 * m1.m23 + m2.m33 * m1.m33 + m2.m34 * m1.m43,
-      m34 = m2.m31 * m1.m14 + m2.m32 * m1.m24 + m2.m33 * m1.m34 + m2.m34 * m1.m44,
-      m41 = m2.m41 * m1.m11 + m2.m42 * m1.m21 + m2.m43 * m1.m31 + m2.m44 * m1.m41,
-      m42 = m2.m41 * m1.m12 + m2.m42 * m1.m22 + m2.m43 * m1.m32 + m2.m44 * m1.m42,
-      m43 = m2.m41 * m1.m13 + m2.m42 * m1.m23 + m2.m43 * m1.m33 + m2.m44 * m1.m43,
-      m44 = m2.m41 * m1.m14 + m2.m42 * m1.m24 + m2.m43 * m1.m34 + m2.m44 * m1.m44;
-  return new CSSMatrix(
-   [m11, m21, m31, m41,
-    m12, m22, m32, m42,
-    m13, m23, m33, m43,
-    m14, m24, m34, m44])
-}
-function fromMatrix(m){
-  return new CSSMatrix(
-   [m.m11, m.m21, m.m31, m.m41,
-    m.m12, m.m22, m.m32, m.m42,
-    m.m13, m.m23, m.m33, m.m43,
-    m.m14, m.m24, m.m34, m.m44])
-}
-function fromArray(a){
-  return feedFromArray(new CSSMatrix(),a)
-}
-function feedFromArray(m,array){
-  var a = Array.from(array);
-  if (a.length == 16){
-    m.m11 = m.a = a[0];
-    m.m21 = m.c = a[1];
-    m.m31 = a[2];
-    m.m41 = m.e = a[3];
-    m.m12 = m.b = a[4];
-    m.m22 = m.d = a[5];
-    m.m32 = a[6];
-    m.m42 = m.f = a[7];
-    m.m13 = a[8];
-    m.m23 = a[9];
-    m.m33 = a[10];
-    m.m43 = a[11];
-    m.m14 = a[12];
-    m.m24 = a[13];
-    m.m34 = a[14];
-    m.m44 = a[15];
-  } else if (a.length == 6) {
-    m.m11 = m.a = a[0];
-    m.m12 = m.b = a[1];
-    m.m14 = m.e = a[4];
-    m.m21 = m.c = a[2];
-    m.m22 = m.d = a[3];
-    m.m24 = m.f = a[5];
-  } else {
-    console.error("CSSMatrix: expecting a 6/16 values Array");
-  }
-  return m
-}
 var CSSMatrix = function CSSMatrix(){
   var args = [], len = arguments.length;
   while ( len-- ) args[ len ] = arguments[ len ];
@@ -169,10 +29,10 @@ CSSMatrix.prototype.setMatrixValue = function setMatrixValue (source){
     if ([6,16].indexOf(values.length)>-1){
       feedFromArray(m,values);
     } else {
-      console.error("CSSMatrix: expecting valid CSS matrix() / matrix3d() syntax");
+      throw new TypeError("CSSMatrix: expecting valid CSS matrix() / matrix3d() syntax")
     }
   } else if (source[0] instanceof CSSMatrix) {
-    feedFromArray(m,source[0]);
+    feedFromArray(m,source[0].toArray());
   } else if (Array.isArray(source[0])) {
     feedFromArray(m,source[0]);
   } else if (Array.isArray(source)) {
@@ -217,8 +77,7 @@ CSSMatrix.prototype.rotate = function rotate (rx, ry, rz){
 };
 CSSMatrix.prototype.rotateAxisAngle = function rotateAxisAngle (x, y, z, angle){
   if (arguments.length!==4){
-    console.error("CSSMatrix: expecting 4 values");
-    return this
+    throw new TypeError("CSSMatrix: expecting 4 values")
   }
   return Multiply(this,RotateAxisAngle(x, y, z, angle))
 };
@@ -260,17 +119,160 @@ CSSMatrix.prototype.transformPoint = function transformPoint (v){
     w: m.m44
   }
 };
+	CSSMatrix.prototype.transform = function transform (t){
+		var m = this,
+      x = m.m11 * t.x + m.m12 * t.y + m.m13 * t.z + m.m14 * t.w,
+      y = m.m21 * t.x + m.m22 * t.y + m.m23 * t.z + m.m24 * t.w,
+      z = m.m31 * t.x + m.m32 * t.y + m.m33 * t.z + m.m34 * t.w,
+      w = m.m41 * t.x + m.m42 * t.y + m.m43 * t.z + m.m44 * t.w;
+		return {
+    x: x / w,
+    y: y / w,
+    z: z / w,
+    w : w
+  }
+	};
 Object.defineProperties( CSSMatrix.prototype, prototypeAccessors );
-CSSMatrix.Translate = Translate;
-CSSMatrix.Rotate = Rotate;
-CSSMatrix.RotateAxisAngle = RotateAxisAngle;
-CSSMatrix.Scale = Scale;
-CSSMatrix.SkewX = SkewX;
-CSSMatrix.SkewY = SkewY;
-CSSMatrix.Multiply = Multiply;
-CSSMatrix.fromMatrix = fromMatrix;
-CSSMatrix.fromArray = fromArray;
-CSSMatrix.feedFromArray = feedFromArray;
+CSSMatrix.Translate = function Translate(x, y, z){
+  var m = new CSSMatrix();
+  m.m41 = m.e = x;
+  m.m42 = m.f = y;
+  m.m43 = z;
+  return m
+};
+CSSMatrix.Rotate = function Rotate(rx, ry, rz){
+  var m = new CSSMatrix();
+  rx *= Math.PI / 180;
+  ry *= Math.PI / 180;
+  rz *= Math.PI / 180;
+  var cosx = Math.cos(rx), sinx = -Math.sin(rx),
+      cosy = Math.cos(ry), siny = -Math.sin(ry),
+      cosz = Math.cos(rz), sinz = -Math.sin(rz);
+  m.m11 = m.a = cosy * cosz;
+  m.m12 = m.b = -cosy * sinz;
+  m.m13 = siny;
+  m.m21 = m.c = sinx * siny * cosz + cosx * sinz;
+  m.m22 = m.d = cosx * cosz - sinx * siny * sinz;
+  m.m23 = -sinx * cosy;
+  m.m31 = sinx * sinz - cosx * siny * cosz;
+  m.m32 = sinx * cosz + cosx * siny * sinz;
+  m.m33 = cosx * cosy;
+  return m
+};
+CSSMatrix.RotateAxisAngle = function RotateAxisAngle(x, y, z, angle){
+  angle *= Math.PI / 360;
+  var sinA = Math.sin(angle),
+      cosA = Math.cos(angle),
+      sinA2 = sinA * sinA,
+      length = Math.sqrt(x * x + y * y + z * z);
+  if (length === 0){
+    x = 0;
+    y = 0;
+    z = 1;
+  } else {
+    x /= length;
+    y /= length;
+    z /= length;
+  }
+  var x2 = x * x, y2 = y * y, z2 = z * z;
+  var m = new CSSMatrix();
+  m.m11 = m.a = 1 - 2 * (y2 + z2) * sinA2;
+  m.m12 = m.b = 2 * (x * y * sinA2 + z * sinA * cosA);
+  m.m13 = 2 * (x * z * sinA2 - y * sinA * cosA);
+  m.m21 = m.c = 2 * (y * x * sinA2 - z * sinA * cosA);
+  m.m22 = m.d = 1 - 2 * (z2 + x2) * sinA2;
+  m.m23 = 2 * (y * z * sinA2 + x * sinA * cosA);
+  m.m31 = 2 * (z * x * sinA2 + y * sinA * cosA);
+  m.m32 = 2 * (z * y * sinA2 - x * sinA * cosA);
+  m.m33 = 1 - 2 * (x2 + y2) * sinA2;
+  m.m14 = m.m24 = m.m34 = 0;
+  m.m41 = m.e = m.m42 = m.f = m.m43 = 0;
+  m.m44 = 1;
+  return m
+};
+CSSMatrix.Scale = function Scale(x, y, z){
+  var m = new CSSMatrix();
+  m.m11 = m.a = x;
+  m.m22 = m.d = y;
+  m.m33 = z;
+  return m
+};
+CSSMatrix.SkewX = function SkewX(angle){
+  angle *= Math.PI / 180;
+  var m = new CSSMatrix();
+  m.m21 = m.c = Math.tan(angle);
+  return m
+};
+CSSMatrix.SkewY = function SkewY(angle){
+  angle *= Math.PI / 180;
+  var m = new CSSMatrix();
+  m.m12 = m.b = Math.tan(angle);
+  return m
+};
+CSSMatrix.Multiply = function Multiply(m1, m2){
+  var m11 = m2.m11 * m1.m11 + m2.m12 * m1.m21 + m2.m13 * m1.m31 + m2.m14 * m1.m41,
+      m12 = m2.m11 * m1.m12 + m2.m12 * m1.m22 + m2.m13 * m1.m32 + m2.m14 * m1.m42,
+      m13 = m2.m11 * m1.m13 + m2.m12 * m1.m23 + m2.m13 * m1.m33 + m2.m14 * m1.m43,
+      m14 = m2.m11 * m1.m14 + m2.m12 * m1.m24 + m2.m13 * m1.m34 + m2.m14 * m1.m44,
+      m21 = m2.m21 * m1.m11 + m2.m22 * m1.m21 + m2.m23 * m1.m31 + m2.m24 * m1.m41,
+      m22 = m2.m21 * m1.m12 + m2.m22 * m1.m22 + m2.m23 * m1.m32 + m2.m24 * m1.m42,
+      m23 = m2.m21 * m1.m13 + m2.m22 * m1.m23 + m2.m23 * m1.m33 + m2.m24 * m1.m43,
+      m24 = m2.m21 * m1.m14 + m2.m22 * m1.m24 + m2.m23 * m1.m34 + m2.m24 * m1.m44,
+      m31 = m2.m31 * m1.m11 + m2.m32 * m1.m21 + m2.m33 * m1.m31 + m2.m34 * m1.m41,
+      m32 = m2.m31 * m1.m12 + m2.m32 * m1.m22 + m2.m33 * m1.m32 + m2.m34 * m1.m42,
+      m33 = m2.m31 * m1.m13 + m2.m32 * m1.m23 + m2.m33 * m1.m33 + m2.m34 * m1.m43,
+      m34 = m2.m31 * m1.m14 + m2.m32 * m1.m24 + m2.m33 * m1.m34 + m2.m34 * m1.m44,
+      m41 = m2.m41 * m1.m11 + m2.m42 * m1.m21 + m2.m43 * m1.m31 + m2.m44 * m1.m41,
+      m42 = m2.m41 * m1.m12 + m2.m42 * m1.m22 + m2.m43 * m1.m32 + m2.m44 * m1.m42,
+      m43 = m2.m41 * m1.m13 + m2.m42 * m1.m23 + m2.m43 * m1.m33 + m2.m44 * m1.m43,
+      m44 = m2.m41 * m1.m14 + m2.m42 * m1.m24 + m2.m43 * m1.m34 + m2.m44 * m1.m44;
+  return new CSSMatrix(
+   [m11, m21, m31, m41,
+    m12, m22, m32, m42,
+    m13, m23, m33, m43,
+    m14, m24, m34, m44])
+};
+CSSMatrix.fromMatrix = function fromMatrix(m){
+  return new CSSMatrix(
+   [m.m11, m.m21, m.m31, m.m41,
+    m.m12, m.m22, m.m32, m.m42,
+    m.m13, m.m23, m.m33, m.m43,
+    m.m14, m.m24, m.m34, m.m44])
+};
+CSSMatrix.fromArray = function fromArray(a){
+  return feedFromArray(new CSSMatrix(),a)
+};
+CSSMatrix.feedFromArray = function feedFromArray(m,array){
+  var a = Array.from(array);
+  if (a.length == 16){
+    m.m11 = m.a = a[0];
+    m.m21 = m.c = a[1];
+    m.m31 = a[2];
+    m.m41 = m.e = a[3];
+    m.m12 = m.b = a[4];
+    m.m22 = m.d = a[5];
+    m.m32 = a[6];
+    m.m42 = m.f = a[7];
+    m.m13 = a[8];
+    m.m23 = a[9];
+    m.m33 = a[10];
+    m.m43 = a[11];
+    m.m14 = a[12];
+    m.m24 = a[13];
+    m.m34 = a[14];
+    m.m44 = a[15];
+  } else if (a.length == 6) {
+    m.m11 = m.a = a[0];
+    m.m12 = m.b = a[1];
+    m.m14 = m.e = a[4];
+    m.m21 = m.c = a[2];
+    m.m22 = m.d = a[3];
+    m.m24 = m.f = a[5];
+  } else {
+    throw new TypeError("CSSMatrix: expecting a 6/16 values Array")
+  }
+  return m
+};
 
 var CSS3Matrix = typeof DOMMatrix !== undefined ? DOMMatrix : CSSMatrix;
 
@@ -1261,7 +1263,7 @@ function projection2d(m, point2D, origin){
 }
 
 function transformPath(pathArray,transformObject,round){
-  var x, y, i, j, ii, jj, lx, ly,
+  var x, y, i, j, ii, jj, lx, ly, te,
       absolutePath = pathToAbsolute(pathArray),
       normalizedPath = normalizePath(absolutePath),
       matrixInstance = getSVGMatrix(transformObject),
@@ -1298,21 +1300,21 @@ function transformPath(pathArray,transformObject,round){
       }
       transformedPath = transformedPath.concat(result);
     }
-    transformedPath = transformedPath.map(function (seg){
+    transformedPath = transformedPath.map( function (seg) {
       var assign, assign$1, assign$2;
       pathCommand = seg.c;
       segment = seg.s;
       switch (pathCommand){
         case 'A':
-          var TE = transformEllipse(matrix2d, segment[1], segment[2], segment[3]);
+          te = transformEllipse(matrix2d, segment[1], segment[2], segment[3]);
           if (matrix2d[0] * matrix2d[3] - matrix2d[1] * matrix2d[2] < 0) {
             segment[5] = +segment[5] ? 0 : 1;
           }
           (assign = projection2d(matrixInstance, [segment[6], segment[7]], origin), lx = assign[0], ly = assign[1]);
-          if ( x === lx && y === ly || TE.rx < epsilon * TE.ry || TE.ry < epsilon * TE.rx ) {
+          if ( x === lx && y === ly || te.rx < epsilon * te.ry || te.ry < epsilon * te.rx ) {
             segment = [ 'L', lx, ly ];
           } else {
-            segment = [ pathCommand, TE.rx, TE.ry, TE.ax, segment[4], segment[5], lx, ly ];
+            segment = [ pathCommand, te.rx, te.ry, te.ax, segment[4], segment[5], lx, ly ];
           }
           x = lx; y = ly;
           return segment
