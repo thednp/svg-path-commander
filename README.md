@@ -70,8 +70,11 @@ let mySVGPCInit = new SVGPathCommander(pathString).flipX().toString();
 # Node.js
 
 ```js
+// for node.js, you also need to bring DOMMatrix shim
+const DOMMatrix = require('dommatrix');
+
 // import the constructor
-let SVGPathCommander = require('svg-path-commander');
+const SVGPathCommander = require('svg-path-commander');
 
 let pathString = 'M0 0l50 0l50 50z';
 
