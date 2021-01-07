@@ -27,6 +27,9 @@ This library is available on [CDN](https://www.jsdelivr.com/package/npm/svg-path
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg?style=flat-square)](http://npm-stat.com/charts.html?svg-path-commander)
 [![jsDeliver](https://data.jsdelivr.com/v1/package/npm/svg-path-commander/badge)](https://www.jsdelivr.com/package/npm/svg-path-commander)
 
+# WIKI
+For developer guidelines, head over to the [wiki pages](https://github.com/thednp/svg-path-commander/wiki).
+
 
 # What Is It For?
 
