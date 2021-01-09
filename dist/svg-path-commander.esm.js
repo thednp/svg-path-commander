@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.0.9 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.0 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
