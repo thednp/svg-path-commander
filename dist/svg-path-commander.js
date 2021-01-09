@@ -1,6 +1,6 @@
 /*!
-* SVGPathCommander v0.0.9 (http://thednp.github.io/svg-path-commander)
-* Copyright 2020 © thednp
+* SVGPathCommander v0.1.0 (http://thednp.github.io/svg-path-commander)
+* Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 (function (global, factory) {
@@ -280,7 +280,7 @@
     return m
   };
 
-  var CSS3Matrix = typeof DOMMatrix !== undefined ? DOMMatrix : CSSMatrix;
+  var CSS3Matrix = typeof DOMMatrix !== 'undefined' ? DOMMatrix : CSSMatrix;
 
   function clonePath(pathArray){
     return pathArray.map(function (x) { return Array.isArray(x)
