@@ -689,7 +689,7 @@
     if (isNormalizedArray(pathArray)) {
       return clonePath(pathArray)
     }
-    pathArray = pathToAbsolute(pathArray);
+    pathArray = pathToAbsolute(pathArray,round);
     var params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
         allPathCommands = [], pathCommand = '', prevCommand = '',
         ii = pathArray.length, segment, seglen;
@@ -1116,7 +1116,7 @@
     var absolutePath = pathToAbsolute(pathString,round),
         isClosed = absolutePath.slice(-1)[0][0] === 'Z',
         reversedPath = [], segLength = 0;
-    reversedPath = normalizePath(absolutePath).map(function (segment,i){
+    reversedPath = normalizePath(absolutePath,round).map(function (segment,i){
       segLength = segment.length;
       return {
         seg: absolutePath[i],
