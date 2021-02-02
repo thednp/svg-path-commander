@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.0 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.2 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -15,138 +15,14 @@
     round:1
   };
 
-  var CSSMatrix = function CSSMatrix(){
-    var args = [], len = arguments.length;
-    while ( len-- ) args[ len ] = arguments[ len ];
-    this.setIdentity();
-    return args && args.length && this.setMatrixValue(args)
-  };
-  var prototypeAccessors = { isIdentity: { configurable: true },is2D: { configurable: true } };
-  CSSMatrix.prototype.setMatrixValue = function setMatrixValue (source){
-    var m = this;
-    if (!source || !source.length) {
-      return m
-    } else if (source.length && typeof source[0] === 'string' && source[0].length) {
-      var string = String(source[0]).trim(), type = '', values = [];
-      if (string == 'none') { return m; }
-      type = string.slice(0, string.indexOf('('));
-      values = string.slice((type === 'matrix' ? 7 : 9), -1).split(',')
-                    .map(function (n){ return Math.abs(n) < 1e-6 ? 0 : +n; });
-      if ([6,16].indexOf(values.length)>-1){
-        feedFromArray(m,values);
-      } else {
-        throw new TypeError("CSSMatrix: expecting valid CSS matrix() / matrix3d() syntax")
-      }
-    } else if (source[0] instanceof CSSMatrix) {
-      feedFromArray(m,source[0].toArray());
-    } else if (Array.isArray(source[0])) {
-      feedFromArray(m,source[0]);
-    } else if (Array.isArray(source)) {
-      feedFromArray(m,source);
-    }
-    return m
-  };
-  CSSMatrix.prototype.toString = function toString (){
-    var m = this, type = m.is2D ? 'matrix' : 'matrix3d';
-    return (type + "(" + (m.toArray(1).join(',')) + ")")
-  };
-  CSSMatrix.prototype.toArray = function toArray (transposed){
-    var m = this;
-    return m.is2D ? [ m.a, m.b, m.c, m.d, m.e, m.f ]
-      : transposed
-      ?[m.m11, m.m12, m.m13, m.m14,
-        m.m21, m.m22, m.m23, m.m24,
-        m.m31, m.m32, m.m33, m.m34,
-        m.m41, m.m42, m.m43, m.m44]
-      :[m.m11, m.m21, m.m31, m.m41,
-        m.m12, m.m22, m.m32, m.m42,
-        m.m13, m.m23, m.m33, m.m43,
-        m.m14, m.m24, m.m34, m.m44]
-  };
-  CSSMatrix.prototype.multiply = function multiply (m2){
-    return Multiply(this,m2)
-  };
-  CSSMatrix.prototype.translate = function translate (x, y, z){
-    if (z == null) { z = 0; }
-    if (y == null) { y = 0; }
-    return Multiply(this,Translate(x, y, z))
-  };
-  CSSMatrix.prototype.scale = function scale (x, y, z){
-    if (y == null) { y = x; }
-    if (z == null) { z = x; }
-    return Multiply(this,Scale(x, y, z))
-  };
-  CSSMatrix.prototype.rotate = function rotate (rx, ry, rz){
-    if (ry == null) { ry = 0; }
-    if (rz == null) {rz = rx; rx = 0;}
-    return Multiply(this,Rotate(rx, ry, rz))
-  };
-  CSSMatrix.prototype.rotateAxisAngle = function rotateAxisAngle (x, y, z, angle){
-    if (arguments.length!==4){
-      throw new TypeError("CSSMatrix: expecting 4 values")
-    }
-    return Multiply(this,RotateAxisAngle(x, y, z, angle))
-  };
-  CSSMatrix.prototype.skewX = function skewX (angle){
-    return Multiply(this,SkewX(angle))
-  };
-  CSSMatrix.prototype.skewY = function skewY (angle){
-    return Multiply(this,SkewY(angle))
-  };
-  CSSMatrix.prototype.setIdentity = function setIdentity (){
-    var identity = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
-    return feedFromArray(this,identity)
-  };
-  prototypeAccessors.isIdentity.get = function (){
-    var m = this;
-    return (m.m11 == 1 && m.m12 == 0 && m.m13 == 0 && m.m14 == 0 &&
-            m.m21 == 0 && m.m22 == 1 && m.m23 == 0 && m.m24 == 0 &&
-            m.m31 == 0 && m.m32 == 0 && m.m33 == 1 && m.m34 == 0 &&
-            m.m41 == 0 && m.m42 == 0 && m.m43 == 0 && m.m44 == 1)
-  };
-  prototypeAccessors.isIdentity.set = function (value){
-    this.isIdentity = value;
-  };
-  prototypeAccessors.is2D.get = function (){
-    var m = this;
-    return (m.m31 == 0 && m.m32 == 0 && m.m33 == 1 && m.m34 == 0 && m.m43 == 0 && m.m44 == 1)
-  };
-  prototypeAccessors.is2D.set = function (value){
-    this.is2D = value;
-  };
-  CSSMatrix.prototype.transformPoint = function transformPoint (v){
-    var _m = this, m = Translate(v.x, v.y, v.z);
-    m.m44 = v.w || 1;
-    m = _m.multiply(m);
-    return {
-      x: m.m41,
-      y: m.m42,
-      z: m.m43,
-      w: m.m44
-    }
-  };
-  	CSSMatrix.prototype.transform = function transform (t){
-  		var m = this,
-        x = m.m11 * t.x + m.m12 * t.y + m.m13 * t.z + m.m14 * t.w,
-        y = m.m21 * t.x + m.m22 * t.y + m.m23 * t.z + m.m24 * t.w,
-        z = m.m31 * t.x + m.m32 * t.y + m.m33 * t.z + m.m34 * t.w,
-        w = m.m41 * t.x + m.m42 * t.y + m.m43 * t.z + m.m44 * t.w;
-  		return {
-      x: x / w,
-      y: y / w,
-      z: z / w,
-      w : w
-    }
-  	};
-  Object.defineProperties( CSSMatrix.prototype, prototypeAccessors );
-  CSSMatrix.Translate = function Translate(x, y, z){
+  function Translate(x, y, z){
     var m = new CSSMatrix();
     m.m41 = m.e = x;
     m.m42 = m.f = y;
     m.m43 = z;
     return m
-  };
-  CSSMatrix.Rotate = function Rotate(rx, ry, rz){
+  }
+  function Rotate(rx, ry, rz){
     var m = new CSSMatrix();
     rx *= Math.PI / 180;
     ry *= Math.PI / 180;
@@ -164,8 +40,8 @@
     m.m32 = sinx * cosz + cosx * siny * sinz;
     m.m33 = cosx * cosy;
     return m
-  };
-  CSSMatrix.RotateAxisAngle = function RotateAxisAngle(x, y, z, angle){
+  }
+  function RotateAxisAngle(x, y, z, angle){
     angle *= Math.PI / 360;
     var sinA = Math.sin(angle),
         cosA = Math.cos(angle),
@@ -195,27 +71,27 @@
     m.m41 = m.e = m.m42 = m.f = m.m43 = 0;
     m.m44 = 1;
     return m
-  };
-  CSSMatrix.Scale = function Scale(x, y, z){
+  }
+  function Scale(x, y, z){
     var m = new CSSMatrix();
     m.m11 = m.a = x;
     m.m22 = m.d = y;
     m.m33 = z;
     return m
-  };
-  CSSMatrix.SkewX = function SkewX(angle){
+  }
+  function SkewX(angle){
     angle *= Math.PI / 180;
     var m = new CSSMatrix();
     m.m21 = m.c = Math.tan(angle);
     return m
-  };
-  CSSMatrix.SkewY = function SkewY(angle){
+  }
+  function SkewY(angle){
     angle *= Math.PI / 180;
     var m = new CSSMatrix();
     m.m12 = m.b = Math.tan(angle);
     return m
-  };
-  CSSMatrix.Multiply = function Multiply(m1, m2){
+  }
+  function Multiply(m1, m2){
     var m11 = m2.m11 * m1.m11 + m2.m12 * m1.m21 + m2.m13 * m1.m31 + m2.m14 * m1.m41,
         m12 = m2.m11 * m1.m12 + m2.m12 * m1.m22 + m2.m13 * m1.m32 + m2.m14 * m1.m42,
         m13 = m2.m11 * m1.m13 + m2.m12 * m1.m23 + m2.m13 * m1.m33 + m2.m14 * m1.m43,
@@ -237,18 +113,18 @@
       m12, m22, m32, m42,
       m13, m23, m33, m43,
       m14, m24, m34, m44])
-  };
-  CSSMatrix.fromMatrix = function fromMatrix(m){
+  }
+  function fromMatrix(m){
     return new CSSMatrix(
      [m.m11, m.m21, m.m31, m.m41,
       m.m12, m.m22, m.m32, m.m42,
       m.m13, m.m23, m.m33, m.m43,
       m.m14, m.m24, m.m34, m.m44])
-  };
-  CSSMatrix.fromArray = function fromArray(a){
+  }
+  function fromArray(a){
     return feedFromArray(new CSSMatrix(),a)
-  };
-  CSSMatrix.feedFromArray = function feedFromArray(m,array){
+  }
+  function feedFromArray(m,array){
     var a = Array.from(array);
     if (a.length == 16){
       m.m11 = m.a = a[0];
@@ -278,7 +154,142 @@
       throw new TypeError("CSSMatrix: expecting a 6/16 values Array")
     }
     return m
+  }
+  var CSSMatrix = function CSSMatrix(){
+    var args = [], len = arguments.length;
+    while ( len-- ) args[ len ] = arguments[ len ];
+    this.setIdentity();
+    return args && args.length && this.setMatrixValue(args)
   };
+  var prototypeAccessors = { isIdentity: { configurable: true },is2D: { configurable: true } };
+  prototypeAccessors.isIdentity.get = function (){
+    var m = this;
+    return (m.m11 == 1 && m.m12 == 0 && m.m13 == 0 && m.m14 == 0 &&
+            m.m21 == 0 && m.m22 == 1 && m.m23 == 0 && m.m24 == 0 &&
+            m.m31 == 0 && m.m32 == 0 && m.m33 == 1 && m.m34 == 0 &&
+            m.m41 == 0 && m.m42 == 0 && m.m43 == 0 && m.m44 == 1)
+  };
+  prototypeAccessors.isIdentity.set = function (value){
+    this.isIdentity = value;
+  };
+  prototypeAccessors.is2D.get = function (){
+    var m = this;
+    return (m.m31 == 0 && m.m32 == 0 && m.m33 == 1 && m.m34 == 0 && m.m43 == 0 && m.m44 == 1)
+  };
+  prototypeAccessors.is2D.set = function (value){
+    this.is2D = value;
+  };
+  Object.defineProperties( CSSMatrix.prototype, prototypeAccessors );
+  var CSSMatrixProto = CSSMatrix.prototype;
+  CSSMatrixProto.setMatrixValue = function (source){
+    var m = this;
+    if (!source || !source.length) {
+      return m
+    } else if (source.length && typeof source[0] === 'string' && source[0].length) {
+      var string = String(source[0]).trim(), type = '', values = [];
+      if (string == 'none') { return m; }
+      type = string.slice(0, string.indexOf('('));
+      values = string.slice((type === 'matrix' ? 7 : 9), -1).split(',')
+                    .map(function (n){ return Math.abs(n) < 1e-6 ? 0 : +n; });
+      if ([6,16].indexOf(values.length)>-1){
+        feedFromArray(m,values);
+      } else {
+        throw new TypeError("CSSMatrix: expecting valid CSS matrix() / matrix3d() syntax")
+      }
+    } else if (source[0] instanceof CSSMatrix) {
+      feedFromArray(m,source[0].toArray());
+    } else if (Array.isArray(source[0])) {
+      feedFromArray(m,source[0]);
+    } else if (Array.isArray(source)) {
+      feedFromArray(m,source);
+    }
+    return m
+  };
+  CSSMatrixProto.toString = function(){
+    var m = this, type = m.is2D ? 'matrix' : 'matrix3d';
+    return (type + "(" + (m.toArray(1).join(',')) + ")")
+  };
+  CSSMatrixProto.toArray = function(transposed){
+    var m = this;
+    return m.is2D ? [ m.a, m.b, m.c, m.d, m.e, m.f ]
+      : transposed
+      ?[m.m11, m.m12, m.m13, m.m14,
+        m.m21, m.m22, m.m23, m.m24,
+        m.m31, m.m32, m.m33, m.m34,
+        m.m41, m.m42, m.m43, m.m44]
+      :[m.m11, m.m21, m.m31, m.m41,
+        m.m12, m.m22, m.m32, m.m42,
+        m.m13, m.m23, m.m33, m.m43,
+        m.m14, m.m24, m.m34, m.m44]
+  };
+  CSSMatrixProto.multiply = function(m2){
+    return Multiply(this,m2)
+  };
+  CSSMatrixProto.translate = function(x, y, z){
+    if (z == null) { z = 0; }
+    if (y == null) { y = 0; }
+    return Multiply(this,Translate(x, y, z))
+  };
+  CSSMatrixProto.scale = function(x, y, z){
+    if (y == null) { y = x; }
+    if (z == null) { z = x; }
+    return Multiply(this,Scale(x, y, z))
+  };
+  CSSMatrixProto.rotate = function(rx, ry, rz){
+    if (ry == null) { ry = 0; }
+    if (rz == null) {rz = rx; rx = 0;}
+    return Multiply(this,Rotate(rx, ry, rz))
+  };
+  CSSMatrixProto.rotateAxisAngle = function(x, y, z, angle){
+    if (arguments.length!==4){
+      throw new TypeError("CSSMatrix: expecting 4 values")
+    }
+    return Multiply(this,RotateAxisAngle(x, y, z, angle))
+  };
+  CSSMatrixProto.skewX = function(angle){
+    return Multiply(this,SkewX(angle))
+  };
+  CSSMatrixProto.skewY = function(angle){
+    return Multiply(this,SkewY(angle))
+  };
+  CSSMatrixProto.setIdentity = function(){
+    var identity = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+    return feedFromArray(this,identity)
+  };
+  CSSMatrixProto.transformPoint = function(v){
+    var _m = this, m = Translate(v.x, v.y, v.z);
+    m.m44 = v.w || 1;
+    m = _m.multiply(m);
+    return {
+      x: m.m41,
+      y: m.m42,
+      z: m.m43,
+      w: m.m44
+    }
+  };
+  CSSMatrixProto.transform = function(t){
+    var m = this,
+        x = m.m11 * t.x + m.m12 * t.y + m.m13 * t.z + m.m14 * t.w,
+        y = m.m21 * t.x + m.m22 * t.y + m.m23 * t.z + m.m24 * t.w,
+        z = m.m31 * t.x + m.m32 * t.y + m.m33 * t.z + m.m34 * t.w,
+        w = m.m41 * t.x + m.m42 * t.y + m.m43 * t.z + m.m44 * t.w;
+    return {
+      x: x / w,
+      y: y / w,
+      z: z / w,
+      w : w
+    }
+  };
+  CSSMatrix.Translate = Translate;
+  CSSMatrix.Rotate = Rotate;
+  CSSMatrix.RotateAxisAngle = RotateAxisAngle;
+  CSSMatrix.Scale = Scale;
+  CSSMatrix.SkewX = SkewX;
+  CSSMatrix.SkewY = SkewY;
+  CSSMatrix.Multiply = Multiply;
+  CSSMatrix.fromMatrix = fromMatrix;
+  CSSMatrix.fromArray = fromArray;
+  CSSMatrix.feedFromArray = feedFromArray;
 
   var CSS3Matrix = typeof DOMMatrix !== 'undefined' ? DOMMatrix : CSSMatrix;
 
@@ -568,7 +579,7 @@
     if (isAbsoluteArray(pathArray)) {
       return clonePath(pathArray)
     }
-    pathArray = parsePathString(pathArray);
+    pathArray = parsePathString(pathArray,round);
     var resultArray = [],
         x = 0, y = 0, mx = 0, my = 0,
         start = 0, ii = pathArray.length,
@@ -837,7 +848,7 @@
     if (isCurveArray(pathArray)){
       return clonePath(pathArray)
     }
-    pathArray = normalizePath(pathArray);
+    pathArray = normalizePath(pathArray,round);
     var params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
         allPathCommands = [], pathCommand = '',
         ii = pathArray.length, segment, seglen;
@@ -862,9 +873,9 @@
              + y1 * (x0 - x2) - x1 * (y0 - y2)
              + y3 * (x2 + x0 / 3) - x3 * (y2 + y0 / 3)) / 20;
   }
-  function getPathArea(pathArray) {
+  function getPathArea(pathArray,round) {
     var x = 0, y = 0, mx = 0, my = 0, len = 0;
-    return pathToCurve(pathArray).map(function (seg) {
+    return pathToCurve(pathArray,round).map(function (seg) {
       var assign;
       switch (seg[0]){
         case 'M':
@@ -902,21 +913,21 @@
     return z2 * sum
   }
 
-  function getPathLength(pathArray){
+  function getPathLength(pathArray,round){
     var totalLength = 0;
-    pathToCurve(pathArray).map(function (s,i,curveArray) {
+    pathToCurve(pathArray,round).map(function (s,i,curveArray) {
       totalLength += 'M' !== s[0] ? getSegCubicLength.apply(0, curveArray[i-1].slice(-2).concat(s.slice(1)) ) : 0;
     });
     return totalLength
   }
 
-  function getDrawDirection(pathArray) {
-    return getPathArea(pathToCurve(pathArray)) >= 0
+  function getDrawDirection(pathArray,round) {
+    return getPathArea(pathToCurve(pathArray,round)) >= 0
   }
 
   function getPointAtLength(pathArray,length){
     var totalLength = 0, segLen, data;
-    return pathToCurve(pathArray).map(function (seg,i,curveArray) {
+    return pathToCurve(pathArray,9).map(function (seg,i,curveArray) {
       data = i ? curveArray[i-1].slice(-2).concat(seg.slice(1)) : seg.slice(1);
       segLen = i ? getSegCubicLength.apply(0, data) : 0;
       totalLength += segLen;
@@ -970,11 +981,11 @@
     }
   }
 
-  function getPathBBox(pathArray) {
+  function getPathBBox(pathArray,round) {
     if (!pathArray) {
       return {x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0};
     }
-    pathArray = pathToCurve(pathArray);
+    pathArray = pathToCurve(pathArray,round);
     var x = 0, y = 0, X = [], Y = [];
     pathArray.map(function (segment){
       if (segment[0] === "M") {
@@ -1022,7 +1033,7 @@
     if (isRelativeArray(pathArray)){
       return clonePath(pathArray)
     }
-    pathArray = parsePathString(pathArray);
+    pathArray = parsePathString(pathArray,round);
     var resultArray = [], segLength = 0,
         x = 0, y = 0, mx = 0, my = 0,
         segment = [], pathCommand = '', relativeSegment = [],
@@ -1392,17 +1403,18 @@
     this.pathValue = pathValue;
     return this
   };
-  SVGPathCommander.prototype.toAbsolute = function toAbsolute (){
+  var SVGPCProto = SVGPathCommander.prototype;
+  SVGPCProto.toAbsolute = function(){
     var path = pathToAbsolute(this.segments,this.round);
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.toRelative = function toRelative (){
+  SVGPCProto.toRelative = function(){
     var path = pathToRelative(this.segments,this.round);
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.reverse = function reverse (onlySubpath){
+  SVGPCProto.reverse = function(onlySubpath){
     this.toAbsolute();
     var subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()),
         absoluteMultiPath, path;
@@ -1415,17 +1427,17 @@
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.normalize = function normalize (){
+  SVGPCProto.normalize = function(){
     var path = normalizePath(this.segments,this.round);
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.optimize = function optimize (){
+  SVGPCProto.optimize = function(){
     var path = optimizePath(this.segments,this.round);
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.transform = function transform (transformObject){
+  SVGPCProto.transform = function(transformObject){
     transformObject = transformObject || {};
     if (!transformObject.origin) {
       var BBox = getPathBBox(this.segments);
@@ -1438,15 +1450,15 @@
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.flipX = function flipX (){
+  SVGPCProto.flipX = function(){
     this.transform({rotate:[180,0,0]});
     return this
   };
-  SVGPathCommander.prototype.flipY = function flipY (){
+  SVGPCProto.flipY = function(){
     this.transform({rotate:[0,180,0]});
     return this
   };
-  SVGPathCommander.prototype.toString = function toString (){
+  SVGPCProto.toString = function(){
     return pathToString(this.segments)
   };
 
