@@ -1,7 +1,7 @@
 'use strict';
 import buble from '@rollup/plugin-buble';
 import {terser} from 'rollup-plugin-terser';
-import cleanup from 'rollup-plugin-cleanup';
+// import cleanup from 'rollup-plugin-cleanup';
 import node from '@rollup/plugin-node-resolve';
 import json from '@rollup/plugin-json';
 import * as pkg from "./package.json";
@@ -40,7 +40,7 @@ if (MIN){
   PLUGINS.push(terser({output: {preamble: miniBannerJS}}));
 } else {
   OUTPUT.banner = banner;
-  PLUGINS.push(cleanup());
+  // PLUGINS.push(cleanup());
 }
 
 if (FORMAT!=='esm') {

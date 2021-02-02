@@ -6,7 +6,7 @@ export default function(pathString,round){ // pathArray | pathString
       isClosed = absolutePath.slice(-1)[0][0] === 'Z',
       reversedPath = [], segLength = 0
 
-  reversedPath = normalizePath(absolutePath).map((segment,i)=>{
+  reversedPath = normalizePath(absolutePath,round).map((segment,i)=>{
     segLength = segment.length
     return {
       seg: absolutePath[i],       // absolute
