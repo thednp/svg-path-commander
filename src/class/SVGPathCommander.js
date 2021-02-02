@@ -30,67 +30,70 @@ export default class SVGPathCommander {
     this.pathValue = pathValue
     return this
   }
-  toAbsolute(){
-    let path = pathToAbsolute(this.segments,this.round)
-    this.segments = clonePath(path)
-    return this
-  }
-  toRelative(){
-    let path = pathToRelative(this.segments,this.round)
-    this.segments = clonePath(path)
-    return this
-  }
-  reverse(onlySubpath){
-    this.toAbsolute()
-    
-    let subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()),
-        absoluteMultiPath, path 
+}
 
-    absoluteMultiPath = subPath && clonePath(subPath)
-                      .map((x,i) => onlySubpath 
-                      ? (i ? reversePath(x) : parsePathString(x))
-                      : reversePath(x))
+const SVGPCProto = SVGPathCommander.prototype
 
-    path = subPath ? [].concat.apply([], absoluteMultiPath) 
-          : onlySubpath ? this.segments : reversePath(this.segments)
+SVGPCProto.toAbsolute = function(){
+  let path = pathToAbsolute(this.segments,this.round)
+  this.segments = clonePath(path)
+  return this
+}
+SVGPCProto.toRelative = function(){
+  let path = pathToRelative(this.segments,this.round)
+  this.segments = clonePath(path)
+  return this
+}
+SVGPCProto.reverse = function(onlySubpath){
+  this.toAbsolute()
+  
+  let subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()),
+      absoluteMultiPath, path 
 
-    this.segments = clonePath(path)
-    return this
-  }
-  normalize(){
-    let path = normalizePath(this.segments,this.round)
-    this.segments = clonePath(path)
-    return this
-  }
-  optimize(){
-    let path = optimizePath(this.segments,this.round)
-    this.segments = clonePath(path)
-    return this
-  }
-  transform(transformObject){
-    transformObject = transformObject || {}
-    if (!transformObject.origin) {
-      let BBox = getPathBBox(this.segments)
-      transformObject.origin = [BBox.cx,BBox.cy,BBox.cx]
-    }
+  absoluteMultiPath = subPath && clonePath(subPath)
+                    .map((x,i) => onlySubpath 
+                    ? (i ? reversePath(x) : parsePathString(x))
+                    : reversePath(x))
 
-    let path = transformPath(
-      this.segments,   // the pathArray
-      transformObject, // transform functions object, now includes the transform origin
-      this.round)      // decimals option
+  path = subPath ? [].concat.apply([], absoluteMultiPath) 
+        : onlySubpath ? this.segments : reversePath(this.segments)
 
-    this.segments = clonePath(path)
-    return this
+  this.segments = clonePath(path)
+  return this
+}
+SVGPCProto.normalize = function(){
+  let path = normalizePath(this.segments,this.round)
+  this.segments = clonePath(path)
+  return this
+}
+SVGPCProto.optimize = function(){
+  let path = optimizePath(this.segments,this.round)
+  this.segments = clonePath(path)
+  return this
+}
+SVGPCProto.transform = function(transformObject){
+  transformObject = transformObject || {}
+  if (!transformObject.origin) {
+    let BBox = getPathBBox(this.segments)
+    transformObject.origin = [BBox.cx,BBox.cy,BBox.cx]
   }
-  flipX(){
-    this.transform({rotate:[180,0,0]})
-    return this
-  }
-  flipY(){
-    this.transform({rotate:[0,180,0]})
-    return this
-  }
-  toString(){
-    return pathToString(this.segments)
-  }
+
+  let path = transformPath(
+    this.segments,   // the pathArray
+    transformObject, // transform functions object, now includes the transform origin
+    this.round)      // decimals option
+
+  this.segments = clonePath(path)
+  return this
+}
+SVGPCProto.flipX = function(){
+  this.transform({rotate:[180,0,0]})
+  return this
+}
+SVGPCProto.flipY = function(){
+  this.transform({rotate:[0,180,0]})
+  return this
+}
+SVGPCProto.toString = function(){
+  return pathToString(this.segments)
 }

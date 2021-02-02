@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.1 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.2 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -162,7 +162,26 @@
     return args && args.length && this.setMatrixValue(args)
   };
   var prototypeAccessors = { isIdentity: { configurable: true },is2D: { configurable: true } };
-  CSSMatrix.prototype.setMatrixValue = function setMatrixValue (source){
+  prototypeAccessors.isIdentity.get = function (){
+    var m = this;
+    return (m.m11 == 1 && m.m12 == 0 && m.m13 == 0 && m.m14 == 0 &&
+            m.m21 == 0 && m.m22 == 1 && m.m23 == 0 && m.m24 == 0 &&
+            m.m31 == 0 && m.m32 == 0 && m.m33 == 1 && m.m34 == 0 &&
+            m.m41 == 0 && m.m42 == 0 && m.m43 == 0 && m.m44 == 1)
+  };
+  prototypeAccessors.isIdentity.set = function (value){
+    this.isIdentity = value;
+  };
+  prototypeAccessors.is2D.get = function (){
+    var m = this;
+    return (m.m31 == 0 && m.m32 == 0 && m.m33 == 1 && m.m34 == 0 && m.m43 == 0 && m.m44 == 1)
+  };
+  prototypeAccessors.is2D.set = function (value){
+    this.is2D = value;
+  };
+  Object.defineProperties( CSSMatrix.prototype, prototypeAccessors );
+  var CSSMatrixProto = CSSMatrix.prototype;
+  CSSMatrixProto.setMatrixValue = function (source){
     var m = this;
     if (!source || !source.length) {
       return m
@@ -186,11 +205,11 @@
     }
     return m
   };
-  CSSMatrix.prototype.toString = function toString (){
+  CSSMatrixProto.toString = function(){
     var m = this, type = m.is2D ? 'matrix' : 'matrix3d';
     return (type + "(" + (m.toArray(1).join(',')) + ")")
   };
-  CSSMatrix.prototype.toArray = function toArray (transposed){
+  CSSMatrixProto.toArray = function(transposed){
     var m = this;
     return m.is2D ? [ m.a, m.b, m.c, m.d, m.e, m.f ]
       : transposed
@@ -203,58 +222,41 @@
         m.m13, m.m23, m.m33, m.m43,
         m.m14, m.m24, m.m34, m.m44]
   };
-  CSSMatrix.prototype.multiply = function multiply (m2){
+  CSSMatrixProto.multiply = function(m2){
     return Multiply(this,m2)
   };
-  CSSMatrix.prototype.translate = function translate (x, y, z){
+  CSSMatrixProto.translate = function(x, y, z){
     if (z == null) { z = 0; }
     if (y == null) { y = 0; }
     return Multiply(this,Translate(x, y, z))
   };
-  CSSMatrix.prototype.scale = function scale (x, y, z){
+  CSSMatrixProto.scale = function(x, y, z){
     if (y == null) { y = x; }
     if (z == null) { z = x; }
     return Multiply(this,Scale(x, y, z))
   };
-  CSSMatrix.prototype.rotate = function rotate (rx, ry, rz){
+  CSSMatrixProto.rotate = function(rx, ry, rz){
     if (ry == null) { ry = 0; }
     if (rz == null) {rz = rx; rx = 0;}
     return Multiply(this,Rotate(rx, ry, rz))
   };
-  CSSMatrix.prototype.rotateAxisAngle = function rotateAxisAngle (x, y, z, angle){
+  CSSMatrixProto.rotateAxisAngle = function(x, y, z, angle){
     if (arguments.length!==4){
       throw new TypeError("CSSMatrix: expecting 4 values")
     }
     return Multiply(this,RotateAxisAngle(x, y, z, angle))
   };
-  CSSMatrix.prototype.skewX = function skewX (angle){
+  CSSMatrixProto.skewX = function(angle){
     return Multiply(this,SkewX(angle))
   };
-  CSSMatrix.prototype.skewY = function skewY (angle){
+  CSSMatrixProto.skewY = function(angle){
     return Multiply(this,SkewY(angle))
   };
-  CSSMatrix.prototype.setIdentity = function setIdentity (){
+  CSSMatrixProto.setIdentity = function(){
     var identity = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
     return feedFromArray(this,identity)
   };
-  prototypeAccessors.isIdentity.get = function (){
-    var m = this;
-    return (m.m11 == 1 && m.m12 == 0 && m.m13 == 0 && m.m14 == 0 &&
-            m.m21 == 0 && m.m22 == 1 && m.m23 == 0 && m.m24 == 0 &&
-            m.m31 == 0 && m.m32 == 0 && m.m33 == 1 && m.m34 == 0 &&
-            m.m41 == 0 && m.m42 == 0 && m.m43 == 0 && m.m44 == 1)
-  };
-  prototypeAccessors.isIdentity.set = function (value){
-    this.isIdentity = value;
-  };
-  prototypeAccessors.is2D.get = function (){
-    var m = this;
-    return (m.m31 == 0 && m.m32 == 0 && m.m33 == 1 && m.m34 == 0 && m.m43 == 0 && m.m44 == 1)
-  };
-  prototypeAccessors.is2D.set = function (value){
-    this.is2D = value;
-  };
-  CSSMatrix.prototype.transformPoint = function transformPoint (v){
+  CSSMatrixProto.transformPoint = function(v){
     var _m = this, m = Translate(v.x, v.y, v.z);
     m.m44 = v.w || 1;
     m = _m.multiply(m);
@@ -265,20 +267,19 @@
       w: m.m44
     }
   };
-  CSSMatrix.prototype.transform = function transform (t){
-  		var m = this,
+  CSSMatrixProto.transform = function(t){
+    var m = this,
         x = m.m11 * t.x + m.m12 * t.y + m.m13 * t.z + m.m14 * t.w,
         y = m.m21 * t.x + m.m22 * t.y + m.m23 * t.z + m.m24 * t.w,
         z = m.m31 * t.x + m.m32 * t.y + m.m33 * t.z + m.m34 * t.w,
         w = m.m41 * t.x + m.m42 * t.y + m.m43 * t.z + m.m44 * t.w;
-  		return {
+    return {
       x: x / w,
       y: y / w,
       z: z / w,
       w : w
     }
   };
-  Object.defineProperties( CSSMatrix.prototype, prototypeAccessors );
   CSSMatrix.Translate = Translate;
   CSSMatrix.Rotate = Rotate;
   CSSMatrix.RotateAxisAngle = RotateAxisAngle;
@@ -578,7 +579,7 @@
     if (isAbsoluteArray(pathArray)) {
       return clonePath(pathArray)
     }
-    pathArray = parsePathString(pathArray);
+    pathArray = parsePathString(pathArray,round);
     var resultArray = [],
         x = 0, y = 0, mx = 0, my = 0,
         start = 0, ii = pathArray.length,
@@ -847,7 +848,7 @@
     if (isCurveArray(pathArray)){
       return clonePath(pathArray)
     }
-    pathArray = normalizePath(pathArray);
+    pathArray = normalizePath(pathArray,round);
     var params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
         allPathCommands = [], pathCommand = '',
         ii = pathArray.length, segment, seglen;
@@ -872,9 +873,9 @@
              + y1 * (x0 - x2) - x1 * (y0 - y2)
              + y3 * (x2 + x0 / 3) - x3 * (y2 + y0 / 3)) / 20;
   }
-  function getPathArea(pathArray) {
+  function getPathArea(pathArray,round) {
     var x = 0, y = 0, mx = 0, my = 0, len = 0;
-    return pathToCurve(pathArray).map(function (seg) {
+    return pathToCurve(pathArray,round).map(function (seg) {
       var assign;
       switch (seg[0]){
         case 'M':
@@ -912,21 +913,21 @@
     return z2 * sum
   }
 
-  function getPathLength(pathArray){
+  function getPathLength(pathArray,round){
     var totalLength = 0;
-    pathToCurve(pathArray).map(function (s,i,curveArray) {
+    pathToCurve(pathArray,round).map(function (s,i,curveArray) {
       totalLength += 'M' !== s[0] ? getSegCubicLength.apply(0, curveArray[i-1].slice(-2).concat(s.slice(1)) ) : 0;
     });
     return totalLength
   }
 
-  function getDrawDirection(pathArray) {
-    return getPathArea(pathToCurve(pathArray)) >= 0
+  function getDrawDirection(pathArray,round) {
+    return getPathArea(pathToCurve(pathArray,round)) >= 0
   }
 
   function getPointAtLength(pathArray,length){
     var totalLength = 0, segLen, data;
-    return pathToCurve(pathArray).map(function (seg,i,curveArray) {
+    return pathToCurve(pathArray,9).map(function (seg,i,curveArray) {
       data = i ? curveArray[i-1].slice(-2).concat(seg.slice(1)) : seg.slice(1);
       segLen = i ? getSegCubicLength.apply(0, data) : 0;
       totalLength += segLen;
@@ -980,11 +981,11 @@
     }
   }
 
-  function getPathBBox(pathArray) {
+  function getPathBBox(pathArray,round) {
     if (!pathArray) {
       return {x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0};
     }
-    pathArray = pathToCurve(pathArray);
+    pathArray = pathToCurve(pathArray,round);
     var x = 0, y = 0, X = [], Y = [];
     pathArray.map(function (segment){
       if (segment[0] === "M") {
@@ -1032,7 +1033,7 @@
     if (isRelativeArray(pathArray)){
       return clonePath(pathArray)
     }
-    pathArray = parsePathString(pathArray);
+    pathArray = parsePathString(pathArray,round);
     var resultArray = [], segLength = 0,
         x = 0, y = 0, mx = 0, my = 0,
         segment = [], pathCommand = '', relativeSegment = [],
@@ -1402,17 +1403,18 @@
     this.pathValue = pathValue;
     return this
   };
-  SVGPathCommander.prototype.toAbsolute = function toAbsolute (){
+  var SVGPCProto = SVGPathCommander.prototype;
+  SVGPCProto.toAbsolute = function(){
     var path = pathToAbsolute(this.segments,this.round);
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.toRelative = function toRelative (){
+  SVGPCProto.toRelative = function(){
     var path = pathToRelative(this.segments,this.round);
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.reverse = function reverse (onlySubpath){
+  SVGPCProto.reverse = function(onlySubpath){
     this.toAbsolute();
     var subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString()),
         absoluteMultiPath, path;
@@ -1425,17 +1427,17 @@
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.normalize = function normalize (){
+  SVGPCProto.normalize = function(){
     var path = normalizePath(this.segments,this.round);
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.optimize = function optimize (){
+  SVGPCProto.optimize = function(){
     var path = optimizePath(this.segments,this.round);
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.transform = function transform (transformObject){
+  SVGPCProto.transform = function(transformObject){
     transformObject = transformObject || {};
     if (!transformObject.origin) {
       var BBox = getPathBBox(this.segments);
@@ -1448,15 +1450,15 @@
     this.segments = clonePath(path);
     return this
   };
-  SVGPathCommander.prototype.flipX = function flipX (){
+  SVGPCProto.flipX = function(){
     this.transform({rotate:[180,0,0]});
     return this
   };
-  SVGPathCommander.prototype.flipY = function flipY (){
+  SVGPCProto.flipY = function(){
     this.transform({rotate:[0,180,0]});
     return this
   };
-  SVGPathCommander.prototype.toString = function toString (){
+  SVGPCProto.toString = function(){
     return pathToString(this.segments)
   };
 

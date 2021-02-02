@@ -1,11 +1,11 @@
 import getCubicSize from './getCubicSize.js'
 import pathToCurve from '../convert/pathToCurve.js';
 
-export default function(pathArray) {
+export default function(pathArray,round) {
   if (!pathArray) {
     return {x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0};
   }
-  pathArray = pathToCurve(pathArray)
+  pathArray = pathToCurve(pathArray,round)
 
   let x = 0, y = 0, X = [], Y = []
 

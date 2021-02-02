@@ -10,9 +10,9 @@ function getCubicSegArea(x0,y0, x1,y1, x2,y2, x3,y3) {
            + y3 * (x2 + x0 / 3) - x3 * (y2 + y0 / 3)) / 20;
 }
 
-export default function(pathArray) {
+export default function(pathArray,round) {
   let x = 0, y = 0, mx = 0, my = 0, len = 0
-  return pathToCurve(pathArray).map(seg => {
+  return pathToCurve(pathArray,round).map(seg => {
     switch (seg[0]){
       case 'M':
       case 'Z':

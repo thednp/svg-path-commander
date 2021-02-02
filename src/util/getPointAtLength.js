@@ -6,7 +6,7 @@ import pathToCurve from '../convert/pathToCurve.js'
 // almost equivalent to shape.getTotalLength()
 export default function(pathArray,length){
   let totalLength = 0, segLen, data
-  return pathToCurve(pathArray).map((seg,i,curveArray) => { // process data
+  return pathToCurve(pathArray,9).map((seg,i,curveArray) => { // process data
     data = i ? curveArray[i-1].slice(-2).concat(seg.slice(1)) : seg.slice(1)
     segLen = i ? getSegCubicLength.apply(0, data) : 0
     totalLength += segLen

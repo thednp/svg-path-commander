@@ -10,7 +10,7 @@ export default function(pathArray,round) { // pathArray|pathString
     return clonePath(pathArray)
   }
 
-  pathArray = normalizePath(pathArray)
+  pathArray = normalizePath(pathArray,round)
   
   let params = {x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null},
       allPathCommands = [], pathCommand = '',

@@ -7,7 +7,7 @@ export default function(pathArray,round) {
   if (isAbsoluteArray(pathArray)) {
     return clonePath(pathArray)
   }
-  pathArray = parsePathString(pathArray)
+  pathArray = parsePathString(pathArray,round)
 
   let resultArray = [], 
       x = 0, y = 0, mx = 0, my = 0, 
