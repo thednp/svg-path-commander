@@ -1,5 +1,5 @@
-import CSSMatrix from 'dommatrix/src/index.js'
+import CSSMatrix from 'dommatrix/src/index.js';
 
-let CSS3Matrix = typeof DOMMatrix !== 'undefined' ? DOMMatrix : CSSMatrix
+const CSS3Matrix = typeof DOMMatrix !== 'undefined' ? DOMMatrix : CSSMatrix;
 
-export default CSS3Matrix
+export default CSS3Matrix;

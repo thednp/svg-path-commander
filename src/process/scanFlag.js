@@ -1,17 +1,17 @@
-import invalidPathValue from '../util/invalidPathValue.js'
+import invalidPathValue from '../util/invalidPathValue.js';
 
-export default function(state) {
-  let ch = state.pathValue.charCodeAt(state.index);
+export default function scanFlag(state) {
+  const ch = state.pathValue.charCodeAt(state.index);
 
   if (ch === 0x30/* 0 */) {
     state.param = 0;
-    state.index++;
+    state.index += 1;
     return;
   }
 
   if (ch === 0x31/* 1 */) {
     state.param = 1;
-    state.index++;
+    state.index += 1;
     return;
   }
 

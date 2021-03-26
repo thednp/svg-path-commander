@@ -25,7 +25,7 @@
       </p>
     </div>
     <div class="col p-0">
-      <p class="text-right">2020 &copy; <a href="https://github.com/thednp">thednp</a></p>
+      <p class="text-right">2021 &copy; <a href="https://github.com/thednp">thednp</a></p>
     </div>
   </div>
   <hr>
@@ -96,7 +96,7 @@
       <p class="d-none d-md-block"><b>Test</b></p>
       <div class="text-center">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-          <path d="M0 0L0 0" fill="rgba(125,125,125,0.3)">
+          <path d="M0 0L0 0" fill="rgba(125,125,125,0.3)"></path>
           <!-- <path d="M0 0L0 0" stroke="orange" stroke-width="2" fill="transparent"> -->
           <!-- <glyph d="M0 0L0 0" fill="cyan"> -->
         </svg>
@@ -159,7 +159,6 @@
       outputTextArea.style.height = ''
       outputTextArea.value = pv;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
-
     }
 
     function toNormal() { // normalize
@@ -174,8 +173,11 @@
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
+    // inputTextArea.value = shapes[2];
+
     function toAbs() { // To absolute coordinates
       pathValue = inputTextArea.value || pathValue
+
       var absPath = new SVGPathCommander( pathValue ).toAbsolute().toString();
 
       path.setAttribute('d', absPath);

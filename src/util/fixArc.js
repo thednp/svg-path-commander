@@ -1,10 +1,15 @@
-export default function(pathArray, allPathCommands, i) {
+export default function fixArc(pathArray, allPathCommands, i) {
   if (pathArray[i].length > 7) {
     pathArray[i].shift();
-    let pi = pathArray[i];
+    const pi = pathArray[i];
+    // const ni = i + 1;
+    let ni = i;
     while (pi.length) {
-      allPathCommands[i] = "A"; // if created multiple C:s, their original seg is saved
-      pathArray.splice(i++, 0, ["C"].concat(pi.splice(0, 6)));
+      // if created multiple C:s, their original seg is saved
+      allPathCommands[i] = 'A';
+      pathArray.splice(ni += 1, 0, ['C'].concat(pi.splice(0, 6)));
+      // pathArray.splice(i += 1, 0, ['C'].concat(pi.splice(0, 6)));
+      // pathArray.splice(i++, 0, ['C'].concat(pi.splice(0, 6)));
     }
     pathArray.splice(i, 1);
   }

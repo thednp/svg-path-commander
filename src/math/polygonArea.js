@@ -1,13 +1,14 @@
 // d3-polygon area
 
-export default function(polygon) {
-  var i = -1,
-      n = polygon.length,
-      a,
-      b = polygon[n - 1],
-      area = 0;
+export default function polygonArea(polygon) {
+  let i = -1;
+  const n = polygon.length;
+  let a;
+  let b = polygon[n - 1];
+  let area = 0;
 
-  while (++i < n) {
+  while (i < n) {
+    i += 1;
     a = b;
     b = polygon[i];
     area += a[1] * b[0] - a[0] * b[1];

@@ -1,4 +1,5 @@
-export default function(a, b, t) {
-  let ax = a[0], ay = a[1], bx = b[0], by = b[1]
-  return [ ax + (bx - ax) * t, ay + (by - ay) * t];
+export default function midPoint(a, b, t) {
+  const ax = a[0]; const ay = a[1]; const bx = b[0]; const
+    by = b[1];
+  return [ax + (bx - ax) * t, ay + (by - ay) * t];
 }

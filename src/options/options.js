@@ -1,5 +1,5 @@
 export default {
-  origin:null,
-  decimals:3,
-  round:1
-}
+  origin: null,
+  decimals: 4,
+  round: 1,
+};

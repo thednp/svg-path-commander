@@ -1,78 +1,93 @@
-import parsePathString from '../process/parsePathString.js'
-import roundPath from '../process/roundPath.js'
-import clonePath from '../process/clonePath.js'
-import isAbsoluteArray from '../util/isAbsoluteArray.js'
+import parsePathString from '../process/parsePathString.js';
+import roundPath from '../process/roundPath.js';
+import clonePath from '../process/clonePath.js';
+import isAbsoluteArray from '../util/isAbsoluteArray.js';
 
-export default function(pathArray,round) {
-  if (isAbsoluteArray(pathArray)) {
-    return clonePath(pathArray)
+export default function pathToAbsolute(pathInput, round) {
+  if (isAbsoluteArray(pathInput)) {
+    return clonePath(pathInput);
   }
-  pathArray = parsePathString(pathArray,round)
 
-  let resultArray = [], 
-      x = 0, y = 0, mx = 0, my = 0, 
-      start = 0, ii = pathArray.length,
-      pathCommand = '', segment = [], segLength = 0,
-      absoluteSegment = []
+  const pathArray = parsePathString(pathInput, round);
+  const ii = pathArray.length;
+  const resultArray = [];
+  let x = 0;
+  let y = 0;
+  let mx = 0;
+  let my = 0;
+  let start = 0;
 
-  if (pathArray[0][0] === "M") {
+  if (pathArray[0][0] === 'M') {
     x = +pathArray[0][1];
     y = +pathArray[0][2];
     mx = x;
     my = y;
-    start++;
-    resultArray[0] = ["M", x, y];
+    start += 1;
+    resultArray.push(['M', x, y]);
   }
 
-  for (let i = start; i < ii; i++) {
-    segment = pathArray[i]
-    pathCommand = segment[0]
+  for (let i = start; i < ii; i += 1) {
+    const segment = pathArray[i];
+    const [pathCommand] = segment;
+    const absCommand = pathCommand.toUpperCase();
+    const absoluteSegment = [];
+    let newSeg = [];
+    resultArray.push(absoluteSegment);
 
-    resultArray.push(absoluteSegment = []);
+    if (pathCommand !== absCommand) {
+      absoluteSegment[0] = absCommand;
 
-    if (pathCommand !== pathCommand.toUpperCase()) {
-      absoluteSegment[0] = pathCommand.toUpperCase();
-      switch (absoluteSegment[0]) {
-        case "A":
-          segment.slice(1,-2)
-                 .concat([+segment[6] + x, +segment[7] + y])
-                 .map(s=>absoluteSegment.push(s))
+      switch (absCommand) {
+        case 'A':
+          newSeg = segment.slice(1, -2).concat([+segment[6] + x, +segment[7] + y]);
+          for (let j = 0; j < newSeg.length; j += 1) {
+            absoluteSegment.push(newSeg[j]);
+          }
           break;
-        case "V":
+        case 'V':
           absoluteSegment[1] = +segment[1] + y;
           break;
-        case "H":
+        case 'H':
           absoluteSegment[1] = +segment[1] + x;
           break;
-        case "M":
-          mx = +segment[1] + x;
-          my = +segment[2] + y;
         default:
-          segment.map((s,j)=>j && absoluteSegment.push(+s + ((j % 2) ? x : y)))
+          if (absCommand === 'M') {
+            mx = +segment[1] + x;
+            my = +segment[2] + y;
+          }
+          // for is here to stay for eslint
+          for (let j = 1; j < segment.length; j += 1) {
+            absoluteSegment.push(+segment[j] + (j % 2 ? x : y));
+          }
       }
     } else {
-      segment.map(k=>absoluteSegment.push(k))
+      for (let j = 0; j < segment.length; j += 1) {
+        absoluteSegment.push(segment[j]);
+      }
     }
 
-    segLength = absoluteSegment.length
-    switch (absoluteSegment[0]) {
-      case "Z":
+    const segLength = absoluteSegment.length;
+    switch (absCommand) {
+      case 'Z':
         x = mx;
         y = my;
         break;
-      case "H":
+      case 'H':
         x = +absoluteSegment[1];
         break;
-      case "V":
+      case 'V':
         y = +absoluteSegment[1];
         break;
-      case "M":
-        mx = +absoluteSegment[segLength - 2];
-        my = +absoluteSegment[segLength - 1];
       default:
         x = +absoluteSegment[segLength - 2];
         y = +absoluteSegment[segLength - 1];
+
+        if (absCommand === 'M') {
+          mx = x;
+          my = y;
+        }
     }
   }
-  return roundPath(resultArray,round)
+
+  return roundPath(resultArray, round);
 }

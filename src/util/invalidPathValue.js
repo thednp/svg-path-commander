@@ -1,1 +1,1 @@
-export default 'Invalid path value'
+export default 'Invalid path value';

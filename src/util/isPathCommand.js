@@ -1,5 +1,5 @@
-export default function(code) {
-  /*eslint-disable no-bitwise*/
+export default function isPathCommand(code) {
+  // eslint-disable no-bitwise
   switch (code | 0x20) {
     case 0x6D/* m */:
     case 0x7A/* z */:
@@ -13,6 +13,7 @@ export default function(code) {
     case 0x61/* a */:
     case 0x72/* r */:
       return true;
+    default:
+      return false;
   }
-  return false;
 }

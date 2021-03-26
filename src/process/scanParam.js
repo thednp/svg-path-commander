@@ -1,15 +1,15 @@
-import isDigit from '../util/isDigit.js'
-import invalidPathValue from '../util/invalidPathValue.js'
+import isDigit from '../util/isDigit.js';
+import invalidPathValue from '../util/invalidPathValue.js';
 
-export default function(state) {
-  let start = state.index,
-      index = start,
-      max = state.max,
-      zeroFirst = false,
-      hasCeiling = false,
-      hasDecimal = false,
-      hasDot = false,
-      ch;
+export default function scanParam(state) {
+  const start = state.index;
+  let index = start;
+  const { max } = state;
+  let zeroFirst = false;
+  let hasCeiling = false;
+  let hasDecimal = false;
+  let hasDot = false;
+  let ch;
 
   if (index >= max) {
     // state.err = 'SvgPath: missed param (at pos ' + index + ')';
@@ -19,7 +19,7 @@ export default function(state) {
   ch = state.pathValue.charCodeAt(index);
 
   if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
-    index++;
+    index += 1;
     ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
   }
 
@@ -27,27 +27,28 @@ export default function(state) {
   // https://github.com/ariya/esprimas
   if (!isDigit(ch) && ch !== 0x2E/* . */) {
     // state.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
-    state.err = `${invalidPathValue}: ${state.pathValue[index]} not number`;
+    state.err = `${invalidPathValue} at index ${index}: ${state.pathValue[index]} is not a number`;
     return;
   }
 
   if (ch !== 0x2E/* . */) {
     zeroFirst = (ch === 0x30/* 0 */);
-    index++;
+    index += 1;
 
     ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
 
     if (zeroFirst && index < max) {
       // decimal number starts with '0' such as '09' is illegal.
       if (ch && isDigit(ch)) {
-        // state.err = 'SvgPath: numbers started with `0` such as `09` are illegal (at pos ' + start + ')';
+        // state.err = 'SvgPath: numbers started with `0` such as `09`
+        // are illegal (at pos ' + start + ')';
         state.err = `${invalidPathValue}: ${state.pathValue[start]} illegal number`;
         return;
       }
     }
 
     while (index < max && isDigit(state.pathValue.charCodeAt(index))) {
-      index++;
+      index += 1;
       hasCeiling = true;
     }
     ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
@@ -55,9 +56,9 @@ export default function(state) {
 
   if (ch === 0x2E/* . */) {
     hasDot = true;
-    index++;
+    index += 1;
     while (isDigit(state.pathValue.charCodeAt(index))) {
-      index++;
+      index += 1;
       hasDecimal = true;
     }
     ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
@@ -70,15 +71,15 @@ export default function(state) {
       return;
     }
 
-    index++;
+    index += 1;
 
     ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
     if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
-      index++;
+      index += 1;
     }
     if (index < max && isDigit(state.pathValue.charCodeAt(index))) {
       while (index < max && isDigit(state.pathValue.charCodeAt(index))) {
-        index++;
+        index += 1;
       }
     } else {
       // state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
@@ -87,6 +88,6 @@ export default function(state) {
     }
   }
 
-  state.index = index
-  state.param = +state.pathValue.slice(start, index)
+  state.index = index;
+  state.param = +state.pathValue.slice(start, index);
 }

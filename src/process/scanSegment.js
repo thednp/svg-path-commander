@@ -1,42 +1,44 @@
-import finalizeSegment from './finalizeSegment.js'
-import paramCounts from '../util/paramsCount.js'
-import scanFlag from './scanFlag.js'
-import scanParam from './scanParam.js'
-import skipSpaces from './skipSpaces.js'
-import isPathCommand from '../util/isPathCommand.js'
-import isDigitStart from '../util/isDigitStart.js'
-import isArcCommand from '../util/isArcCommand.js'
-import invalidPathValue from '../util/invalidPathValue.js'
+import finalizeSegment from './finalizeSegment.js';
+import paramCounts from '../util/paramsCount.js';
+import scanFlag from './scanFlag.js';
+import scanParam from './scanParam.js';
+import skipSpaces from './skipSpaces.js';
+import isPathCommand from '../util/isPathCommand.js';
+import isDigitStart from '../util/isDigitStart.js';
+import isArcCommand from '../util/isArcCommand.js';
+import invalidPathValue from '../util/invalidPathValue.js';
 
-export default function(state) {
-  let max = state.max, cmdCode, comma_found, need_params, i;
+export default function scanSegment(state) {
+  const { max } = state;
+  const cmdCode = state.pathValue.charCodeAt(state.index);
+  const reqParams = paramCounts[state.pathValue[state.index].toLowerCase()];
+  // let hasComma;
 
   state.segmentStart = state.index;
-  cmdCode = state.pathValue.charCodeAt(state.index);
 
   if (!isPathCommand(cmdCode)) {
-    // state.err = 'SvgPath: bad command ' + state.pathValue[state.index] + ' (at pos ' + state.index + ')';
+    // state.err = 'SvgPath: bad command '
+    // + state.pathValue[state.index]
+    // + ' (at pos ' + state.index + ')';
     state.err = `${invalidPathValue}: ${state.pathValue[state.index]} not a path command`;
     return;
   }
 
-  need_params = paramCounts[state.pathValue[state.index].toLowerCase()];
-
-  state.index++;
+  state.index += 1;
   skipSpaces(state);
 
   state.data = [];
 
-  if (!need_params) {
+  if (!reqParams) {
     // Z
     finalizeSegment(state);
     return;
   }
 
-  comma_found = false;
+  // hasComma = false;
 
   for (;;) {
-    for (i = need_params; i > 0; i--) {
+    for (let i = reqParams; i > 0; i -= 1) {
       if (isArcCommand(cmdCode) && (i === 3 || i === 4)) scanFlag(state);
       else scanParam(state);
 
@@ -46,19 +48,19 @@ export default function(state) {
       state.data.push(state.param);
 
       skipSpaces(state);
-      comma_found = false;
+      // hasComma = false;
 
       if (state.index < max && state.pathValue.charCodeAt(state.index) === 0x2C/* , */) {
-        state.index++;
+        state.index += 1;
         skipSpaces(state);
-        comma_found = true;
+        // hasComma = true;
       }
     }
 
     // after ',' param is mandatory
-    if (comma_found) {
-      continue;
-    }
+    // if (hasComma) {
+    //   continue;
+    // }
 
     if (state.index >= state.max) {
       break;
