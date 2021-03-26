@@ -892,8 +892,8 @@
 
   function scanParam(state) {
     var start = state.index;
-    var index = start;
     var max = state.max;
+    var index = start;
     var zeroFirst = false;
     var hasCeiling = false;
     var hasDecimal = false;
@@ -1245,10 +1245,6 @@
   }
 
   function normalizeSegment(segment, params, prevCommand) {
-    // let nqxy;
-    // let nxy;
-    // let qx;
-    // let qy;
     var pathCommand = segment[0];
     var xy = segment.slice(1);
     var result = segment;
@@ -1258,20 +1254,6 @@
       params.qx = null;
       params.qy = null;
     }
-
-    // switch (segment[0]) {
-    //   case 'H':
-    //   case 'V':
-    //   case 'S':
-
-    //   case 'T':
-
-    //   case 'Q':
-
-    //     // break // don't remove or leave it last !!
-    //   default:
-    //     return segment;
-    // }
 
     if (pathCommand === 'H') {
       result = ['L', segment[1], params.y1];
@@ -1488,8 +1470,10 @@
   }
 
   function midPoint(a, b, t) {
-    var ax = a[0]; var ay = a[1]; var bx = b[0]; var
-      by = b[1];
+    var ax = a[0];
+    var ay = a[1];
+    var bx = b[0];
+    var by = b[1];
     return [ax + (bx - ax) * t, ay + (by - ay) * t];
   }
 

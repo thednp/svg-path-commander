@@ -1,8 +1,8 @@
 // d3-polygon area
 
 export default function polygonArea(polygon) {
-  let i = -1;
   const n = polygon.length;
+  let i = -1;
   let a;
   let b = polygon[n - 1];
   let area = 0;

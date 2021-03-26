@@ -3,8 +3,8 @@ import invalidPathValue from '../util/invalidPathValue.js';
 
 export default function scanParam(state) {
   const start = state.index;
-  let index = start;
   const { max } = state;
+  let index = start;
   let zeroFirst = false;
   let hasCeiling = false;
   let hasDecimal = false;

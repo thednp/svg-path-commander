@@ -2,10 +2,6 @@ import shorthandToQuad from './shorthandToQuad.js';
 import shorthandToCubic from './shorthandToCubic.js';
 
 export default function normalizeSegment(segment, params, prevCommand) {
-  // let nqxy;
-  // let nxy;
-  // let qx;
-  // let qy;
   const [pathCommand] = segment;
   const xy = segment.slice(1);
   let result = segment;
@@ -15,20 +11,6 @@ export default function normalizeSegment(segment, params, prevCommand) {
     params.qx = null;
     params.qy = null;
   }
-
-  // switch (segment[0]) {
-  //   case 'H':
-  //   case 'V':
-  //   case 'S':
-
-  //   case 'T':
-
-  //   case 'Q':
-
-  //     // break // don't remove or leave it last !!
-  //   default:
-  //     return segment;
-  // }
 
   if (pathCommand === 'H') {
     result = ['L', segment[1], params.y1];
