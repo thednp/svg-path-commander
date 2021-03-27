@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.3-alpha1 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.3-alpha2 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -503,8 +503,9 @@
     if (!source || !source.length) { // no parameters or source
       return m;
     } if (source.length && typeof source[0] === 'string' && source[0].length) { // CSS transform String source
-      var string = String(source[0]).trim(); var type = ''; var
-        values = [];
+      var string = String(source[0]).trim();
+      var type = '';
+      var values = [];
 
       if (string === 'none') { return m; }
 
@@ -610,10 +611,10 @@
 
   CSSMatrixProto.translate = function translate(x, y, z) {
     var X = x;
-    var Y;
-    var Z;
-    if (z === null) { Z = 0; }
-    if (y === null) { Y = 0; }
+    var Y = y;
+    var Z = z;
+    if (Z == null) { Z = 0; }
+    if (Y == null) { Y = 0; }
     return Multiply(this, Translate(X, Y, Z));
   };
 
@@ -628,13 +629,12 @@
    * @param {number=} z The Z component of the scale value.
    * @return {CSSMatrix} The result matrix
    */
-
   CSSMatrixProto.scale = function scale(x, y, z) {
     var X = x;
-    var Y;
-    var Z;
-    if (z === null) { Z = x; }
-    if (y === null) { Y = x; }
+    var Y = y;
+    var Z = z;
+    if (Y == null) { Y = x; }
+    if (Z == null) { Z = x; }
 
     return Multiply(this, Scale(X, Y, Z));
   };
@@ -651,13 +651,12 @@
    * @param {number=} rz The (optional) Z component of the rotation value.
    * @return {CSSMatrix} The result matrix
    */
-
   CSSMatrixProto.rotate = function rotate(rx, ry, rz) {
     var RX = rx;
-    var RY;
-    var RZ;
-    if (ry === null) { RY = 0; }
-    if (rz === null) { RZ = rx; RX = 0; }
+    var RY = ry;
+    var RZ = rz;
+    if (RY == null) { RY = 0; }
+    if (RZ == null) { RZ = RX; RX = 0; }
     return Multiply(this, Rotate(RX, RY, RZ));
   };
 
