@@ -37,6 +37,16 @@ For developer guidelines, head over to the [wiki pages](https://github.com/thedn
 * animators that work with SVGs and need tools for performing specific path command processing;
 * font-icon creators can use it in both Node.js and web applications to process and test their creations.
 
+# ESLint
+Some of the sources for the library recommend using the following ESLint rule:
+
+```js
+rules: {
+  // Disable bitwise for isArcCommand & isPathCommand
+  "no-bitwise": 0,
+}
+```
+
 
 # Technical Considerations
 
