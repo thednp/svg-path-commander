@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.3-alpha2 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.3-alpha3 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1371,8 +1371,8 @@ function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recursive) {
     cx = ((k * RX * y) / RY) + ((X1 + X2) / 2);
     cy = ((k * -RY * x) / RX) + ((Y1 + Y2) / 2);
 
-    f1 = Math.asin(((Y1 - cy) / RY).toFixed(9)); // keep toFIxed(9)!
-    f2 = Math.asin(((Y2 - cy) / RY).toFixed(9));
+    f1 = (Math.asin(((Y1 - cy) / RY) * Math.pow( 10, 9 ) >> 0) / Math.pow( 10, 9 ));
+    f2 = (Math.asin(((Y2 - cy) / RY) * Math.pow( 10, 9 ) >> 0) / Math.pow( 10, 9 ));
 
     f1 = X1 < cx ? Math.PI - f1 : f1;
     f2 = X2 < cx ? Math.PI - f2 : f2;
