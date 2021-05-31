@@ -31,9 +31,12 @@ const OUTPUT = {
 
 const PLUGINS = [ 
   node({mainFields: ['jsnext','module'], dedupe: ['dommatrix']}),
-  json(), 
-  buble(),
+  json()
 ];
+
+if (FORMAT!=='esm'){
+  PLUGINS.push(buble());
+}
 
 if (MIN){
   PLUGINS.push(terser({output: {preamble: miniBannerJS}}));

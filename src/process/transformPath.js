@@ -14,6 +14,7 @@ export default function transformPath(pathArray, transformObject, round) {
   const absolutePath = pathToAbsolute(pathArray);
   const normalizedPath = normalizePath(absolutePath);
   const matrixInstance = getSVGMatrix(transformObject);
+  const transformProps = Object.keys(transformObject);
   const { origin } = transformObject;
   const {
     a, b, c, d, e, f,
@@ -40,7 +41,8 @@ export default function transformPath(pathArray, transformObject, round) {
       /// ////////////////////////////////////////
       allPathCommands[i] = pathCommand;
 
-      if (pathCommand === 'A' && !matrixInstance.is2D) {
+      // Arcs don't work very well with 3D transformations or skews
+      if (pathCommand === 'A' && (!matrixInstance.is2D || !['skewX', 'skewY'].find((p) => transformProps.includes(p)))) {
         segment = segmentToCubic(normalizedPath[i], params);
 
         absolutePath[i] = segmentToCubic(normalizedPath[i], params);

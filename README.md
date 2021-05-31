@@ -27,6 +27,28 @@ This library is available on [CDN](https://www.jsdelivr.com/package/npm/svg-path
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg?style=flat-square)](http://npm-stat.com/charts.html?svg-path-commander)
 [![jsDeliver](https://data.jsdelivr.com/v1/package/npm/svg-path-commander/badge)](https://www.jsdelivr.com/package/npm/svg-path-commander)
 
+
+# Install
+
+```
+npm install svg-path-commander
+```
+
+
+# CDN
+```html
+<script src="https://cdn.jsdelivr.net/npm/svg-path-commander/dist/svg-path-commander.min.js">
+```
+
+# Quick Guide
+```js
+import SVGPathCommander from 'svg-path-commander';
+
+const path = 'M0 0 L50 100';
+
+const flippedPath = new SVGPathCommander(path).flipX().toString();
+```
+
 # WIKI
 For developer guidelines, head over to the [wiki pages](https://github.com/thednp/svg-path-commander/wiki).
 
@@ -53,7 +75,7 @@ rules: {
 * as already mentioned, the `optimize()` method will not simplify/merge the path commands or determine and create shorthand notations; you might need [SVGO](https://github.com/svg/svgo) and its `convertPathData` plugin; however, while computing path command values, the library will try to deliver the best outcome in path reverse or transformation;
 * all tools processing path segments will always round float values to 3 decimals; EG: 0.5666 => 0.566, 0.50 => 0.5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`; you can also control this feature via instance options;
 * the `getSVGMatrix` utility we developed will always compute the matrix by applying the transform functions in the following order: `translate`, `rotate`, `skew` and `scale`, which is the default composition/recomposition order specified in the W3C draft;
-* the 3d transformations will convert `A` (arc) path commands to `C` (cubic bezier) due to the lack of resources on 3D to 2D projection;
+* all 3d transformations as well as skews will convert `A` (arc) path commands to `C` (cubic bezier) due to the lack of resources on 3D to 2D projection;
 * most tools included with **SVGPathCommander** should work in your Node.js apps, but if you choose to use other complimentary 3rd party libraries, make sure you have the proper tools for them;
 * other path commands like `R` (catmulRomBezier), `O`, `U` (ellipse and shorthand ellipse) are not present in the current draft and they are not supported;
 * normalization can mean many things to many people and our library is developed to convert path command values to absolute and shorthand to non-shorthand commands to provide a solid foundation for the main processing tools of our library.
