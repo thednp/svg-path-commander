@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.3-alpha4 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -2116,6 +2116,7 @@
     var absolutePath = pathToAbsolute(pathArray);
     var normalizedPath = normalizePath(absolutePath);
     var matrixInstance = getSVGMatrix(transformObject);
+    var transformProps = Object.keys(transformObject);
     var origin = transformObject.origin;
     var a = matrixInstance.a;
     var b = matrixInstance.b;
@@ -2145,7 +2146,8 @@
         /// ////////////////////////////////////////
         allPathCommands[i] = pathCommand;
 
-        if (pathCommand === 'A' && !matrixInstance.is2D) {
+        // Arcs don't work very well with 3D transformations or skews
+        if (pathCommand === 'A' && (!matrixInstance.is2D || !['skewX', 'skewY'].find(function (p) { return transformProps.includes(p); }))) {
           segment = segmentToCubic(normalizedPath[i], params);
 
           absolutePath[i] = segmentToCubic(normalizedPath[i], params);
