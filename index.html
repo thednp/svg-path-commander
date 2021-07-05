@@ -108,6 +108,7 @@
 
 
   <script>
+    SVGPathCommander.options.decimals = 3;
 
     var pathToCurve = SVGPathCommander.pathToCurve,
         pathToString = SVGPathCommander.pathToString,
@@ -115,6 +116,7 @@
         splitPath = SVGPathCommander.splitPath,
         getPathLength = SVGPathCommander.getPathLength,
         reverseCurve = SVGPathCommander.reverseCurve,
+        optimizePath = SVGPathCommander.optimizePath,
         // splitCubicSegment = SVGPathCommander.splitCubicSegment,
         // splitCubic = SVGPathCommander.splitCubic,
         // getPathArea = SVGPathCommander.getPathArea,
@@ -143,7 +145,7 @@
     path.setAttribute('d', pathValue);
 
     function randomColor(){
-      //            green      blue       red         orange     indigo    pink       yellow
+      //             green      blue       red        orange     indigo     pink       yellow
       let colors = ['#4CAF50', '#2196F3', '#e91b1f', '#FF5722', '#9C27B0', '#ff1493', '#ffd626'], 
           rn = Math.random() * 7 >> 0;
       return colors[rn]
@@ -151,25 +153,25 @@
 
     function parse() { // Init
       pathValue = inputTextArea.value || pathValue
-      var pv = new SVGPathCommander( pathValue ).toString()
-      path.setAttribute('d', pv);
+      var pv = new SVGPathCommander( pathValue ).optimize();
+      path.setAttribute('d', pv.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       
       outputTextArea.style.height = ''
-      outputTextArea.value = pv;
+      outputTextArea.value = pv.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
     function toNormal() { // normalize
       pathValue = inputTextArea.value || pathValue
-      var nm = new SVGPathCommander( pathValue ).normalize().toString();
+      var nm = new SVGPathCommander( pathValue ).normalize();
 
-      path.setAttribute('d', nm);
+      path.setAttribute('d', nm.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
-      outputTextArea.value = nm;
+      outputTextArea.value = nm.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
@@ -178,35 +180,33 @@
     function toAbs() { // To absolute coordinates
       pathValue = inputTextArea.value || pathValue
 
-      var absPath = new SVGPathCommander( pathValue ).toAbsolute().toString();
-
-      path.setAttribute('d', absPath);
+      var absPath = new SVGPathCommander( pathValue ).toAbsolute();
+      path.setAttribute('d', absPath.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
-      outputTextArea.value = absPath;
+      outputTextArea.value = absPath.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
     function toRel() { // To relative coordinates
       pathValue = inputTextArea.value || pathValue
 
-      var relPath = new SVGPathCommander( pathValue ).toRelative().toString();
-
-      path.setAttribute('d', relPath);
+      var relPath = new SVGPathCommander( pathValue ).toRelative();
+      path.setAttribute('d', relPath.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
-      outputTextArea.value = relPath;
+      outputTextArea.value = relPath.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
     function toCurve() { // To curve coordinates
       pathValue = inputTextArea.value || pathValue
 
-      var cvInit = new SVGPathCommander(pathValue,{round:0}), cvPath
-      cvInit.segments = pathToCurve( cvInit.segments )
-      cvPath = cvInit.toString()
+      var cvInit = new SVGPathCommander(pathValue,{round:0}), cvPath;
+      cvInit.segments = pathToCurve( cvInit.segments, 3 );
+      cvPath = cvInit.toString();
 
       path.setAttribute('d', cvPath);
       path.setAttribute('fill', randomColor());
