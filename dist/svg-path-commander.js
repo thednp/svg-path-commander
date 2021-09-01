@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.4 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.5 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -2267,13 +2267,13 @@
     var roundOption = +options.round === 0 || options.round === false ? 0 : SVGPCO.round;
     var decimalsOption = roundOption && (options.decimals || SVGPCO.decimals);
     var originOption = options.origin;
-    var path = parsePathString(pathValue, this.round);
 
     // set instance options
     this.round = roundOption === 0 ? 0 : decimalsOption; // ZERO will disable rounding numbers
     this.origin = originOption && !Number.isNaN(originOption.x) && !Number.isNaN(originOption.y)
       ? originOption : null;
 
+    var path = parsePathString(pathValue, this.round);
     this.segments = clonePath(path);
     this.pathValue = pathValue;
     return this;
