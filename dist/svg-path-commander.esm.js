@@ -1,9 +1,9 @@
 /*!
-* SVGPathCommander v0.1.4 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.5 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
-var SVGPCO = {
+const SVGPCO = {
   origin: null,
   decimals: 4,
   round: 1,
@@ -2219,13 +2219,13 @@ class SVGPathCommander {
     const roundOption = +options.round === 0 || options.round === false ? 0 : SVGPCO.round;
     const decimalsOption = roundOption && (options.decimals || SVGPCO.decimals);
     const originOption = options.origin;
-    const path = parsePathString(pathValue, this.round);
 
     // set instance options
     this.round = roundOption === 0 ? 0 : decimalsOption; // ZERO will disable rounding numbers
     this.origin = originOption && !Number.isNaN(originOption.x) && !Number.isNaN(originOption.y)
       ? originOption : null;
 
+    const path = parsePathString(pathValue, this.round);
     this.segments = clonePath(path);
     this.pathValue = pathValue;
     return this;
@@ -2306,4 +2306,4 @@ SVGPCProto.toString = function toString() {
 
 Object.keys(util).forEach((x) => { SVGPathCommander[x] = util[x]; });
 
-export default SVGPathCommander;
+export { SVGPathCommander as default };
