@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.5 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.6 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1076,7 +1076,7 @@ function SVGPathArray(pathString) {
   this.segmentStart = 0;
   this.data = [];
   this.err = '';
-  return this;
+  // return this;
 }
 
 // Returns array of segments:

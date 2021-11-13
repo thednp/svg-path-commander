@@ -7,5 +7,5 @@ export default function SVGPathArray(pathString) {
   this.segmentStart = 0;
   this.data = [];
   this.err = '';
-  return this;
+  // return this;
 }

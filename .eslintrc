@@ -3,9 +3,9 @@
     // Extend the airbnb eslint config
     "airbnb-base",
     // Vue
-    "plugin:vue/vue3-recommended"
+    // "plugin:vue/vue3-recommended"
   ],
-  "parser": "vue-eslint-parser",
+  // "parser": "vue-eslint-parser",
   "parserOptions": {
     "sourceType": "module"
   },

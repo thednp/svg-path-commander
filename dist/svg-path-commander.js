@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.5 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.6 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -7,7 +7,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.SVGPathCommander = factory());
-}(this, (function () { 'use strict';
+})(this, (function () { 'use strict';
 
   var SVGPCO = {
     origin: null,
@@ -1104,7 +1104,7 @@
     this.segmentStart = 0;
     this.data = [];
     this.err = '';
-    return this;
+    // return this;
   }
 
   // Returns array of segments:
@@ -2355,4 +2355,4 @@
 
   return SVGPathCommander;
 
-})));
+}));
