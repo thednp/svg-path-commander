@@ -1,5 +1,4 @@
 import clonePath from './clonePath.js';
-import roundPath from './roundPath.js';
 import scanSegment from './scanSegment.js';
 import skipSpaces from './skipSpaces.js';
 import SVGPathArray from '../util/svgPathArray.js';
@@ -7,7 +6,7 @@ import invalidPathValue from '../util/invalidPathValue.js';
 import isPathArray from '../util/isPathArray.js';
 
 // Returns array of segments:
-export default function parsePathString(pathString, round) {
+export default function parsePathString(pathString) {
   if (isPathArray(pathString)) {
     return clonePath(pathString);
   }
@@ -32,5 +31,5 @@ export default function parsePathString(pathString, round) {
     }
   }
 
-  return roundPath(state.segments, round);
+  return state.segments;
 }

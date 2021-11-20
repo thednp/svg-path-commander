@@ -1,1 +1,1 @@
-export default function pathToRelative(pathInput: any, round: any): any;
+export default function pathToRelative(pathInput: any): any;

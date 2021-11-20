@@ -25,8 +25,6 @@
     "strict": [0],
     // Disable alert rule till we have a CE in place
     "no-alert": 0,
-    // Disable bitwise for isArcCommand & isPathCommand
-    "no-bitwise": 0,
     // Allow extensions on imports
     "import/extensions": 0
   }

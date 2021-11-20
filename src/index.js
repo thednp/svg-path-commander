@@ -1,6 +1,6 @@
-import util from './util/util.js';
+import Util from './util/util.js';
 import SVGPathCommander from './class/SVGPathCommander.js';
 
-Object.keys(util).forEach((x) => { SVGPathCommander[x] = util[x]; });
+Object.keys(Util).forEach((x) => { SVGPathCommander[x] = Util[x]; });
 
 export default SVGPathCommander;

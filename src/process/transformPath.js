@@ -1,6 +1,5 @@
 import epsilon from '../math/epsilon.js';
 import normalizePath from './normalizePath.js';
-import roundPath from './roundPath.js';
 import clonePath from './clonePath.js';
 import pathToAbsolute from '../convert/pathToAbsolute.js';
 import segmentToCubic from './segmentToCubic.js';
@@ -9,7 +8,7 @@ import getSVGMatrix from '../util/getSVGMatrix.js';
 import transformEllipse from '../util/transformEllipse.js';
 import projection2d from '../util/projection2d.js';
 
-export default function transformPath(pathArray, transformObject, round) {
+export default function transformPath(pathArray, transformObject) {
   let x; let y; let i; let j; let ii; let jj; let lx; let ly; let te;
   const absolutePath = pathToAbsolute(pathArray);
   const normalizedPath = normalizePath(absolutePath);
@@ -120,7 +119,7 @@ export default function transformPath(pathArray, transformObject, round) {
           return segment;
       }
     });
-    return roundPath(transformedPath, round);
+    return transformedPath;
   }
   return clonePath(absolutePath);
 }

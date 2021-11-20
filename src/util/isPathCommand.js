@@ -1,5 +1,5 @@
 export default function isPathCommand(code) {
-  // eslint-disable no-bitwise
+  // eslint-disable-next-line no-bitwise -- Impossible to satisfy
   switch (code | 0x20) {
     case 0x6D/* m */:
     case 0x7A/* z */:

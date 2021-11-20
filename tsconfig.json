@@ -5,11 +5,8 @@
     "emitDeclarationOnly": true,
     "strict": true,
     "allowJs": true,
-    // "outFile": "types/index.d.ts"
     "outDir": "types"
   },
-  // "types": [],
-  // "files": ["src/index.js"],
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "types", "assets"]
+  "exclude": ["node_modules", "dist", "types", "assets", "experiments"]
 }

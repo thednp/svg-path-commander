@@ -30,7 +30,7 @@ export default function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recur
 
     const x = (X1 - X2) / 2;
     const y = (Y1 - Y2) / 2;
-    let h = (x * x) / (RX * RY) + (y ** 2) / (RY ** 2);
+    let h = (x ** 2) / (RX ** 2) + (y ** 2) / (RY ** 2);
     if (h > 1) {
       h = Math.sqrt(h);
       RX *= h;
@@ -45,16 +45,16 @@ export default function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recur
     cx = ((k * RX * y) / RY) + ((X1 + X2) / 2);
     cy = ((k * -RY * x) / RX) + ((Y1 + Y2) / 2);
 
-    // f1 = Math.asin(((Y1 - cy) / RY).toFixed(9)); // keep toFIxed(9)!
-    // f2 = Math.asin(((Y2 - cy) / RY).toFixed(9));
+    // eslint-disable-next-line no-bitwise -- Impossible to satisfy no-bitwise
     f1 = Math.asin((((Y1 - cy) / RY) * 10 ** 9 >> 0) / (10 ** 9));
+    // eslint-disable-next-line no-bitwise -- Impossible to satisfy no-bitwise
     f2 = Math.asin((((Y2 - cy) / RY) * 10 ** 9 >> 0) / (10 ** 9));
 
     f1 = X1 < cx ? Math.PI - f1 : f1;
     f2 = X2 < cx ? Math.PI - f2 : f2;
 
-    if (f1 < 0) f1 = Math.PI * 2 + f1;
-    if (f2 < 0) f2 = Math.PI * 2 + f2;
+    if (f1 < 0) { f1 = Math.PI * 2 + f1; }
+    if (f2 < 0) { f2 = Math.PI * 2 + f2; }
 
     if (SF && f1 > f2) {
       f1 -= Math.PI * 2;
@@ -73,8 +73,9 @@ export default function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recur
   let df = f2 - f1;
 
   if (Math.abs(df) > d120) {
-    const f2old = f2; const x2old = X2; const
-      y2old = Y2;
+    const f2old = f2;
+    const x2old = X2;
+    const y2old = Y2;
 
     f2 = f1 + d120 * (SF && f2 > f1 ? 1 : -1);
     X2 = cx + RX * Math.cos(f2);

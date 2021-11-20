@@ -1,1 +1,1 @@
-export default function getPathLength(pathArray: any, round: any): number;
+export default function getPathLength(pathArray: any): number;

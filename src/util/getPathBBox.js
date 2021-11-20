@@ -1,13 +1,13 @@
 import getCubicSize from './getCubicSize.js';
 import pathToCurve from '../convert/pathToCurve.js';
 
-export default function getPathBBox(pathArray, round) {
+export default function getPathBBox(pathArray) {
   if (!pathArray) {
     return {
       x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0,
     };
   }
-  const pathCurve = pathToCurve(pathArray, round);
+  const pathCurve = pathToCurve(pathArray);
 
   let x = 0;
   let y = 0;

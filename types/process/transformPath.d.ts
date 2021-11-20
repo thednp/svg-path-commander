@@ -1,1 +1,1 @@
-export default function transformPath(pathArray: any, transformObject: any, round: any): any;
+export default function transformPath(pathArray: any, transformObject: any): any;

@@ -48,6 +48,7 @@
           <button type="button" data-toggle="tooltip" title="Initialize, convert to absolute and update pathString" onclick="toAbs()">toAbsolute</button>
           <button type="button" data-toggle="tooltip" title="Initialize, convert to relative and update pathString" onclick="toRel()">toRelative</button>
           <button type="button" data-toggle="tooltip" title="Initialize, normalize and update pathString" onclick="toNormal()">Normalize</button>
+          <button type="button" data-toggle="tooltip" title="Initialize, optimize and update pathString" onclick="toOptimal()">Optimize</button>
           <button type="button" data-toggle="tooltip" title="Initialize, reverse, optimize and update pathString" onclick="toRev()">Reverse</button>
           <button type="button" data-toggle="tooltip" title="Initialize, reverse subpath, optimize and update pathString" onclick="toRev(1)">Reverse Subpath</button>
         </p>
@@ -175,6 +176,18 @@
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
+    function toOptimal() { // optimize
+      pathValue = inputTextArea.value || pathValue
+      var nm = new SVGPathCommander( pathValue ).optimize();
+
+      path.setAttribute('d', nm.toString());
+      path.setAttribute('fill', randomColor());
+      svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
+      outputTextArea.style.height = ''
+      outputTextArea.value = nm.toString();
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+    }
+
     // inputTextArea.value = shapes[2];
 
     function toAbs() { // To absolute coordinates
@@ -201,6 +214,7 @@
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
+    let usedCurve = false;
     function toCurve() { // To curve coordinates
       pathValue = inputTextArea.value || pathValue
 
@@ -211,9 +225,12 @@
       path.setAttribute('d', cvPath);
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
-      outputTextArea.style.height = ''
+      outputTextArea.style.height = '';
       outputTextArea.value = cvPath;
-      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
+      if (!usedCurve) 
+      alert(`This instance doesn't round the path values as configured with 'round: false' option.`);
+      usedCurve = true;
     }
 
     function toRevCurve(onlySubpath) { // To curve coordinates

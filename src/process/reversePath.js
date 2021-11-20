@@ -1,13 +1,13 @@
 import pathToAbsolute from '../convert/pathToAbsolute.js';
 import normalizePath from './normalizePath.js';
 
-export default function reversePath(pathString, round) { // pathArray | pathString
-  const absolutePath = pathToAbsolute(pathString, round);
+export default function reversePath(pathString) { // pathArray | pathString
+  const absolutePath = pathToAbsolute(pathString);
   const isClosed = absolutePath.slice(-1)[0][0] === 'Z';
   let reversedPath = [];
   let segLength = 0;
 
-  reversedPath = normalizePath(absolutePath, round).map((segment, i) => {
+  reversedPath = normalizePath(absolutePath).map((segment, i) => {
     segLength = segment.length;
     return {
       seg: absolutePath[i], // absolute

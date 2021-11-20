@@ -1,13 +1,11 @@
 # SVG Path Commander
 
-[![SVG Path Commander](assets/apple-touch-icon.png)](https://thednp.github.io/svg-path-commander/)
-
 A modern set of ES6+ JavaScript tools for manipulating the `d` (description) attribute for *SVGPathElement* items, and is implementing modern JavaScript API to produce reusable path strings with lossless quality.
 
 While you may find familiar tools inside, this library brings ***new additions***:
 * a tool that can *reverse path draw direction* without altering path commands, even with specific shorthand path commands;
 * a unique tool that can *reverse path draw direction* for path strings with only 'C' path commands;
-* a new and unique tool to *apply transform functions to path commands* via the modern DOMMatrix API.
+* a new and unique tool to *apply transform functions to path commands* via the modern *DOMMatrix* API.
 
 **The key differences with other libraries**:
 * ES6+ sourced with modernized codebase and build tools; all inherited codebase has been modernized as well;
@@ -58,16 +56,6 @@ For developer guidelines, head over to the [wiki pages](https://github.com/thedn
 * converting and optimizing *SVGPathElement* for use in third party application; our [KUTE.js](https://github.com/thednp/kute.js) animation engine is using it to process *SVGPathElement* coordinates for [SVG morphing](https://thednp.github.io/kute.js/svgMorph.html) and [SVG cubic morphing](https://thednp.github.io/kute.js/svgCubicMorph.html);
 * animators that work with SVGs and need tools for performing specific path command processing;
 * font-icon creators can use it in both Node.js and web applications to process and test their creations.
-
-# ESLint
-Some of the sources for the library recommend using the following ESLint rule:
-
-```js
-rules: {
-  // Disable bitwise for isArcCommand & isPathCommand
-  "no-bitwise": 0,
-}
-```
 
 
 # Technical Considerations

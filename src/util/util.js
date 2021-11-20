@@ -28,7 +28,7 @@ import pathToRelative from '../convert/pathToRelative.js';
 import pathToCurve from '../convert/pathToCurve.js';
 import pathToString from '../convert/pathToString.js';
 
-export default {
+const Util = {
   CSSMatrix: CSS3Matrix,
   parsePathString,
   isPathArray,
@@ -56,3 +56,5 @@ export default {
   getSVGMatrix,
   options: SVGPCO,
 };
+
+export default Util;

@@ -1,1 +1,1 @@
-export default function getPathArea(pathArray: any, round: any): any;
+export default function getPathArea(pathArray: any): any;

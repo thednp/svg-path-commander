@@ -1,4 +1,4 @@
-import CSSMatrix from 'dommatrix/src/index.js';
+import CSSMatrix from 'dommatrix/src/DOMMatrix.js';
 
 const CSS3Matrix = typeof DOMMatrix !== 'undefined' ? DOMMatrix : CSSMatrix;
 

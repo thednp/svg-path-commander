@@ -1,4 +1,4 @@
-export default function getPathBBox(pathArray: any, round: any): {
+export default function getPathBBox(pathArray: any): {
     x: number;
     y: number;
     width: number;

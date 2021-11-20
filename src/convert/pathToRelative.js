@@ -1,14 +1,13 @@
 import parsePathString from '../process/parsePathString.js';
-import roundPath from '../process/roundPath.js';
 import clonePath from '../process/clonePath.js';
 import isRelativeArray from '../util/isRelativeArray.js';
 
-export default function pathToRelative(pathInput, round) {
+export default function pathToRelative(pathInput) {
   if (isRelativeArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const pathArray = parsePathString(pathInput, round);
+  const pathArray = parsePathString(pathInput);
   const ii = pathArray.length;
   const resultArray = [];
   let x = 0;
@@ -85,5 +84,6 @@ export default function pathToRelative(pathInput, round) {
         y += resultArray[i][segLength - 1];
     }
   }
-  return roundPath(resultArray, round);
+
+  return resultArray;
 }

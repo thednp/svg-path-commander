@@ -1,14 +1,13 @@
 import parsePathString from '../process/parsePathString.js';
-import roundPath from '../process/roundPath.js';
 import clonePath from '../process/clonePath.js';
 import isAbsoluteArray from '../util/isAbsoluteArray.js';
 
-export default function pathToAbsolute(pathInput, round) {
+export default function pathToAbsolute(pathInput) {
   if (isAbsoluteArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const pathArray = parsePathString(pathInput, round);
+  const pathArray = parsePathString(pathInput);
   const ii = pathArray.length;
   const resultArray = [];
   let x = 0;
@@ -89,5 +88,5 @@ export default function pathToAbsolute(pathInput, round) {
     }
   }
 
-  return roundPath(resultArray, round);
+  return resultArray;
 }

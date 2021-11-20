@@ -1,2 +1,2 @@
-declare var _default: "Invalid path value";
-export default _default;
+export default invalidPathValue;
+declare const invalidPathValue: "Invalid path value";

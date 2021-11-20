@@ -1,4 +1,5 @@
-declare namespace _default {
+export default Util;
+declare namespace Util {
     export { CSS3Matrix as CSSMatrix };
     export { parsePathString };
     export { isPathArray };
@@ -26,7 +27,6 @@ declare namespace _default {
     export { getSVGMatrix };
     export { SVGPCO as options };
 }
-export default _default;
 import CSS3Matrix from "./DOMMatrix.js";
 import parsePathString from "../process/parsePathString.js";
 import isPathArray from "./isPathArray.js";

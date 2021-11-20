@@ -1,1 +1,1 @@
-export default function parsePathString(pathString: any, round: any): any;
+export default function parsePathString(pathString: any): any;

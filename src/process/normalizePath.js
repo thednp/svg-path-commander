@@ -1,15 +1,14 @@
 import pathToAbsolute from '../convert/pathToAbsolute.js';
 import normalizeSegment from './normalizeSegment.js';
-import roundPath from './roundPath.js';
 import clonePath from './clonePath.js';
 import isNormalizedArray from '../util/isNormalizedArray.js';
 
-export default function normalizePath(pathInput, round) { // pathArray|pathString
+export default function normalizePath(pathInput) { // pathArray|pathString
   if (isNormalizedArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const pathArray = pathToAbsolute(pathInput, round);
+  const pathArray = pathToAbsolute(pathInput);
   const params = {
     x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
   };
@@ -38,5 +37,5 @@ export default function normalizePath(pathInput, round) { // pathArray|pathStrin
     params.x2 = +(segment[seglen - 4]) || params.x1;
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
-  return roundPath(pathArray, round);
+  return pathArray;
 }

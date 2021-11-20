@@ -1,16 +1,15 @@
-import roundPath from '../process/roundPath.js';
 import fixArc from '../util/fixArc.js';
 import isCurveArray from '../util/isCurveArray.js';
 import clonePath from '../process/clonePath.js';
 import normalizePath from '../process/normalizePath.js';
 import segmentToCubic from '../process/segmentToCubic.js';
 
-export default function pathToCurve(pathInput, round) { // pathArray|pathString
+export default function pathToCurve(pathInput) { // pathArray|pathString
   if (isCurveArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const pathArray = normalizePath(pathInput, round);
+  const pathArray = normalizePath(pathInput);
   const params = {
     x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
   };
@@ -37,5 +36,6 @@ export default function pathToCurve(pathInput, round) { // pathArray|pathString
     params.x2 = +(segment[seglen - 4]) || params.x1;
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
-  return roundPath(pathArray, round);
+
+  return pathArray;
 }

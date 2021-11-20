@@ -12,14 +12,10 @@ export default function scanSegment(state) {
   const { max } = state;
   const cmdCode = state.pathValue.charCodeAt(state.index);
   const reqParams = paramCounts[state.pathValue[state.index].toLowerCase()];
-  // let hasComma;
 
   state.segmentStart = state.index;
 
   if (!isPathCommand(cmdCode)) {
-    // state.err = 'SvgPath: bad command '
-    // + state.pathValue[state.index]
-    // + ' (at pos ' + state.index + ')';
     state.err = `${invalidPathValue}: ${state.pathValue[state.index]} not a path command`;
     return;
   }
@@ -35,8 +31,6 @@ export default function scanSegment(state) {
     return;
   }
 
-  // hasComma = false;
-
   for (;;) {
     for (let i = reqParams; i > 0; i -= 1) {
       if (isArcCommand(cmdCode) && (i === 3 || i === 4)) scanFlag(state);
@@ -48,19 +42,13 @@ export default function scanSegment(state) {
       state.data.push(state.param);
 
       skipSpaces(state);
-      // hasComma = false;
 
+      // after ',' param is mandatory
       if (state.index < max && state.pathValue.charCodeAt(state.index) === 0x2C/* , */) {
         state.index += 1;
         skipSpaces(state);
-        // hasComma = true;
       }
     }
-
-    // after ',' param is mandatory
-    // if (hasComma) {
-    //   continue;
-    // }
 
     if (state.index >= state.max) {
       break;

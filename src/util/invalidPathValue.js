@@ -1,1 +1,2 @@
-export default 'Invalid path value';
+const invalidPathValue = 'Invalid path value';
+export default invalidPathValue;

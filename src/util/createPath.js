@@ -1,4 +1,4 @@
-// create a <path> when glyph
+// create a <path> from <glyph>
 // requires browser
 export default function createPath(path) {
   const np = document.createElementNS('http://www.w3.org/2000/svg', 'path');

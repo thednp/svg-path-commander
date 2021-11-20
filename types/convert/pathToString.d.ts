@@ -1,1 +1,1 @@
-export default function pathToString(pathArray: any): any;
+export default function pathToString(pathArray: any, round: any): any;
