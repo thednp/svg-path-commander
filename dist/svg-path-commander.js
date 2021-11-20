@@ -427,37 +427,25 @@
    * @return {CSSMatrix} the resulted matrix.
    */
   function Multiply(m1, m2) {
-    // const {m11: m1m11, m12: m1m12} = m1;
-    // const {m11: m2m11, m12: m1m12} = m2;
-    const {m11: m1m11, m12: m1m12, m13: m1m13, m14: m1m14,
-      m21: m1m21, m22: m1m22, m23: m1m23, m24: m1m24,
-      m31: m1m31, m32: m1m32, m33: m1m33, m34: m1m34,
-      m41: m1m41, m42: m1m42, m43: m1m43, m44: m1m44} = m1;
-    const {m11: m2m11, m12: m2m12, m13: m2m13, m14: m2m14,
-      m21: m2m21, m22: m2m22, m23: m2m23, m24: m2m24,
-      m31: m2m31, m32: m2m32, m33: m2m33, m34: m2m34,
-      m41: m2m41, m42: m2m42, m43: m2m43, m44: m2m44} = m2;
+    var m11 = m2.m11 * m1.m11 + m2.m12 * m1.m21 + m2.m13 * m1.m31 + m2.m14 * m1.m41;
+    var m12 = m2.m11 * m1.m12 + m2.m12 * m1.m22 + m2.m13 * m1.m32 + m2.m14 * m1.m42;
+    var m13 = m2.m11 * m1.m13 + m2.m12 * m1.m23 + m2.m13 * m1.m33 + m2.m14 * m1.m43;
+    var m14 = m2.m11 * m1.m14 + m2.m12 * m1.m24 + m2.m13 * m1.m34 + m2.m14 * m1.m44;
 
-    // console.log({m1, m1m11, m1m12})
-    var m11 = m2m11 * m1m11 + m2m12 * m1m21 + m2m13 * m1m31 + m2m14 * m1m41;
-    var m12 = m2m11 * m1m12 + m2m12 * m1m22 + m2m13 * m1m32 + m2m14 * m1m42;
-    var m13 = m2m11 * m1m13 + m2m12 * m1m23 + m2m13 * m1m33 + m2m14 * m1m43;
-    var m14 = m2m11 * m1m14 + m2m12 * m1m24 + m2m13 * m1m34 + m2m14 * m1m44;
+    var m21 = m2.m21 * m1.m11 + m2.m22 * m1.m21 + m2.m23 * m1.m31 + m2.m24 * m1.m41;
+    var m22 = m2.m21 * m1.m12 + m2.m22 * m1.m22 + m2.m23 * m1.m32 + m2.m24 * m1.m42;
+    var m23 = m2.m21 * m1.m13 + m2.m22 * m1.m23 + m2.m23 * m1.m33 + m2.m24 * m1.m43;
+    var m24 = m2.m21 * m1.m14 + m2.m22 * m1.m24 + m2.m23 * m1.m34 + m2.m24 * m1.m44;
 
-    var m21 = m2m21 * m1m11 + m2m22 * m1m21 + m2m23 * m1m31 + m2m24 * m1m41;
-    var m22 = m2m21 * m1m12 + m2m22 * m1m22 + m2m23 * m1m32 + m2m24 * m1m42;
-    var m23 = m2m21 * m1m13 + m2m22 * m1m23 + m2m23 * m1m33 + m2m24 * m1m43;
-    var m24 = m2m21 * m1m14 + m2m22 * m1m24 + m2m23 * m1m34 + m2m24 * m1m44;
+    var m31 = m2.m31 * m1.m11 + m2.m32 * m1.m21 + m2.m33 * m1.m31 + m2.m34 * m1.m41;
+    var m32 = m2.m31 * m1.m12 + m2.m32 * m1.m22 + m2.m33 * m1.m32 + m2.m34 * m1.m42;
+    var m33 = m2.m31 * m1.m13 + m2.m32 * m1.m23 + m2.m33 * m1.m33 + m2.m34 * m1.m43;
+    var m34 = m2.m31 * m1.m14 + m2.m32 * m1.m24 + m2.m33 * m1.m34 + m2.m34 * m1.m44;
 
-    var m31 = m2m31 * m1m11 + m2m32 * m1m21 + m2m33 * m1m31 + m2m34 * m1m41;
-    var m32 = m2m31 * m1m12 + m2m32 * m1m22 + m2m33 * m1m32 + m2m34 * m1m42;
-    var m33 = m2m31 * m1m13 + m2m32 * m1m23 + m2m33 * m1m33 + m2m34 * m1m43;
-    var m34 = m2m31 * m1m14 + m2m32 * m1m24 + m2m33 * m1m34 + m2m34 * m1m44;
-
-    var m41 = m2m41 * m1m11 + m2m42 * m1m21 + m2m43 * m1m31 + m2m44 * m1m41;
-    var m42 = m2m41 * m1m12 + m2m42 * m1m22 + m2m43 * m1m32 + m2m44 * m1m42;
-    var m43 = m2m41 * m1m13 + m2m42 * m1m23 + m2m43 * m1m33 + m2m44 * m1m43;
-    var m44 = m2m41 * m1m14 + m2m42 * m1m24 + m2m43 * m1m34 + m2m44 * m1m44;
+    var m41 = m2.m41 * m1.m11 + m2.m42 * m1.m21 + m2.m43 * m1.m31 + m2.m44 * m1.m41;
+    var m42 = m2.m41 * m1.m12 + m2.m42 * m1.m22 + m2.m43 * m1.m32 + m2.m44 * m1.m42;
+    var m43 = m2.m41 * m1.m13 + m2.m42 * m1.m23 + m2.m43 * m1.m33 + m2.m44 * m1.m43;
+    var m44 = m2.m41 * m1.m14 + m2.m42 * m1.m24 + m2.m43 * m1.m34 + m2.m44 * m1.m44;
 
     return fromArray(
       [m11, m12, m13, m14,
@@ -826,8 +814,7 @@
   CSSMatrix.fromMatrix = fromMatrix;
   CSSMatrix.fromString = fromString;
 
-  // var CSS3Matrix = typeof DOMMatrix !== 'undefined' ? DOMMatrix : CSSMatrix;
-  var CSS3Matrix = CSSMatrix;
+  var CSS3Matrix = typeof DOMMatrix !== 'undefined' ? DOMMatrix : CSSMatrix;
 
   function fixArc(pathArray, allPathCommands, i) {
     if (pathArray[i].length > 7) {
@@ -2306,16 +2293,22 @@
   var SVGPathCommander = function SVGPathCommander(pathValue, config) {
     var options = config || {};
     // check for either true or > 0
-    var roundOption = +options.round === 0 || options.round === false ? 0 : SVGPCO.round;
-    var ref = roundOption && (options || SVGPCO);
+    // const roundOption = +options.round === 0 || options.round === false ? 0 : SVGPCO.round;
+    var round = SVGPCO.round;
+    var roundOption = options.round;
+    if (+roundOption === 0 || roundOption === false) {
+      round = 0;
+    }
+
+    var ref = round && (options || SVGPCO);
     var decimals = ref.decimals;
     var origin = options.origin;
 
     // set instance options
     /**
-     * @type {Number | Boolean}
+     * @type {Boolean | Number}
      */
-    this.round = roundOption === 0 ? 0 : decimals;
+    this.round = round === 0 ? 0 : decimals;
     // ZERO | FALSE will disable rounding numbers
 
     if (origin) {
@@ -2411,6 +2404,7 @@
    * Optimize pathArray values:
    * * convert segments to absolute and/or relative values
    * * select segments with shortest resulted string
+   * * round values to the specified `decimals` option value
    * @public
    */
   SVGPathCommander.prototype.optimize = function optimize () {
@@ -2422,8 +2416,17 @@
   };
 
   /**
-   * Transform path using values from a standard `Object`
-   * @param {Object} source
+   * Transform path using values from an `Object`
+   * with the following structure:
+   *
+   * {
+   * origin:  {x, y, z},
+   * translate: {x, y, z},
+   * rotate:  {x, y, z},
+   * skew:    {x, y, z},
+   * scale:   {x, y, z}
+   * }
+   * @param {Object} source a transform `Object`as described above
    * @public
    */
   SVGPathCommander.prototype.transform = function transform (source) {
@@ -2431,6 +2434,8 @@
     var ref = this;
       var segments = ref.segments;
 
+    // if origin is not specified
+    // it's important that we have one
     if (!transformObject.origin) {
       var BBox = getPathBBox(segments);
       transformObject.origin = [BBox.cx, BBox.cy, BBox.cx];

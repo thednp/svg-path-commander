@@ -2241,7 +2241,6 @@ const Util = {
  */
 class SVGPathCommander {
   /**
-   * SVGPathCommander constructor
    * @constructor
    * @param {String} pathValue the path string
    * @param {Object} config instance options
@@ -2249,15 +2248,21 @@ class SVGPathCommander {
   constructor(pathValue, config) {
     const options = config || {};
     // check for either true or > 0
-    const roundOption = +options.round === 0 || options.round === false ? 0 : SVGPCO.round;
-    const { decimals } = roundOption && (options || SVGPCO);
+    // const roundOption = +options.round === 0 || options.round === false ? 0 : SVGPCO.round;
+    let { round } = SVGPCO;
+    const { round: roundOption } = options;
+    if (+roundOption === 0 || roundOption === false) {
+      round = 0;
+    }
+
+    const { decimals } = round && (options || SVGPCO);
     const { origin } = options;
 
     // set instance options
     /**
-     * @type {Number | Boolean}
+     * @type {Boolean | Number}
      */
-    this.round = roundOption === 0 ? 0 : decimals;
+    this.round = round === 0 ? 0 : decimals;
     // ZERO | FALSE will disable rounding numbers
 
     if (origin) {
@@ -2348,6 +2353,7 @@ class SVGPathCommander {
    * Optimize pathArray values:
    * * convert segments to absolute and/or relative values
    * * select segments with shortest resulted string
+   * * round values to the specified `decimals` option value
    * @public
    */
   optimize() {
@@ -2358,14 +2364,25 @@ class SVGPathCommander {
   }
 
   /**
-   * Transform path using values from a standard `Object`
-   * @param {Object} source
+   * Transform path using values from an `Object`
+   * with the following structure:
+   *
+   * {
+   *   origin:    {x, y, z},
+   *   translate: {x, y, z},
+   *   rotate:    {x, y, z},
+   *   skew:      {x, y, z},
+   *   scale:     {x, y, z}
+   * }
+   * @param {Object} source a transform `Object`as described above
    * @public
    */
   transform(source) {
     const transformObject = source || {};
     const { segments } = this;
 
+    // if origin is not specified
+    // it's important that we have one
     if (!transformObject.origin) {
       const BBox = getPathBBox(segments);
       transformObject.origin = [BBox.cx, BBox.cy, BBox.cx];

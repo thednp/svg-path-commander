@@ -28,8 +28,8 @@ export default class SVGPathCommander {
     const options = config || {};
     // check for either true or > 0
     // const roundOption = +options.round === 0 || options.round === false ? 0 : SVGPCO.round;
-    const  { round } = SVGPCO;
-    let { round: roundOption } = SVGPCO;
+    let { round } = SVGPCO;
+    const { round: roundOption } = options;
     if (+roundOption === 0 || roundOption === false) {
       round = 0;
     }
