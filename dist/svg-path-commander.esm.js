@@ -2827,6 +2827,16 @@ function transformPath(path, transform) {
   return clonePath(absolutePath);
 }
 
+var version = "0.1.9";
+
+// @ts-ignore
+
+/**
+ * A global namespace for library version.
+ * @type {string}
+ */
+const Version = version;
+
 const Util = {
   CSSMatrix,
   parsePathString,
@@ -2856,6 +2866,7 @@ const Util = {
   getSVGMatrix,
   shapeToPath,
   options: SVGPCO,
+  Version,
 };
 
 /**

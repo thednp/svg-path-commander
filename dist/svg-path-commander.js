@@ -2890,6 +2890,16 @@
     return clonePath(absolutePath);
   }
 
+  var version = "0.1.9";
+
+  // @ts-ignore
+
+  /**
+   * A global namespace for library version.
+   * @type {string}
+   */
+  var Version = version;
+
   var Util = {
     CSSMatrix: CSSMatrix,
     parsePathString: parsePathString,
@@ -2919,6 +2929,7 @@
     getSVGMatrix: getSVGMatrix,
     shapeToPath: shapeToPath,
     options: SVGPCO,
+    Version: Version,
   };
 
   /**

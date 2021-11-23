@@ -28,6 +28,7 @@ import pathToAbsolute from '../convert/pathToAbsolute';
 import pathToRelative from '../convert/pathToRelative';
 import pathToCurve from '../convert/pathToCurve';
 import pathToString from '../convert/pathToString';
+import Version from '../class/version';
 
 const Util = {
   CSSMatrix,
@@ -58,6 +59,7 @@ const Util = {
   getSVGMatrix,
   shapeToPath,
   options: SVGPCO,
+  Version,
 };
 
 export default Util;
