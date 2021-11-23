@@ -1,12 +1,18 @@
-import distanceSquareRoot from './distanceSquareRoot.js';
-// d3-polygon length
+import distanceSquareRoot from './distanceSquareRoot';
 
-export default function polygonLength(ring) {
-  // return ring.reduce((length, point, i) =>
-  // (i ? length + distanceSquareRoot(ring[i - 1], point) : 0), 0);
-  return ring.reduce((length, point, i) => {
+/**
+ * d3-polygon-length
+ * https://github.com/d3/d3-polygon
+ *
+ * Returns the perimeter of a polygon.
+ *
+ * @param {Number[][]} polygon an array of coordinates
+ * @returns {Number} the polygon length
+ */
+export default function polygonLength(polygon) {
+  return polygon.reduce((length, point, i) => {
     if (i) {
-      return length + distanceSquareRoot(ring[i - 1], point);
+      return length + distanceSquareRoot(polygon[i - 1], point);
     }
     return 0;
   }, 0);

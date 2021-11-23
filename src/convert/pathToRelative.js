@@ -1,14 +1,21 @@
-import parsePathString from '../process/parsePathString.js';
-import clonePath from '../process/clonePath.js';
-import isRelativeArray from '../util/isRelativeArray.js';
+import parsePathString from '../parser/parsePathString';
+import clonePath from '../process/clonePath';
+import isRelativeArray from '../util/isRelativeArray';
 
+/**
+ * Parses a path string value or object and returns an array
+ * of segments, all converted to relative values.
+ *
+ * @param {string | SVGPC.pathArray} pathInput the path string | object
+ * @returns {SVGPC.pathArray} the resulted `pathArray` with relative values
+ */
 export default function pathToRelative(pathInput) {
   if (isRelativeArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const pathArray = parsePathString(pathInput);
-  const ii = pathArray.length;
+  const path = parsePathString(pathInput);
+  const ii = path.length;
   const resultArray = [];
   let x = 0;
   let y = 0;
@@ -16,9 +23,9 @@ export default function pathToRelative(pathInput) {
   let my = 0;
   let start = 0;
 
-  if (pathArray[0][0] === 'M') {
-    x = +pathArray[0][1];
-    y = +pathArray[0][2];
+  if (path[0][0] === 'M') {
+    x = +path[0][1];
+    y = +path[0][2];
     mx = x;
     my = y;
     start += 1;
@@ -26,7 +33,7 @@ export default function pathToRelative(pathInput) {
   }
 
   for (let i = start; i < ii; i += 1) {
-    const segment = pathArray[i];
+    const segment = path[i];
     const [pathCommand] = segment;
     const relativeCommand = pathCommand.toLowerCase();
     const relativeSegment = [];

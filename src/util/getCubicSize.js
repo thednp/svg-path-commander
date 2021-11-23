@@ -1,6 +1,18 @@
-import getPointAtSegLength from './getPointAtSegLength.js';
+import getPointAtSegLength from './getPointAtSegLength';
 
-// returns the cubic bezier segment length
+/**
+ * Returns the cubic-bezier segment length.
+ *
+ * @param {number} p1x the starting point X
+ * @param {number} p1y the starting point Y
+ * @param {number} c1x the first control point X
+ * @param {number} c1y the first control point Y
+ * @param {number} c2x the second control point X
+ * @param {number} c2y the second control point Y
+ * @param {number} p2x the ending point X
+ * @param {number} p2y the ending point Y
+ * @returns {SVGPC.segmentLimits} the length of the cubic-bezier segment
+ */
 export default function getCubicSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
   let a = (c2x - 2 * c1x + p1x) - (p2x - 2 * c2x + c1x);
   let b = 2 * (c1x - p1x) - 2 * (c2x - c1x);

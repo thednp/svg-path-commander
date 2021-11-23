@@ -1,7 +1,14 @@
-import arcToCubic from './arcToCubic.js';
-import quadToCubic from './quadToCubic.js';
-import lineToCubic from './lineToCubic.js';
+import arcToCubic from './arcToCubic';
+import quadToCubic from './quadToCubic';
+import lineToCubic from './lineToCubic';
 
+/**
+ * Converts any segment to C (cubic-bezier).
+ *
+ * @param {SVGPC.pathSegment} segment the source segment
+ * @param {Object.<string, number>} params the source segment parameters
+ * @returns {SVGPC.pathSegment} the cubic-bezier segment
+ */
 export default function segmentToCubic(segment, params) {
   if ('TQ'.indexOf(segment[0]) < 0) {
     params.qx = null;

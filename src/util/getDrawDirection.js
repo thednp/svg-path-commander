@@ -1,6 +1,13 @@
-import getPathArea from './getPathArea.js';
-import pathToCurve from '../convert/pathToCurve.js';
+import getPathArea from './getPathArea';
+import pathToCurve from '../convert/pathToCurve';
 
-export default function getDrawDirection(pathArray) {
-  return getPathArea(pathToCurve(pathArray)) >= 0;
+/**
+ * Check if a path is drawn clockwise and returns true if so,
+ * false otherwise.
+ *
+ * @param {string | SVGPC.pathArray} path the path string or `pathArray`
+ * @returns {boolean} true when clockwise or false if not
+ */
+export default function getDrawDirection(path) {
+  return getPathArea(pathToCurve(path)) >= 0;
 }

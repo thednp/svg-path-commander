@@ -1,6 +1,13 @@
-import isPathArray from './isPathArray.js';
+import isPathArray from './isPathArray';
 
-export default function isRelativeArray(pathInput) {
-  return isPathArray(pathInput)
-    && pathInput.slice(1).every((seg) => seg[0] === seg[0].toLowerCase());
+/**
+ * Iterates an array to check if it's a `pathArray`
+ * with relative values.
+ *
+ * @param {SVGPC.pathArray} path the `pathArray` to be checked
+ * @returns {boolean} iteration result
+ */
+export default function isRelativeArray(path) {
+  return isPathArray(path)
+    && path.slice(1).every((seg) => seg[0] === seg[0].toLowerCase());
 }

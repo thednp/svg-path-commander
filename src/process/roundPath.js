@@ -1,12 +1,21 @@
-import options from '../options/options.js';
-import clonePath from './clonePath.js';
+import SVGPCO from '../options/options';
+import clonePath from './clonePath';
 
-export default function roundPath(pathArray, round) {
-  const decimalsOption = !Number.isNaN(+round) ? +round : options.round && options.decimals;
-  let result;
+/**
+ * Rounds the values of a `pathArray` instance to
+ * a specified amount of decimals and returns it.
+ *
+ * @param {SVGPC.pathArray} path the source `pathArray`
+ * @param {Number | null} round the amount of decimals to round numbers to
+ * @returns {SVGPC.pathArray} the resulted `pathArray` with rounded values
+ */
+export default function roundPath(path, round) {
+  const { round: defaultRound, decimals: defaultDecimals } = SVGPCO;
+  const decimalsOption = !Number.isNaN(+round) ? +round : defaultRound && defaultDecimals;
 
-  if (decimalsOption) {
-    result = pathArray.map((seg) => seg.map((c) => {
+  return !decimalsOption
+    ? clonePath(path)
+    : path.map((seg) => seg.map((c) => {
       const nr = +c;
       const dc = 10 ** decimalsOption;
       if (nr) {
@@ -14,8 +23,4 @@ export default function roundPath(pathArray, round) {
       }
       return c;
     }));
-  } else {
-    result = clonePath(pathArray);
-  }
-  return result;
 }

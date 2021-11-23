@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
+    "moduleResolution": "Node",
     "declaration": true,
     "resolveJsonModule": true,
     "emitDeclarationOnly": true,
     "strict": true,
     "allowJs": true,
-    "outDir": "types"
+    // "outDir": "types"
+    "outFile": "types/index.d.ts",
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "types/types.d.ts"],
   "exclude": ["node_modules", "dist", "types", "assets", "experiments"]
 }

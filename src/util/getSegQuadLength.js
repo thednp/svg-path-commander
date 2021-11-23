@@ -1,4 +1,16 @@
-// https://gist.github.com/tunght13488/6744e77c242cc7a94859#gistcomment-2047251
+/**
+ * Returns the Q (quadratic-bezier) segment length.
+ * https://gist.github.com/tunght13488/6744e77c242cc7a94859#gistcomment-2047251
+ *
+ * @param {Number} x1 the starting point X
+ * @param {Number} y1 the starting point Y
+ * @param {Number} qx the control point X
+ * @param {Number} qy the control point Y
+ * @param {Number} x2 the ending point X
+ * @param {Number} y2 the ending point Y
+ * @param {Number} z a [0-1] ratio
+ * @returns {Number} the quadratic-bezier segment length
+ */
 export default function getSegQuadLength(x1, y1, qx, qy, x2, y2) {
   const ax = x1 - 2 * qx + x2;
   const ay = y1 - 2 * qy + y2;

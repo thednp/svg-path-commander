@@ -1,14 +1,8 @@
 /*!
-* SVGPathCommander v0.1.8 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.9 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
-const SVGPCO = {
-  origin: null,
-  decimals: 4,
-  round: 1,
-};
-
 // DOMMatrix Static methods
 // * `fromFloat64Array` and `fromFloat32Array` methods are not supported;
 // * `fromArray` a more simple implementation, should also accept float[32/64]Array;
@@ -16,15 +10,20 @@ const SVGPCO = {
 // * `fromString` parses and loads values from any valid CSS transform string.
 
 /**
- * Creates a new mutable `CSSMatrix` object given an array float values.
+ * Creates a new mutable `CSSMatrix` object given an array of floating point values.
+ *
+ * This static method invalidates arrays that contain non-number elements.
  *
  * If the array has six values, the result is a 2D matrix; if the array has 16 values,
  * the result is a 3D matrix. Otherwise, a TypeError exception is thrown.
  *
- * @param {Number[]} array an `Array` to feed values from.
+ * @param {number[]} array an `Array` to feed values from.
  * @return {CSSMatrix} the resulted matrix.
  */
 function fromArray(array) {
+  if (!array.every((n) => !Number.isNaN(n))) {
+    throw TypeError(`CSSMatrix: "${array}" must only have numbers.`);
+  }
   const m = new CSSMatrix();
   const a = Array.from(array);
 
@@ -85,19 +84,22 @@ function fromArray(array) {
     m.m42 = m42;
     m.f = m42;
   } else {
-    throw new TypeError('CSSMatrix: expecting a 6/16 values Array');
+    throw new TypeError('CSSMatrix: expecting an Array of 6/16 values.');
   }
   return m;
 }
 
 /**
- * Creates a new mutable `CSSMatrix` object given an existing matrix or a
- * `DOMMatrix` *Object* which provides the values for its properties.
+ * Creates a new mutable `CSSMatrix` instance given an existing matrix or a
+ * `DOMMatrix` instance which provides the values for its properties.
  *
- * @param {CSSMatrix | DOMMatrix} m the source matrix to feed values from.
+ * @param {CSSMatrix | DOMMatrix | jsonMatrix} m the source matrix to feed values from.
  * @return {CSSMatrix} the resulted matrix.
  */
 function fromMatrix(m) {
+  if (![CSSMatrix, DOMMatrix, Object].some((x) => m instanceof x)) {
+    throw TypeError(`CSSMatrix: "${m}" is not a DOMMatrix / CSSMatrix compatible object.`);
+  }
   return fromArray(
     [m.m11, m.m12, m.m13, m.m14,
       m.m21, m.m22, m.m23, m.m24,
@@ -107,15 +109,21 @@ function fromMatrix(m) {
 }
 
 /**
- * Feed a CSSMatrix object with a valid CSS transform value.
- * * matrix(a, b, c, d, e, f) - valid matrix() transform function
- * * matrix3d(m11, m12, m13, ...m44) - valid matrix3d() transform function
- * * translate(tx, ty) rotateX(alpha) - any valid transform function(s)
+ * Creates a new mutable `CSSMatrix` instance given any valid CSS transform string.
+ *
+ * * `matrix(a, b, c, d, e, f)` - valid matrix() transform function
+ * * `matrix3d(m11, m12, m13, ...m44)` - valid matrix3d() transform function
+ * * `translate(tx, ty) rotateX(alpha)` - any valid transform function(s)
+ *
+ * @copyright thednp © 2021
  *
  * @param {string} source valid CSS transform string syntax.
  * @return {CSSMatrix} the resulted matrix.
  */
 function fromString(source) {
+  if (typeof source !== 'string') {
+    throw TypeError(`CSSMatrix: "${source}" is not a string.`);
+  }
   const str = String(source).replace(/\s/g, '');
   let m = new CSSMatrix();
   let is2D = true;
@@ -123,17 +131,6 @@ function fromString(source) {
     const [prop, value] = fn.split('(');
     const components = value.split(',')
       .map((n) => (n.includes('rad') ? parseFloat(n) * (180 / Math.PI) : parseFloat(n)));
-    const [x, y, z, a] = components;
-
-    // don't add perspective if is2D
-    if (prop === 'matrix3d'
-        || (prop === 'rotate3d' && [x, y].every((n) => !Number.isNaN(+n) && n !== 0) && a)
-        || (['rotateX', 'rotateY'].includes(prop) && x)
-        || (prop === 'translate3d' && [x, y, z].every((n) => !Number.isNaN(+n)) && z)
-        || (prop === 'scale3d' && [x, y, z].every((n) => !Number.isNaN(+n) && n !== x))
-    ) {
-      is2D = false;
-    }
     return { prop, components };
   });
 
@@ -195,9 +192,9 @@ function fromString(source) {
  *
  * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translate3d
  *
- * @param {Number} x the `x-axis` position.
- * @param {Number} y the `y-axis` position.
- * @param {Number} z the `z-axis` position.
+ * @param {number} x the `x-axis` position.
+ * @param {number} y the `y-axis` position.
+ * @param {number} z the `z-axis` position.
  * @return {CSSMatrix} the resulted matrix.
  */
 function Translate(x, y, z) {
@@ -215,9 +212,9 @@ function Translate(x, y, z) {
  *
  * http://en.wikipedia.org/wiki/Rotation_matrix
  *
- * @param {Number} rx the `x-axis` rotation.
- * @param {Number} ry the `y-axis` rotation.
- * @param {Number} rz the `z-axis` rotation.
+ * @param {number} rx the `x-axis` rotation.
+ * @param {number} ry the `y-axis` rotation.
+ * @param {number} rz the `z-axis` rotation.
  * @return {CSSMatrix} the resulted matrix.
  */
 function Rotate(rx, ry, rz) {
@@ -269,10 +266,10 @@ function Rotate(rx, ry, rz) {
  *
  * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotate3d
  *
- * @param {Number} x the `x-axis` vector length.
- * @param {Number} y the `y-axis` vector length.
- * @param {Number} z the `z-axis` vector length.
- * @param {Number} alpha the value in degrees of the rotation.
+ * @param {number} x the `x-axis` vector length.
+ * @param {number} y the `y-axis` vector length.
+ * @param {number} z the `z-axis` vector length.
+ * @param {number} alpha the value in degrees of the rotation.
  * @return {CSSMatrix} the resulted matrix.
  */
 function RotateAxisAngle(x, y, z, alpha) {
@@ -333,9 +330,9 @@ function RotateAxisAngle(x, y, z, alpha) {
  *
  * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/scale3d
  *
- * @param {Number} x the `x-axis` scale.
- * @param {Number} y the `y-axis` scale.
- * @param {Number} z the `z-axis` scale.
+ * @param {number} x the `x-axis` scale.
+ * @param {number} y the `y-axis` scale.
+ * @param {number} z the `z-axis` scale.
  * @return {CSSMatrix} the resulted matrix.
  */
 function Scale(x, y, z) {
@@ -356,7 +353,7 @@ function Scale(x, y, z) {
  *
  * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/skewX
  *
- * @param {Number} angle the angle in degrees.
+ * @param {number} angle the angle in degrees.
  * @return {CSSMatrix} the resulted matrix.
  */
 function SkewX(angle) {
@@ -374,7 +371,7 @@ function SkewX(angle) {
  *
  * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/skewY
  *
- * @param {Number} angle the angle in degrees.
+ * @param {number} angle the angle in degrees.
  * @return {CSSMatrix} the resulted matrix.
  */
 function SkewY(angle) {
@@ -434,11 +431,11 @@ function Multiply(m1, m2) {
 class CSSMatrix {
   /**
    * @constructor
-   * @param {any} args accepts all possible parameter configuration:
-   * * Types: number[] | string | CSSMatrix | DOMMatrix | undefined
+   * @param {any} args accepts all parameter configurations:
+   *
    * * valid CSS transform string,
-   * * CSSMatrix/DOMMatrix instance
-   * * a 6/16 elements *Array*
+   * * CSSMatrix/DOMMatrix instance,
+   * * a 6/16 elements *Array*.
    */
   constructor(...args) {
     const m = this;
@@ -522,12 +519,8 @@ class CSSMatrix {
    * This method expects valid *matrix()* / *matrix3d()* string values, as well
    * as other transform functions like *translateX(10px)*.
    *
-   * @param {String[] | Number[] | String | CSSMatrix | DOMMatrix} source
-   * @return {CSSMatrix} a new matrix
-   * can be one of the following
-   * * valid CSS matrix string,
-   * * 6/16 elements *Array*,
-   * * CSSMatrix | DOMMatrix instance.
+   * @param {string | number[] | CSSMatrix | DOMMatrix} source
+   * @return {CSSMatrix} the matrix instance
    */
   setMatrixValue(source) {
     const m = this;
@@ -541,7 +534,6 @@ class CSSMatrix {
       return fromString(source);
     // [Arguments list | Array] come here
     } if (Array.isArray(source)) {
-      // @ts-ignore
       return fromArray(source);
     }
     return m;
@@ -551,12 +543,10 @@ class CSSMatrix {
    * Creates and returns a string representation of the matrix in `CSS` matrix syntax,
    * using the appropriate `CSS` matrix notation.
    *
-   * The 16 items in the array 3D matrix array are *transposed* in row-major order.
-   *
    * matrix3d *matrix3d(m11, m12, m13, m14, m21, ...)*
    * matrix *matrix(a, b, c, d, e, f)*
    *
-   * @return {String} a string representation of the matrix
+   * @return {string} a string representation of the matrix
    */
   toString() {
     const m = this;
@@ -571,7 +561,7 @@ class CSSMatrix {
    *
    * Other methods make use of this method to feed their output values from this matrix.
    *
-   * @return {Number[]} an *Array* representation of the matrix
+   * @return {number[]} an *Array* representation of the matrix
    */
   toArray() {
     const m = this;
@@ -587,19 +577,38 @@ class CSSMatrix {
         m.m41, m.m42, m.m43, m.m44];
     }
     // clean up the numbers
-    // eslint-disable-next-line
+    // eslint-disable-next-line -- no-bitwise
     return result.map((n) => (Math.abs(n) < 1e-6 ? 0 : ((n * pow6) >> 0) / pow6));
   }
+  /**
+   * @typedef {object} jsonMatrix
+   * @property {number} m11
+   * @property {number} m12
+   * @property {number} m13
+   * @property {number} m14
+   * @property {number} m21
+   * @property {number} m22
+   * @property {number} m23
+   * @property {number} m24
+   * @property {number} m31
+   * @property {number} m32
+   * @property {number} m33
+   * @property {number} m34
+   * @property {number} m41
+   * @property {number} m42
+   * @property {number} m43
+   * @property {number} m44
+   */
 
   /**
-   * Returns a JSON representation of the `CSSMatrix` object, a standard *Object*
+   * Returns a JSON representation of the `CSSMatrix` instance, a standard *Object*
    * that includes `{a,b,c,d,e,f}` and `{m11,m12,m13,..m44}` properties and
    * excludes `is2D` & `isIdentity` properties.
    *
    * The result can also be used as a second parameter for the `fromMatrix` static method
    * to load values into a matrix instance.
    *
-   * @return {Object} an *Object* with all matrix values.
+   * @return {jsonMatrix} an *Object* with all matrix values.
    */
   toJSON() {
     return JSON.parse(JSON.stringify(this));
@@ -610,10 +619,11 @@ class CSSMatrix {
    * matrix multiplied by the passed matrix, with the passed matrix to the right.
    * This matrix is not modified.
    *
-   * @param {CSSMatrix} m2 CSSMatrix
-   * @return {CSSMatrix} The result matrix.
+   * @param {CSSMatrix | DOMMatrix | jsonMatrix} m2 CSSMatrix
+   * @return {CSSMatrix} The resulted matrix.
    */
   multiply(m2) {
+    // @ts-ignore - we only access [m11, m12, ... m44] values
     return Multiply(this, m2);
   }
 
@@ -626,7 +636,7 @@ class CSSMatrix {
    * @param {number} x X component of the translation value.
    * @param {number} y Y component of the translation value.
    * @param {number} z Z component of the translation value.
-   * @return {CSSMatrix} The result matrix
+   * @return {CSSMatrix} The resulted matrix
    */
   translate(x, y, z) {
     const X = x;
@@ -646,7 +656,7 @@ class CSSMatrix {
    * @param {number} x The X component of the scale value.
    * @param {number} y The Y component of the scale value.
    * @param {number} z The Z component of the scale value.
-   * @return {CSSMatrix} The result matrix
+   * @return {CSSMatrix} The resulted matrix
    */
   scale(x, y, z) {
     const X = x;
@@ -668,7 +678,7 @@ class CSSMatrix {
    * @param {number} rx The X component of the rotation, or Z if Y and Z are null.
    * @param {number} ry The (optional) Y component of the rotation value.
    * @param {number} rz The (optional) Z component of the rotation value.
-   * @return {CSSMatrix} The result matrix
+   * @return {CSSMatrix} The resulted matrix
    */
   rotate(rx, ry, rz) {
     let RX = rx;
@@ -689,10 +699,10 @@ class CSSMatrix {
    * @param {number} y The Y component of the axis vector.
    * @param {number} z The Z component of the axis vector.
    * @param {number} angle The angle of rotation about the axis vector, in degrees.
-   * @return {CSSMatrix} The `CSSMatrix` result
+   * @return {CSSMatrix} The resulted matrix
    */
   rotateAxisAngle(x, y, z, angle) {
-    if (arguments.length !== 4) {
+    if ([x, y, z, angle].some((n) => Number.isNaN(n))) {
       throw new TypeError('CSSMatrix: expecting 4 values');
     }
     return Multiply(this, RotateAxisAngle(x, y, z, angle));
@@ -703,7 +713,7 @@ class CSSMatrix {
    * This matrix is not modified.
    *
    * @param {number} angle The angle amount in degrees to skew.
-   * @return {CSSMatrix} The `CSSMatrix` result
+   * @return {CSSMatrix} The resulted matrix
    */
   skewX(angle) {
     return Multiply(this, SkewX(angle));
@@ -714,24 +724,32 @@ class CSSMatrix {
    * This matrix is not modified.
    *
    * @param {number} angle The angle amount in degrees to skew.
-   * @return {CSSMatrix} The `CSSMatrix` result
+   * @return {CSSMatrix} The resulted matrix
    */
   skewY(angle) {
     return Multiply(this, SkewY(angle));
   }
 
   /**
-   * Transforms the specified point using the matrix, returning a new
+   * @typedef {Object} Tuple
+   * @property {number} x the `x-axis` component
+   * @property {number} y the `y-axis` component
+   * @property {number} z the `z-axis` component
+   * @property {number} w the `w` component
+   */
+
+  /**
+   * Transforms a specified point using the matrix, returning a new
    * Tuple *Object* comprising of the transformed point.
    * Neither the matrix nor the original point are altered.
    *
    * The method is equivalent with `transformPoint()` method
    * of the `DOMMatrix` constructor.
    *
-   * JavaScript implementation by thednp
+   * @copyright thednp © 2021
    *
-   * @param {{x: number, y: number, z: number, w: number}} v Tuple with `{x,y,z,w}` components
-   * @return {{x: number, y: number, z: number, w: number}} the resulting Tuple
+   * @param {Tuple | DOMPoint} v Tuple or DOMPoint
+   * @return {Tuple} the resulting Tuple
    */
   transformPoint(v) {
     const M = this;
@@ -749,12 +767,12 @@ class CSSMatrix {
   }
 
   /**
-   * Transforms the specified vector using the matrix, returning a new
+   * Transforms a specified vector using the matrix, returning a new
    * {x,y,z,w} Tuple *Object* comprising the transformed vector.
    * Neither the matrix nor the original vector are altered.
    *
-   * @param {{x: number, y: number, z: number, w: number}} t Tuple with `{x,y,z,w}` components
-   * @return {{x: number, y: number, z: number, w: number}} the resulting Tuple
+   * @param {Tuple} t Tuple with `{x,y,z,w}` components
+   * @return {Tuple} the resulting Tuple
    */
   transform(t) {
     const m = this;
@@ -784,39 +802,78 @@ CSSMatrix.fromArray = fromArray;
 CSSMatrix.fromMatrix = fromMatrix;
 CSSMatrix.fromString = fromString;
 
-const CSS3Matrix = typeof DOMMatrix !== 'undefined' ? DOMMatrix : CSSMatrix;
+/**
+ * SVGPathCommander default options
+ *
+ * @type {Object.<string, (boolean | number | number[])>}
+ */
+const SVGPCO = {
+  origin: null,
+  decimals: 4,
+  round: 1,
+};
 
-function fixArc(pathArray, allPathCommands, i) {
-  if (pathArray[i].length > 7) {
-    pathArray[i].shift();
-    const pi = pathArray[i];
+/**
+ * Splits an extended A (arc-to) segment into two cubic-bezier segments.
+ *
+ * @param {SVGPC.pathArray} path the `pathArray` this segment belongs to
+ * @param {string[]} allPathCommands all previous path commands
+ * @param {Number} i the index of the segment
+ */
+
+function fixArc(path, allPathCommands, i) {
+  if (path[i].length > 7) {
+    path[i].shift();
+    const segment = path[i];
     let ni = i; // ESLint
-    while (pi.length) {
+    while (segment.length) {
       // if created multiple C:s, their original seg is saved
       allPathCommands[i] = 'A';
-      pathArray.splice(ni += 1, 0, ['C'].concat(pi.splice(0, 6)));
+      path.splice(ni += 1, 0, ['C'].concat(segment.splice(0, 6)));
     }
-    pathArray.splice(i, 1);
+    path.splice(i, 1);
   }
 }
 
-var paramsCount = {
+/**
+ * @type {Object.<string, number>}
+ */
+const paramsCount = {
   a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0,
 };
 
-function isPathArray(pathArray) {
-  return Array.isArray(pathArray) && pathArray.every((seg) => {
-    const pathCommand = seg[0].toLowerCase();
-    return paramsCount[pathCommand] === seg.length - 1 && /[achlmrqstvz]/gi.test(pathCommand);
+/**
+ * Iterates an array to check if it's an actual `pathArray`.
+ *
+ * @param {SVGPC.pathArray} path the `pathArray` to be checked
+ * @returns {boolean} iteration result
+ */
+function isPathArray(path) {
+  return Array.isArray(path) && path.every((seg) => {
+    const lk = seg[0].toLowerCase();
+    return paramsCount[lk] === seg.length - 1 && /[achlmqstvz]/gi.test(lk);
   });
 }
 
-function isCurveArray(pathArray) {
-  return isPathArray(pathArray) && pathArray.slice(1).every((seg) => seg[0] === 'C');
+/**
+ * Iterates an array to check if it's a `pathArray`
+ * with all C (cubic bezier) segments.
+ *
+ * @param {SVGPC.pathArray} path the `Array` to be checked
+ * @returns {boolean} iteration result
+ */
+function isCurveArray(path) {
+  return isPathArray(path) && path.slice(1).every((seg) => seg[0] === 'C');
 }
 
-function clonePath(pathArray) {
-  return pathArray.map((x) => {
+/**
+ * Returns a clone of an existing `pathArray`.
+ *
+ * @param {SVGPC.pathArray} path the original `pathArray`
+ * @returns {SVGPC.pathArray} the cloned `pathArray`
+ */
+function clonePath(path) {
+  return path.map((x) => {
     if (Array.isArray(x)) {
       return clonePath(x);
     }
@@ -824,24 +881,29 @@ function clonePath(pathArray) {
   });
 }
 
-function finalizeSegment(state) {
-  let pathCommand = state.pathValue[state.segmentStart];
+/**
+ * Breaks the parsing of a pathString once a segment is finalized.
+ *
+ * @param {SVGPC.parserPathArray} path the `parserPathArray` instance
+ */
+function finalizeSegment(path) {
+  let pathCommand = path.pathValue[path.segmentStart];
   let pathComLK = pathCommand.toLowerCase();
-  let params = state.data;
+  let params = path.data;
 
   // Process duplicated commands (without comand name)
   if (pathComLK === 'm' && params.length > 2) {
-    state.segments.push([pathCommand, params[0], params[1]]);
+    path.segments.push([pathCommand, params[0], params[1]]);
     params = params.slice(2);
     pathComLK = 'l';
     pathCommand = (pathCommand === 'm') ? 'l' : 'L';
   }
 
   if (pathComLK === 'r') {
-    state.segments.push([pathCommand].concat(params));
+    path.segments.push([pathCommand].concat(params));
   } else {
     while (params.length >= paramsCount[pathComLK]) {
-      state.segments.push([pathCommand].concat(params.splice(0, paramsCount[pathComLK])));
+      path.segments.push([pathCommand].concat(params.splice(0, paramsCount[pathComLK])));
       if (!paramsCount[pathComLK]) {
         break;
       }
@@ -851,32 +913,49 @@ function finalizeSegment(state) {
 
 const invalidPathValue = 'Invalid path value';
 
-function scanFlag(state) {
-  const ch = state.pathValue.charCodeAt(state.index);
+/**
+ * Validates an A (arc-to) specific path command value.
+ * Usually a `large-arc-flag` or `sweep-flag`.
+ *
+ * @param {SVGPC.parserPathArray} path the `parserPathArray` instance
+ */
+function scanFlag(path) {
+  const { index } = path;
+  const ch = path.pathValue.charCodeAt(index);
 
   if (ch === 0x30/* 0 */) {
-    state.param = 0;
-    state.index += 1;
+    path.param = 0;
+    path.index += 1;
     return;
   }
 
   if (ch === 0x31/* 1 */) {
-    state.param = 1;
-    state.index += 1;
+    path.param = 1;
+    path.index += 1;
     return;
   }
 
-  // state.err = 'SvgPath: arc flag can be 0 or 1 only (at pos ' + state.index + ')';
-  state.err = `${invalidPathValue}: invalid Arc flag ${ch}`;
+  path.err = `${invalidPathValue}: invalid Arc flag ${ch}, expecting 0 or 1 at index ${index}`;
 }
 
+/**
+ * Checks if a character is a digit.
+ *
+ * @param {string} code the character to check
+ * @returns {boolean} check result
+ */
 function isDigit(code) {
   return (code >= 48 && code <= 57); // 0..9
 }
 
-function scanParam(state) {
-  const start = state.index;
-  const { max } = state;
+/**
+ * Validates every character of the path string,
+ * every path command, negative numbers or floating point numbers.
+ *
+ * @param {SVGPC.parserPathArray} path the `parserPathArray` instance
+ */
+function scanParam(path) {
+  const { max, pathValue, index: start } = path;
   let index = start;
   let zeroFirst = false;
   let hasCeiling = false;
@@ -885,22 +964,22 @@ function scanParam(state) {
   let ch;
 
   if (index >= max) {
-    // state.err = 'SvgPath: missed param (at pos ' + index + ')';
-    state.err = `${invalidPathValue}: missing param ${state.pathValue[index]}`;
+    // path.err = 'SvgPath: missed param (at pos ' + index + ')';
+    path.err = `${invalidPathValue} at ${index}: missing param ${pathValue[index]}`;
     return;
   }
-  ch = state.pathValue.charCodeAt(index);
+  ch = pathValue.charCodeAt(index);
 
   if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
     index += 1;
-    ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
+    ch = (index < max) ? pathValue.charCodeAt(index) : 0;
   }
 
   // This logic is shamelessly borrowed from Esprima
   // https://github.com/ariya/esprimas
   if (!isDigit(ch) && ch !== 0x2E/* . */) {
-    // state.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
-    state.err = `${invalidPathValue} at index ${index}: ${state.pathValue[index]} is not a number`;
+    // path.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
+    path.err = `${invalidPathValue} at index ${index}: ${pathValue[index]} is not a number`;
     return;
   }
 
@@ -908,79 +987,99 @@ function scanParam(state) {
     zeroFirst = (ch === 0x30/* 0 */);
     index += 1;
 
-    ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
+    ch = (index < max) ? pathValue.charCodeAt(index) : 0;
 
     if (zeroFirst && index < max) {
       // decimal number starts with '0' such as '09' is illegal.
       if (ch && isDigit(ch)) {
-        // state.err = 'SvgPath: numbers started with `0` such as `09`
+        // path.err = 'SvgPath: numbers started with `0` such as `09`
         // are illegal (at pos ' + start + ')';
-        state.err = `${invalidPathValue}: ${state.pathValue[start]} illegal number`;
+        path.err = `${invalidPathValue} at index ${start}: ${pathValue[start]} illegal number`;
         return;
       }
     }
 
-    while (index < max && isDigit(state.pathValue.charCodeAt(index))) {
+    while (index < max && isDigit(pathValue.charCodeAt(index))) {
       index += 1;
       hasCeiling = true;
     }
-    ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
+    ch = (index < max) ? pathValue.charCodeAt(index) : 0;
   }
 
   if (ch === 0x2E/* . */) {
     hasDot = true;
     index += 1;
-    while (isDigit(state.pathValue.charCodeAt(index))) {
+    while (isDigit(pathValue.charCodeAt(index))) {
       index += 1;
       hasDecimal = true;
     }
-    ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
+    ch = (index < max) ? pathValue.charCodeAt(index) : 0;
   }
 
   if (ch === 0x65/* e */ || ch === 0x45/* E */) {
     if (hasDot && !hasCeiling && !hasDecimal) {
-      // state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
-      state.err = `${invalidPathValue}: ${state.pathValue[index]} invalid float exponent`;
+      path.err = `${invalidPathValue} at index ${index}: ${pathValue[index]} invalid float exponent`;
       return;
     }
 
     index += 1;
 
-    ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
+    ch = (index < max) ? pathValue.charCodeAt(index) : 0;
     if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
       index += 1;
     }
-    if (index < max && isDigit(state.pathValue.charCodeAt(index))) {
-      while (index < max && isDigit(state.pathValue.charCodeAt(index))) {
+    if (index < max && isDigit(pathValue.charCodeAt(index))) {
+      while (index < max && isDigit(pathValue.charCodeAt(index))) {
         index += 1;
       }
     } else {
-      // state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
-      state.err = `${invalidPathValue}: ${state.pathValue[index]} invalid float exponent`;
+      // path.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+      path.err = `${invalidPathValue} at index ${index}: ${pathValue[index]} invalid float exponent`;
       return;
     }
   }
 
-  state.index = index;
-  state.param = +state.pathValue.slice(start, index);
+  path.index = index;
+  path.param = +path.pathValue.slice(start, index);
 }
 
-function isSpace(ch) {
+/**
+ * Checks if the character is a space.
+ *
+ * @param {string} code the character to check
+ * @returns {boolean} check result
+ */
+function isSpace(code) {
   const specialSpaces = [
     0x1680, 0x180E, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006,
     0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000, 0xFEFF];
-  return (ch === 0x0A) || (ch === 0x0D) || (ch === 0x2028) || (ch === 0x2029) // Line terminators
+  // Line terminators
+  return (code === 0x0A) || (code === 0x0D) || (code === 0x2028) || (code === 0x2029)
     // White spaces
-    || (ch === 0x20) || (ch === 0x09) || (ch === 0x0B) || (ch === 0x0C) || (ch === 0xA0)
-    || (ch >= 0x1680 && specialSpaces.indexOf(ch) >= 0);
+    || (code === 0x20) || (code === 0x09) || (code === 0x0B) || (code === 0x0C) || (code === 0xA0)
+    || (code >= 0x1680 && specialSpaces.indexOf(code) >= 0);
 }
 
-function skipSpaces(state) {
-  while (state.index < state.max && isSpace(state.pathValue.charCodeAt(state.index))) {
-    state.index += 1;
+/**
+ * Points the parser to the next character in the
+ * path string every time it encounters any kind of
+ * space character.
+ *
+ * @param {SVGPC.parserPathArray} path the `parserPathArray` instance
+ */
+function skipSpaces(path) {
+  const { pathValue, max } = path;
+  while (path.index < max && isSpace(pathValue.charCodeAt(path.index))) {
+    path.index += 1;
   }
 }
 
+/**
+ * Checks if the character is a path command.
+ *
+ * @param {string} code the character to check
+ * @returns {boolean} check result
+ */
 function isPathCommand(code) {
   // eslint-disable-next-line no-bitwise -- Impossible to satisfy
   switch (code | 0x20) {
@@ -1001,6 +1100,13 @@ function isPathCommand(code) {
   }
 }
 
+/**
+ * Checks if the character is or belongs to a number.
+ * [0-9]|+|-|.
+ *
+ * @param {string} code the character to check
+ * @returns {boolean} check result
+ */
 function isDigitStart(code) {
   return (code >= 48 && code <= 57) /* 0..9 */
     || code === 0x2B /* + */
@@ -1008,117 +1114,161 @@ function isDigitStart(code) {
     || code === 0x2E; /* . */
 }
 
+/**
+ * Checks if the character is an A (arc-to) path command.
+ *
+ * @param {string} code the character to check
+ * @returns {boolean} check result
+ */
 function isArcCommand(code) {
   // eslint-disable-next-line no-bitwise -- Impossible to satisfy
   return (code | 0x20) === 0x61;
 }
 
-function scanSegment(state) {
-  const { max } = state;
-  const cmdCode = state.pathValue.charCodeAt(state.index);
-  const reqParams = paramsCount[state.pathValue[state.index].toLowerCase()];
+/**
+ * Scans every character in the path string to determine
+ * where a segment starts and where it ends.
+ *
+ * @param {SVGPC.parserPathArray} path the `parserPathArray` instance
+ */
+function scanSegment(path) {
+  const { max, pathValue, index } = path;
+  const cmdCode = pathValue.charCodeAt(index);
+  const reqParams = paramsCount[pathValue[index].toLowerCase()];
 
-  state.segmentStart = state.index;
+  path.segmentStart = index;
 
   if (!isPathCommand(cmdCode)) {
-    state.err = `${invalidPathValue}: ${state.pathValue[state.index]} not a path command`;
+    path.err = `${invalidPathValue}: ${pathValue[index]} not a path command`;
     return;
   }
 
-  state.index += 1;
-  skipSpaces(state);
+  path.index += 1;
+  skipSpaces(path);
 
-  state.data = [];
+  path.data = [];
 
   if (!reqParams) {
     // Z
-    finalizeSegment(state);
+    finalizeSegment(path);
     return;
   }
 
   for (;;) {
     for (let i = reqParams; i > 0; i -= 1) {
-      if (isArcCommand(cmdCode) && (i === 3 || i === 4)) scanFlag(state);
-      else scanParam(state);
+      if (isArcCommand(cmdCode) && (i === 3 || i === 4)) scanFlag(path);
+      else scanParam(path);
 
-      if (state.err.length) {
+      if (path.err.length) {
         return;
       }
-      state.data.push(state.param);
+      path.data.push(path.param);
 
-      skipSpaces(state);
+      skipSpaces(path);
 
       // after ',' param is mandatory
-      if (state.index < max && state.pathValue.charCodeAt(state.index) === 0x2C/* , */) {
-        state.index += 1;
-        skipSpaces(state);
+      if (path.index < max && pathValue.charCodeAt(path.index) === 0x2C/* , */) {
+        path.index += 1;
+        skipSpaces(path);
       }
     }
 
-    if (state.index >= state.max) {
+    if (path.index >= path.max) {
       break;
     }
 
     // Stop on next segment
-    if (!isDigitStart(state.pathValue.charCodeAt(state.index))) {
+    if (!isDigitStart(pathValue.charCodeAt(path.index))) {
       break;
     }
   }
 
-  finalizeSegment(state);
+  finalizeSegment(path);
 }
 
+/**
+ * The `parserPathArray` used by the parser.
+ *
+ * @param {string} pathString
+ */
 function SVGPathArray(pathString) {
+  /** @type {[string, ...number[]][]} */
   this.segments = [];
+  /** @type {string} */
   this.pathValue = pathString;
+  /** @type {number} */
   this.max = pathString.length;
+  /** @type {number} */
   this.index = 0;
+  /** @type {number} */
   this.param = 0.0;
+  /** @type {number} */
   this.segmentStart = 0;
+  /** @type {any} */
   this.data = [];
+  /** @type {string} */
   this.err = '';
 }
 
-// Returns array of segments:
-function parsePathString(pathString) {
-  if (isPathArray(pathString)) {
-    return clonePath(pathString);
+/**
+ * Parses a path string value and returns an array
+ * of segments we like to call `pathArray`.
+ *
+ * @param {string | SVGPC.pathArray} pathInput the string to be parsed
+ * @returns {SVGPC.pathArray} the resulted `pathArray`
+ */
+function parsePathString(pathInput) {
+  if (isPathArray(pathInput)) {
+    return clonePath(pathInput);
   }
 
-  const state = new SVGPathArray(pathString);
+  const path = new SVGPathArray(pathInput);
 
-  skipSpaces(state);
+  skipSpaces(path);
 
-  while (state.index < state.max && !state.err.length) {
-    scanSegment(state);
+  while (path.index < path.max && !path.err.length) {
+    scanSegment(path);
   }
 
-  if (state.err.length) {
-    state.segments = [];
-  } else if (state.segments.length) {
-    if ('mM'.indexOf(state.segments[0][0]) < 0) {
-      // state.err = 'Path string should start with `M` or `m`';
-      state.err = `${invalidPathValue}: missing M/m`;
-      state.segments = [];
+  if (path.err.length) {
+    path.segments = [];
+  } else if (path.segments.length) {
+    if ('mM'.indexOf(path.segments[0][0]) < 0) {
+      path.err = `${invalidPathValue}: missing M/m`;
+      path.segments = [];
     } else {
-      state.segments[0][0] = 'M';
+      path.segments[0][0] = 'M';
     }
   }
 
-  return state.segments;
+  return path.segments;
 }
 
-function isAbsoluteArray(pathInput) {
-  return isPathArray(pathInput) && pathInput.every((x) => x[0] === x[0].toUpperCase());
+/**
+ * Iterates an array to check if it's a `pathArray`
+ * with all absolute values.
+ *
+ * @param {SVGPC.pathArray} path the `pathArray` to be checked
+ * @returns {boolean} iteration result
+ */
+function isAbsoluteArray(path) {
+  return isPathArray(path) && path.every((x) => x[0] === x[0].toUpperCase());
 }
 
+/**
+ * Parses a path string value or object and returns an array
+ * of segments, all converted to absolute values.
+ *
+ * @param {string | SVGPC.pathArray} pathInput the path string | object
+ * @returns {SVGPC.pathArray} the resulted `pathArray` with absolute values
+ */
 function pathToAbsolute(pathInput) {
   if (isAbsoluteArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const pathArray = parsePathString(pathInput);
-  const ii = pathArray.length;
+  const path = parsePathString(pathInput);
+  const ii = path.length;
   const resultArray = [];
   let x = 0;
   let y = 0;
@@ -1126,9 +1276,9 @@ function pathToAbsolute(pathInput) {
   let my = 0;
   let start = 0;
 
-  if (pathArray[0][0] === 'M') {
-    x = +pathArray[0][1];
-    y = +pathArray[0][2];
+  if (path[0][0] === 'M') {
+    x = +path[0][1];
+    y = +path[0][2];
     mx = x;
     my = y;
     start += 1;
@@ -1136,7 +1286,7 @@ function pathToAbsolute(pathInput) {
   }
 
   for (let i = start; i < ii; i += 1) {
-    const segment = pathArray[i];
+    const segment = path[i];
     const [pathCommand] = segment;
     const absCommand = pathCommand.toUpperCase();
     const absoluteSegment = [];
@@ -1201,20 +1351,48 @@ function pathToAbsolute(pathInput) {
   return resultArray;
 }
 
-// returns {qx,qy} for shorthand quadratic bezier segments
+/**
+ * Returns the missing control point from an
+ * T (shorthand quadratic bezier) segment.
+ *
+ * @param {Number} x1 curve start x
+ * @param {Number} y1 curve start y
+ * @param {Number} qx control point x
+ * @param {Number} qy control point y
+ * @param {String} prevCommand the previous path command
+ * @returns {Object} the missing control point
+ */
 function shorthandToQuad(x1, y1, qx, qy, prevCommand) {
   return 'QT'.indexOf(prevCommand) > -1
     ? { qx: x1 * 2 - qx, qy: y1 * 2 - qy }
     : { qx: x1, qy: y1 };
 }
 
-// returns {x1,x2} for shorthand cubic bezier segments
+/**
+ * Returns the missing control point from an
+ * S (shorthand cubic bezier) segment.
+ *
+ * @param {Number} x1 curve start x
+ * @param {Number} y1 curve start y
+ * @param {Number} x2 curve end x
+ * @param {Number} y2 curve end y
+ * @param {String} prevCommand the previous path command
+ * @returns {Object} the missing control point
+ */
 function shorthandToCubic(x1, y1, x2, y2, prevCommand) {
   return 'CS'.indexOf(prevCommand) > -1
     ? { x1: x1 * 2 - x2, y1: y1 * 2 - y2 }
     : { x1, y1 };
 }
 
+/**
+ * Normalizes a single segment of a `pathArray` object.
+ *
+ * @param {SVGPC.pathSegment} segment the segment object
+ * @param {Object} params the coordinates of the previous segment
+ * @param {String} prevCommand the path command of the previous segment
+ * @returns {SVGPC.pathSegment} the normalized segment
+ */
 function normalizeSegment(segment, params, prevCommand) {
   const [pathCommand] = segment;
   const xy = segment.slice(1);
@@ -1248,40 +1426,56 @@ function normalizeSegment(segment, params, prevCommand) {
   return result;
 }
 
-function isNormalizedArray(pathArray) {
-  return Array.isArray(pathArray) && pathArray.every((seg) => {
-    const pathCommand = seg[0].toLowerCase();
-    return paramsCount[pathCommand] === seg.length - 1 && /[ACLMQZ]/.test(seg[0]); // achlmrqstvz
+/**
+ * Iterates an array to check if it's a `pathArray`
+ * with all segments are in non-shorthand notation
+ * with absolute values.
+ *
+ * @param {SVGPC.pathArray} path the `pathArray` to be checked
+ * @returns {boolean} iteration result
+ */
+function isNormalizedArray(path) {
+  return isPathArray(path) && path.every((seg) => {
+    const lk = seg[0].toLowerCase();
+    return paramsCount[lk] === seg.length - 1 && ('ACLMQZ').includes(seg[0]); // achlmqstvz
   });
 }
 
-function normalizePath(pathInput) { // pathArray|pathString
+/**
+ * Normalizes a `path` object for further processing:
+ * * convert segments to absolute values
+ * * convert shorthand path commands to their non-shorthand notation
+ *
+ * @param {String | SVGPC.pathArray} pathInput the string to be parsed or 'pathArray'
+ * @returns {SVGPC.pathArray} the normalized `pathArray`
+ */
+function normalizePath(pathInput) { // path|pathString
   if (isNormalizedArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const pathArray = pathToAbsolute(pathInput);
+  const path = pathToAbsolute(pathInput);
   const params = {
     x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
   };
   const allPathCommands = [];
-  const ii = pathArray.length;
+  const ii = path.length;
   let prevCommand = '';
   let segment;
   let seglen;
 
   for (let i = 0; i < ii; i += 1) {
     // save current path command
-    const [pathCommand] = pathArray[i];
+    const [pathCommand] = path[i];
 
     // Save current path command
     allPathCommands[i] = pathCommand;
     // Get previous path command
     if (i) prevCommand = allPathCommands[i - 1];
     // Previous path command is inputted to processSegment
-    pathArray[i] = normalizeSegment(pathArray[i], params, prevCommand);
+    path[i] = normalizeSegment(path[i], params, prevCommand);
 
-    segment = pathArray[i];
+    segment = path[i];
     seglen = segment.length;
 
     params.x1 = +segment[seglen - 2];
@@ -1289,19 +1483,41 @@ function normalizePath(pathInput) { // pathArray|pathString
     params.x2 = +(segment[seglen - 4]) || params.x1;
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
-  return pathArray;
+  return path;
 }
 
+/**
+ * Returns an {x,y} vector rotated by a given
+ * angle in radian.
+ *
+ * @param {Number} x the initial vector x
+ * @param {Number} y the initial vector y
+ * @returns {{x: number, y: number}} the rotated vector
+ */
 function rotateVector(x, y, rad) {
   const X = x * Math.cos(rad) - y * Math.sin(rad);
   const Y = x * Math.sin(rad) + y * Math.cos(rad);
   return { x: X, y: Y };
 }
 
-// for more information of where this math came from visit:
-// http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-// LAF = largeArcFlag, SF = sweepFlag
-
+/**
+ * Converts A (arc-to) segments to C (cubic-bezier-to).
+ *
+ * For more information of where this math came from visit:
+ * http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+ *
+ * @param {Number} x1 the starting x position
+ * @param {Number} y1 the starting y position
+ * @param {Number} rx x-radius of the arc
+ * @param {Number} ry y-radius of the arc
+ * @param {Number} angle x-axis-rotation of the arc
+ * @param {Number} LAF large-arc-flag of the arc
+ * @param {Number} SF sweep-flag of the arc
+ * @param {Number} x2 the ending x position
+ * @param {Number} y2 the ending y position
+ * @param {Number[] | null} recursive the parameters needed to split arc into 2 segments
+ * @return {Number[] | Number[][]} the resulting cubic-bezier segment(s)
+ */
 function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recursive) {
   const d120 = (Math.PI * 120) / 180;
   const rad = (Math.PI / 180) * (angle || 0);
@@ -1408,6 +1624,17 @@ function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recursive) {
   });
 }
 
+/**
+ * Converts a Q (quadratic-bezier) segment to C (cubic-bezier).
+ *
+ * @param {Number} x1 curve start x
+ * @param {Number} y1 curve start y
+ * @param {Number} qx control point x
+ * @param {Number} qy control point y
+ * @param {Number} x2 curve end x
+ * @param {Number} y2 curve end y
+ * @returns {Number[]} the cubic-bezier segment
+ */
 function quadToCubic(x1, y1, qx, qy, x2, y2) {
   const r13 = 1 / 3;
   const r23 = 2 / 3;
@@ -1420,7 +1647,21 @@ function quadToCubic(x1, y1, qx, qy, x2, y2) {
   ];
 }
 
-// t = [0-1]
+/**
+ * Returns the {x,y} coordinates of a point at a
+ * given length of a cubic-bezier segment.
+ *
+ * @param {Number} p1x the starting point X
+ * @param {Number} p1y the starting point Y
+ * @param {Number} c1x the first control point X
+ * @param {Number} c1y the first control point Y
+ * @param {Number} c2x the second control point X
+ * @param {Number} c2y the second control point Y
+ * @param {Number} px2 the ending point X
+ * @param {Number} py2 the ending point Y
+ * @param {Number} t a [0-1] ratio
+ * @returns {{x: number, y: number}} the requested {x,y} coordinates
+ */
 function getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
   const t1 = 1 - t;
   return {
@@ -1435,14 +1676,29 @@ function getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
   };
 }
 
+/**
+ * Returns the coordinates of a specified distance
+ * ratio between two points.
+ *
+ * @param {Number[]} a the first point coordinates
+ * @param {Number[]} b the second point coordinates
+ * @param {Number} t the ratio
+ * @returns {Number[]} the midpoint coordinates
+ */
 function midPoint(a, b, t) {
-  const ax = a[0];
-  const ay = a[1];
-  const bx = b[0];
-  const by = b[1];
+  const [ax, ay] = a; const [bx, by] = b;
   return [ax + (bx - ax) * t, ay + (by - ay) * t];
 }
 
+/**
+ * Converts an L (line-to) segment to C (cubic-bezier).
+ *
+ * @param {Number} x1 line start x
+ * @param {Number} y1 line start y
+ * @param {Number} x2 line end x
+ * @param {Number} y2 line end y
+ * @returns {Number[]} the cubic-bezier segment
+ */
 function lineToCubic(x1, y1, x2, y2) {
   const t = 0.5;
   const p0 = [x1, y1];
@@ -1458,6 +1714,13 @@ function lineToCubic(x1, y1, x2, y2) {
   return [cp1.x, cp1.y, cp2.x, cp2.y, x2, y2];
 }
 
+/**
+ * Converts any segment to C (cubic-bezier).
+ *
+ * @param {SVGPC.pathSegment} segment the source segment
+ * @param {Object.<string, number>} params the source segment parameters
+ * @returns {SVGPC.pathSegment} the cubic-bezier segment
+ */
 function segmentToCubic(segment, params) {
   if ('TQ'.indexOf(segment[0]) < 0) {
     params.qx = null;
@@ -1485,32 +1748,36 @@ function segmentToCubic(segment, params) {
   return segment;
 }
 
-function pathToCurve(pathInput) { // pathArray|pathString
+/**
+ * Parses a path string value or 'pathArray' and returns a new one
+ * in which all segments are converted to cubic-bezier.
+ *
+ * @param {String | SVGPC.pathArray} pathInput the string to be parsed or object
+ * @returns {SVGPC.pathArray} the resulted `pathArray` converted to cubic-bezier
+ */
+function pathToCurve(pathInput) {
   if (isCurveArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const pathArray = normalizePath(pathInput);
+  const path = normalizePath(pathInput);
   const params = {
     x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
   };
   const allPathCommands = [];
   let pathCommand = '';
-  let ii = pathArray.length;
-  let segment;
-  let seglen;
+  let ii = path.length;
 
   for (let i = 0; i < ii; i += 1) {
-    if (pathArray[i]) [pathCommand] = pathArray[i];
+    const segment = path[i];
+    const seglen = segment.length;
+    if (segment) [pathCommand] = segment;
 
     allPathCommands[i] = pathCommand;
-    pathArray[i] = segmentToCubic(pathArray[i], params);
+    path[i] = segmentToCubic(segment, params);
 
-    fixArc(pathArray, allPathCommands, i);
-    ii = pathArray.length; // solves curveArrays ending in Z
-
-    segment = pathArray[i];
-    seglen = segment.length;
+    fixArc(path, allPathCommands, i);
+    ii = path.length; // solves curveArrays ending in Z
 
     params.x1 = +segment[seglen - 2];
     params.y1 = +segment[seglen - 1];
@@ -1518,22 +1785,44 @@ function pathToCurve(pathInput) { // pathArray|pathString
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
 
-  return pathArray;
+  return path;
 }
 
-// https://github.com/paperjs/paper.js/blob/develop/src/path/Path.js
-
+/**
+ * Returns the area of a single segment shape.
+ *
+ * http://objectmix.com/graphics/133553-area-closed-bezier-curve.html
+ *
+ * @param {number} x0 the starting point X
+ * @param {number} y0 the starting point Y
+ * @param {number} x1 the first control point X
+ * @param {number} y1 the first control point Y
+ * @param {number} x2 the second control point X
+ * @param {number} y2 the second control point Y
+ * @param {number} x3 the ending point X
+ * @param {number} y3 the ending point Y
+ * @returns {number} the area of the cubic-bezier segment
+ */
 function getCubicSegArea(x0, y0, x1, y1, x2, y2, x3, y3) {
-  // http://objectmix.com/graphics/133553-area-closed-bezier-curve.html
   return (3 * ((y3 - y0) * (x1 + x2) - (x3 - x0) * (y1 + y2)
            + (y1 * (x0 - x2)) - (x1 * (y0 - y2))
            + (y3 * (x2 + x0 / 3)) - (x3 * (y2 + y0 / 3)))) / 20;
 }
 
-function getPathArea(pathArray) {
-  let x = 0; let y = 0; let mx = 0; let my = 0; let
-    len = 0;
-  return pathToCurve(pathArray).map((seg) => {
+/**
+ * Returns the area of a shape.
+ * @author Jürg Lehni & Jonathan Puckey
+ *
+ * => https://github.com/paperjs/paper.js/blob/develop/src/path/Path.js
+ *
+ * @param {SVGPC.pathArray} path the shape `pathArray`
+ * @returns {SVGPC.pathBBox} the length of the cubic-bezier segment
+ */
+function getPathArea(path) {
+  let x = 0; let y = 0;
+  let mx = 0; let my = 0;
+  let len = 0;
+  return pathToCurve(path).map((seg) => {
     switch (seg[0]) {
       case 'M':
       case 'Z':
@@ -1556,7 +1845,20 @@ function base3(p1, p2, p3, p4, t) {
   return t * t2 - 3 * p1 + 3 * p2;
 }
 
-// returns the cubic bezier segment length
+/**
+ * Returns the C (cubic-bezier) segment length.
+ *
+ * @param {Number} x1 the starting point X
+ * @param {Number} y1 the starting point Y
+ * @param {Number} x2 the first control point X
+ * @param {Number} y2 the first control point Y
+ * @param {Number} x3 the second control point X
+ * @param {Number} y3 the second control point Y
+ * @param {Number} x4 the ending point X
+ * @param {Number} y4 the ending point Y
+ * @param {Number} z a [0-1] ratio
+ * @returns {Number} the cubic-bezier segment length
+ */
 function getSegCubicLength(x1, y1, x2, y2, x3, y3, x4, y4, z) {
   let Z;
   if (z === null || Number.isNaN(+z)) Z = 1;
@@ -1582,30 +1884,48 @@ function getSegCubicLength(x1, y1, x2, y2, x3, y3, x4, y4, z) {
   return z2 * sum;
 }
 
-// calculates the shape total length
-// equivalent to shape.getTotalLength()
-// pathToCurve version
-function getPathLength(pathArray) {
+/**
+ * Returns the shape total length,
+ * or the equivalent to `shape.getTotalLength()`
+ * pathToCurve version
+ *
+ * @param {SVGPC.pathArray} path the ending point Y
+ * @returns {Number} the shape total length
+ */
+function getPathLength(path) {
   let totalLength = 0;
-  pathToCurve(pathArray).forEach((s, i, curveArray) => {
-    totalLength += s[0] !== 'M' ? getSegCubicLength.apply(0, curveArray[i - 1].slice(-2).concat(s.slice(1))) : 0;
+  pathToCurve(path).forEach((s, i, curveArray) => {
+    totalLength += s[0] === 'M' ? 0
+      : getSegCubicLength.apply(0, curveArray[i - 1].slice(-2).concat(s.slice(1)));
   });
   return totalLength;
 }
 
-function getDrawDirection(pathArray) {
-  return getPathArea(pathToCurve(pathArray)) >= 0;
+/**
+ * Check if a path is drawn clockwise and returns true if so,
+ * false otherwise.
+ *
+ * @param {string | SVGPC.pathArray} path the path string or `pathArray`
+ * @returns {boolean} true when clockwise or false if not
+ */
+function getDrawDirection(path) {
+  return getPathArea(pathToCurve(path)) >= 0;
 }
 
-// calculates the shape total length
-// almost equivalent to shape.getTotalLength()
-function getPointAtLength(pathArray, length) {
+/**
+ * Returns [x,y] coordinates of a point at a given length of a shape.
+ *
+ * @param {string | SVGPC.pathArray} path the `pathArray` to look into
+ * @param {Number} length the length of the shape to look at
+ * @returns {Number[]} the requested [x,y] coordinates
+ */
+function getPointAtLength(path, length) {
   let totalLength = 0;
   let segLen;
   let data;
   let result;
 
-  return pathToCurve(pathArray).map((seg, i, curveArray) => { // process data
+  return pathToCurve(path).map((seg, i, curveArray) => {
     data = i ? curveArray[i - 1].slice(-2).concat(seg.slice(1)) : seg.slice(1);
     segLen = i ? getSegCubicLength.apply(0, data) : 0;
     totalLength += segLen;
@@ -1622,7 +1942,19 @@ function getPointAtLength(pathArray, length) {
   }).filter((x) => x).slice(-1)[0]; // isolate last segment
 }
 
-// returns the cubic bezier segment length
+/**
+ * Returns the cubic-bezier segment length.
+ *
+ * @param {number} p1x the starting point X
+ * @param {number} p1y the starting point Y
+ * @param {number} c1x the first control point X
+ * @param {number} c1y the first control point Y
+ * @param {number} c2x the second control point X
+ * @param {number} c2y the second control point Y
+ * @param {number} p2x the ending point X
+ * @param {number} p2y the ending point Y
+ * @returns {SVGPC.segmentLimits} the length of the cubic-bezier segment
+ */
 function getCubicSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
   let a = (c2x - 2 * c1x + p1x) - (p2x - 2 * c2x + c1x);
   let b = 2 * (c1x - p1x) - 2 * (c2x - c1x);
@@ -1671,13 +2003,19 @@ function getCubicSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
   };
 }
 
-function getPathBBox(pathArray) {
-  if (!pathArray) {
+/**
+ * Returns the bounding box of a shape.
+ *
+ * @param {SVGPC.pathArray} path the shape `pathArray`
+ * @returns {SVGPC.pathBBox} the length of the cubic-bezier segment
+ */
+function getPathBBox(path) {
+  if (!path) {
     return {
       x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0,
     };
   }
-  const pathCurve = pathToCurve(pathArray);
+  const pathCurve = pathToCurve(path);
 
   let x = 0;
   let y = 0;
@@ -1708,28 +2046,67 @@ function getPathBBox(pathArray) {
   const height = yBot - yTop;
 
   return {
+    width,
+    height,
     x: xTop,
     y: yTop,
     x2: xBot,
     y2: yBot,
-    width,
-    height,
     cx: xTop + width / 2,
     cy: yTop + height / 2,
   };
 }
 
-function isRelativeArray(pathInput) {
-  return isPathArray(pathInput)
-    && pathInput.slice(1).every((seg) => seg[0] === seg[0].toLowerCase());
+/**
+ * Parses a path string value to determine its validity
+ * then returns true if it's valid or false otherwise.
+ *
+ * @param {string} pathString the path string to be parsed
+ * @returns {boolean} the path string validity
+ */
+function isValidPath(pathString) {
+  if (typeof pathString !== 'string') {
+    return false;
+  }
+
+  const path = new SVGPathArray(pathString);
+
+  skipSpaces(path);
+
+  while (path.index < path.max && !path.err.length) {
+    scanSegment(path);
+  }
+
+  return !path.err.length && 'mM'.includes(path.segments[0][0]);
 }
 
-function roundPath(pathArray, round) {
-  const decimalsOption = !Number.isNaN(+round) ? +round : SVGPCO.round && SVGPCO.decimals;
-  let result;
+/**
+ * Iterates an array to check if it's a `pathArray`
+ * with relative values.
+ *
+ * @param {SVGPC.pathArray} path the `pathArray` to be checked
+ * @returns {boolean} iteration result
+ */
+function isRelativeArray(path) {
+  return isPathArray(path)
+    && path.slice(1).every((seg) => seg[0] === seg[0].toLowerCase());
+}
 
-  if (decimalsOption) {
-    result = pathArray.map((seg) => seg.map((c) => {
+/**
+ * Rounds the values of a `pathArray` instance to
+ * a specified amount of decimals and returns it.
+ *
+ * @param {SVGPC.pathArray} path the source `pathArray`
+ * @param {Number | null} round the amount of decimals to round numbers to
+ * @returns {SVGPC.pathArray} the resulted `pathArray` with rounded values
+ */
+function roundPath(path, round) {
+  const { round: defaultRound, decimals: defaultDecimals } = SVGPCO;
+  const decimalsOption = !Number.isNaN(+round) ? +round : defaultRound && defaultDecimals;
+
+  return !decimalsOption
+    ? clonePath(path)
+    : path.map((seg) => seg.map((c) => {
       const nr = +c;
       const dc = 10 ** decimalsOption;
       if (nr) {
@@ -1737,17 +2114,198 @@ function roundPath(pathArray, round) {
       }
       return c;
     }));
-  } else {
-    result = clonePath(pathArray);
-  }
-  return result;
 }
 
-function pathToString(pathArray, round) {
-  return roundPath(pathArray, round)
+/**
+ * Returns a valid `d` attribute string value created
+ * by rounding values and concatenating the `pathArray` segments.
+ *
+ * @param {SVGPC.pathArray} path the `pathArray` object
+ * @param {Number} round amount of decimals to round values to
+ * @returns {String} the concatenated path string
+ */
+function pathToString(path, round) {
+  return roundPath(path, round)
     .map((x) => x[0].concat(x.slice(1).join(' '))).join('');
 }
 
+/**
+ * Supported shapes and their specific parameters.
+ *
+ * @type {object}
+ */
+const shapeParams = {
+  circle: ['cx', 'cy', 'r'],
+  ellipse: ['cx', 'cy', 'rx', 'ry'],
+  rect: ['width', 'height', 'x', 'y', 'rx', 'ry'],
+  polygon: ['points'],
+  polyline: ['points'],
+  glyph: [],
+};
+
+/**
+ * Returns a new `pathArray` from line attributes.
+ *
+ * @param {SVGPC.lineAttr} attr shape configuration
+ * @return {SVGPC.pathArray} a new line `pathArray`
+ */
+function getLinePath(attr) {
+  const {
+    x1, y1, x2, y2,
+  } = attr;
+  return [['M', +x1, +y1], ['L', +x2, +y2]];
+}
+
+/**
+ * Returns a new `pathArray` like from polyline/polygon attributes.
+ *
+ * @param {SVGPC.polyAttr} attr shape configuration
+ * @return {SVGPC.pathArray} a new polygon/polyline `pathArray`
+ */
+function getPolyPath(attr) {
+  const pathArray = [];
+  let { points } = attr;
+
+  points = points.split(/[\s|,]/).map(Number);
+
+  let index = 0;
+  while (index < points.length) {
+    pathArray.push([(index ? 'L' : 'M'), (points[index]), (points[index + 1])]);
+    index += 2;
+  }
+
+  return attr.type === 'polygon' ? pathArray.concat([['z']]) : pathArray;
+}
+
+/**
+ * Returns a new `pathArray` from circle/ellipse attributes.
+ *
+ * @param {SVGPC.ellipseAttr | SVGPC.circleAttr} attr shape configuration
+ * @return {SVGPC.pathArray} a circle/ellipse `pathArray`
+ */
+function getEllipsePath(attr) {
+  const {
+    type, cx, cy, r,
+  } = attr;
+  let { rx, ry } = attr;
+
+  if (type === 'circle' && r > 0) {
+    rx = r;
+    ry = r;
+  }
+
+  return [
+    ['M', (cx - rx), cy],
+    ['a', rx, ry, 0, 1, 0, (2 * rx), 0],
+    ['a', rx, ry, 0, 1, 0, (-2 * rx), 0],
+  ];
+}
+
+/**
+ * Returns a new `pathArray` like from rect attributes.
+ *
+ * @param {SVGPC.rectAttr} attr object with properties above
+ * @return {SVGPC.pathArray} a new `pathArray` from `<rect>` attributes
+ */
+function getRectanglePath(attr) {
+  const x = +attr.x || 0;
+  const y = +attr.y || 0;
+  const w = +attr.width;
+  const h = +attr.height;
+  let rx = +attr.rx;
+  let ry = +attr.ry;
+
+  // Validity checks from http://www.w3.org/TR/SVG/shapes.html#RectElement:
+  if (rx || ry) {
+    rx = !rx ? ry : rx;
+    ry = !ry ? rx : ry;
+
+    if (rx * 2 > w) rx -= (rx * 2 - w) / 2;
+    if (ry * 2 > h) ry -= (ry * 2 - h) / 2;
+
+    return [
+      ['M', x + rx, y],
+      ['h', w - rx * 2],
+      ['s', rx, 0, rx, ry],
+      ['v', h - ry * 2],
+      ['s', 0, ry, -rx, ry],
+      ['h', -w + rx * 2],
+      ['s', -rx, 0, -rx, -ry],
+      ['v', -h + ry * 2],
+      ['s', 0, -ry, rx, -ry],
+    ];
+  }
+
+  return [
+    ['M', x, y],
+    ['h', w],
+    ['v', h],
+    ['H', x],
+    ['Z'],
+  ];
+}
+
+/**
+ * Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`,
+ * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>` or `<glyph>`. If `replace` parameter
+ * is `true`, it will replace the target.
+ *
+ * The newly created `<path>` element keeps all non-specific
+ * attributes like `class`, `fill`, etc.
+ *
+ * @param {SVGPC.shapeTypes} element target shape
+ * @param {boolean} replace option to replace target
+ * @return {?SVGPathElement} the newly created `<path>` element
+ */
+function shapeToPath(element, replace) {
+  const supportedShapes = Object.keys(shapeParams).concat(['glyph']);
+
+  if (!supportedShapes.some((s) => element.tagName === s)) {
+    throw TypeError(`shapeToPath: ${element} is not SVGElement`);
+  }
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const type = element.tagName;
+  const shapeAttrs = shapeParams[type];
+
+  // set config
+  const config = { type };
+  shapeAttrs.forEach((p) => { config[p] = element.getAttribute(p); });
+
+  // set no-specific shape attributes: fill, stroke, etc
+  Object.values(element.attributes).forEach(({ name, value }) => {
+    if (!shapeAttrs.includes(name)) path.setAttribute(name, value);
+  });
+
+  // set d
+  let description;
+  if (['circle', 'ellipse'].includes(type)) description = pathToString(getEllipsePath(config));
+  else if (['polyline', 'polygon'].includes(type)) description = pathToString(getPolyPath(config));
+  else if (type === 'rect') description = pathToString(getRectanglePath(config));
+  else if (type === 'line') description = pathToString(getLinePath(config));
+  else if (type === 'glyph') description = element.getAttribute('d');
+
+  // replace target element
+  if (description) {
+    path.setAttribute('d', description);
+    if (replace) {
+      element.before(path, element);
+      element.remove();
+    }
+    return path;
+  }
+  return null;
+}
+
+/**
+ * Split a path into an `Array` of sub-path strings.
+ *
+ * In the process, values are converted to absolute
+ * for visual consistency.
+ *
+ * @param {Object | String} pathInput the cubic-bezier parameters
+ * @return {Object} an array with all sub-path strings
+ */
 function splitPath(pathInput) {
   return pathToString(pathToAbsolute(pathInput))
     .replace(/(m|M)/g, '|$1')
@@ -1756,13 +2314,20 @@ function splitPath(pathInput) {
     .filter((s) => s);
 }
 
+/**
+ * Parses a path string value or object and returns an array
+ * of segments, all converted to relative values.
+ *
+ * @param {string | SVGPC.pathArray} pathInput the path string | object
+ * @returns {SVGPC.pathArray} the resulted `pathArray` with relative values
+ */
 function pathToRelative(pathInput) {
   if (isRelativeArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const pathArray = parsePathString(pathInput);
-  const ii = pathArray.length;
+  const path = parsePathString(pathInput);
+  const ii = path.length;
   const resultArray = [];
   let x = 0;
   let y = 0;
@@ -1770,9 +2335,9 @@ function pathToRelative(pathInput) {
   let my = 0;
   let start = 0;
 
-  if (pathArray[0][0] === 'M') {
-    x = +pathArray[0][1];
-    y = +pathArray[0][2];
+  if (path[0][0] === 'M') {
+    x = +path[0][1];
+    y = +path[0][2];
     mx = x;
     my = y;
     start += 1;
@@ -1780,7 +2345,7 @@ function pathToRelative(pathInput) {
   }
 
   for (let i = start; i < ii; i += 1) {
-    const segment = pathArray[i];
+    const segment = path[i];
     const [pathCommand] = segment;
     const relativeCommand = pathCommand.toLowerCase();
     const relativeSegment = [];
@@ -1842,9 +2407,19 @@ function pathToRelative(pathInput) {
   return resultArray;
 }
 
-function optimizePath(pathArray, round) {
-  const absolutePath = roundPath(pathToAbsolute(pathArray), round);
-  const relativePath = roundPath(pathToRelative(pathArray), round);
+/**
+ * Optimizes a `pathArray` object:
+ * * convert segments to absolute and relative values
+ * * create a new `pathArray` with elements with shortest segments
+ * from absolute and relative `pathArray`s
+ *
+ * @param {string | SVGPC.pathArray} pathInput a string or `pathArray`
+ * @param {number} round the amount of decimals to round values to
+ * @returns {SVGPC.pathArray} the optimized `pathArray`
+ */
+function optimizePath(pathInput, round) {
+  const absolutePath = roundPath(pathToAbsolute(pathInput), round);
+  const relativePath = roundPath(pathToRelative(pathInput), round);
   return absolutePath.map((x, i) => {
     if (i) {
       return x.join('').length < relativePath[i].join('').length ? x : relativePath[i];
@@ -1853,13 +2428,19 @@ function optimizePath(pathArray, round) {
   });
 }
 
-// reverse CURVE based pathArray segments only
-function reverseCurve(pathArray) {
-  const rotatedCurve = pathArray.slice(1)
+/**
+ * Reverses all segments and their values from a `pathArray`
+ * which consists of only C (cubic-bezier) path commands.
+ *
+ * @param {SVGPC.pathArray} path the source `pathArray`
+ * @returns {SVGPC.pathArray} the reversed `pathArray`
+ */
+function reverseCurve(path) {
+  const rotatedCurve = path.slice(1)
     .map((x, i, curveOnly) => (!i
-      ? pathArray[0].slice(1).concat(x.slice(1))
+      ? path[0].slice(1).concat(x.slice(1))
       : curveOnly[i - 1].slice(-2).concat(x.slice(1))))
-    .map((x) => x.map((y, i) => x[x.length - i - 2 * (1 - (i % 2))]))
+    .map((x) => x.map((_, i) => x[x.length - i - 2 * (1 - (i % 2))]))
     .reverse();
 
   return [['M'].concat(rotatedCurve[0]
@@ -1867,8 +2448,15 @@ function reverseCurve(pathArray) {
     .concat(rotatedCurve.map((x) => ['C'].concat(x.slice(2))));
 }
 
-function reversePath(pathString) { // pathArray | pathString
-  const absolutePath = pathToAbsolute(pathString);
+/**
+ * Reverses all segments and their values of a `pathArray`
+ * and returns a new instance.
+ *
+ * @param {SVGPC.pathArray} pathInput the source `pathArray`
+ * @returns {SVGPC.pathArray} the reversed `pathArray`
+ */
+function reversePath(pathInput) {
+  const absolutePath = pathToAbsolute(pathInput);
   const isClosed = absolutePath.slice(-1)[0][0] === 'Z';
   let reversedPath = [];
   let segLength = 0;
@@ -1882,15 +2470,15 @@ function reversePath(pathString) { // pathArray | pathString
       x: segment[segLength - 2], // x
       y: segment[segLength - 1], // y
     };
-  }).map((seg, i, pathArray) => {
+  }).map((seg, i, path) => {
     const segment = seg.seg;
     const data = seg.n;
-    const prevSeg = i && pathArray[i - 1];
-    const nextSeg = pathArray[i + 1] && pathArray[i + 1];
+    const prevSeg = i && path[i - 1];
+    const nextSeg = path[i + 1] && path[i + 1];
     const pathCommand = seg.c;
-    const pLen = pathArray.length;
-    const x = i ? pathArray[i - 1].x : pathArray[pLen - 1].x;
-    const y = i ? pathArray[i - 1].y : pathArray[pLen - 1].y;
+    const pLen = path.length;
+    const x = i ? path[i - 1].x : path[pLen - 1].x;
+    const y = i ? path[i - 1].y : path[pLen - 1].y;
     let result = [];
 
     switch (pathCommand) {
@@ -1948,21 +2536,28 @@ function reversePath(pathString) { // pathArray | pathString
     : [reversedPath[0]].concat(reversedPath.slice(1).reverse());
 }
 
-var epsilon = 1e-9;
+/**
+ * A global namespace for epsilon.
+ *
+ * @type {Number}
+ */
+const epsilon = 1e-9;
 
-function getSVGMatrix(transformObject) {
-  let matrix = new CSS3Matrix();
-  const { origin } = transformObject;
+/**
+ * Returns a transformation matrix to apply to `<path>` elements.
+ *
+ * @param {SVGPC.transformObject} transform the `transformObject`
+ * @returns {CSSMatrix} a new transformation matrix
+ */
+function getSVGMatrix(transform) {
+  let matrix = new CSSMatrix();
+  const { origin } = transform;
   const originX = +origin[0];
   const originY = +origin[1];
-  // originZ = +origin[2] || originX, // maybe later. maybe not required
-  // perspective = transformObject.perspective,
-  const { translate } = transformObject;
-  const { rotate } = transformObject;
-  const { skew } = transformObject;
-  const { scale } = transformObject;
-
-  // !isNaN(perspective) && perspective && (matrix.m34 = -1/perspective)
+  const { translate } = transform;
+  const { rotate } = transform;
+  const { skew } = transform;
+  const { scale } = transform;
 
   // set translate
   if (!Number.isNaN(translate) || (Array.isArray(translate) && translate.some((x) => +x !== 0))) {
@@ -2004,6 +2599,14 @@ function getSVGMatrix(transformObject) {
   return matrix;
 }
 
+/**
+ * Apply a 2D transformation matrix to an ellipse.
+ *
+ * @param {number[]} m the 2D transformation matrix
+ * @param {number} rx ellipse radius X
+ * @param {number} ry ellipse radius Y
+ * @param {number} ax ellipse rotation angle
+ */
 function transformEllipse(m, rx, ry, ax) {
   // We consider the current ellipse as image of the unit circle
   // by first scale(rx,ry) and then rotate(ax) ...
@@ -2068,11 +2671,19 @@ function transformEllipse(m, rx, ry, ax) {
   return { rx: RX, ry: RY, ax: AX };
 }
 
-// Given an xyz point and an xyz perspective origin point,
-// this will return the xy projected location
-// Using the equation found here: http://en.wikipedia.org/wiki/3D_projection#Diagram
-// https://stackoverflow.com/questions/23792505/predicted-rendering-of-css-3d-transformed-pixel
-
+/**
+ * Returns the [x,y] projected coordinates for a given an [x,y] point
+ * and an [x,y,z] perspective origin point.
+ *
+ * Equation found here =>
+ * http://en.wikipedia.org/wiki/3D_projection#Diagram
+ * Details =>
+ * https://stackoverflow.com/questions/23792505/predicted-rendering-of-css-3d-transformed-pixel
+ *
+ * @param {number[]} m the transformation matrix
+ * @param {Number[]} point2D the initial [x,y] coordinates
+ * @returns {Number[]} the projected [x,y] coordinates
+ */
 function projection2d(m, point2D, origin) {
   const point3D = m.transformPoint({
     x: point2D[0], y: point2D[1], z: 0, w: 1,
@@ -2090,13 +2701,23 @@ function projection2d(m, point2D, origin) {
   ];
 }
 
-function transformPath(pathArray, transformObject) {
+/**
+ * Apply a 2D / 3D transformation to a `pathArray` instance.
+ *
+ * Since *SVGElement* doesn't support 3D transformation, this function
+ * creates a 2D projection of the <path> element.
+ *
+ * @param {SVGPC.pathArray} path the `pathArray` to apply transformation
+ * @param {SVGPC.transformObject} transform the transform functions `Object`
+ * @returns {SVGPC.pathArray} the resulted `pathArray`
+ */
+function transformPath(path, transform) {
   let x; let y; let i; let j; let ii; let jj; let lx; let ly; let te;
-  const absolutePath = pathToAbsolute(pathArray);
+  const absolutePath = pathToAbsolute(path);
   const normalizedPath = normalizePath(absolutePath);
-  const matrixInstance = getSVGMatrix(transformObject);
-  const transformProps = Object.keys(transformObject);
-  const { origin } = transformObject;
+  const matrixInstance = getSVGMatrix(transform);
+  const transformProps = Object.keys(transform);
+  const { origin } = transform;
   const {
     a, b, c, d, e, f,
   } = matrixInstance;
@@ -2207,13 +2828,14 @@ function transformPath(pathArray, transformObject) {
 }
 
 const Util = {
-  CSSMatrix: CSS3Matrix,
+  CSSMatrix,
   parsePathString,
   isPathArray,
   isCurveArray,
   isAbsoluteArray,
   isRelativeArray,
   isNormalizedArray,
+  isValidPath,
   pathToAbsolute,
   pathToRelative,
   pathToCurve,
@@ -2232,23 +2854,23 @@ const Util = {
   normalizePath,
   transformPath,
   getSVGMatrix,
+  shapeToPath,
   options: SVGPCO,
 };
 
 /**
  * Creates a new SVGPathCommander instance.
- * @class
+ *
+ * @author thednp <https://github.com/thednp/svg-path-commander>
  */
 class SVGPathCommander {
   /**
-   * @constructor
-   * @param {String} pathValue the path string
-   * @param {Object} config instance options
+   * @param {string} pathValue the path string
+   * @param {object} config instance options
    */
   constructor(pathValue, config) {
     const options = config || {};
-    // check for either true or > 0
-    // const roundOption = +options.round === 0 || options.round === false ? 0 : SVGPCO.round;
+
     let { round } = SVGPCO;
     const { round: roundOption } = options;
     if (+roundOption === 0 || roundOption === false) {
@@ -2256,33 +2878,16 @@ class SVGPathCommander {
     }
 
     const { decimals } = round && (options || SVGPCO);
-    const { origin } = options;
 
     // set instance options
-    /**
-     * @type {Boolean | Number}
-     */
+    /** @type {number | boolean | undefined} */
     this.round = round === 0 ? 0 : decimals;
     // ZERO | FALSE will disable rounding numbers
 
-    if (origin) {
-      const { x, y } = origin;
-      if ([x, y].every((n) => !Number.isNaN(n))) {
-        /**
-         * @type {Object | null}
-         */
-        this.origin = origin;
-      }
-    }
-
-    /**
-     * @type {Object}
-     */
+    /** @type {SVGPC.pathArray} */
     this.segments = parsePathString(pathValue);
 
-    /**
-     * @type {String}
-     */
+    /** * @type {string} */
     this.pathValue = pathValue;
 
     return this;
@@ -2309,8 +2914,8 @@ class SVGPathCommander {
   }
 
   /**
-   * Reverse path
-   * @param {Boolean | Number} onlySubpath option to reverse all pathArray(s) except first
+   * Reverse the order of the segments and their values.
+   * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
    * @public
    */
   reverse(onlySubpath) {
@@ -2339,7 +2944,7 @@ class SVGPathCommander {
 
   /**
    * Normalize path in 2 steps:
-   * * convert pathArray(s) to absolute values
+   * * convert `pathArray`(s) to absolute values
    * * convert shorthand notation to standard notation
    * @public
    */
@@ -2350,7 +2955,7 @@ class SVGPathCommander {
   }
 
   /**
-   * Optimize pathArray values:
+   * Optimize `pathArray` values:
    * * convert segments to absolute and/or relative values
    * * select segments with shortest resulted string
    * * round values to the specified `decimals` option value
@@ -2364,31 +2969,27 @@ class SVGPathCommander {
   }
 
   /**
-   * Transform path using values from an `Object`
-   * with the following structure:
+   * Transform path using values from an `Object` defined as `transformObject`.
+   * @see SVGPC.transformObject for a quick refference
    *
-   * {
-   *   origin:    {x, y, z},
-   *   translate: {x, y, z},
-   *   rotate:    {x, y, z},
-   *   skew:      {x, y, z},
-   *   scale:     {x, y, z}
-   * }
-   * @param {Object} source a transform `Object`as described above
+   * @param {SVGPC.transformObject} source a `transformObject`as described above
    * @public
    */
   transform(source) {
-    const transformObject = source || {};
+    if (!source || typeof source !== 'object' || (typeof source === 'object'
+      && !['translate', 'rotate', 'skew', 'scale'].some((x) => x in source))) return this;
+
+    const transform = source || {};
     const { segments } = this;
 
     // if origin is not specified
     // it's important that we have one
-    if (!transformObject.origin) {
+    if (!transform.origin) {
       const BBox = getPathBBox(segments);
-      transformObject.origin = [BBox.cx, BBox.cy, BBox.cx];
+      transform.origin = [BBox.cx, BBox.cy, BBox.cx];
     }
 
-    this.segments = transformPath(segments, transformObject);
+    this.segments = transformPath(segments, transform);
     return this;
   }
 

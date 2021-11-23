@@ -1,7 +1,13 @@
-import midPoint from '../math/midPoint.js';
+import midPoint from '../math/midPoint';
 
-export default function splitCubic(pts, marker) {
-  const t = marker || 0.5;
+/**
+ * Split a cubic-bezier segment into two.
+ *
+ * @param {Number[]} pts the cubic-bezier parameters
+ * @return {Object} two new cubic-bezier segments
+ */
+export default function splitCubic(pts/* , ratio */) {
+  const t = /* ratio || */ 0.5;
   const p0 = pts.slice(0, 2);
   const p1 = pts.slice(2, 4);
   const p2 = pts.slice(4, 6);

@@ -1,0 +1,23 @@
+/**
+ * The `parserPathArray` used by the parser.
+ *
+ * @param {string} pathString
+ */
+export default function SVGPathArray(pathString) {
+  /** @type {[string, ...number[]][]} */
+  this.segments = [];
+  /** @type {string} */
+  this.pathValue = pathString;
+  /** @type {number} */
+  this.max = pathString.length;
+  /** @type {number} */
+  this.index = 0;
+  /** @type {number} */
+  this.param = 0.0;
+  /** @type {number} */
+  this.segmentStart = 0;
+  /** @type {any} */
+  this.data = [];
+  /** @type {string} */
+  this.err = '';
+}

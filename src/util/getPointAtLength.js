@@ -1,16 +1,21 @@
-import getSegCubicLength from './getSegCubicLength.js';
-import getPointAtSegLength from './getPointAtSegLength.js';
-import pathToCurve from '../convert/pathToCurve.js';
+import getSegCubicLength from './getSegCubicLength';
+import getPointAtSegLength from './getPointAtSegLength';
+import pathToCurve from '../convert/pathToCurve';
 
-// calculates the shape total length
-// almost equivalent to shape.getTotalLength()
-export default function getPointAtLength(pathArray, length) {
+/**
+ * Returns [x,y] coordinates of a point at a given length of a shape.
+ *
+ * @param {string | SVGPC.pathArray} path the `pathArray` to look into
+ * @param {Number} length the length of the shape to look at
+ * @returns {Number[]} the requested [x,y] coordinates
+ */
+export default function getPointAtLength(path, length) {
   let totalLength = 0;
   let segLen;
   let data;
   let result;
 
-  return pathToCurve(pathArray, 9).map((seg, i, curveArray) => { // process data
+  return pathToCurve(path).map((seg, i, curveArray) => {
     data = i ? curveArray[i - 1].slice(-2).concat(seg.slice(1)) : seg.slice(1);
     segLen = i ? getSegCubicLength.apply(0, data) : 0;
     totalLength += segLen;

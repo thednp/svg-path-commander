@@ -1,5 +1,12 @@
-// d3-polygon area
-
+/**
+ * d3-polygon-area
+ * https://github.com/d3/d3-polygon
+ *
+ * Returns the area of a polygon.
+ *
+ * @param {Number[][]} polygon an array of coordinates
+ * @returns {Number} the polygon area
+ */
 export default function polygonArea(polygon) {
   const n = polygon.length;
   let i = -1;

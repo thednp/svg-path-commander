@@ -1,10 +1,20 @@
-import roundPath from './roundPath.js';
-import pathToAbsolute from '../convert/pathToAbsolute.js';
-import pathToRelative from '../convert/pathToRelative.js';
+import roundPath from './roundPath';
+import pathToAbsolute from '../convert/pathToAbsolute';
+import pathToRelative from '../convert/pathToRelative';
 
-export default function optimizePath(pathArray, round) {
-  const absolutePath = roundPath(pathToAbsolute(pathArray), round);
-  const relativePath = roundPath(pathToRelative(pathArray), round);
+/**
+ * Optimizes a `pathArray` object:
+ * * convert segments to absolute and relative values
+ * * create a new `pathArray` with elements with shortest segments
+ * from absolute and relative `pathArray`s
+ *
+ * @param {string | SVGPC.pathArray} pathInput a string or `pathArray`
+ * @param {number} round the amount of decimals to round values to
+ * @returns {SVGPC.pathArray} the optimized `pathArray`
+ */
+export default function optimizePath(pathInput, round) {
+  const absolutePath = roundPath(pathToAbsolute(pathInput), round);
+  const relativePath = roundPath(pathToRelative(pathInput), round);
   return absolutePath.map((x, i) => {
     if (i) {
       return x.join('').length < relativePath[i].join('').length ? x : relativePath[i];

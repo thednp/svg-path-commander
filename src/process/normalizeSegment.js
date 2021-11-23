@@ -1,6 +1,14 @@
-import shorthandToQuad from './shorthandToQuad.js';
-import shorthandToCubic from './shorthandToCubic.js';
+import shorthandToQuad from './shorthandToQuad';
+import shorthandToCubic from './shorthandToCubic';
 
+/**
+ * Normalizes a single segment of a `pathArray` object.
+ *
+ * @param {SVGPC.pathSegment} segment the segment object
+ * @param {Object} params the coordinates of the previous segment
+ * @param {String} prevCommand the path command of the previous segment
+ * @returns {SVGPC.pathSegment} the normalized segment
+ */
 export default function normalizeSegment(segment, params, prevCommand) {
   const [pathCommand] = segment;
   const xy = segment.slice(1);

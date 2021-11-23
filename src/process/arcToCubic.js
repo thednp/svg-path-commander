@@ -1,9 +1,23 @@
-import rotateVector from '../util/rotateVector.js';
+import rotateVector from '../math/rotateVector';
 
-// for more information of where this math came from visit:
-// http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-// LAF = largeArcFlag, SF = sweepFlag
-
+/**
+ * Converts A (arc-to) segments to C (cubic-bezier-to).
+ *
+ * For more information of where this math came from visit:
+ * http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+ *
+ * @param {Number} x1 the starting x position
+ * @param {Number} y1 the starting y position
+ * @param {Number} rx x-radius of the arc
+ * @param {Number} ry y-radius of the arc
+ * @param {Number} angle x-axis-rotation of the arc
+ * @param {Number} LAF large-arc-flag of the arc
+ * @param {Number} SF sweep-flag of the arc
+ * @param {Number} x2 the ending x position
+ * @param {Number} y2 the ending y position
+ * @param {Number[] | null} recursive the parameters needed to split arc into 2 segments
+ * @return {Number[] | Number[][]} the resulting cubic-bezier segment(s)
+ */
 export default function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recursive) {
   const d120 = (Math.PI * 120) / 180;
   const rad = (Math.PI / 180) * (angle || 0);

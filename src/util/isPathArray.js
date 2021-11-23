@@ -1,8 +1,14 @@
-import paramsCount from './paramsCount.js';
+import paramsCount from '../parser/paramsCount';
 
-export default function isPathArray(pathArray) {
-  return Array.isArray(pathArray) && pathArray.every((seg) => {
-    const pathCommand = seg[0].toLowerCase();
-    return paramsCount[pathCommand] === seg.length - 1 && /[achlmrqstvz]/gi.test(pathCommand);
+/**
+ * Iterates an array to check if it's an actual `pathArray`.
+ *
+ * @param {SVGPC.pathArray} path the `pathArray` to be checked
+ * @returns {boolean} iteration result
+ */
+export default function isPathArray(path) {
+  return Array.isArray(path) && path.every((seg) => {
+    const lk = seg[0].toLowerCase();
+    return paramsCount[lk] === seg.length - 1 && /[achlmqstvz]/gi.test(lk);
   });
 }

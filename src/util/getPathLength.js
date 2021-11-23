@@ -1,13 +1,19 @@
-import getSegCubicLength from './getSegCubicLength.js';
-import pathToCurve from '../convert/pathToCurve.js';
+import getSegCubicLength from './getSegCubicLength';
+import pathToCurve from '../convert/pathToCurve';
 
-// calculates the shape total length
-// equivalent to shape.getTotalLength()
-// pathToCurve version
-export default function getPathLength(pathArray) {
+/**
+ * Returns the shape total length,
+ * or the equivalent to `shape.getTotalLength()`
+ * pathToCurve version
+ *
+ * @param {SVGPC.pathArray} path the ending point Y
+ * @returns {Number} the shape total length
+ */
+export default function getPathLength(path) {
   let totalLength = 0;
-  pathToCurve(pathArray).forEach((s, i, curveArray) => {
-    totalLength += s[0] !== 'M' ? getSegCubicLength.apply(0, curveArray[i - 1].slice(-2).concat(s.slice(1))) : 0;
+  pathToCurve(path).forEach((s, i, curveArray) => {
+    totalLength += s[0] === 'M' ? 0
+      : getSegCubicLength.apply(0, curveArray[i - 1].slice(-2).concat(s.slice(1)));
   });
   return totalLength;
 }

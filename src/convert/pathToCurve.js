@@ -1,35 +1,39 @@
-import fixArc from '../util/fixArc.js';
-import isCurveArray from '../util/isCurveArray.js';
-import clonePath from '../process/clonePath.js';
-import normalizePath from '../process/normalizePath.js';
-import segmentToCubic from '../process/segmentToCubic.js';
+import fixArc from '../process/fixArc';
+import isCurveArray from '../util/isCurveArray';
+import clonePath from '../process/clonePath';
+import normalizePath from '../process/normalizePath';
+import segmentToCubic from '../process/segmentToCubic';
 
-export default function pathToCurve(pathInput) { // pathArray|pathString
+/**
+ * Parses a path string value or 'pathArray' and returns a new one
+ * in which all segments are converted to cubic-bezier.
+ *
+ * @param {String | SVGPC.pathArray} pathInput the string to be parsed or object
+ * @returns {SVGPC.pathArray} the resulted `pathArray` converted to cubic-bezier
+ */
+export default function pathToCurve(pathInput) {
   if (isCurveArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const pathArray = normalizePath(pathInput);
+  const path = normalizePath(pathInput);
   const params = {
     x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
   };
   const allPathCommands = [];
   let pathCommand = '';
-  let ii = pathArray.length;
-  let segment;
-  let seglen;
+  let ii = path.length;
 
   for (let i = 0; i < ii; i += 1) {
-    if (pathArray[i]) [pathCommand] = pathArray[i];
+    const segment = path[i];
+    const seglen = segment.length;
+    if (segment) [pathCommand] = segment;
 
     allPathCommands[i] = pathCommand;
-    pathArray[i] = segmentToCubic(pathArray[i], params);
+    path[i] = segmentToCubic(segment, params);
 
-    fixArc(pathArray, allPathCommands, i);
-    ii = pathArray.length; // solves curveArrays ending in Z
-
-    segment = pathArray[i];
-    seglen = segment.length;
+    fixArc(path, allPathCommands, i);
+    ii = path.length; // solves curveArrays ending in Z
 
     params.x1 = +segment[seglen - 2];
     params.y1 = +segment[seglen - 1];
@@ -37,5 +41,5 @@ export default function pathToCurve(pathInput) { // pathArray|pathString
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
 
-  return pathArray;
+  return path;
 }

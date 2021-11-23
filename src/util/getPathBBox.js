@@ -1,13 +1,19 @@
-import getCubicSize from './getCubicSize.js';
-import pathToCurve from '../convert/pathToCurve.js';
+import getCubicSize from './getCubicSize';
+import pathToCurve from '../convert/pathToCurve';
 
-export default function getPathBBox(pathArray) {
-  if (!pathArray) {
+/**
+ * Returns the bounding box of a shape.
+ *
+ * @param {SVGPC.pathArray} path the shape `pathArray`
+ * @returns {SVGPC.pathBBox} the length of the cubic-bezier segment
+ */
+export default function getPathBBox(path) {
+  if (!path) {
     return {
       x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0,
     };
   }
-  const pathCurve = pathToCurve(pathArray);
+  const pathCurve = pathToCurve(path);
 
   let x = 0;
   let y = 0;
@@ -38,12 +44,12 @@ export default function getPathBBox(pathArray) {
   const height = yBot - yTop;
 
   return {
+    width,
+    height,
     x: xTop,
     y: yTop,
     x2: xBot,
     y2: yBot,
-    width,
-    height,
     cx: xTop + width / 2,
     cy: yTop + height / 2,
   };

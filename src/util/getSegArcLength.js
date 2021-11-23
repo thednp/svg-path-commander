@@ -1,9 +1,12 @@
-import getSegCubicLength from './getSegCubicLength.js';
-import arcToCubic from '../process/arcToCubic.js';
+import getSegCubicLength from './getSegCubicLength';
+import arcToCubic from '../process/arcToCubic';
 
-// returns the Arc segment length by transforming the segment to cubic bezier curve(s)
-// A rx ry x-axis-rotation large-arc-flag sweep-flag x y
-// x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2
+/**
+ * Returns the A (arc-to) segment length.
+ *
+ * @param {Number[]} arguments the arc-to coordinates
+ * @returns {Number} the arc-to segment length
+ */
 export default function getSegArcLength() {
   const args = arguments.slice();
   let [x1, y1] = args.slice(0, 2);

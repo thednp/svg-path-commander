@@ -1,8 +1,15 @@
-import pathToAbsolute from '../convert/pathToAbsolute.js';
-import normalizePath from './normalizePath.js';
+import pathToAbsolute from '../convert/pathToAbsolute';
+import normalizePath from './normalizePath';
 
-export default function reversePath(pathString) { // pathArray | pathString
-  const absolutePath = pathToAbsolute(pathString);
+/**
+ * Reverses all segments and their values of a `pathArray`
+ * and returns a new instance.
+ *
+ * @param {SVGPC.pathArray} pathInput the source `pathArray`
+ * @returns {SVGPC.pathArray} the reversed `pathArray`
+ */
+export default function reversePath(pathInput) {
+  const absolutePath = pathToAbsolute(pathInput);
   const isClosed = absolutePath.slice(-1)[0][0] === 'Z';
   let reversedPath = [];
   let segLength = 0;
@@ -16,15 +23,15 @@ export default function reversePath(pathString) { // pathArray | pathString
       x: segment[segLength - 2], // x
       y: segment[segLength - 1], // y
     };
-  }).map((seg, i, pathArray) => {
+  }).map((seg, i, path) => {
     const segment = seg.seg;
     const data = seg.n;
-    const prevSeg = i && pathArray[i - 1];
-    const nextSeg = pathArray[i + 1] && pathArray[i + 1];
+    const prevSeg = i && path[i - 1];
+    const nextSeg = path[i + 1] && path[i + 1];
     const pathCommand = seg.c;
-    const pLen = pathArray.length;
-    const x = i ? pathArray[i - 1].x : pathArray[pLen - 1].x;
-    const y = i ? pathArray[i - 1].y : pathArray[pLen - 1].y;
+    const pLen = path.length;
+    const x = i ? path[i - 1].x : path[pLen - 1].x;
+    const y = i ? path[i - 1].y : path[pLen - 1].y;
     let result = [];
 
     switch (pathCommand) {

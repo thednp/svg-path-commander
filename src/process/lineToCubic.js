@@ -1,6 +1,15 @@
-import getPointAtSegLength from '../util/getPointAtSegLength.js';
-import midPoint from '../math/midPoint.js';
+import getPointAtSegLength from '../util/getPointAtSegLength';
+import midPoint from '../math/midPoint';
 
+/**
+ * Converts an L (line-to) segment to C (cubic-bezier).
+ *
+ * @param {Number} x1 line start x
+ * @param {Number} y1 line start y
+ * @param {Number} x2 line end x
+ * @param {Number} y2 line end y
+ * @returns {Number[]} the cubic-bezier segment
+ */
 export default function lineToCubic(x1, y1, x2, y2) {
   const t = 0.5;
   const p0 = [x1, y1];

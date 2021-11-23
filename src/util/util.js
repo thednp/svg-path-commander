@@ -1,41 +1,43 @@
-import SVGPCO from '../options/options.js';
+import CSSMatrix from 'dommatrix';
+import SVGPCO from '../options/options';
+import getPathArea from './getPathArea';
+import getPathLength from './getPathLength';
+import getDrawDirection from './getDrawDirection';
+import getPointAtLength from './getPointAtLength';
+import getPathBBox from './getPathBBox';
+import isValidPath from './isValidPath';
+import isPathArray from './isPathArray';
+import isAbsoluteArray from './isAbsoluteArray';
+import isRelativeArray from './isRelativeArray';
+import isCurveArray from './isCurveArray';
+import isNormalizedArray from './isNormalizedArray';
+import shapeToPath from './shapeToPath';
 
-import CSS3Matrix from './DOMMatrix.js';
-import getPathArea from './getPathArea.js';
-import getPathLength from './getPathLength.js';
-import getDrawDirection from './getDrawDirection.js';
-import getPointAtLength from './getPointAtLength.js';
-import getPathBBox from './getPathBBox.js';
-import isPathArray from './isPathArray.js';
-import isAbsoluteArray from './isAbsoluteArray.js';
-import isCurveArray from './isCurveArray.js';
-import isRelativeArray from './isRelativeArray.js';
-import isNormalizedArray from './isNormalizedArray.js';
+import parsePathString from '../parser/parsePathString';
+import clonePath from '../process/clonePath';
+import roundPath from '../process/roundPath';
+import splitPath from '../process/splitPath';
+import optimizePath from '../process/optimizePath';
+import reverseCurve from '../process/reverseCurve';
+import reversePath from '../process/reversePath';
+import normalizePath from '../process/normalizePath';
+import transformPath from '../process/transformPath';
+import getSVGMatrix from '../process/getSVGMatrix';
 
-import parsePathString from '../process/parsePathString.js';
-import clonePath from '../process/clonePath.js';
-import roundPath from '../process/roundPath.js';
-import splitPath from '../process/splitPath.js';
-import optimizePath from '../process/optimizePath.js';
-import reverseCurve from '../process/reverseCurve.js';
-import reversePath from '../process/reversePath.js';
-import normalizePath from '../process/normalizePath.js';
-import transformPath from '../process/transformPath.js';
-import getSVGMatrix from './getSVGMatrix.js';
-
-import pathToAbsolute from '../convert/pathToAbsolute.js';
-import pathToRelative from '../convert/pathToRelative.js';
-import pathToCurve from '../convert/pathToCurve.js';
-import pathToString from '../convert/pathToString.js';
+import pathToAbsolute from '../convert/pathToAbsolute';
+import pathToRelative from '../convert/pathToRelative';
+import pathToCurve from '../convert/pathToCurve';
+import pathToString from '../convert/pathToString';
 
 const Util = {
-  CSSMatrix: CSS3Matrix,
+  CSSMatrix,
   parsePathString,
   isPathArray,
   isCurveArray,
   isAbsoluteArray,
   isRelativeArray,
   isNormalizedArray,
+  isValidPath,
   pathToAbsolute,
   pathToRelative,
   pathToCurve,
@@ -54,6 +56,7 @@ const Util = {
   normalizePath,
   transformPath,
   getSVGMatrix,
+  shapeToPath,
   options: SVGPCO,
 };
 

@@ -1,20 +1,30 @@
-import epsilon from '../math/epsilon.js';
-import normalizePath from './normalizePath.js';
-import clonePath from './clonePath.js';
-import pathToAbsolute from '../convert/pathToAbsolute.js';
-import segmentToCubic from './segmentToCubic.js';
-import fixArc from '../util/fixArc.js';
-import getSVGMatrix from '../util/getSVGMatrix.js';
-import transformEllipse from '../util/transformEllipse.js';
-import projection2d from '../util/projection2d.js';
+import epsilon from '../math/epsilon';
+import normalizePath from './normalizePath';
+import clonePath from './clonePath';
+import pathToAbsolute from '../convert/pathToAbsolute';
+import segmentToCubic from './segmentToCubic';
+import fixArc from './fixArc';
+import getSVGMatrix from './getSVGMatrix';
+import transformEllipse from './transformEllipse';
+import projection2d from './projection2d';
 
-export default function transformPath(pathArray, transformObject) {
+/**
+ * Apply a 2D / 3D transformation to a `pathArray` instance.
+ *
+ * Since *SVGElement* doesn't support 3D transformation, this function
+ * creates a 2D projection of the <path> element.
+ *
+ * @param {SVGPC.pathArray} path the `pathArray` to apply transformation
+ * @param {SVGPC.transformObject} transform the transform functions `Object`
+ * @returns {SVGPC.pathArray} the resulted `pathArray`
+ */
+export default function transformPath(path, transform) {
   let x; let y; let i; let j; let ii; let jj; let lx; let ly; let te;
-  const absolutePath = pathToAbsolute(pathArray);
+  const absolutePath = pathToAbsolute(path);
   const normalizedPath = normalizePath(absolutePath);
-  const matrixInstance = getSVGMatrix(transformObject);
-  const transformProps = Object.keys(transformObject);
-  const { origin } = transformObject;
+  const matrixInstance = getSVGMatrix(transform);
+  const transformProps = Object.keys(transform);
+  const { origin } = transform;
   const {
     a, b, c, d, e, f,
   } = matrixInstance;
