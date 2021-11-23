@@ -1,4 +1,4 @@
-declare module "src/options/options" {
+declare module "options/options" {
     export default SVGPCO;
     /**
      * SVGPathCommander default options
@@ -9,7 +9,7 @@ declare module "src/options/options" {
         [x: string]: (boolean | number | number[]);
     };
 }
-declare module "src/process/fixArc" {
+declare module "process/fixArc" {
     /**
      * Splits an extended A (arc-to) segment into two cubic-bezier segments.
      *
@@ -17,9 +17,9 @@ declare module "src/process/fixArc" {
      * @param {string[]} allPathCommands all previous path commands
      * @param {Number} i the index of the segment
      */
-    export default function fixArc(path: import("types/types").pathArray, allPathCommands: string[], i: number): void;
+    export default function fixArc(path: SVGPC.pathArray, allPathCommands: string[], i: number): void;
 }
-declare module "src/parser/paramsCount" {
+declare module "parser/paramsCount" {
     export default paramsCount;
     /**
      * @type {Object.<string, number>}
@@ -28,16 +28,16 @@ declare module "src/parser/paramsCount" {
         [x: string]: number;
     };
 }
-declare module "src/util/isPathArray" {
+declare module "util/isPathArray" {
     /**
      * Iterates an array to check if it's an actual `pathArray`.
      *
      * @param {SVGPC.pathArray} path the `pathArray` to be checked
      * @returns {boolean} iteration result
      */
-    export default function isPathArray(path: import("types/types").pathArray): boolean;
+    export default function isPathArray(path: SVGPC.pathArray): boolean;
 }
-declare module "src/util/isCurveArray" {
+declare module "util/isCurveArray" {
     /**
      * Iterates an array to check if it's a `pathArray`
      * with all C (cubic bezier) segments.
@@ -45,18 +45,18 @@ declare module "src/util/isCurveArray" {
      * @param {SVGPC.pathArray} path the `Array` to be checked
      * @returns {boolean} iteration result
      */
-    export default function isCurveArray(path: import("types/types").pathArray): boolean;
+    export default function isCurveArray(path: SVGPC.pathArray): boolean;
 }
-declare module "src/process/clonePath" {
+declare module "process/clonePath" {
     /**
      * Returns a clone of an existing `pathArray`.
      *
      * @param {SVGPC.pathArray} path the original `pathArray`
      * @returns {SVGPC.pathArray} the cloned `pathArray`
      */
-    export default function clonePath(path: import("types/types").pathArray): import("types/types").pathArray;
+    export default function clonePath(path: SVGPC.pathArray): SVGPC.pathArray;
 }
-declare module "src/parser/finalizeSegment" {
+declare module "parser/finalizeSegment" {
     /**
      * Breaks the parsing of a pathString once a segment is finalized.
      *
@@ -64,11 +64,11 @@ declare module "src/parser/finalizeSegment" {
      */
     export default function finalizeSegment(path: SVGPC.parserPathArray): void;
 }
-declare module "src/parser/invalidPathValue" {
+declare module "parser/invalidPathValue" {
     export default invalidPathValue;
     const invalidPathValue: "Invalid path value";
 }
-declare module "src/parser/scanFlag" {
+declare module "parser/scanFlag" {
     /**
      * Validates an A (arc-to) specific path command value.
      * Usually a `large-arc-flag` or `sweep-flag`.
@@ -77,7 +77,7 @@ declare module "src/parser/scanFlag" {
      */
     export default function scanFlag(path: SVGPC.parserPathArray): void;
 }
-declare module "src/parser/isDigit" {
+declare module "parser/isDigit" {
     /**
      * Checks if a character is a digit.
      *
@@ -86,7 +86,7 @@ declare module "src/parser/isDigit" {
      */
     export default function isDigit(code: string): boolean;
 }
-declare module "src/parser/scanParam" {
+declare module "parser/scanParam" {
     /**
      * Validates every character of the path string,
      * every path command, negative numbers or floating point numbers.
@@ -95,7 +95,7 @@ declare module "src/parser/scanParam" {
      */
     export default function scanParam(path: SVGPC.parserPathArray): void;
 }
-declare module "src/parser/isSpace" {
+declare module "parser/isSpace" {
     /**
      * Checks if the character is a space.
      *
@@ -104,7 +104,7 @@ declare module "src/parser/isSpace" {
      */
     export default function isSpace(code: string): boolean;
 }
-declare module "src/parser/skipSpaces" {
+declare module "parser/skipSpaces" {
     /**
      * Points the parser to the next character in the
      * path string every time it encounters any kind of
@@ -114,7 +114,7 @@ declare module "src/parser/skipSpaces" {
      */
     export default function skipSpaces(path: SVGPC.parserPathArray): void;
 }
-declare module "src/parser/isPathCommand" {
+declare module "parser/isPathCommand" {
     /**
      * Checks if the character is a path command.
      *
@@ -123,7 +123,7 @@ declare module "src/parser/isPathCommand" {
      */
     export default function isPathCommand(code: string): boolean;
 }
-declare module "src/parser/isDigitStart" {
+declare module "parser/isDigitStart" {
     /**
      * Checks if the character is or belongs to a number.
      * [0-9]|+|-|.
@@ -133,7 +133,7 @@ declare module "src/parser/isDigitStart" {
      */
     export default function isDigitStart(code: string): boolean;
 }
-declare module "src/parser/isArcCommand" {
+declare module "parser/isArcCommand" {
     /**
      * Checks if the character is an A (arc-to) path command.
      *
@@ -142,7 +142,7 @@ declare module "src/parser/isArcCommand" {
      */
     export default function isArcCommand(code: string): boolean;
 }
-declare module "src/parser/scanSegment" {
+declare module "parser/scanSegment" {
     /**
      * Scans every character in the path string to determine
      * where a segment starts and where it ends.
@@ -151,7 +151,7 @@ declare module "src/parser/scanSegment" {
      */
     export default function scanSegment(path: SVGPC.parserPathArray): void;
 }
-declare module "src/parser/svgPathArray" {
+declare module "parser/svgPathArray" {
     /**
      * The `parserPathArray` used by the parser.
      *
@@ -183,7 +183,7 @@ declare module "src/parser/svgPathArray" {
         err: string;
     }
 }
-declare module "src/parser/parsePathString" {
+declare module "parser/parsePathString" {
     /**
      * Parses a path string value and returns an array
      * of segments we like to call `pathArray`.
@@ -191,9 +191,9 @@ declare module "src/parser/parsePathString" {
      * @param {string | SVGPC.pathArray} pathInput the string to be parsed
      * @returns {SVGPC.pathArray} the resulted `pathArray`
      */
-    export default function parsePathString(pathInput: string | import("types/types").pathArray): import("types/types").pathArray;
+    export default function parsePathString(pathInput: string | SVGPC.pathArray): SVGPC.pathArray;
 }
-declare module "src/util/isAbsoluteArray" {
+declare module "util/isAbsoluteArray" {
     /**
      * Iterates an array to check if it's a `pathArray`
      * with all absolute values.
@@ -201,9 +201,9 @@ declare module "src/util/isAbsoluteArray" {
      * @param {SVGPC.pathArray} path the `pathArray` to be checked
      * @returns {boolean} iteration result
      */
-    export default function isAbsoluteArray(path: import("types/types").pathArray): boolean;
+    export default function isAbsoluteArray(path: SVGPC.pathArray): boolean;
 }
-declare module "src/convert/pathToAbsolute" {
+declare module "convert/pathToAbsolute" {
     /**
      * Parses a path string value or object and returns an array
      * of segments, all converted to absolute values.
@@ -211,9 +211,9 @@ declare module "src/convert/pathToAbsolute" {
      * @param {string | SVGPC.pathArray} pathInput the path string | object
      * @returns {SVGPC.pathArray} the resulted `pathArray` with absolute values
      */
-    export default function pathToAbsolute(pathInput: string | import("types/types").pathArray): import("types/types").pathArray;
+    export default function pathToAbsolute(pathInput: string | SVGPC.pathArray): SVGPC.pathArray;
 }
-declare module "src/process/shorthandToQuad" {
+declare module "process/shorthandToQuad" {
     /**
      * Returns the missing control point from an
      * T (shorthand quadratic bezier) segment.
@@ -227,7 +227,7 @@ declare module "src/process/shorthandToQuad" {
      */
     export default function shorthandToQuad(x1: number, y1: number, qx: number, qy: number, prevCommand: string): Object;
 }
-declare module "src/process/shorthandToCubic" {
+declare module "process/shorthandToCubic" {
     /**
      * Returns the missing control point from an
      * S (shorthand cubic bezier) segment.
@@ -241,7 +241,7 @@ declare module "src/process/shorthandToCubic" {
      */
     export default function shorthandToCubic(x1: number, y1: number, x2: number, y2: number, prevCommand: string): Object;
 }
-declare module "src/process/normalizeSegment" {
+declare module "process/normalizeSegment" {
     /**
      * Normalizes a single segment of a `pathArray` object.
      *
@@ -250,9 +250,9 @@ declare module "src/process/normalizeSegment" {
      * @param {String} prevCommand the path command of the previous segment
      * @returns {SVGPC.pathSegment} the normalized segment
      */
-    export default function normalizeSegment(segment: import("types/types").pathSegment, params: Object, prevCommand: string): import("types/types").pathSegment;
+    export default function normalizeSegment(segment: SVGPC.pathSegment, params: Object, prevCommand: string): SVGPC.pathSegment;
 }
-declare module "src/util/isNormalizedArray" {
+declare module "util/isNormalizedArray" {
     /**
      * Iterates an array to check if it's a `pathArray`
      * with all segments are in non-shorthand notation
@@ -261,9 +261,9 @@ declare module "src/util/isNormalizedArray" {
      * @param {SVGPC.pathArray} path the `pathArray` to be checked
      * @returns {boolean} iteration result
      */
-    export default function isNormalizedArray(path: import("types/types").pathArray): boolean;
+    export default function isNormalizedArray(path: SVGPC.pathArray): boolean;
 }
-declare module "src/process/normalizePath" {
+declare module "process/normalizePath" {
     /**
      * Normalizes a `path` object for further processing:
      * * convert segments to absolute values
@@ -272,9 +272,9 @@ declare module "src/process/normalizePath" {
      * @param {String | SVGPC.pathArray} pathInput the string to be parsed or 'pathArray'
      * @returns {SVGPC.pathArray} the normalized `pathArray`
      */
-    export default function normalizePath(pathInput: string | import("types/types").pathArray): import("types/types").pathArray;
+    export default function normalizePath(pathInput: string | SVGPC.pathArray): SVGPC.pathArray;
 }
-declare module "src/math/rotateVector" {
+declare module "math/rotateVector" {
     /**
      * Returns an {x,y} vector rotated by a given
      * angle in radian.
@@ -288,7 +288,7 @@ declare module "src/math/rotateVector" {
         y: number;
     };
 }
-declare module "src/process/arcToCubic" {
+declare module "process/arcToCubic" {
     /**
      * Converts A (arc-to) segments to C (cubic-bezier-to).
      *
@@ -309,7 +309,7 @@ declare module "src/process/arcToCubic" {
      */
     export default function arcToCubic(x1: number, y1: number, rx: number, ry: number, angle: number, LAF: number, SF: number, x2: number, y2: number, recursive: number[] | null): number[] | number[][];
 }
-declare module "src/process/quadToCubic" {
+declare module "process/quadToCubic" {
     /**
      * Converts a Q (quadratic-bezier) segment to C (cubic-bezier).
      *
@@ -323,7 +323,7 @@ declare module "src/process/quadToCubic" {
      */
     export default function quadToCubic(x1: number, y1: number, qx: number, qy: number, x2: number, y2: number): number[];
 }
-declare module "src/util/getPointAtSegLength" {
+declare module "util/getPointAtSegLength" {
     /**
      * Returns the {x,y} coordinates of a point at a
      * given length of a cubic-bezier segment.
@@ -344,7 +344,7 @@ declare module "src/util/getPointAtSegLength" {
         y: number;
     };
 }
-declare module "src/math/midPoint" {
+declare module "math/midPoint" {
     /**
      * Returns the coordinates of a specified distance
      * ratio between two points.
@@ -356,7 +356,7 @@ declare module "src/math/midPoint" {
      */
     export default function midPoint(a: number[], b: number[], t: number): number[];
 }
-declare module "src/process/lineToCubic" {
+declare module "process/lineToCubic" {
     /**
      * Converts an L (line-to) segment to C (cubic-bezier).
      *
@@ -368,7 +368,7 @@ declare module "src/process/lineToCubic" {
      */
     export default function lineToCubic(x1: number, y1: number, x2: number, y2: number): number[];
 }
-declare module "src/process/segmentToCubic" {
+declare module "process/segmentToCubic" {
     /**
      * Converts any segment to C (cubic-bezier).
      *
@@ -376,11 +376,11 @@ declare module "src/process/segmentToCubic" {
      * @param {Object.<string, number>} params the source segment parameters
      * @returns {SVGPC.pathSegment} the cubic-bezier segment
      */
-    export default function segmentToCubic(segment: import("types/types").pathSegment, params: {
+    export default function segmentToCubic(segment: SVGPC.pathSegment, params: {
         [x: string]: number;
-    }): import("types/types").pathSegment;
+    }): SVGPC.pathSegment;
 }
-declare module "src/convert/pathToCurve" {
+declare module "convert/pathToCurve" {
     /**
      * Parses a path string value or 'pathArray' and returns a new one
      * in which all segments are converted to cubic-bezier.
@@ -388,9 +388,9 @@ declare module "src/convert/pathToCurve" {
      * @param {String | SVGPC.pathArray} pathInput the string to be parsed or object
      * @returns {SVGPC.pathArray} the resulted `pathArray` converted to cubic-bezier
      */
-    export default function pathToCurve(pathInput: string | import("types/types").pathArray): import("types/types").pathArray;
+    export default function pathToCurve(pathInput: string | SVGPC.pathArray): SVGPC.pathArray;
 }
-declare module "src/util/getPathArea" {
+declare module "util/getPathArea" {
     /**
      * Returns the area of a shape.
      * @author Jürg Lehni & Jonathan Puckey
@@ -400,9 +400,9 @@ declare module "src/util/getPathArea" {
      * @param {SVGPC.pathArray} path the shape `pathArray`
      * @returns {SVGPC.pathBBox} the length of the cubic-bezier segment
      */
-    export default function getPathArea(path: import("types/types").pathArray): SVGPC.pathBBox;
+    export default function getPathArea(path: SVGPC.pathArray): SVGPC.pathBBox;
 }
-declare module "src/util/getSegCubicLength" {
+declare module "util/getSegCubicLength" {
     /**
      * Returns the C (cubic-bezier) segment length.
      *
@@ -419,7 +419,7 @@ declare module "src/util/getSegCubicLength" {
      */
     export default function getSegCubicLength(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number, z: number): number;
 }
-declare module "src/util/getPathLength" {
+declare module "util/getPathLength" {
     /**
      * Returns the shape total length,
      * or the equivalent to `shape.getTotalLength()`
@@ -428,9 +428,9 @@ declare module "src/util/getPathLength" {
      * @param {SVGPC.pathArray} path the ending point Y
      * @returns {Number} the shape total length
      */
-    export default function getPathLength(path: import("types/types").pathArray): number;
+    export default function getPathLength(path: SVGPC.pathArray): number;
 }
-declare module "src/util/getDrawDirection" {
+declare module "util/getDrawDirection" {
     /**
      * Check if a path is drawn clockwise and returns true if so,
      * false otherwise.
@@ -438,9 +438,9 @@ declare module "src/util/getDrawDirection" {
      * @param {string | SVGPC.pathArray} path the path string or `pathArray`
      * @returns {boolean} true when clockwise or false if not
      */
-    export default function getDrawDirection(path: string | import("types/types").pathArray): boolean;
+    export default function getDrawDirection(path: string | SVGPC.pathArray): boolean;
 }
-declare module "src/util/getPointAtLength" {
+declare module "util/getPointAtLength" {
     /**
      * Returns [x,y] coordinates of a point at a given length of a shape.
      *
@@ -448,9 +448,9 @@ declare module "src/util/getPointAtLength" {
      * @param {Number} length the length of the shape to look at
      * @returns {Number[]} the requested [x,y] coordinates
      */
-    export default function getPointAtLength(path: string | import("types/types").pathArray, length: number): number[];
+    export default function getPointAtLength(path: string | SVGPC.pathArray, length: number): number[];
 }
-declare module "src/util/getCubicSize" {
+declare module "util/getCubicSize" {
     /**
      * Returns the cubic-bezier segment length.
      *
@@ -466,16 +466,16 @@ declare module "src/util/getCubicSize" {
      */
     export default function getCubicSize(p1x: number, p1y: number, c1x: number, c1y: number, c2x: number, c2y: number, p2x: number, p2y: number): SVGPC.segmentLimits;
 }
-declare module "src/util/getPathBBox" {
+declare module "util/getPathBBox" {
     /**
      * Returns the bounding box of a shape.
      *
      * @param {SVGPC.pathArray} path the shape `pathArray`
      * @returns {SVGPC.pathBBox} the length of the cubic-bezier segment
      */
-    export default function getPathBBox(path: import("types/types").pathArray): SVGPC.pathBBox;
+    export default function getPathBBox(path: SVGPC.pathArray): SVGPC.pathBBox;
 }
-declare module "src/util/isValidPath" {
+declare module "util/isValidPath" {
     /**
      * Parses a path string value to determine its validity
      * then returns true if it's valid or false otherwise.
@@ -485,7 +485,7 @@ declare module "src/util/isValidPath" {
      */
     export default function isValidPath(pathString: string): boolean;
 }
-declare module "src/util/isRelativeArray" {
+declare module "util/isRelativeArray" {
     /**
      * Iterates an array to check if it's a `pathArray`
      * with relative values.
@@ -493,9 +493,9 @@ declare module "src/util/isRelativeArray" {
      * @param {SVGPC.pathArray} path the `pathArray` to be checked
      * @returns {boolean} iteration result
      */
-    export default function isRelativeArray(path: import("types/types").pathArray): boolean;
+    export default function isRelativeArray(path: SVGPC.pathArray): boolean;
 }
-declare module "src/process/roundPath" {
+declare module "process/roundPath" {
     /**
      * Rounds the values of a `pathArray` instance to
      * a specified amount of decimals and returns it.
@@ -504,9 +504,9 @@ declare module "src/process/roundPath" {
      * @param {Number | null} round the amount of decimals to round numbers to
      * @returns {SVGPC.pathArray} the resulted `pathArray` with rounded values
      */
-    export default function roundPath(path: import("types/types").pathArray, round: number | null): import("types/types").pathArray;
+    export default function roundPath(path: SVGPC.pathArray, round: number | null): SVGPC.pathArray;
 }
-declare module "src/convert/pathToString" {
+declare module "convert/pathToString" {
     /**
      * Returns a valid `d` attribute string value created
      * by rounding values and concatenating the `pathArray` segments.
@@ -515,37 +515,37 @@ declare module "src/convert/pathToString" {
      * @param {Number} round amount of decimals to round values to
      * @returns {String} the concatenated path string
      */
-    export default function pathToString(path: import("types/types").pathArray, round: number): string;
+    export default function pathToString(path: SVGPC.pathArray, round: number): string;
 }
-declare module "src/util/shapeToPath" {
+declare module "util/shapeToPath" {
     /**
      * Returns a new `pathArray` from line attributes.
      *
      * @param {SVGPC.lineAttr} attr shape configuration
      * @return {SVGPC.pathArray} a new line `pathArray`
      */
-    export function getLinePath(attr: SVGPC.lineAttr): import("types/types").pathArray;
+    export function getLinePath(attr: SVGPC.lineAttr): SVGPC.pathArray;
     /**
      * Returns a new `pathArray` like from polyline/polygon attributes.
      *
      * @param {SVGPC.polyAttr} attr shape configuration
      * @return {SVGPC.pathArray} a new polygon/polyline `pathArray`
      */
-    export function getPolyPath(attr: SVGPC.polyAttr): import("types/types").pathArray;
+    export function getPolyPath(attr: SVGPC.polyAttr): SVGPC.pathArray;
     /**
      * Returns a new `pathArray` from circle/ellipse attributes.
      *
      * @param {SVGPC.ellipseAttr | SVGPC.circleAttr} attr shape configuration
      * @return {SVGPC.pathArray} a circle/ellipse `pathArray`
      */
-    export function getEllipsePath(attr: SVGPC.ellipseAttr | SVGPC.circleAttr): import("types/types").pathArray;
+    export function getEllipsePath(attr: SVGPC.ellipseAttr | SVGPC.circleAttr): SVGPC.pathArray;
     /**
      * Returns a new `pathArray` like from rect attributes.
      *
      * @param {SVGPC.rectAttr} attr object with properties above
      * @return {SVGPC.pathArray} a new `pathArray` from `<rect>` attributes
      */
-    export function getRectanglePath(attr: SVGPC.rectAttr): import("types/types").pathArray;
+    export function getRectanglePath(attr: SVGPC.rectAttr): SVGPC.pathArray;
     /**
      * Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`,
      * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>` or `<glyph>`. If `replace` parameter
@@ -560,7 +560,7 @@ declare module "src/util/shapeToPath" {
      */
     export default function shapeToPath(element: SVGPC.shapeTypes, replace: boolean): SVGPathElement | null;
 }
-declare module "src/process/splitPath" {
+declare module "process/splitPath" {
     /**
      * Split a path into an `Array` of sub-path strings.
      *
@@ -572,7 +572,7 @@ declare module "src/process/splitPath" {
      */
     export default function splitPath(pathInput: Object | string): Object;
 }
-declare module "src/convert/pathToRelative" {
+declare module "convert/pathToRelative" {
     /**
      * Parses a path string value or object and returns an array
      * of segments, all converted to relative values.
@@ -580,9 +580,9 @@ declare module "src/convert/pathToRelative" {
      * @param {string | SVGPC.pathArray} pathInput the path string | object
      * @returns {SVGPC.pathArray} the resulted `pathArray` with relative values
      */
-    export default function pathToRelative(pathInput: string | import("types/types").pathArray): import("types/types").pathArray;
+    export default function pathToRelative(pathInput: string | SVGPC.pathArray): SVGPC.pathArray;
 }
-declare module "src/process/optimizePath" {
+declare module "process/optimizePath" {
     /**
      * Optimizes a `pathArray` object:
      * * convert segments to absolute and relative values
@@ -593,9 +593,9 @@ declare module "src/process/optimizePath" {
      * @param {number} round the amount of decimals to round values to
      * @returns {SVGPC.pathArray} the optimized `pathArray`
      */
-    export default function optimizePath(pathInput: string | import("types/types").pathArray, round: number): import("types/types").pathArray;
+    export default function optimizePath(pathInput: string | SVGPC.pathArray, round: number): SVGPC.pathArray;
 }
-declare module "src/process/reverseCurve" {
+declare module "process/reverseCurve" {
     /**
      * Reverses all segments and their values from a `pathArray`
      * which consists of only C (cubic-bezier) path commands.
@@ -603,9 +603,9 @@ declare module "src/process/reverseCurve" {
      * @param {SVGPC.pathArray} path the source `pathArray`
      * @returns {SVGPC.pathArray} the reversed `pathArray`
      */
-    export default function reverseCurve(path: import("types/types").pathArray): import("types/types").pathArray;
+    export default function reverseCurve(path: SVGPC.pathArray): SVGPC.pathArray;
 }
-declare module "src/process/reversePath" {
+declare module "process/reversePath" {
     /**
      * Reverses all segments and their values of a `pathArray`
      * and returns a new instance.
@@ -613,9 +613,9 @@ declare module "src/process/reversePath" {
      * @param {SVGPC.pathArray} pathInput the source `pathArray`
      * @returns {SVGPC.pathArray} the reversed `pathArray`
      */
-    export default function reversePath(pathInput: import("types/types").pathArray): import("types/types").pathArray;
+    export default function reversePath(pathInput: SVGPC.pathArray): SVGPC.pathArray;
 }
-declare module "src/math/epsilon" {
+declare module "math/epsilon" {
     export default epsilon;
     /**
      * A global namespace for epsilon.
@@ -624,7 +624,7 @@ declare module "src/math/epsilon" {
      */
     const epsilon: number;
 }
-declare module "src/process/getSVGMatrix" {
+declare module "process/getSVGMatrix" {
     /**
      * Returns a transformation matrix to apply to `<path>` elements.
      *
@@ -634,7 +634,7 @@ declare module "src/process/getSVGMatrix" {
     export default function getSVGMatrix(transform: SVGPC.transformObject): CSSMatrix;
     import CSSMatrix from "dommatrix";
 }
-declare module "src/process/transformEllipse" {
+declare module "process/transformEllipse" {
     /**
      * Apply a 2D transformation matrix to an ellipse.
      *
@@ -649,7 +649,7 @@ declare module "src/process/transformEllipse" {
         ax: number;
     };
 }
-declare module "src/process/projection2d" {
+declare module "process/projection2d" {
     /**
      * Returns the [x,y] projected coordinates for a given an [x,y] point
      * and an [x,y,z] perspective origin point.
@@ -665,7 +665,7 @@ declare module "src/process/projection2d" {
      */
     export default function projection2d(m: number[], point2D: number[], origin: any): number[];
 }
-declare module "src/process/transformPath" {
+declare module "process/transformPath" {
     /**
      * Apply a 2D / 3D transformation to a `pathArray` instance.
      *
@@ -676,9 +676,9 @@ declare module "src/process/transformPath" {
      * @param {SVGPC.transformObject} transform the transform functions `Object`
      * @returns {SVGPC.pathArray} the resulted `pathArray`
      */
-    export default function transformPath(path: import("types/types").pathArray, transform: SVGPC.transformObject): import("types/types").pathArray;
+    export default function transformPath(path: SVGPC.pathArray, transform: SVGPC.transformObject): SVGPC.pathArray;
 }
-declare module "src/class/version" {
+declare module "util/version" {
     export default Version;
     /**
      * A global namespace for library version.
@@ -686,7 +686,7 @@ declare module "src/class/version" {
      */
     const Version: string;
 }
-declare module "src/util/util" {
+declare module "util/util" {
     export default Util;
     namespace Util {
         export { CSSMatrix };
@@ -720,36 +720,36 @@ declare module "src/util/util" {
         export { Version };
     }
     import CSSMatrix from "dommatrix";
-    import parsePathString from "src/parser/parsePathString";
-    import isPathArray from "src/util/isPathArray";
-    import isCurveArray from "src/util/isCurveArray";
-    import isAbsoluteArray from "src/util/isAbsoluteArray";
-    import isRelativeArray from "src/util/isRelativeArray";
-    import isNormalizedArray from "src/util/isNormalizedArray";
-    import isValidPath from "src/util/isValidPath";
-    import pathToAbsolute from "src/convert/pathToAbsolute";
-    import pathToRelative from "src/convert/pathToRelative";
-    import pathToCurve from "src/convert/pathToCurve";
-    import pathToString from "src/convert/pathToString";
-    import getDrawDirection from "src/util/getDrawDirection";
-    import getPathArea from "src/util/getPathArea";
-    import getPathBBox from "src/util/getPathBBox";
-    import getPathLength from "src/util/getPathLength";
-    import getPointAtLength from "src/util/getPointAtLength";
-    import clonePath from "src/process/clonePath";
-    import splitPath from "src/process/splitPath";
-    import roundPath from "src/process/roundPath";
-    import optimizePath from "src/process/optimizePath";
-    import reverseCurve from "src/process/reverseCurve";
-    import reversePath from "src/process/reversePath";
-    import normalizePath from "src/process/normalizePath";
-    import transformPath from "src/process/transformPath";
-    import getSVGMatrix from "src/process/getSVGMatrix";
-    import shapeToPath from "src/util/shapeToPath";
-    import SVGPCO from "src/options/options";
-    import Version from "src/class/version";
+    import parsePathString from "parser/parsePathString";
+    import isPathArray from "util/isPathArray";
+    import isCurveArray from "util/isCurveArray";
+    import isAbsoluteArray from "util/isAbsoluteArray";
+    import isRelativeArray from "util/isRelativeArray";
+    import isNormalizedArray from "util/isNormalizedArray";
+    import isValidPath from "util/isValidPath";
+    import pathToAbsolute from "convert/pathToAbsolute";
+    import pathToRelative from "convert/pathToRelative";
+    import pathToCurve from "convert/pathToCurve";
+    import pathToString from "convert/pathToString";
+    import getDrawDirection from "util/getDrawDirection";
+    import getPathArea from "util/getPathArea";
+    import getPathBBox from "util/getPathBBox";
+    import getPathLength from "util/getPathLength";
+    import getPointAtLength from "util/getPointAtLength";
+    import clonePath from "process/clonePath";
+    import splitPath from "process/splitPath";
+    import roundPath from "process/roundPath";
+    import optimizePath from "process/optimizePath";
+    import reverseCurve from "process/reverseCurve";
+    import reversePath from "process/reversePath";
+    import normalizePath from "process/normalizePath";
+    import transformPath from "process/transformPath";
+    import getSVGMatrix from "process/getSVGMatrix";
+    import shapeToPath from "util/shapeToPath";
+    import SVGPCO from "options/options";
+    import Version from "util/version";
 }
-declare module "src/class/svg-path-commander" {
+declare module "svg-path-commander" {
     /**
      * Creates a new SVGPathCommander instance.
      *
@@ -764,7 +764,7 @@ declare module "src/class/svg-path-commander" {
         /** @type {number | boolean | undefined} */
         round: number | boolean | undefined;
         /** @type {SVGPC.pathArray} */
-        segments: import("types/types").pathArray;
+        segments: SVGPC.pathArray;
         /** * @type {string} */
         pathValue: string;
         /**
@@ -825,15 +825,11 @@ declare module "src/class/svg-path-commander" {
         public toString(): string;
     }
 }
-declare module "src/index" {
+declare module "index" {
     export default SVGPathCommander;
-    /**
-     * shows types in src/ sources
-     */
-    export type SVGPC = typeof import("types/types");
-    import SVGPathCommander from "src/class/svg-path-commander";
+    import SVGPathCommander from "svg-path-commander";
 }
-declare module "src/math/distanceSquareRoot" {
+declare module "math/distanceSquareRoot" {
     /**
      * Returns the square root of the distance
      * between two given points.
@@ -844,7 +840,7 @@ declare module "src/math/distanceSquareRoot" {
      */
     export default function distanceSquareRoot(a: number[][], b: number[][]): number;
 }
-declare module "src/math/polygonArea" {
+declare module "math/polygonArea" {
     /**
      * d3-polygon-area
      * https://github.com/d3/d3-polygon
@@ -856,7 +852,7 @@ declare module "src/math/polygonArea" {
      */
     export default function polygonArea(polygon: number[][]): number;
 }
-declare module "src/math/polygonLength" {
+declare module "math/polygonLength" {
     /**
      * d3-polygon-length
      * https://github.com/d3/d3-polygon
@@ -868,7 +864,7 @@ declare module "src/math/polygonLength" {
      */
     export default function polygonLength(polygon: number[][]): number;
 }
-declare module "src/process/splitCubic" {
+declare module "process/splitCubic" {
     /**
      * Split a cubic-bezier segment into two.
      *
@@ -877,7 +873,7 @@ declare module "src/process/splitCubic" {
      */
     export default function splitCubic(pts: number[]): Object;
 }
-declare module "src/util/createPath" {
+declare module "util/createPath" {
     /**
      * Returns a new `<path>` from a `<glyph>` element, only using its `d` attribute,
      * all other attributes are ignored.
@@ -892,7 +888,7 @@ declare module "src/util/createPath" {
      */
     export default function createPath(pathInput: SVGElement | string): SVGPathElement;
 }
-declare module "src/util/getSegArcLength" {
+declare module "util/getSegArcLength" {
     /**
      * Returns the A (arc-to) segment length.
      *
@@ -901,7 +897,7 @@ declare module "src/util/getSegArcLength" {
      */
     export default function getSegArcLength(...args: any[]): number;
 }
-declare module "src/util/getSegLineLength" {
+declare module "util/getSegLineLength" {
     /**
      * Returns the L (line-to) segment length.
      *
@@ -913,7 +909,7 @@ declare module "src/util/getSegLineLength" {
      */
     export default function getSegLineLength(ax: number, ay: number, bx: number, by: number): number;
 }
-declare module "src/util/getSegQuadLength" {
+declare module "util/getSegQuadLength" {
     /**
      * Returns the Q (quadratic-bezier) segment length.
      * https://gist.github.com/tunght13488/6744e77c242cc7a94859#gistcomment-2047251

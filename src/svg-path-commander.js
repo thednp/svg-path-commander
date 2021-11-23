@@ -1,18 +1,18 @@
-import SVGPCO from '../options/options';
+import SVGPCO from './options/options';
 
-import pathToAbsolute from '../convert/pathToAbsolute';
-import pathToRelative from '../convert/pathToRelative';
-import pathToString from '../convert/pathToString';
+import pathToAbsolute from './convert/pathToAbsolute';
+import pathToRelative from './convert/pathToRelative';
+import pathToString from './convert/pathToString';
 
-import parsePathString from '../parser/parsePathString';
-import reversePath from '../process/reversePath';
+import parsePathString from './parser/parsePathString';
+import reversePath from './process/reversePath';
 
-import clonePath from '../process/clonePath';
-import splitPath from '../process/splitPath';
-import optimizePath from '../process/optimizePath';
-import normalizePath from '../process/normalizePath';
-import transformPath from '../process/transformPath';
-import getPathBBox from '../util/getPathBBox';
+import clonePath from './process/clonePath';
+import splitPath from './process/splitPath';
+import optimizePath from './process/optimizePath';
+import normalizePath from './process/normalizePath';
+import transformPath from './process/transformPath';
+import getPathBBox from './util/getPathBBox';
 
 /**
  * Creates a new SVGPathCommander instance.

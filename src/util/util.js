@@ -28,7 +28,7 @@ import pathToAbsolute from '../convert/pathToAbsolute';
 import pathToRelative from '../convert/pathToRelative';
 import pathToCurve from '../convert/pathToCurve';
 import pathToString from '../convert/pathToString';
-import Version from '../class/version';
+import Version from './version';
 
 const Util = {
   CSSMatrix,

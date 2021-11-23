@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.9 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.10alpha1 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -2890,7 +2890,7 @@
     return clonePath(absolutePath);
   }
 
-  var version = "0.1.9";
+  var version = "0.1.10alpha1";
 
   // @ts-ignore
 
