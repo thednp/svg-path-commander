@@ -14,12 +14,12 @@ import projection2d from './projection2d';
  * Since *SVGElement* doesn't support 3D transformation, this function
  * creates a 2D projection of the <path> element.
  *
- * @param {SVGPC.pathArray} path the `pathArray` to apply transformation
- * @param {SVGPC.transformObject} transform the transform functions `Object`
- * @returns {SVGPC.pathArray} the resulted `pathArray`
+ * @param {svgpcNS.pathArray} path the `pathArray` to apply transformation
+ * @param {any} transform the transform functions `Object`
+ * @returns {svgpcNS.pathArray} the resulted `pathArray`
  */
 export default function transformPath(path, transform) {
-  let x; let y; let i; let j; let ii; let jj; let lx; let ly; let te;
+  let x = 0; let y = 0; let i; let j; let ii; let jj; let lx; let ly; let te;
   const absolutePath = pathToAbsolute(path);
   const normalizedPath = normalizePath(absolutePath);
   const matrixInstance = getSVGMatrix(transform);
@@ -30,11 +30,12 @@ export default function transformPath(path, transform) {
   } = matrixInstance;
   const matrix2d = [a, b, c, d, e, f];
   const params = {
-    x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0,
+    x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
   };
   let segment = [];
   let seglen = 0;
   let pathCommand = '';
+  /** @type {any} */
   let transformedPath = [];
   const allPathCommands = []; // needed for arc to curve transformation
   let result = [];
@@ -70,17 +71,20 @@ export default function transformPath(path, transform) {
       params.y1 = +segment[seglen - 1];
       params.x2 = +(segment[seglen - 4]) || params.x1;
       params.y2 = +(segment[seglen - 3]) || params.y1;
-
+      // @ts-ignore
       result = { s: absolutePath[i], c: absolutePath[i][0] };
 
       if (pathCommand !== 'Z') {
+        // @ts-ignore
         result.x = params.x1;
+        // @ts-ignore
         result.y = params.y1;
       }
+      // @ts-ignore
       transformedPath = transformedPath.concat(result);
     }
-
-    transformedPath = transformedPath.map((seg) => {
+    // @ts-ignore
+    return transformedPath.map((seg) => {
       pathCommand = seg.c;
       segment = seg.s;
       switch (pathCommand) {
@@ -129,7 +133,6 @@ export default function transformPath(path, transform) {
           return segment;
       }
     });
-    return transformedPath;
   }
   return clonePath(absolutePath);
 }

@@ -1,3 +1,11 @@
+/**
+ * @param {number} p1
+ * @param {number} p2
+ * @param {number} p3
+ * @param {number} p4
+ * @param {number} t a [0-1] ratio
+ * @returns {number}
+ */
 function base3(p1, p2, p3, p4, t) {
   const t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4;
   const t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
@@ -7,19 +15,19 @@ function base3(p1, p2, p3, p4, t) {
 /**
  * Returns the C (cubic-bezier) segment length.
  *
- * @param {Number} x1 the starting point X
- * @param {Number} y1 the starting point Y
- * @param {Number} x2 the first control point X
- * @param {Number} y2 the first control point Y
- * @param {Number} x3 the second control point X
- * @param {Number} y3 the second control point Y
- * @param {Number} x4 the ending point X
- * @param {Number} y4 the ending point Y
- * @param {Number} z a [0-1] ratio
- * @returns {Number} the cubic-bezier segment length
+ * @param {number} x1 the starting point X
+ * @param {number} y1 the starting point Y
+ * @param {number} x2 the first control point X
+ * @param {number} y2 the first control point Y
+ * @param {number} x3 the second control point X
+ * @param {number} y3 the second control point Y
+ * @param {number} x4 the ending point X
+ * @param {number} y4 the ending point Y
+ * @param {number} z a [0-1] ratio
+ * @returns {number} the cubic-bezier segment length
  */
 export default function getSegCubicLength(x1, y1, x2, y2, x3, y3, x4, y4, z) {
-  let Z;
+  let Z = z;
   if (z === null || Number.isNaN(+z)) Z = 1;
 
   // Z = Z > 1 ? 1 : Z < 0 ? 0 : Z;

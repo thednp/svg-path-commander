@@ -1,10 +1,9 @@
 /**
  * SVGPathCommander default options
  *
- * @type {Object.<string, (boolean | number | number[])>}
  */
 const SVGPCO = {
-  origin: null,
+  origin: [0, 0],
   decimals: 4,
   round: 1,
 };

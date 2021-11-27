@@ -1,6 +1,6 @@
 import scanSegment from '../parser/scanSegment';
 import skipSpaces from '../parser/skipSpaces';
-import SVGPathArray from '../parser/svgPathArray';
+import PathParser from '../parser/pathParser';
 
 /**
  * Parses a path string value to determine its validity
@@ -14,7 +14,7 @@ export default function isValidPath(pathString) {
     return false;
   }
 
-  const path = new SVGPathArray(pathString);
+  const path = new PathParser(pathString);
 
   skipSpaces(path);
 

@@ -1,26 +1,42 @@
 import SVGPCO from '../options/options';
 import clonePath from './clonePath';
-
 /**
  * Rounds the values of a `pathArray` instance to
  * a specified amount of decimals and returns it.
  *
- * @param {SVGPC.pathArray} path the source `pathArray`
- * @param {Number | null} round the amount of decimals to round numbers to
- * @returns {SVGPC.pathArray} the resulted `pathArray` with rounded values
+ * @param {svgpcNS.pathArray} path the source `pathArray`
+ * @param {number | boolean | null} round the amount of decimals to round numbers to
+ * @returns {svgpcNS.pathArray} the resulted `pathArray` with rounded values
  */
 export default function roundPath(path, round) {
   const { round: defaultRound, decimals: defaultDecimals } = SVGPCO;
-  const decimalsOption = !Number.isNaN(+round) ? +round : defaultRound && defaultDecimals;
+  const decimalsOption = round && !Number.isNaN(+round) ? +round
+    : defaultRound && defaultDecimals;
 
-  return !decimalsOption
-    ? clonePath(path)
-    : path.map((seg) => seg.map((c) => {
-      const nr = +c;
-      const dc = 10 ** decimalsOption;
-      if (nr) {
-        return nr % 1 === 0 ? nr : Math.round(nr * dc) / dc;
+  if (round === false || (!defaultRound && !decimalsOption)) return clonePath(path);
+
+  const dc = 10 ** decimalsOption;
+  /** @type {svgpcNS.pathArray} */
+  const result = [];
+  const pl = path.length;
+  /** @type {svgpcNS.pathSegment} */
+  let segment;
+  /** @type {number} */
+  let n = 0;
+  let pi = [];
+
+  // FOR works best with TS
+  for (let i = 0; i < pl; i += 1) {
+    pi = path[i];
+    segment = [''];
+    for (let j = 0; j < pi.length; j += 1) {
+      if (!j) segment[j] = pi[j];
+      else {
+        n = +pi[j];
+        segment.push(!j || n % 1 === 0 ? n : Math.round(n * dc) / dc);
       }
-      return c;
-    }));
+    }
+    result.push(segment);
+  }
+  return result;
 }

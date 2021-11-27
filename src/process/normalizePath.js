@@ -8,11 +8,11 @@ import isNormalizedArray from '../util/isNormalizedArray';
  * * convert segments to absolute values
  * * convert shorthand path commands to their non-shorthand notation
  *
- * @param {String | SVGPC.pathArray} pathInput the string to be parsed or 'pathArray'
- * @returns {SVGPC.pathArray} the normalized `pathArray`
+ * @param {string | svgpcNS.pathArray} pathInput the string to be parsed or 'pathArray'
+ * @returns {svgpcNS.pathArray} the normalized `pathArray`
  */
 export default function normalizePath(pathInput) { // path|pathString
-  if (isNormalizedArray(pathInput)) {
+  if (Array.isArray(pathInput) && isNormalizedArray(pathInput)) {
     return clonePath(pathInput);
   }
 
@@ -22,13 +22,14 @@ export default function normalizePath(pathInput) { // path|pathString
   };
   const allPathCommands = [];
   const ii = path.length;
+  let pathCommand = '';
   let prevCommand = '';
   let segment;
   let seglen;
 
   for (let i = 0; i < ii; i += 1) {
     // save current path command
-    const [pathCommand] = path[i];
+    [pathCommand] = path[i];
 
     // Save current path command
     allPathCommands[i] = pathCommand;

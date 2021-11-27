@@ -6,8 +6,8 @@ import isAbsoluteArray from '../util/isAbsoluteArray';
  * Parses a path string value or object and returns an array
  * of segments, all converted to absolute values.
  *
- * @param {string | SVGPC.pathArray} pathInput the path string | object
- * @returns {SVGPC.pathArray} the resulted `pathArray` with absolute values
+ * @param {svgpcNS.pathArray | string} pathInput the path string | object
+ * @returns {svgpcNS.pathArray} the resulted `pathArray` with absolute values
  */
 export default function pathToAbsolute(pathInput) {
   if (isAbsoluteArray(pathInput)) {
@@ -16,6 +16,7 @@ export default function pathToAbsolute(pathInput) {
 
   const path = parsePathString(pathInput);
   const ii = path.length;
+  /** @type {svgpcNS.pathArray} */
   const resultArray = [];
   let x = 0;
   let y = 0;
@@ -36,9 +37,10 @@ export default function pathToAbsolute(pathInput) {
     const segment = path[i];
     const [pathCommand] = segment;
     const absCommand = pathCommand.toUpperCase();
+    /** @type {svgpcNS.pathSegment} */
+    // @ts-ignore -- trust me
     const absoluteSegment = [];
     let newSeg = [];
-    resultArray.push(absoluteSegment);
 
     if (pathCommand !== absCommand) {
       absoluteSegment[0] = absCommand;
@@ -71,6 +73,8 @@ export default function pathToAbsolute(pathInput) {
         absoluteSegment.push(segment[j]);
       }
     }
+
+    resultArray.push(absoluteSegment);
 
     const segLength = absoluteSegment.length;
     switch (absCommand) {

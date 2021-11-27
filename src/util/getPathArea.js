@@ -27,8 +27,8 @@ function getCubicSegArea(x0, y0, x1, y1, x2, y2, x3, y3) {
  *
  * => https://github.com/paperjs/paper.js/blob/develop/src/path/Path.js
  *
- * @param {SVGPC.pathArray} path the shape `pathArray`
- * @returns {SVGPC.pathBBox} the length of the cubic-bezier segment
+ * @param {svgpcNS.pathArray} path the shape `pathArray`
+ * @returns {number} the length of the cubic-bezier segment
  */
 export default function getPathArea(path) {
   let x = 0; let y = 0;
@@ -38,13 +38,15 @@ export default function getPathArea(path) {
     switch (seg[0]) {
       case 'M':
       case 'Z':
-        mx = seg[0] === 'M' ? seg[1] : mx;
-        my = seg[0] === 'M' ? seg[2] : my;
+        // @ts-ignore
+        mx = seg[0] === 'M' ? seg[1] : mx; my = seg[0] === 'M' ? seg[2] : my;
         x = mx;
         y = my;
         return 0;
       default:
+        // @ts-ignore
         len = getCubicSegArea.apply(0, [x, y].concat(seg.slice(1)));
+        // @ts-ignore
         [x, y] = seg.slice(-2);
         return len;
     }

@@ -2,12 +2,12 @@
  * Returns the missing control point from an
  * T (shorthand quadratic bezier) segment.
  *
- * @param {Number} x1 curve start x
- * @param {Number} y1 curve start y
- * @param {Number} qx control point x
- * @param {Number} qy control point y
- * @param {String} prevCommand the previous path command
- * @returns {Object} the missing control point
+ * @param {number} x1 curve start x
+ * @param {number} y1 curve start y
+ * @param {number} qx control point x
+ * @param {number} qy control point y
+ * @param {string} prevCommand the previous path command
+ * @returns {{qx: number, qy: number}}} the missing control point
  */
 export default function shorthandToQuad(x1, y1, qx, qy, prevCommand) {
   return 'QT'.indexOf(prevCommand) > -1

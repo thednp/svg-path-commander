@@ -1,7 +1,7 @@
 /**
  * A global namespace for epsilon.
  *
- * @type {Number}
+ * @type {number}
  */
 const epsilon = 1e-9;
 

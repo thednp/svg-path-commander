@@ -2,7 +2,7 @@
  * Checks if the character is or belongs to a number.
  * [0-9]|+|-|.
  *
- * @param {string} code the character to check
+ * @param {number} code the character to check
  * @returns {boolean} check result
  */
 export default function isDigitStart(code) {

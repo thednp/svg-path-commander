@@ -1,7 +1,7 @@
 /**
  * Checks if the character is a path command.
  *
- * @param {string} code the character to check
+ * @param {any} code the character to check
  * @returns {boolean} check result
  */
 export default function isPathCommand(code) {
@@ -17,7 +17,7 @@ export default function isPathCommand(code) {
     case 0x71/* q */:
     case 0x74/* t */:
     case 0x61/* a */:
-    case 0x72/* r */:
+    // case 0x72/* r */: // R is not supported
       return true;
     default:
       return false;

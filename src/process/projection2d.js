@@ -7,8 +7,9 @@
  * Details =>
  * https://stackoverflow.com/questions/23792505/predicted-rendering-of-css-3d-transformed-pixel
  *
- * @param {number[]} m the transformation matrix
+ * @param {svgpcNS.CSSMatrix} m the transformation matrix
  * @param {Number[]} point2D the initial [x,y] coordinates
+ * @param {number[]} origin the initial [x,y] coordinates
  * @returns {Number[]} the projected [x,y] coordinates
  */
 export default function projection2d(m, point2D, origin) {

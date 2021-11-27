@@ -2,8 +2,9 @@
  * Returns an {x,y} vector rotated by a given
  * angle in radian.
  *
- * @param {Number} x the initial vector x
- * @param {Number} y the initial vector y
+ * @param {number} x the initial vector x
+ * @param {number} y the initial vector y
+ * @param {number} rad the radian vector angle
  * @returns {{x: number, y: number}} the rotated vector
  */
 export default function rotateVector(x, y, rad) {

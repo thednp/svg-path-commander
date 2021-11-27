@@ -1,17 +1,18 @@
 {
   "name": "svg-path-commander",
-  "version": "0.1.10alpha1",
+  "version": "0.1.10",
   "description": "ES6+ JavaScript tools for manipulating SVG path data",
   "main": "dist/svg-path-commander.min.js",
   "module": "dist/svg-path-commander.esm.js",
-  "jsnext": "src/index.js",
+  "jsnext": "index.js",
   "types": "types/index.d.ts",
   "files": [
     "dist/*.{js,map}",
     "types/**/*.{ts,map}",
     "types/*.{ts,map}",
     "src/**/*.{js,map}",
-    "src/*.{js,map}"
+    "src/*.{js,map}",
+    "*.{js,map}"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -19,7 +20,7 @@
     "custom-build": "rollup -c --environment",
     "fix:js": "eslint src/ --config .eslintrc --fix",
     "lint:js": "eslint src/ --config .eslintrc",
-    "build-ts": "tsc -d",
+    "build:ts": "tsc -d",
     "build-js": "rollup --environment FORMAT:umd,MIN:false -c",
     "build-js-min": "rollup --environment FORMAT:umd,MIN:true -c",
     "build-esm": "rollup --environment FORMAT:esm,MIN:false -c",
@@ -57,9 +58,9 @@
     "rollup": "^2.38.4",
     "rollup-plugin-cleanup": "^3.2.1",
     "rollup-plugin-terser": "^5.3.1",
-    "typescript": "^4.4.4"
+    "typescript": "^4.5.2"
   },
   "dependencies": {
-    "dommatrix": "^0.0.15"
+    "dommatrix": "^0.0.19"
   }
 }

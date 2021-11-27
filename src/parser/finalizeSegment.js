@@ -1,31 +1,28 @@
-import paramCounts from './paramsCount';
+import paramsCount from './paramsCount';
 
 /**
  * Breaks the parsing of a pathString once a segment is finalized.
  *
- * @param {SVGPC.parserPathArray} path the `parserPathArray` instance
+ * @param {svgpcNS.pathParser} path the `PathParser` instance
  */
 export default function finalizeSegment(path) {
   let pathCommand = path.pathValue[path.segmentStart];
-  let pathComLK = pathCommand.toLowerCase();
-  let params = path.data;
+  let LK = pathCommand.toLowerCase();
+  let { data } = path;
 
   // Process duplicated commands (without comand name)
-  if (pathComLK === 'm' && params.length > 2) {
-    path.segments.push([pathCommand, params[0], params[1]]);
-    params = params.slice(2);
-    pathComLK = 'l';
-    pathCommand = (pathCommand === 'm') ? 'l' : 'L';
+  if (LK === 'm' && data.length > 2) {
+    path.segments.push([pathCommand, data[0], data[1]]);
+    data = data.slice(2);
+    LK = 'l';
+    pathCommand = pathCommand === 'm' ? 'l' : 'L';
   }
 
-  if (pathComLK === 'r') {
-    path.segments.push([pathCommand].concat(params));
-  } else {
-    while (params.length >= paramCounts[pathComLK]) {
-      path.segments.push([pathCommand].concat(params.splice(0, paramCounts[pathComLK])));
-      if (!paramCounts[pathComLK]) {
-        break;
-      }
+  while (data.length >= paramsCount[LK]) {
+    // @ts-ignore
+    path.segments.push([pathCommand].concat(data.splice(0, paramsCount[LK])));
+    if (!paramsCount[LK]) {
+      break;
     }
   }
 }

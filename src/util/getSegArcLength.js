@@ -4,8 +4,8 @@ import arcToCubic from '../process/arcToCubic';
 /**
  * Returns the A (arc-to) segment length.
  *
- * @param {Number[]} arguments the arc-to coordinates
- * @returns {Number} the arc-to segment length
+ * @param {number[]} arguments the arc-to coordinates
+ * @returns {number} the arc-to segment length
  */
 export default function getSegArcLength() {
   const args = arguments.slice();

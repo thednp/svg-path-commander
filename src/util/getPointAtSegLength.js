@@ -2,15 +2,15 @@
  * Returns the {x,y} coordinates of a point at a
  * given length of a cubic-bezier segment.
  *
- * @param {Number} p1x the starting point X
- * @param {Number} p1y the starting point Y
- * @param {Number} c1x the first control point X
- * @param {Number} c1y the first control point Y
- * @param {Number} c2x the second control point X
- * @param {Number} c2y the second control point Y
- * @param {Number} px2 the ending point X
- * @param {Number} py2 the ending point Y
- * @param {Number} t a [0-1] ratio
+ * @param {number} p1x the starting point X
+ * @param {number} p1y the starting point Y
+ * @param {number} c1x the first control point X
+ * @param {number} c1y the first control point Y
+ * @param {number} c2x the second control point X
+ * @param {number} c2y the second control point Y
+ * @param {number} p2x the ending point X
+ * @param {number} p2y the ending point Y
+ * @param {number} t a [0-1] ratio
  * @returns {{x: number, y: number}} the requested {x,y} coordinates
  */
 export default function getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {

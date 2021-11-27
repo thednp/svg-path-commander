@@ -7,9 +7,15 @@
     "emitDeclarationOnly": true,
     "strict": true,
     "allowJs": true,
-    "rootDir": "src",
-    "outFile": "types/index.d.ts",
+    "checkJs": true,
+    "outDir": "types",
+    "removeComments": true
   },
-  "include": ["src", "types/types.d.ts"],
-  "exclude": ["node_modules", "dist", "types", "assets", "experiments"]
+  "files": [
+    // "src/svg-path-commander.js",
+    "types/index.d.ts",
+    // "types/svg-path-commander.d.ts",
+  ],
+  // "include": ["types"],
+  "types": [],
 }

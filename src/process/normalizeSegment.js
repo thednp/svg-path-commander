@@ -4,17 +4,17 @@ import shorthandToCubic from './shorthandToCubic';
 /**
  * Normalizes a single segment of a `pathArray` object.
  *
- * @param {SVGPC.pathSegment} segment the segment object
- * @param {Object} params the coordinates of the previous segment
- * @param {String} prevCommand the path command of the previous segment
- * @returns {SVGPC.pathSegment} the normalized segment
+ * @param {svgpcNS.pathSegment} segment the segment object
+ * @param {any} params the coordinates of the previous segment
+ * @param {string} prevCommand the path command of the previous segment
+ * @returns {any} the normalized segment
  */
 export default function normalizeSegment(segment, params, prevCommand) {
   const [pathCommand] = segment;
   const xy = segment.slice(1);
-  let result = segment;
+  let result = segment.slice();
 
-  if ('TQ'.indexOf(segment[0]) < 0) {
+  if (!'TQ'.includes(segment[0])) {
     // optional but good to be cautious
     params.qx = null;
     params.qy = null;

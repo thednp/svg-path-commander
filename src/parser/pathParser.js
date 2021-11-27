@@ -1,10 +1,10 @@
 /**
- * The `parserPathArray` used by the parser.
+ * The `PathParser` used by the parser.
  *
  * @param {string} pathString
  */
-export default function SVGPathArray(pathString) {
-  /** @type {[string, ...number[]][]} */
+export default function PathParser(pathString) {
+  /** @type {svgpcNS.pathArray} */
   this.segments = [];
   /** @type {string} */
   this.pathValue = pathString;

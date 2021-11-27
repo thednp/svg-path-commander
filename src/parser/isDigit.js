@@ -1,7 +1,7 @@
 /**
  * Checks if a character is a digit.
  *
- * @param {string} code the character to check
+ * @param {number} code the character to check
  * @returns {boolean} check result
  */
 export default function isDigit(code) {

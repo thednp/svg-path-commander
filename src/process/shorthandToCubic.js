@@ -2,12 +2,12 @@
  * Returns the missing control point from an
  * S (shorthand cubic bezier) segment.
  *
- * @param {Number} x1 curve start x
- * @param {Number} y1 curve start y
- * @param {Number} x2 curve end x
- * @param {Number} y2 curve end y
- * @param {String} prevCommand the previous path command
- * @returns {Object} the missing control point
+ * @param {number} x1 curve start x
+ * @param {number} y1 curve start y
+ * @param {number} x2 curve end x
+ * @param {number} y2 curve end y
+ * @param {string} prevCommand the previous path command
+ * @returns {{x1: number, y1: number}}} the missing control point
  */
 export default function shorthandToCubic(x1, y1, x2, y2, prevCommand) {
   return 'CS'.indexOf(prevCommand) > -1

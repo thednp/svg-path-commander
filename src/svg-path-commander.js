@@ -12,35 +12,38 @@ import splitPath from './process/splitPath';
 import optimizePath from './process/optimizePath';
 import normalizePath from './process/normalizePath';
 import transformPath from './process/transformPath';
+
 import getPathBBox from './util/getPathBBox';
+import Util from './util/util';
 
 /**
  * Creates a new SVGPathCommander instance.
  *
  * @author thednp <https://github.com/thednp/svg-path-commander>
+ * @class
  */
-export default class SVGPathCommander {
+class SVGPathCommander {
   /**
+   * @constructor
    * @param {string} pathValue the path string
-   * @param {object} config instance options
+   * @param {any} config instance options
    */
   constructor(pathValue, config) {
     const options = config || {};
 
     let { round } = SVGPCO;
     const { round: roundOption } = options;
-    if (+roundOption === 0 || roundOption === false) {
+    if ((roundOption && +roundOption === 0) || roundOption === false) {
       round = 0;
     }
 
-    const { decimals } = round && (options || SVGPCO);
+    const { decimals } = round ? (options || SVGPCO) : { decimals: false };
 
     // set instance options
-    /** @type {number | boolean | undefined} */
-    this.round = round === 0 ? 0 : decimals;
+    this.round = decimals;
     // ZERO | FALSE will disable rounding numbers
 
-    /** @type {SVGPC.pathArray} */
+    /** @type {svgpcNS.pathArray} */
     this.segments = parsePathString(pathValue);
 
     /** * @type {string} */
@@ -78,14 +81,20 @@ export default class SVGPathCommander {
     this.toAbsolute();
 
     const { segments } = this;
-    const subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString());
-    const absoluteMultiPath = subPath && clonePath(subPath)
-      .map((x, i) => {
-        if (onlySubpath) {
-          return i ? reversePath(x) : parsePathString(x);
-        }
-        return reversePath(x);
-      });
+    const split = splitPath(this.toString());
+    const subPath = split.length > 1 ? split : 0;
+    /**
+     * @param {svgpcNS.pathArray} x
+     * @param {number} i
+     */
+    const reverser = (x, i) => {
+      if (onlySubpath) {
+        return i ? reversePath(x) : parsePathString(x);
+      }
+      return reversePath(x);
+    };
+
+    const absoluteMultiPath = subPath && clonePath(subPath).map(reverser);
 
     let path = [];
     if (subPath) {
@@ -126,9 +135,9 @@ export default class SVGPathCommander {
 
   /**
    * Transform path using values from an `Object` defined as `transformObject`.
-   * @see SVGPC.transformObject for a quick refference
+   * @see svgpcNS.transformObject for a quick refference
    *
-   * @param {SVGPC.transformObject} source a `transformObject`as described above
+   * @param {Object.<string, (number | number[])>} source a `transformObject`as described above
    * @public
    */
   transform(source) {
@@ -142,7 +151,7 @@ export default class SVGPathCommander {
     // it's important that we have one
     if (!transform.origin) {
       const BBox = getPathBBox(segments);
-      transform.origin = [BBox.cx, BBox.cy, BBox.cx];
+      transform.origin = [+BBox.cx, +BBox.cy];
     }
 
     this.segments = transformPath(segments, transform);
@@ -177,3 +186,8 @@ export default class SVGPathCommander {
     return pathToString(this.segments, this.round);
   }
 }
+
+// @ts-ignore
+Object.keys(Util).forEach((x) => { SVGPathCommander[x] = Util[x]; });
+
+export default SVGPathCommander;

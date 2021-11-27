@@ -5,8 +5,8 @@ import normalizePath from './normalizePath';
  * Reverses all segments and their values of a `pathArray`
  * and returns a new instance.
  *
- * @param {SVGPC.pathArray} pathInput the source `pathArray`
- * @returns {SVGPC.pathArray} the reversed `pathArray`
+ * @param {svgpcNS.pathArray} pathInput the source `pathArray`
+ * @returns {svgpcNS.pathArray} the reversed `pathArray`
  */
 export default function reversePath(pathInput) {
   const absolutePath = pathToAbsolute(pathInput);
@@ -84,7 +84,7 @@ export default function reversePath(pathInput) {
 
     return result;
   });
-
+  // @ts-ignore
   return isClosed ? reversedPath.reverse()
     : [reversedPath[0]].concat(reversedPath.slice(1).reverse());
 }

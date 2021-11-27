@@ -1,7 +1,7 @@
 /**
  * Checks if the character is an A (arc-to) path command.
  *
- * @param {string} code the character to check
+ * @param {number} code the character to check
  * @returns {boolean} check result
  */
 export default function isArcCommand(code) {

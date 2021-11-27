@@ -6,8 +6,8 @@ import isRelativeArray from '../util/isRelativeArray';
  * Parses a path string value or object and returns an array
  * of segments, all converted to relative values.
  *
- * @param {string | SVGPC.pathArray} pathInput the path string | object
- * @returns {SVGPC.pathArray} the resulted `pathArray` with relative values
+ * @param {string | svgpcNS.pathArray} pathInput the path string | object
+ * @returns {svgpcNS.pathArray} the resulted `pathArray` with relative values
  */
 export default function pathToRelative(pathInput) {
   if (isRelativeArray(pathInput)) {
@@ -16,6 +16,7 @@ export default function pathToRelative(pathInput) {
 
   const path = parsePathString(pathInput);
   const ii = path.length;
+  /** @type {svgpcNS.pathArray} */
   const resultArray = [];
   let x = 0;
   let y = 0;
@@ -36,9 +37,10 @@ export default function pathToRelative(pathInput) {
     const segment = path[i];
     const [pathCommand] = segment;
     const relativeCommand = pathCommand.toLowerCase();
+    /** @type {svgpcNS.pathSegment} */
+    // @ts-ignore -- trust me DON'T CHANGE
     const relativeSegment = [];
     let newSeg = [];
-    resultArray.push(relativeSegment);
 
     if (pathCommand !== relativeCommand) {
       relativeSegment[0] = relativeCommand;
@@ -73,6 +75,7 @@ export default function pathToRelative(pathInput) {
         relativeSegment.push(segment[j]);
       }
     }
+    resultArray.push(relativeSegment);
 
     const segLength = relativeSegment.length;
     switch (relativeSegment[0]) {
@@ -81,14 +84,14 @@ export default function pathToRelative(pathInput) {
         y = my;
         break;
       case 'h':
-        x += relativeSegment[segLength - 1];
+        x += +relativeSegment[segLength - 1];
         break;
       case 'v':
-        y += relativeSegment[segLength - 1];
+        y += +relativeSegment[segLength - 1];
         break;
       default:
-        x += resultArray[i][segLength - 2];
-        y += resultArray[i][segLength - 1];
+        x += +resultArray[i][segLength - 2];
+        y += +resultArray[i][segLength - 1];
     }
   }
 

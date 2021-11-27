@@ -1,9 +1,9 @@
 import pathToString from '../convert/pathToString';
+import SVGPCO from '../options/options';
 
 /**
  * Supported shapes and their specific parameters.
- *
- * @type {object}
+ * @type {Object.<string, string[]>}
  */
 const shapeParams = {
   circle: ['cx', 'cy', 'r'],
@@ -17,8 +17,8 @@ const shapeParams = {
 /**
  * Returns a new `pathArray` from line attributes.
  *
- * @param {SVGPC.lineAttr} attr shape configuration
- * @return {SVGPC.pathArray} a new line `pathArray`
+ * @param {svgpcNS.lineAttr} attr shape configuration
+ * @return {svgpcNS.pathArray} a new line `pathArray`
  */
 export function getLinePath(attr) {
   const {
@@ -30,14 +30,13 @@ export function getLinePath(attr) {
 /**
  * Returns a new `pathArray` like from polyline/polygon attributes.
  *
- * @param {SVGPC.polyAttr} attr shape configuration
- * @return {SVGPC.pathArray} a new polygon/polyline `pathArray`
+ * @param {svgpcNS.polyAttr} attr shape configuration
+ * @return {svgpcNS.pathArray} a new polygon/polyline `pathArray`
  */
 export function getPolyPath(attr) {
+  /** @type {svgpcNS.pathArray} */
   const pathArray = [];
-  let { points } = attr;
-
-  points = points.split(/[\s|,]/).map(Number);
+  const points = attr.points.split(/[\s|,]/).map(Number);
 
   let index = 0;
   while (index < points.length) {
@@ -49,21 +48,33 @@ export function getPolyPath(attr) {
 }
 
 /**
- * Returns a new `pathArray` from circle/ellipse attributes.
+ * Returns a new `pathArray` from circle attributes.
  *
- * @param {SVGPC.ellipseAttr | SVGPC.circleAttr} attr shape configuration
- * @return {SVGPC.pathArray} a circle/ellipse `pathArray`
+ * @param {svgpcNS.circleAttr} attr shape configuration
+ * @return {svgpcNS.pathArray} a circle `pathArray`
+ */
+export function getCirclePath(attr) {
+  const {
+    cx, cy, r,
+  } = attr;
+
+  return [
+    ['M', (cx - r), cy],
+    ['a', r, r, 0, 1, 0, (2 * r), 0],
+    ['a', r, r, 0, 1, 0, (-2 * r), 0],
+  ];
+}
+
+/**
+ * Returns a new `pathArray` from ellipse attributes.
+ *
+ * @param {svgpcNS.ellipseAttr} attr shape configuration
+ * @return {svgpcNS.pathArray} an ellipse `pathArray`
  */
 export function getEllipsePath(attr) {
   const {
-    type, cx, cy, r,
+    cx, cy, rx, ry,
   } = attr;
-  let { rx, ry } = attr;
-
-  if (type === 'circle' && r > 0) {
-    rx = r;
-    ry = r;
-  }
 
   return [
     ['M', (cx - rx), cy],
@@ -75,8 +86,8 @@ export function getEllipsePath(attr) {
 /**
  * Returns a new `pathArray` like from rect attributes.
  *
- * @param {SVGPC.rectAttr} attr object with properties above
- * @return {SVGPC.pathArray} a new `pathArray` from `<rect>` attributes
+ * @param {svgpcNS.rectAttr} attr object with properties above
+ * @return {svgpcNS.pathArray} a new `pathArray` from `<rect>` attributes
  */
 export function getRectanglePath(attr) {
   const x = +attr.x || 0;
@@ -124,7 +135,7 @@ export function getRectanglePath(attr) {
  * The newly created `<path>` element keeps all non-specific
  * attributes like `class`, `fill`, etc.
  *
- * @param {SVGPC.shapeTypes} element target shape
+ * @param {svgpcNS.shapeTypes} element target shape
  * @param {boolean} replace option to replace target
  * @return {?SVGPathElement} the newly created `<path>` element
  */
@@ -138,9 +149,12 @@ export default function shapeToPath(element, replace) {
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   const type = element.tagName;
   const shapeAttrs = shapeParams[type];
+  /** set config
+   * @type {any}
+   */
+  const config = {};
+  config.type = type;
 
-  // set config
-  const config = { type };
   shapeAttrs.forEach((p) => { config[p] = element.getAttribute(p); });
 
   // set no-specific shape attributes: fill, stroke, etc
@@ -150,10 +164,14 @@ export default function shapeToPath(element, replace) {
 
   // set d
   let description;
-  if (['circle', 'ellipse'].includes(type)) description = pathToString(getEllipsePath(config));
-  else if (['polyline', 'polygon'].includes(type)) description = pathToString(getPolyPath(config));
-  else if (type === 'rect') description = pathToString(getRectanglePath(config));
-  else if (type === 'line') description = pathToString(getLinePath(config));
+  const { round, decimals } = SVGPCO;
+  const rounding = round && decimals ? decimals : null;
+
+  if (type === 'circle') description = pathToString(getCirclePath(config), rounding);
+  else if (type === 'ellipse') description = pathToString(getEllipsePath(config), rounding);
+  else if (['polyline', 'polygon'].includes(type)) description = pathToString(getPolyPath(config), rounding);
+  else if (type === 'rect') description = pathToString(getRectanglePath(config), rounding);
+  else if (type === 'line') description = pathToString(getLinePath(config), rounding);
   else if (type === 'glyph') description = element.getAttribute('d');
 
   // replace target element

@@ -6,28 +6,27 @@ import rotateVector from '../math/rotateVector';
  * For more information of where this math came from visit:
  * http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
  *
- * @param {Number} x1 the starting x position
- * @param {Number} y1 the starting y position
- * @param {Number} rx x-radius of the arc
- * @param {Number} ry y-radius of the arc
- * @param {Number} angle x-axis-rotation of the arc
- * @param {Number} LAF large-arc-flag of the arc
- * @param {Number} SF sweep-flag of the arc
- * @param {Number} x2 the ending x position
- * @param {Number} y2 the ending y position
- * @param {Number[] | null} recursive the parameters needed to split arc into 2 segments
- * @return {Number[] | Number[][]} the resulting cubic-bezier segment(s)
+ * @param {number} X1 the starting x position
+ * @param {number} Y1 the starting y position
+ * @param {number} RX x-radius of the arc
+ * @param {number} RY y-radius of the arc
+ * @param {number} angle x-axis-rotation of the arc
+ * @param {number} LAF large-arc-flag of the arc
+ * @param {number} SF sweep-flag of the arc
+ * @param {number} X2 the ending x position
+ * @param {number} Y2 the ending y position
+ * @param {number[] | null} recursive the parameters needed to split arc into 2 segments
+ * @return {any} the resulting cubic-bezier segment(s)
  */
-export default function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recursive) {
+// export default function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recursive) {
+export default function arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, recursive) {
+  let x1 = X1; let y1 = Y1; let rx = RX; let ry = RY; let x2 = X2; let y2 = Y2;
+  // for more information of where this Math came from visit:
+  // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
   const d120 = (Math.PI * 120) / 180;
-  const rad = (Math.PI / 180) * (angle || 0);
+
+  const rad = (Math.PI / 180) * (+angle || 0);
   let res = [];
-  let X1 = x1;
-  let X2 = x2;
-  let Y1 = y1;
-  let Y2 = y2;
-  let RX = rx;
-  let RY = ry;
   let xy;
   let f1;
   let f2;
@@ -35,41 +34,39 @@ export default function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recur
   let cy;
 
   if (!recursive) {
-    xy = rotateVector(X1, Y1, -rad);
-    X1 = xy.x;
-    Y1 = xy.y;
-    xy = rotateVector(X2, Y2, -rad);
-    X2 = xy.x;
-    Y2 = xy.y;
+    xy = rotateVector(x1, y1, -rad);
+    x1 = xy.x;
+    y1 = xy.y;
+    xy = rotateVector(x2, y2, -rad);
+    x2 = xy.x;
+    y2 = xy.y;
 
-    const x = (X1 - X2) / 2;
-    const y = (Y1 - Y2) / 2;
-    let h = (x ** 2) / (RX ** 2) + (y ** 2) / (RY ** 2);
+    const x = (x1 - x2) / 2;
+    const y = (y1 - y2) / 2;
+    let h = (x * x) / (rx * rx) + (y * y) / (ry * ry);
     if (h > 1) {
       h = Math.sqrt(h);
-      RX *= h;
-      RY *= h;
+      rx *= h;
+      ry *= h;
     }
-    const rx2 = RX ** 2;
-    const ry2 = RY ** 2;
+    const rx2 = rx * rx;
+    const ry2 = ry * ry;
+
     const k = (LAF === SF ? -1 : 1)
-          * Math.sqrt(Math.abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x)
-          / (rx2 * y * y + ry2 * x * x)));
+            * Math.sqrt(Math.abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x)
+                / (rx2 * y * y + ry2 * x * x)));
 
-    cx = ((k * RX * y) / RY) + ((X1 + X2) / 2);
-    cy = ((k * -RY * x) / RX) + ((Y1 + Y2) / 2);
-
+    cx = ((k * rx * y) / ry) + ((x1 + x2) / 2);
+    cy = ((k * -ry * x) / rx) + ((y1 + y2) / 2);
     // eslint-disable-next-line no-bitwise -- Impossible to satisfy no-bitwise
-    f1 = Math.asin((((Y1 - cy) / RY) * 10 ** 9 >> 0) / (10 ** 9));
+    f1 = (Math.asin((((y1 - cy) / ry))) * (10 ** 9) >> 0) / (10 ** 9);
     // eslint-disable-next-line no-bitwise -- Impossible to satisfy no-bitwise
-    f2 = Math.asin((((Y2 - cy) / RY) * 10 ** 9 >> 0) / (10 ** 9));
+    f2 = (Math.asin((((y2 - cy) / ry))) * (10 ** 9) >> 0) / (10 ** 9);
 
-    f1 = X1 < cx ? Math.PI - f1 : f1;
-    f2 = X2 < cx ? Math.PI - f2 : f2;
-
-    if (f1 < 0) { f1 = Math.PI * 2 + f1; }
-    if (f2 < 0) { f2 = Math.PI * 2 + f2; }
-
+    f1 = x1 < cx ? Math.PI - f1 : f1;
+    f2 = x2 < cx ? Math.PI - f2 : f2;
+    if (f1 < 0) (f1 = Math.PI * 2 + f1);
+    if (f2 < 0) (f2 = Math.PI * 2 + f2);
     if (SF && f1 > f2) {
       f1 -= Math.PI * 2;
     }
@@ -77,49 +74,41 @@ export default function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recur
       f2 -= Math.PI * 2;
     }
   } else {
-    const [r1, r2, r3, r4] = recursive;
-    f1 = r1;
-    f2 = r2;
-    cx = r3;
-    cy = r4;
+    [f1, f2, cx, cy] = recursive;
   }
-
   let df = f2 - f1;
-
   if (Math.abs(df) > d120) {
     const f2old = f2;
-    const x2old = X2;
-    const y2old = Y2;
-
+    const x2old = x2;
+    const y2old = y2;
     f2 = f1 + d120 * (SF && f2 > f1 ? 1 : -1);
-    X2 = cx + RX * Math.cos(f2);
-    Y2 = cy + RY * Math.sin(f2);
-    res = arcToCubic(X2, Y2, RX, RY, angle, 0, SF, x2old, y2old, [f2, f2old, cx, cy]);
+    x2 = cx + rx * Math.cos(f2);
+    y2 = cy + ry * Math.sin(f2);
+    res = arcToCubic(x2, y2, rx, ry, angle, 0, SF, x2old, y2old, [f2, f2old, cx, cy]);
   }
-
   df = f2 - f1;
   const c1 = Math.cos(f1);
   const s1 = Math.sin(f1);
   const c2 = Math.cos(f2);
   const s2 = Math.sin(f2);
   const t = Math.tan(df / 4);
-  const hx = (4 / 3) * RX * t;
-  const hy = (4 / 3) * RY * t;
-  const m1 = [X1, Y1];
-  const m2 = [X1 + hx * s1, Y1 - hy * c1];
-  const m3 = [X2 + hx * s2, Y2 - hy * c2];
-  const m4 = [X2, Y2];
+  const hx = (4 / 3) * rx * t;
+  const hy = (4 / 3) * ry * t;
+  const m1 = [x1, y1];
+  const m2 = [x1 + hx * s1, y1 - hy * c1];
+  const m3 = [x2 + hx * s2, y2 - hy * c2];
+  const m4 = [x2, y2];
   m2[0] = 2 * m1[0] - m2[0];
   m2[1] = 2 * m1[1] - m2[1];
-
   if (recursive) {
     return [m2, m3, m4].concat(res);
   }
   res = [m2, m3, m4].concat(res).join().split(',');
-  return res.map((rz, i) => {
-    if (i % 2) {
-      return rotateVector(res[i - 1], rz, rad).y;
-    }
-    return rotateVector(rz, res[i + 1], rad).x;
-  });
+  const newres = [];
+  for (let i = 0, ii = res.length; i < ii; i += 1) {
+    newres[i] = i % 2
+      // @ts-ignore
+      ? rotateVector(res[i - 1], res[i], rad).y : rotateVector(res[i], res[i + 1], rad).x;
+  }
+  return newres;
 }
