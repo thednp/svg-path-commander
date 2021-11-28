@@ -4,7 +4,7 @@ import roundPath from '../process/roundPath';
  * Returns a valid `d` attribute string value created
  * by rounding values and concatenating the `pathArray` segments.
  *
- * @param {svgpcNS.pathArray} path the `pathArray` object
+ * @param {SVGPathCommander.pathArray} path the `pathArray` object
  * @param {any} round amount of decimals to round values to
  * @returns {string} the concatenated path string
  */

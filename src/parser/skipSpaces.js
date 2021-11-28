@@ -5,7 +5,7 @@ import isSpace from './isSpace';
  * path string every time it encounters any kind of
  * space character.
  *
- * @param {svgpcNS.pathParser} path the `PathParser` instance
+ * @param {SVGPathCommander.PathParser} path the `PathParser` instance
  */
 export default function skipSpaces(path) {
   const { pathValue, max } = path;

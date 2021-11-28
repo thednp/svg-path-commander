@@ -5,7 +5,7 @@ import invalidPathValue from './invalidPathValue';
  * Validates every character of the path string,
  * every path command, negative numbers or floating point numbers.
  *
- * @param {svgpcNS.pathParser} path the `PathParser` instance
+ * @param {SVGPathCommander.PathParser} path the `PathParser` instance
  */
 export default function scanParam(path) {
   const { max, pathValue, index: start } = path;

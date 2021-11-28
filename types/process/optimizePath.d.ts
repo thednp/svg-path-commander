@@ -1,1 +1,1 @@
-export default function optimizePath(pathInput: string | import("../../types").pathArray, round: number | null): import("../../types").pathArray;
+export default function optimizePath(pathInput: string | import("../../types").pathArray, round: number | boolean | null): import("../../types").pathArray;

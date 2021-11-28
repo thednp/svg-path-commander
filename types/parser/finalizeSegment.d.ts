@@ -1,1 +1,1 @@
-export default function finalizeSegment(path: PathParser): void;
+export default function finalizeSegment(path: SVGPathCommander.PathParser): void;

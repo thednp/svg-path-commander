@@ -8,8 +8,8 @@ import isNormalizedArray from '../util/isNormalizedArray';
  * * convert segments to absolute values
  * * convert shorthand path commands to their non-shorthand notation
  *
- * @param {string | svgpcNS.pathArray} pathInput the string to be parsed or 'pathArray'
- * @returns {svgpcNS.pathArray} the normalized `pathArray`
+ * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
+ * @returns {SVGPathCommander.pathArray} the normalized `pathArray`
  */
 export default function normalizePath(pathInput) { // path|pathString
   if (Array.isArray(pathInput) && isNormalizedArray(pathInput)) {

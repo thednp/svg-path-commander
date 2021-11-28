@@ -17,8 +17,8 @@ const shapeParams = {
 /**
  * Returns a new `pathArray` from line attributes.
  *
- * @param {svgpcNS.lineAttr} attr shape configuration
- * @return {svgpcNS.pathArray} a new line `pathArray`
+ * @param {SVGPathCommander.lineAttr} attr shape configuration
+ * @return {SVGPathCommander.pathArray} a new line `pathArray`
  */
 export function getLinePath(attr) {
   const {
@@ -30,11 +30,11 @@ export function getLinePath(attr) {
 /**
  * Returns a new `pathArray` like from polyline/polygon attributes.
  *
- * @param {svgpcNS.polyAttr} attr shape configuration
- * @return {svgpcNS.pathArray} a new polygon/polyline `pathArray`
+ * @param {SVGPathCommander.polyAttr} attr shape configuration
+ * @return {SVGPathCommander.pathArray} a new polygon/polyline `pathArray`
  */
 export function getPolyPath(attr) {
-  /** @type {svgpcNS.pathArray} */
+  /** @type {SVGPathCommander.pathArray} */
   const pathArray = [];
   const points = attr.points.split(/[\s|,]/).map(Number);
 
@@ -50,8 +50,8 @@ export function getPolyPath(attr) {
 /**
  * Returns a new `pathArray` from circle attributes.
  *
- * @param {svgpcNS.circleAttr} attr shape configuration
- * @return {svgpcNS.pathArray} a circle `pathArray`
+ * @param {SVGPathCommander.circleAttr} attr shape configuration
+ * @return {SVGPathCommander.pathArray} a circle `pathArray`
  */
 export function getCirclePath(attr) {
   const {
@@ -68,8 +68,8 @@ export function getCirclePath(attr) {
 /**
  * Returns a new `pathArray` from ellipse attributes.
  *
- * @param {svgpcNS.ellipseAttr} attr shape configuration
- * @return {svgpcNS.pathArray} an ellipse `pathArray`
+ * @param {SVGPathCommander.ellipseAttr} attr shape configuration
+ * @return {SVGPathCommander.pathArray} an ellipse `pathArray`
  */
 export function getEllipsePath(attr) {
   const {
@@ -86,8 +86,8 @@ export function getEllipsePath(attr) {
 /**
  * Returns a new `pathArray` like from rect attributes.
  *
- * @param {svgpcNS.rectAttr} attr object with properties above
- * @return {svgpcNS.pathArray} a new `pathArray` from `<rect>` attributes
+ * @param {SVGPathCommander.rectAttr} attr object with properties above
+ * @return {SVGPathCommander.pathArray} a new `pathArray` from `<rect>` attributes
  */
 export function getRectanglePath(attr) {
   const x = +attr.x || 0;
@@ -135,7 +135,7 @@ export function getRectanglePath(attr) {
  * The newly created `<path>` element keeps all non-specific
  * attributes like `class`, `fill`, etc.
  *
- * @param {svgpcNS.shapeTypes} element target shape
+ * @param {SVGPathCommander.shapeTypes} element target shape
  * @param {boolean} replace option to replace target
  * @return {?SVGPathElement} the newly created `<path>` element
  */

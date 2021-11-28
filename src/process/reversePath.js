@@ -5,8 +5,8 @@ import normalizePath from './normalizePath';
  * Reverses all segments and their values of a `pathArray`
  * and returns a new instance.
  *
- * @param {svgpcNS.pathArray} pathInput the source `pathArray`
- * @returns {svgpcNS.pathArray} the reversed `pathArray`
+ * @param {SVGPathCommander.pathArray} pathInput the source `pathArray`
+ * @returns {SVGPathCommander.pathArray} the reversed `pathArray`
  */
 export default function reversePath(pathInput) {
   const absolutePath = pathToAbsolute(pathInput);

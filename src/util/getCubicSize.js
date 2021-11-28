@@ -11,7 +11,7 @@ import getPointAtSegLength from './getPointAtSegLength';
  * @param {number} c2y the second control point Y
  * @param {number} p2x the ending point X
  * @param {number} p2y the ending point Y
- * @returns {svgpcNS.segmentLimits} the length of the cubic-bezier segment
+ * @returns {SVGPathCommander.segmentLimits} the length of the cubic-bezier segment
  */
 export default function getCubicSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
   let a = (c2x - 2 * c1x + p1x) - (p2x - 2 * c2x + c1x);

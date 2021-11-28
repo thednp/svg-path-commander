@@ -1,1 +1,1 @@
-export default function getPathBBox(path: import("../../types").pathArray): svgpcNS.pathBBox;
+export default function getPathBBox(path: import("../../types").pathArray): SVGPathCommander.pathBBox;

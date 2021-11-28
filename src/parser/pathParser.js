@@ -4,7 +4,7 @@
  * @param {string} pathString
  */
 export default function PathParser(pathString) {
-  /** @type {svgpcNS.pathArray} */
+  /** @type {SVGPathCommander.pathArray} */
   this.segments = [];
   /** @type {string} */
   this.pathValue = pathString;

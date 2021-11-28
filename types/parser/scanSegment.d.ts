@@ -1,1 +1,1 @@
-export default function scanSegment(path: PathParser): void;
+export default function scanSegment(path: SVGPathCommander.PathParser): void;

@@ -4,7 +4,7 @@ import shorthandToCubic from './shorthandToCubic';
 /**
  * Normalizes a single segment of a `pathArray` object.
  *
- * @param {svgpcNS.pathSegment} segment the segment object
+ * @param {SVGPathCommander.pathSegment} segment the segment object
  * @param {any} params the coordinates of the previous segment
  * @param {string} prevCommand the path command of the previous segment
  * @returns {any} the normalized segment

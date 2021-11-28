@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.10 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.11alpha1 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -29,7 +29,7 @@
   /**
    * Breaks the parsing of a pathString once a segment is finalized.
    *
-   * @param {svgpcNS.pathParser} path the `PathParser` instance
+   * @param {SVGPathCommander.PathParser} path the `PathParser` instance
    */
   function finalizeSegment(path) {
     var pathCommand = path.pathValue[path.segmentStart];
@@ -59,7 +59,7 @@
    * Validates an A (arc-to) specific path command value.
    * Usually a `large-arc-flag` or `sweep-flag`.
    *
-   * @param {svgpcNS.pathParser} path the `PathParser` instance
+   * @param {SVGPathCommander.PathParser} path the `PathParser` instance
    */
   function scanFlag(path) {
     var index = path.index;
@@ -94,7 +94,7 @@
    * Validates every character of the path string,
    * every path command, negative numbers or floating point numbers.
    *
-   * @param {svgpcNS.pathParser} path the `PathParser` instance
+   * @param {SVGPathCommander.PathParser} path the `PathParser` instance
    */
   function scanParam(path) {
     var max = path.max;
@@ -208,7 +208,7 @@
    * path string every time it encounters any kind of
    * space character.
    *
-   * @param {svgpcNS.pathParser} path the `PathParser` instance
+   * @param {SVGPathCommander.PathParser} path the `PathParser` instance
    */
   function skipSpaces(path) {
     var pathValue = path.pathValue;
@@ -273,7 +273,7 @@
    * Scans every character in the path string to determine
    * where a segment starts and where it ends.
    *
-   * @param {svgpcNS.pathParser} path the `PathParser` instance
+   * @param {SVGPathCommander.PathParser} path the `PathParser` instance
    */
   function scanSegment(path) {
     var max = path.max;
@@ -335,7 +335,7 @@
   /**
    * Returns a clone of an existing `pathArray`.
    *
-   * @param {svgpcNS.pathArray | any[] | string} path the source `pathArray`
+   * @param {SVGPathCommander.pathArray | any[] | string} path the source `pathArray`
    * @returns {any} the cloned `pathArray`
    */
   function clonePath(path) {
@@ -353,7 +353,7 @@
    * @param {string} pathString
    */
   function PathParser(pathString) {
-    /** @type {svgpcNS.pathArray} */
+    /** @type {SVGPathCommander.pathArray} */
     this.segments = [];
     /** @type {string} */
     this.pathValue = pathString;
@@ -374,7 +374,7 @@
   /**
    * Iterates an array to check if it's an actual `pathArray`.
    *
-   * @param {string | svgpcNS.pathArray} path the `pathArray` to be checked
+   * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
    * @returns {boolean} iteration result
    */
   function isPathArray(path) {
@@ -388,8 +388,8 @@
    * Parses a path string value and returns an array
    * of segments we like to call `pathArray`.
    *
-   * @param {svgpcNS.pathArray | string} pathInput the string to be parsed
-   * @returns {svgpcNS.pathArray} the resulted `pathArray`
+   * @param {SVGPathCommander.pathArray | string} pathInput the string to be parsed
+   * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
    */
   function parsePathString(pathInput) {
     if (isPathArray(pathInput)) {
@@ -422,7 +422,7 @@
    * Iterates an array to check if it's a `pathArray`
    * with all absolute values.
    *
-   * @param {string | svgpcNS.pathArray} path the `pathArray` to be checked
+   * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
    * @returns {boolean} iteration result
    */
   function isAbsoluteArray(path) {
@@ -434,8 +434,8 @@
    * Parses a path string value or object and returns an array
    * of segments, all converted to absolute values.
    *
-   * @param {svgpcNS.pathArray | string} pathInput the path string | object
-   * @returns {svgpcNS.pathArray} the resulted `pathArray` with absolute values
+   * @param {SVGPathCommander.pathArray | string} pathInput the path string | object
+   * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with absolute values
    */
   function pathToAbsolute(pathInput) {
     if (isAbsoluteArray(pathInput)) {
@@ -444,7 +444,7 @@
 
     var path = parsePathString(pathInput);
     var ii = path.length;
-    /** @type {svgpcNS.pathArray} */
+    /** @type {SVGPathCommander.pathArray} */
     var resultArray = [];
     var x = 0;
     var y = 0;
@@ -465,7 +465,7 @@
       var segment = path[i];
       var pathCommand = segment[0];
       var absCommand = pathCommand.toUpperCase();
-      /** @type {svgpcNS.pathSegment} */
+      /** @type {SVGPathCommander.pathSegment} */
       // @ts-ignore -- trust me
       var absoluteSegment = [];
       var newSeg = [];
@@ -534,7 +534,7 @@
    * Iterates an array to check if it's a `pathArray`
    * with relative values.
    *
-   * @param {string | svgpcNS.pathArray} path the `pathArray` to be checked
+   * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
    * @returns {boolean} iteration result
    */
   function isRelativeArray(path) {
@@ -546,8 +546,8 @@
    * Parses a path string value or object and returns an array
    * of segments, all converted to relative values.
    *
-   * @param {string | svgpcNS.pathArray} pathInput the path string | object
-   * @returns {svgpcNS.pathArray} the resulted `pathArray` with relative values
+   * @param {string | SVGPathCommander.pathArray} pathInput the path string | object
+   * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with relative values
    */
   function pathToRelative(pathInput) {
     if (isRelativeArray(pathInput)) {
@@ -556,7 +556,7 @@
 
     var path = parsePathString(pathInput);
     var ii = path.length;
-    /** @type {svgpcNS.pathArray} */
+    /** @type {SVGPathCommander.pathArray} */
     var resultArray = [];
     var x = 0;
     var y = 0;
@@ -577,7 +577,7 @@
       var segment = path[i];
       var pathCommand = segment[0];
       var relativeCommand = pathCommand.toLowerCase();
-      /** @type {svgpcNS.pathSegment} */
+      /** @type {SVGPathCommander.pathSegment} */
       // @ts-ignore -- trust me DON'T CHANGE
       var relativeSegment = [];
       var newSeg = [];
@@ -642,9 +642,9 @@
    * Rounds the values of a `pathArray` instance to
    * a specified amount of decimals and returns it.
    *
-   * @param {svgpcNS.pathArray} path the source `pathArray`
+   * @param {SVGPathCommander.pathArray} path the source `pathArray`
    * @param {number | boolean | null} round the amount of decimals to round numbers to
-   * @returns {svgpcNS.pathArray} the resulted `pathArray` with rounded values
+   * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with rounded values
    */
   function roundPath(path, round) {
     var defaultRound = SVGPCO.round;
@@ -655,10 +655,10 @@
     if (round === false || (!defaultRound && !decimalsOption)) { return clonePath(path); }
 
     var dc = Math.pow( 10, decimalsOption );
-    /** @type {svgpcNS.pathArray} */
+    /** @type {SVGPathCommander.pathArray} */
     var result = [];
     var pl = path.length;
-    /** @type {svgpcNS.pathSegment} */
+    /** @type {SVGPathCommander.pathSegment} */
     var segment;
     /** @type {number} */
     var n = 0;
@@ -684,7 +684,7 @@
    * Returns a valid `d` attribute string value created
    * by rounding values and concatenating the `pathArray` segments.
    *
-   * @param {svgpcNS.pathArray} path the `pathArray` object
+   * @param {SVGPathCommander.pathArray} path the `pathArray` object
    * @param {any} round amount of decimals to round values to
    * @returns {string} the concatenated path string
    */
@@ -730,7 +730,7 @@
   /**
    * Normalizes a single segment of a `pathArray` object.
    *
-   * @param {svgpcNS.pathSegment} segment the segment object
+   * @param {SVGPathCommander.pathSegment} segment the segment object
    * @param {any} params the coordinates of the previous segment
    * @param {string} prevCommand the path command of the previous segment
    * @returns {any} the normalized segment
@@ -778,7 +778,7 @@
    * with all segments are in non-shorthand notation
    * with absolute values.
    *
-   * @param {string | svgpcNS.pathArray} path the `pathArray` to be checked
+   * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
    * @returns {boolean} iteration result
    */
   function isNormalizedArray(path) {
@@ -793,8 +793,8 @@
    * * convert segments to absolute values
    * * convert shorthand path commands to their non-shorthand notation
    *
-   * @param {string | svgpcNS.pathArray} pathInput the string to be parsed or 'pathArray'
-   * @returns {svgpcNS.pathArray} the normalized `pathArray`
+   * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
+   * @returns {SVGPathCommander.pathArray} the normalized `pathArray`
    */
   function normalizePath(pathInput) {
     var assign;
@@ -840,8 +840,8 @@
    * Reverses all segments and their values of a `pathArray`
    * and returns a new instance.
    *
-   * @param {svgpcNS.pathArray} pathInput the source `pathArray`
-   * @returns {svgpcNS.pathArray} the reversed `pathArray`
+   * @param {SVGPathCommander.pathArray} pathInput the source `pathArray`
+   * @returns {SVGPathCommander.pathArray} the reversed `pathArray`
    */
   function reversePath(pathInput) {
     var absolutePath = pathToAbsolute(pathInput);
@@ -930,7 +930,7 @@
    * In the process, values are converted to absolute
    * for visual consistency.
    *
-   * @param {svgpcNS.pathArray | string} pathInput the cubic-bezier parameters
+   * @param {SVGPathCommander.pathArray | string} pathInput the cubic-bezier parameters
    * @return {string[]} an array with all sub-path strings
    */
   function splitPath(pathInput) {
@@ -947,9 +947,9 @@
    * * create a new `pathArray` with elements with shortest segments
    * from absolute and relative `pathArray`s
    *
-   * @param {string | svgpcNS.pathArray} pathInput a string or `pathArray`
-   * @param {number | null} round the amount of decimals to round values to
-   * @returns {svgpcNS.pathArray} the optimized `pathArray`
+   * @param {string | SVGPathCommander.pathArray} pathInput a string or `pathArray`
+   * @param {number | boolean | null} round the amount of decimals to round values to
+   * @returns {SVGPathCommander.pathArray} the optimized `pathArray`
    */
   function optimizePath(pathInput, round) {
     var absolutePath = roundPath(pathToAbsolute(pathInput), round);
@@ -1198,9 +1198,9 @@
   /**
    * Converts any segment to C (cubic-bezier).
    *
-   * @param {svgpcNS.pathSegment} segment the source segment
-   * @param {svgpcNS.parserParams} params the source segment parameters
-   * @returns {svgpcNS.pathSegment} the cubic-bezier segment
+   * @param {SVGPathCommander.pathSegment} segment the source segment
+   * @param {SVGPathCommander.parserParams} params the source segment parameters
+   * @returns {SVGPathCommander.pathSegment} the cubic-bezier segment
    */
   function segmentToCubic(segment, params) {
     if (!'TQ'.includes(segment[0])) {
@@ -1238,7 +1238,7 @@
   /**
    * Splits an extended A (arc-to) segment into two cubic-bezier segments.
    *
-   * @param {svgpcNS.pathArray} path the `pathArray` this segment belongs to
+   * @param {SVGPathCommander.pathArray} path the `pathArray` this segment belongs to
    * @param {string[]} allPathCommands all previous path commands
    * @param {Number} i the index of the segment
    */
@@ -2088,7 +2088,7 @@
   /**
    * Returns a transformation matrix to apply to `<path>` elements.
    *
-   * @param {svgpcNS.transformObject} transform the `transformObject`
+   * @param {SVGPathCommander.transformObject} transform the `transformObject`
    * @returns {CSSMatrix} a new transformation matrix
    */
   function getSVGMatrix(transform) {
@@ -2223,7 +2223,7 @@
    * Details =>
    * https://stackoverflow.com/questions/23792505/predicted-rendering-of-css-3d-transformed-pixel
    *
-   * @param {svgpcNS.CSSMatrix} m the transformation matrix
+   * @param {SVGPathCommander.CSSMatrix} m the transformation matrix
    * @param {Number[]} point2D the initial [x,y] coordinates
    * @param {number[]} origin the initial [x,y] coordinates
    * @returns {Number[]} the projected [x,y] coordinates
@@ -2250,9 +2250,9 @@
    * Since *SVGElement* doesn't support 3D transformation, this function
    * creates a 2D projection of the <path> element.
    *
-   * @param {svgpcNS.pathArray} path the `pathArray` to apply transformation
+   * @param {SVGPathCommander.pathArray} path the `pathArray` to apply transformation
    * @param {any} transform the transform functions `Object`
-   * @returns {svgpcNS.pathArray} the resulted `pathArray`
+   * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
    */
   function transformPath(path, transform) {
     var assign;
@@ -2391,7 +2391,7 @@
    * @param {number} c2y the second control point Y
    * @param {number} p2x the ending point X
    * @param {number} p2y the ending point Y
-   * @returns {svgpcNS.segmentLimits} the length of the cubic-bezier segment
+   * @returns {SVGPathCommander.segmentLimits} the length of the cubic-bezier segment
    */
   function getCubicSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
     var a = (c2x - 2 * c1x + p1x) - (p2x - 2 * c2x + c1x);
@@ -2447,7 +2447,7 @@
    * Iterates an array to check if it's a `pathArray`
    * with all C (cubic bezier) segments.
    *
-   * @param {string | svgpcNS.pathArray} path the `Array` to be checked
+   * @param {string | SVGPathCommander.pathArray} path the `Array` to be checked
    * @returns {boolean} iteration result
    */
   function isCurveArray(path) {
@@ -2459,8 +2459,8 @@
    * Parses a path string value or 'pathArray' and returns a new one
    * in which all segments are converted to cubic-bezier.
    *
-   * @param {string | svgpcNS.pathArray} pathInput the string to be parsed or object
-   * @returns {svgpcNS.pathArray} the resulted `pathArray` converted to cubic-bezier
+   * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or object
+   * @returns {SVGPathCommander.pathArray} the resulted `pathArray` converted to cubic-bezier
    */
   function pathToCurve(pathInput) {
     var assign;
@@ -2500,8 +2500,8 @@
   /**
    * Returns the bounding box of a shape.
    *
-   * @param {svgpcNS.pathArray} path the shape `pathArray`
-   * @returns {svgpcNS.pathBBox} the length of the cubic-bezier segment
+   * @param {SVGPathCommander.pathArray} path the shape `pathArray`
+   * @returns {SVGPathCommander.pathBBox} the length of the cubic-bezier segment
    */
   function getPathBBox(path) {
     if (!path) {
@@ -2584,7 +2584,7 @@
    *
    * => https://github.com/paperjs/paper.js/blob/develop/src/path/Path.js
    *
-   * @param {svgpcNS.pathArray} path the shape `pathArray`
+   * @param {SVGPathCommander.pathArray} path the shape `pathArray`
    * @returns {number} the length of the cubic-bezier segment
    */
   function getPathArea(path) {
@@ -2670,7 +2670,7 @@
    * or the equivalent to `shape.getTotalLength()`
    * pathToCurve version
    *
-   * @param {svgpcNS.pathArray} path the ending point Y
+   * @param {SVGPathCommander.pathArray} path the ending point Y
    * @returns {number} the shape total length
    */
   function getPathLength(path) {
@@ -2687,7 +2687,7 @@
    * Check if a path is drawn clockwise and returns true if so,
    * false otherwise.
    *
-   * @param {string | svgpcNS.pathArray} path the path string or `pathArray`
+   * @param {string | SVGPathCommander.pathArray} path the path string or `pathArray`
    * @returns {boolean} true when clockwise or false if not
    */
   function getDrawDirection(path) {
@@ -2697,7 +2697,7 @@
   /**
    * Returns [x,y] coordinates of a point at a given length of a shape.
    *
-   * @param {string | svgpcNS.pathArray} path the `pathArray` to look into
+   * @param {string | SVGPathCommander.pathArray} path the `pathArray` to look into
    * @param {number} length the length of the shape to look at
    * @returns {number[]} the requested [x,y] coordinates
    */
@@ -2765,8 +2765,8 @@
   /**
    * Returns a new `pathArray` from line attributes.
    *
-   * @param {svgpcNS.lineAttr} attr shape configuration
-   * @return {svgpcNS.pathArray} a new line `pathArray`
+   * @param {SVGPathCommander.lineAttr} attr shape configuration
+   * @return {SVGPathCommander.pathArray} a new line `pathArray`
    */
   function getLinePath(attr) {
     var x1 = attr.x1;
@@ -2779,11 +2779,11 @@
   /**
    * Returns a new `pathArray` like from polyline/polygon attributes.
    *
-   * @param {svgpcNS.polyAttr} attr shape configuration
-   * @return {svgpcNS.pathArray} a new polygon/polyline `pathArray`
+   * @param {SVGPathCommander.polyAttr} attr shape configuration
+   * @return {SVGPathCommander.pathArray} a new polygon/polyline `pathArray`
    */
   function getPolyPath(attr) {
-    /** @type {svgpcNS.pathArray} */
+    /** @type {SVGPathCommander.pathArray} */
     var pathArray = [];
     var points = attr.points.split(/[\s|,]/).map(Number);
 
@@ -2799,8 +2799,8 @@
   /**
    * Returns a new `pathArray` from circle attributes.
    *
-   * @param {svgpcNS.circleAttr} attr shape configuration
-   * @return {svgpcNS.pathArray} a circle `pathArray`
+   * @param {SVGPathCommander.circleAttr} attr shape configuration
+   * @return {SVGPathCommander.pathArray} a circle `pathArray`
    */
   function getCirclePath(attr) {
     var cx = attr.cx;
@@ -2816,8 +2816,8 @@
   /**
    * Returns a new `pathArray` from ellipse attributes.
    *
-   * @param {svgpcNS.ellipseAttr} attr shape configuration
-   * @return {svgpcNS.pathArray} an ellipse `pathArray`
+   * @param {SVGPathCommander.ellipseAttr} attr shape configuration
+   * @return {SVGPathCommander.pathArray} an ellipse `pathArray`
    */
   function getEllipsePath(attr) {
     var cx = attr.cx;
@@ -2834,8 +2834,8 @@
   /**
    * Returns a new `pathArray` like from rect attributes.
    *
-   * @param {svgpcNS.rectAttr} attr object with properties above
-   * @return {svgpcNS.pathArray} a new `pathArray` from `<rect>` attributes
+   * @param {SVGPathCommander.rectAttr} attr object with properties above
+   * @return {SVGPathCommander.pathArray} a new `pathArray` from `<rect>` attributes
    */
   function getRectanglePath(attr) {
     var x = +attr.x || 0;
@@ -2881,7 +2881,7 @@
    * The newly created `<path>` element keeps all non-specific
    * attributes like `class`, `fill`, etc.
    *
-   * @param {svgpcNS.shapeTypes} element target shape
+   * @param {SVGPathCommander.shapeTypes} element target shape
    * @param {boolean} replace option to replace target
    * @return {?SVGPathElement} the newly created `<path>` element
    */
@@ -2940,8 +2940,8 @@
    * Reverses all segments and their values from a `pathArray`
    * which consists of only C (cubic-bezier) path commands.
    *
-   * @param {svgpcNS.pathArray} path the source `pathArray`
-   * @returns {svgpcNS.pathArray} the reversed `pathArray`
+   * @param {SVGPathCommander.pathArray} path the source `pathArray`
+   * @returns {SVGPathCommander.pathArray} the reversed `pathArray`
    */
   function reverseCurve(path) {
     var rotatedCurve = path.slice(1)
@@ -2957,7 +2957,7 @@
       .concat(rotatedCurve.map(function (x) { return ['C'].concat(x.slice(2)); }));
   }
 
-  var version = "0.1.10";
+  var version = "0.1.11alpha1";
 
   // @ts-ignore
 
@@ -3021,7 +3021,7 @@
     this.round = decimals;
     // ZERO | FALSE will disable rounding numbers
 
-    /** @type {svgpcNS.pathArray} */
+    /** @type {SVGPathCommander.pathArray} */
     this.segments = parsePathString(pathValue);
 
     /** * @type {string} */
@@ -3065,7 +3065,7 @@
     var split = splitPath(this.toString());
     var subPath = split.length > 1 ? split : 0;
     /**
-     * @param {svgpcNS.pathArray} x
+     * @param {import("../types").pathArray} x
      * @param {number} i
      */
     var reverser = function (x, i) {
@@ -3118,7 +3118,7 @@
 
   /**
    * Transform path using values from an `Object` defined as `transformObject`.
-   * @see svgpcNS.transformObject for a quick refference
+   * @see SVGPathCommander.transformObject for a quick refference
    *
    * @param {Object.<string, (number | number[])>} source a `transformObject`as described above
    * @public

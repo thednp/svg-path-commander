@@ -9,8 +9,8 @@ import isPathArray from '../util/isPathArray';
  * Parses a path string value and returns an array
  * of segments we like to call `pathArray`.
  *
- * @param {svgpcNS.pathArray | string} pathInput the string to be parsed
- * @returns {svgpcNS.pathArray} the resulted `pathArray`
+ * @param {SVGPathCommander.pathArray | string} pathInput the string to be parsed
+ * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
  */
 export default function parsePathString(pathInput) {
   if (isPathArray(pathInput)) {

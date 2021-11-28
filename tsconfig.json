@@ -12,10 +12,9 @@
     "removeComments": true
   },
   "files": [
-    // "src/svg-path-commander.js",
-    "types/index.d.ts",
-    // "types/svg-path-commander.d.ts",
+    // "src/svg-path-commander.js", // UN-comment when regenerating ignore error
+    "types/index.d.ts", // comment when regenerating
   ],
-  // "include": ["types"],
+  // "include": ["types/**/*.d.ts"], // comment when regenerating
   "types": [],
 }

@@ -3,7 +3,7 @@ import paramsCount from './paramsCount';
 /**
  * Breaks the parsing of a pathString once a segment is finalized.
  *
- * @param {svgpcNS.pathParser} path the `PathParser` instance
+ * @param {SVGPathCommander.PathParser} path the `PathParser` instance
  */
 export default function finalizeSegment(path) {
   let pathCommand = path.pathValue[path.segmentStart];

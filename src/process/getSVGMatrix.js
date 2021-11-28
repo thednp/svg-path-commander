@@ -3,7 +3,7 @@ import CSSMatrix from 'dommatrix';
 /**
  * Returns a transformation matrix to apply to `<path>` elements.
  *
- * @param {svgpcNS.transformObject} transform the `transformObject`
+ * @param {SVGPathCommander.transformObject} transform the `transformObject`
  * @returns {CSSMatrix} a new transformation matrix
  */
 export default function getSVGMatrix(transform) {

@@ -8,8 +8,8 @@ import segmentToCubic from '../process/segmentToCubic';
  * Parses a path string value or 'pathArray' and returns a new one
  * in which all segments are converted to cubic-bezier.
  *
- * @param {string | svgpcNS.pathArray} pathInput the string to be parsed or object
- * @returns {svgpcNS.pathArray} the resulted `pathArray` converted to cubic-bezier
+ * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or object
+ * @returns {SVGPathCommander.pathArray} the resulted `pathArray` converted to cubic-bezier
  */
 export default function pathToCurve(pathInput) {
   if (isCurveArray(pathInput)) {

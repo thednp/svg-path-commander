@@ -14,9 +14,9 @@ import projection2d from './projection2d';
  * Since *SVGElement* doesn't support 3D transformation, this function
  * creates a 2D projection of the <path> element.
  *
- * @param {svgpcNS.pathArray} path the `pathArray` to apply transformation
+ * @param {SVGPathCommander.pathArray} path the `pathArray` to apply transformation
  * @param {any} transform the transform functions `Object`
- * @returns {svgpcNS.pathArray} the resulted `pathArray`
+ * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
  */
 export default function transformPath(path, transform) {
   let x = 0; let y = 0; let i; let j; let ii; let jj; let lx; let ly; let te;

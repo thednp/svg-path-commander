@@ -8,9 +8,9 @@ import pathToRelative from '../convert/pathToRelative';
  * * create a new `pathArray` with elements with shortest segments
  * from absolute and relative `pathArray`s
  *
- * @param {string | svgpcNS.pathArray} pathInput a string or `pathArray`
- * @param {number | null} round the amount of decimals to round values to
- * @returns {svgpcNS.pathArray} the optimized `pathArray`
+ * @param {string | SVGPathCommander.pathArray} pathInput a string or `pathArray`
+ * @param {number | boolean | null} round the amount of decimals to round values to
+ * @returns {SVGPathCommander.pathArray} the optimized `pathArray`
  */
 export default function optimizePath(pathInput, round) {
   const absolutePath = roundPath(pathToAbsolute(pathInput), round);

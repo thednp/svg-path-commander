@@ -4,7 +4,7 @@ import midPoint from '../math/midPoint';
  * Split a cubic-bezier segment into two.
  *
  * @param {number[]} pts the cubic-bezier parameters
- * @return {svgpcNS.pathArray} two new cubic-bezier segments
+ * @return {SVGPathCommander.pathArray} two new cubic-bezier segments
  */
 export default function splitCubic(pts/* , ratio */) {
   const t = /* ratio || */ 0.5;

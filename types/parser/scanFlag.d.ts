@@ -1,1 +1,1 @@
-export default function scanFlag(path: PathParser): void;
+export default function scanFlag(path: SVGPathCommander.PathParser): void;

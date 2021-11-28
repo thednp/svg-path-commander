@@ -1,8 +1,8 @@
 export default SVGPathCommander;
 declare class SVGPathCommander {
-    constructor(pathValue: string, config: any);
+    constructor(pathValue: string, config: SVGPathCommander.options);
     round: any;
-    segments: import("../types").pathArray;
+    segments: SVGPathCommander.pathArray;
     pathValue: string;
     public toAbsolute(): SVGPathCommander;
     public toRelative(): SVGPathCommander;

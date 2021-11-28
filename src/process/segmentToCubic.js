@@ -5,9 +5,9 @@ import lineToCubic from './lineToCubic';
 /**
  * Converts any segment to C (cubic-bezier).
  *
- * @param {svgpcNS.pathSegment} segment the source segment
- * @param {svgpcNS.parserParams} params the source segment parameters
- * @returns {svgpcNS.pathSegment} the cubic-bezier segment
+ * @param {SVGPathCommander.pathSegment} segment the source segment
+ * @param {SVGPathCommander.parserParams} params the source segment parameters
+ * @returns {SVGPathCommander.pathSegment} the cubic-bezier segment
  */
 export default function segmentToCubic(segment, params) {
   if (!'TQ'.includes(segment[0])) {

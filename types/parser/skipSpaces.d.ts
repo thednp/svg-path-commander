@@ -1,1 +1,1 @@
-export default function skipSpaces(path: PathParser): void;
+export default function skipSpaces(path: SVGPathCommander.PathParser): void;

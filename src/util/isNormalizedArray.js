@@ -6,7 +6,7 @@ import isPathArray from './isPathArray';
  * with all segments are in non-shorthand notation
  * with absolute values.
  *
- * @param {string | svgpcNS.pathArray} path the `pathArray` to be checked
+ * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
  * @returns {boolean} iteration result
  */
 export default function isNormalizedArray(path) {

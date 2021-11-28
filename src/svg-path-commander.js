@@ -26,7 +26,7 @@ class SVGPathCommander {
   /**
    * @constructor
    * @param {string} pathValue the path string
-   * @param {any} config instance options
+   * @param {SVGPathCommander.options} config instance options
    */
   constructor(pathValue, config) {
     const options = config || {};
@@ -43,7 +43,7 @@ class SVGPathCommander {
     this.round = decimals;
     // ZERO | FALSE will disable rounding numbers
 
-    /** @type {svgpcNS.pathArray} */
+    /** @type {SVGPathCommander.pathArray} */
     this.segments = parsePathString(pathValue);
 
     /** * @type {string} */
@@ -84,7 +84,7 @@ class SVGPathCommander {
     const split = splitPath(this.toString());
     const subPath = split.length > 1 ? split : 0;
     /**
-     * @param {svgpcNS.pathArray} x
+     * @param {import("../types").pathArray} x
      * @param {number} i
      */
     const reverser = (x, i) => {
@@ -135,7 +135,7 @@ class SVGPathCommander {
 
   /**
    * Transform path using values from an `Object` defined as `transformObject`.
-   * @see svgpcNS.transformObject for a quick refference
+   * @see SVGPathCommander.transformObject for a quick refference
    *
    * @param {Object.<string, (number | number[])>} source a `transformObject`as described above
    * @public

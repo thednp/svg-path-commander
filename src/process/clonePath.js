@@ -1,7 +1,7 @@
 /**
  * Returns a clone of an existing `pathArray`.
  *
- * @param {svgpcNS.pathArray | any[] | string} path the source `pathArray`
+ * @param {SVGPathCommander.pathArray | any[] | string} path the source `pathArray`
  * @returns {any} the cloned `pathArray`
  */
 export default function clonePath(path) {

@@ -12,7 +12,7 @@ import invalidPathValue from './invalidPathValue';
  * Scans every character in the path string to determine
  * where a segment starts and where it ends.
  *
- * @param {svgpcNS.pathParser} path the `PathParser` instance
+ * @param {SVGPathCommander.PathParser} path the `PathParser` instance
  */
 export default function scanSegment(path) {
   const { max, pathValue, index } = path;

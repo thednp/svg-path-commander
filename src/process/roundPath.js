@@ -4,9 +4,9 @@ import clonePath from './clonePath';
  * Rounds the values of a `pathArray` instance to
  * a specified amount of decimals and returns it.
  *
- * @param {svgpcNS.pathArray} path the source `pathArray`
+ * @param {SVGPathCommander.pathArray} path the source `pathArray`
  * @param {number | boolean | null} round the amount of decimals to round numbers to
- * @returns {svgpcNS.pathArray} the resulted `pathArray` with rounded values
+ * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with rounded values
  */
 export default function roundPath(path, round) {
   const { round: defaultRound, decimals: defaultDecimals } = SVGPCO;
@@ -16,10 +16,10 @@ export default function roundPath(path, round) {
   if (round === false || (!defaultRound && !decimalsOption)) return clonePath(path);
 
   const dc = 10 ** decimalsOption;
-  /** @type {svgpcNS.pathArray} */
+  /** @type {SVGPathCommander.pathArray} */
   const result = [];
   const pl = path.length;
-  /** @type {svgpcNS.pathSegment} */
+  /** @type {SVGPathCommander.pathSegment} */
   let segment;
   /** @type {number} */
   let n = 0;

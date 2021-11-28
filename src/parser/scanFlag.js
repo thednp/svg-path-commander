@@ -4,7 +4,7 @@ import invalidPathValue from './invalidPathValue';
  * Validates an A (arc-to) specific path command value.
  * Usually a `large-arc-flag` or `sweep-flag`.
  *
- * @param {svgpcNS.pathParser} path the `PathParser` instance
+ * @param {SVGPathCommander.PathParser} path the `PathParser` instance
  */
 export default function scanFlag(path) {
   const { index } = path;

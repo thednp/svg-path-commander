@@ -6,8 +6,8 @@ import isRelativeArray from '../util/isRelativeArray';
  * Parses a path string value or object and returns an array
  * of segments, all converted to relative values.
  *
- * @param {string | svgpcNS.pathArray} pathInput the path string | object
- * @returns {svgpcNS.pathArray} the resulted `pathArray` with relative values
+ * @param {string | SVGPathCommander.pathArray} pathInput the path string | object
+ * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with relative values
  */
 export default function pathToRelative(pathInput) {
   if (isRelativeArray(pathInput)) {
@@ -16,7 +16,7 @@ export default function pathToRelative(pathInput) {
 
   const path = parsePathString(pathInput);
   const ii = path.length;
-  /** @type {svgpcNS.pathArray} */
+  /** @type {SVGPathCommander.pathArray} */
   const resultArray = [];
   let x = 0;
   let y = 0;
@@ -37,7 +37,7 @@ export default function pathToRelative(pathInput) {
     const segment = path[i];
     const [pathCommand] = segment;
     const relativeCommand = pathCommand.toLowerCase();
-    /** @type {svgpcNS.pathSegment} */
+    /** @type {SVGPathCommander.pathSegment} */
     // @ts-ignore -- trust me DON'T CHANGE
     const relativeSegment = [];
     let newSeg = [];

@@ -5,7 +5,7 @@ import pathToCurve from '../convert/pathToCurve';
 /**
  * Returns [x,y] coordinates of a point at a given length of a shape.
  *
- * @param {string | svgpcNS.pathArray} path the `pathArray` to look into
+ * @param {string | SVGPathCommander.pathArray} path the `pathArray` to look into
  * @param {number} length the length of the shape to look at
  * @returns {number[]} the requested [x,y] coordinates
  */
