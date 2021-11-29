@@ -19,8 +19,8 @@ import Util from './util/util';
 /**
  * Creates a new SVGPathCommander instance.
  *
+ * @class SVGPathCommander
  * @author thednp <https://github.com/thednp/svg-path-commander>
- * @class
  */
 class SVGPathCommander {
   /**
