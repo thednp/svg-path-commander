@@ -18,7 +18,7 @@ const shapeParams = {
  * Returns a new `pathArray` from line attributes.
  *
  * @param {SVGPathCommander.lineAttr} attr shape configuration
- * @return {SVGPathCommander.pathArray} a new line `pathArray`
+ * @returns {SVGPathCommander.pathArray} a new line `pathArray`
  */
 export function getLinePath(attr) {
   const {
@@ -149,9 +149,6 @@ export default function shapeToPath(element, replace) {
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   const type = element.tagName;
   const shapeAttrs = shapeParams[type];
-  /** set config
-   * @type {any}
-   */
   const config = {};
   config.type = type;
 

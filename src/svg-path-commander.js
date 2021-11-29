@@ -187,7 +187,7 @@ class SVGPathCommander {
   }
 }
 
-// @ts-ignore
-Object.keys(Util).forEach((x) => { SVGPathCommander[x] = Util[x]; });
+// Export Util to global
+Object.assign(SVGPathCommander, Util);
 
 export default SVGPathCommander;

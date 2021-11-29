@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.11alpha1 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.11alpha2 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1260,14 +1260,13 @@
   }
 
   // DOMMatrix Static methods
-  // * `fromFloat64Array` and `fromFloat32Array` methods are not supported;
-  // * `fromArray` a more simple implementation, should also accept float[32/64]Array;
-  // * `fromMatrix` load values from another CSSMatrix/DOMMatrix instance;
-  // * `fromString` parses and loads values from any valid CSS transform string.
+  // * `fromFloat64Array` and `fromFloat32Array are not implemented;
+  // * `fromArray` is a more simple implementation, should also accept Float[32/64]Array;
+  // * `fromMatrix` load values from another CSSMatrix/DOMMatrix instance or JSON object;
+  // * `fromString` parses and loads values from any valid CSS transform string (TransformList).
 
   /**
-   * Creates a new mutable `CSSMatrix` object given an array of floating point values.
-   *
+   * Creates a new mutable `CSSMatrix` instance given an array of 16/6 floating point values.
    * This static method invalidates arrays that contain non-number elements.
    *
    * If the array has six values, the result is a 2D matrix; if the array has 16 values,
@@ -1277,12 +1276,12 @@
    * @return {CSSMatrix} the resulted matrix.
    */
   function fromArray(array) {
-    if (!array.every(function (n) { return !Number.isNaN(n); })) {
-      throw TypeError(("CSSMatrix: \"" + array + "\" must only have numbers."));
-    }
     var m = new CSSMatrix();
     var a = Array.from(array);
 
+    if (!a.every(function (n) { return !Number.isNaN(n); })) {
+      throw TypeError(("CSSMatrix: \"" + array + "\" must only have numbers."));
+    }
     if (a.length === 16) {
       var m11 = a[0];
       var m12 = a[1];
@@ -1366,17 +1365,12 @@
    * Creates a new mutable `CSSMatrix` instance given an existing matrix or a
    * `DOMMatrix` instance which provides the values for its properties.
    *
-   * @param {CSSMatrix | DOMMatrix | CSSMatrixNS.JSONMatrix} m the source matrix to feed values from.
+   * @param {CSSMatrix | DOMMatrix | CSSMatrix.JSONMatrix} m the source matrix to feed values from.
    * @return {CSSMatrix} the resulted matrix.
    */
   function fromMatrix(m) {
-    var keys = [
-      'm11', 'm12', 'm13', 'm14',
-      'm21', 'm22', 'm23', 'm24',
-      'm31', 'm32', 'm33', 'm34',
-      'm41', 'm42', 'm43', 'm44'];
-    if ([CSSMatrix, DOMMatrix].some(function (x) { return m instanceof x; })
-      || (typeof m === 'object' && keys.every(function (k) { return k in m; }))) {
+    var keys = Object.keys(new CSSMatrix());
+    if (typeof m === 'object' && keys.every(function (k) { return k in m; })) {
       return fromArray(
         [m.m11, m.m12, m.m13, m.m14,
           m.m21, m.m22, m.m23, m.m24,
@@ -1384,11 +1378,12 @@
           m.m41, m.m42, m.m43, m.m44]
       );
     }
-    throw TypeError(("CSSMatrix: \"" + m + "\" is not a DOMMatrix / CSSMatrix compatible object."));
+    throw TypeError(("CSSMatrix: \"" + m + "\" is not a DOMMatrix / CSSMatrix / JSON compatible object."));
   }
 
   /**
-   * Creates a new mutable `CSSMatrix` instance given any valid CSS transform string.
+   * Creates a new mutable `CSSMatrix` given any valid CSS transform string,
+   * or what we call `TransformList`:
    *
    * * `matrix(a, b, c, d, e, f)` - valid matrix() transform function
    * * `matrix3d(m11, m12, m13, ...m44)` - valid matrix3d() transform function
@@ -1406,43 +1401,24 @@
     var str = String(source).replace(/\s/g, '');
     var m = new CSSMatrix();
     var invalidStringError = "CSSMatrix: invalid transform string \"" + source + "\"";
-    var is2D = true;
-    // const transformFunctions = [
-    //   'matrix', 'matrix3d', 'perspective', 'translate3d',
-    //   'translate', 'translateX', 'translateY', 'translateZ',
-    //   'rotate', 'rotate3d', 'rotateX', 'rotateY', 'rotateZ',
-    //   'scale', 'scale3d', 'skewX', 'skewY'];
-    var tramsformObject = str.split(')').filter(function (f) { return f; }).map(function (fn) {
-      var ref = fn.split('(');
+
+    // const px = ['perspective'];
+    // const length = ['translate', 'translate3d', 'translateX', 'translateY', 'translateZ'];
+    // const deg = ['rotate', 'rotate3d', 'rotateX', 'rotateY', 'rotateZ', 'skew', 'skewX', 'skewY'];
+    // const abs = ['scale', 'scale3d', 'matrix', 'matrix3d'];
+    // const transformFunctions = px.concat(length, deg, abs);
+
+    str.split(')').filter(function (f) { return f; }).forEach(function (tf) {
+      var ref = tf.split('(');
       var prop = ref[0];
       var value = ref[1];
-      if (!value) {
-        // invalidate
-        throw TypeError(invalidStringError);
-      }
+
+      // invalidate empty string
+      if (!value) { throw TypeError(invalidStringError); }
 
       var components = value.split(',')
         .map(function (n) { return (n.includes('rad') ? parseFloat(n) * (180 / Math.PI) : parseFloat(n)); });
-      var x = components[0];
-      var y = components[1];
-      var z = components[2];
-      var a = components[3];
 
-      // don't add perspective if is2D
-      if (is2D && (prop === 'matrix3d' // only modify is2D once
-          || (prop === 'rotate3d' && [x, y].every(function (n) { return !Number.isNaN(+n) && n !== 0; }) && a)
-          || (['rotateX', 'rotateY'].includes(prop) && x)
-          || (prop === 'translate3d' && [x, y, z].every(function (n) { return !Number.isNaN(+n); }) && z)
-          || (prop === 'scale3d' && [x, y, z].every(function (n) { return !Number.isNaN(+n) && n !== x; }))
-      )) {
-        is2D = false;
-      }
-      return { prop: prop, components: components };
-    });
-
-    tramsformObject.forEach(function (tf) {
-      var prop = tf.prop;
-      var components = tf.components;
       var x = components[0];
       var y = components[1];
       var z = components[2];
@@ -1450,30 +1426,41 @@
       var xyz = [x, y, z];
       var xyza = [x, y, z, a];
 
-      if (prop === 'perspective' && !is2D) {
+      // single number value expected
+      if (prop === 'perspective' && x && [y, z].every(function (n) { return n === undefined; })) {
         m.m34 = -1 / x;
-      } else if (prop.includes('matrix')) {
+      // 6/16 number values expected
+      } else if (prop.includes('matrix') && [6, 16].includes(components.length)
+        && components.every(function (n) { return !Number.isNaN(+n); })) {
         var values = components.map(function (n) { return (Math.abs(n) < 1e-6 ? 0 : n); });
-        if ([6, 16].includes(values.length)) {
-          m = m.multiply(fromArray(values));
-        }
-      } else if (['translate', 'translate3d'].some(function (p) { return prop === p; }) && x) {
-        m = m.translate(x, y || 0, z || 0);
+        m = m.multiply(fromArray(values));
+      // 3 values expected
+      } else if (prop === 'translate3d' && xyz.every(function (n) { return !Number.isNaN(+n); })) {
+        m = m.translate(x, y, z);
+      // single/double number value(s) expected
+      } else if (prop === 'translate' && x && z === undefined) {
+        m = m.translate(x, y || 0, 0);
+      // all 4 values expected
       } else if (prop === 'rotate3d' && xyza.every(function (n) { return !Number.isNaN(+n); }) && a) {
         m = m.rotateAxisAngle(x, y, z, a);
+      // single value expected
+      } else if (prop === 'rotate' && x && [y, z].every(function (n) { return n === undefined; })) {
+        m = m.rotate(0, 0, x);
+      // 4 values expected
       } else if (prop === 'scale3d' && xyz.every(function (n) { return !Number.isNaN(+n); }) && xyz.some(function (n) { return n !== 1; })) {
         m = m.scale(x, y, z);
-      } else if (prop === 'rotate' && x) {
-        m = m.rotate(0, 0, x);
-      } else if (prop === 'scale' && !Number.isNaN(x) && x !== 1) {
+      // single value expected
+      } else if (prop === 'scale' && !Number.isNaN(x) && x !== 1 && z === undefined) {
         var nosy = Number.isNaN(+y);
         var sy = nosy ? x : y;
         m = m.scale(x, sy, 1);
-      } else if (prop === 'skew' && (x || y)) {
-        m = x ? m.skewX(x) : m;
+      // single/double value expected
+      } else if (prop === 'skew' && x && z === undefined) {
+        m = m.skewX(x);
         m = y ? m.skewY(y) : m;
-      } else if (/[XYZ]/.test(prop) && x) {
-        if (prop.includes('skew')) {
+      } else if (/[XYZ]/.test(prop) && x && [y, z].every(function (n) { return n === undefined; }) // a single value expected
+        && ['translate', 'rotate', 'scale', 'skew'].some(function (p) { return prop.includes(p); })) {
+        if (['skewX', 'skewY'].includes(prop)) {
           // @ts-ignore unfortunately
           m = m[prop](x);
         } else {
@@ -1638,7 +1625,8 @@
 
   /**
    * Creates a new `CSSMatrix` for the scale matrix and returns it.
-   * This method is equivalent to the CSS `scale3d()` function.
+   * This method is equivalent to the CSS `scale3d()` function, except it doesn't
+   * accept {x, y, z} transform origin parameters.
    *
    * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/scale3d
    *
@@ -1733,18 +1721,18 @@
   }
 
   /**
-   * Creates and returns a new `DOMMatrix` compatible *Object*
-   * with equivalent instance methods.
+   * Creates and returns a new `DOMMatrix` compatible instance
+   * with equivalent instance.
    *
    * https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix
    * https://github.com/thednp/DOMMatrix/
+   * @class
    */
 
   var CSSMatrix = function CSSMatrix() {
-    var assign;
-
     var args = [], len = arguments.length;
     while ( len-- ) args[ len ] = arguments[ len ];
+
     var m = this;
     // array 6
     m.a = 1; m.b = 0;
@@ -1757,15 +1745,8 @@
     m.m41 = 0; m.m42 = 0; m.m43 = 0; m.m44 = 1;
 
     if (args && args.length) {
-      var ARGS = args;
+      var ARGS = [16, 6].some(function (l) { return l === args.length; }) ? args : args[0];
 
-      if (args instanceof Array) {
-        if ((args[0] instanceof Array && [16, 6].includes(args[0].length))
-          || typeof args[0] === 'string'
-          || [CSSMatrix, DOMMatrix].some(function (x) { return args[0] instanceof x; })) {
-          (assign = args, ARGS = assign[0]);
-        }
-      }
       return m.setMatrixValue(ARGS);
     }
     return m;
@@ -1834,18 +1815,44 @@
   CSSMatrix.prototype.setMatrixValue = function setMatrixValue (source) {
     var m = this;
 
-    // new CSSMatrix(CSSMatrix | DOMMatrix)
-    if ([DOMMatrix, CSSMatrix].some(function (x) { return source instanceof x; })) {
-      // @ts-ignore
-      return fromMatrix(source);
-    // CSS transform string source
-    } if (typeof source === 'string' && source.length && source !== 'none') {
-      return fromString(source);
     // [Arguments list | Array] come here
-    } if (Array.isArray(source)) {
+    if ([Array, Float64Array, Float32Array].some(function (a) { return source instanceof a; })) {
       return fromArray(source);
     }
+    // CSS transform string source - TransformList
+    if (typeof source === 'string' && source.length && source !== 'none') {
+      return fromString(source);
+    }
+    // new CSSMatrix(CSSMatrix | DOMMatrix | JSON)
+    if (typeof source === 'object') {
+      return fromMatrix(source);
+    }
     return m;
+  };
+
+  /**
+   * Returns an *Array* containing elements which comprise the matrix.
+   * The method can return either the 16 elements or the 6 elements
+   * depending on the value of the `is2D` property.
+   *
+   * @return {number[]} an *Array* representation of the matrix
+   */
+  CSSMatrix.prototype.toArray = function toArray () {
+    var m = this;
+    var pow = (Math.pow( 10, 6 ));
+    var result;
+
+    if (m.is2D) {
+      result = [m.a, m.b, m.c, m.d, m.e, m.f];
+    } else {
+      result = [m.m11, m.m12, m.m13, m.m14,
+        m.m21, m.m22, m.m23, m.m24,
+        m.m31, m.m32, m.m33, m.m34,
+        m.m41, m.m42, m.m43, m.m44];
+    }
+    // clean up the numbers
+    // eslint-disable-next-line -- no-bitwise
+    return result.map(function (n) { return (Math.abs(n) < 1e-6 ? 0 : ((n * pow) >> 0) / pow); });
   };
 
   /**
@@ -1859,49 +1866,26 @@
    */
   CSSMatrix.prototype.toString = function toString () {
     var m = this;
-    var values = m.toArray().join(',');
+    var values = m.toArray();
     var type = m.is2D ? 'matrix' : 'matrix3d';
     return (type + "(" + values + ")");
   };
 
   /**
-   * Returns an *Array* containing all 16 elements which comprise the matrix.
-   * The method can return either the elements.
-   *
-   * Other methods make use of this method to feed their output values from this matrix.
-   *
-   * @return {number[]} an *Array* representation of the matrix
-   */
-  CSSMatrix.prototype.toArray = function toArray () {
-    var m = this;
-    var pow6 = (Math.pow( 10, 6 ));
-    var result;
-
-    if (m.is2D) {
-      result = [m.a, m.b, m.c, m.d, m.e, m.f];
-    } else {
-      result = [m.m11, m.m12, m.m13, m.m14,
-        m.m21, m.m22, m.m23, m.m24,
-        m.m31, m.m32, m.m33, m.m34,
-        m.m41, m.m42, m.m43, m.m44];
-    }
-    // clean up the numbers
-    // eslint-disable-next-line -- no-bitwise
-    return result.map(function (n) { return (Math.abs(n) < 1e-6 ? 0 : ((n * pow6) >> 0) / pow6); });
-  };
-
-  /**
    * Returns a JSON representation of the `CSSMatrix` instance, a standard *Object*
-   * that includes `{a,b,c,d,e,f}` and `{m11,m12,m13,..m44}` properties and
-   * excludes `is2D` & `isIdentity` properties.
+   * that includes `{a,b,c,d,e,f}` and `{m11,m12,m13,..m44}` properties as well
+   * as the `is2D` & `isIdentity` properties.
    *
    * The result can also be used as a second parameter for the `fromMatrix` static method
-   * to load values into a matrix instance.
+   * to load values into another matrix instance.
    *
-   * @return {CSSMatrixNS.JSONMatrix} an *Object* with all matrix values.
+   * @return {CSSMatrix.JSONMatrix} an *Object* with all matrix values.
    */
   CSSMatrix.prototype.toJSON = function toJSON () {
-    return JSON.parse(JSON.stringify(this));
+    var m = this;
+    var is2D = m.is2D;
+      var isIdentity = m.isIdentity;
+    return Object.assign({}, m, {is2D: is2D, isIdentity: isIdentity});
   };
 
   /**
@@ -1909,11 +1893,10 @@
    * matrix multiplied by the passed matrix, with the passed matrix to the right.
    * This matrix is not modified.
    *
-   * @param {CSSMatrix | DOMMatrix | CSSMatrixNS.JSONMatrix} m2 CSSMatrix
+   * @param {CSSMatrix | DOMMatrix | CSSMatrix.JSONMatrix} m2 CSSMatrix
    * @return {CSSMatrix} The resulted matrix.
    */
   CSSMatrix.prototype.multiply = function multiply (m2) {
-    // @ts-ignore - we only access [m11, m12, ... m44] values
     return Multiply(this, m2);
   };
 
@@ -1924,16 +1907,16 @@
    * modified.
    *
    * @param {number} x X component of the translation value.
-   * @param {number | null} y Y component of the translation value.
-   * @param {number | null} z Z component of the translation value.
+   * @param {number=} y Y component of the translation value.
+   * @param {number=} z Z component of the translation value.
    * @return {CSSMatrix} The resulted matrix
    */
   CSSMatrix.prototype.translate = function translate (x, y, z) {
     var X = x;
     var Y = y;
     var Z = z;
-    if (Z == null) { Z = 0; }
-    if (Y == null) { Y = 0; }
+    if (Z === undefined) { Z = 0; }
+    if (Y === undefined) { Y = 0; }
     return Multiply(this, Translate(X, Y, Z));
   };
 
@@ -1944,16 +1927,16 @@
    * component value is used in its place. This matrix is not modified.
    *
    * @param {number} x The X component of the scale value.
-   * @param {number | null} y The Y component of the scale value.
-   * @param {number | null} z The Z component of the scale value.
+   * @param {number=} y The Y component of the scale value.
+   * @param {number=} z The Z component of the scale value.
    * @return {CSSMatrix} The resulted matrix
    */
   CSSMatrix.prototype.scale = function scale (x, y, z) {
     var X = x;
     var Y = y;
     var Z = z;
-    if (Y == null) { Y = x; }
-    if (Z == null) { Z = x; }
+    if (Y === undefined) { Y = x; }
+    if (Z === undefined) { Z = 1; } // Z must be 1 if undefined
 
     return Multiply(this, Scale(X, Y, Z));
   };
@@ -1966,16 +1949,16 @@
    * rotation values are in degrees. This matrix is not modified.
    *
    * @param {number} rx The X component of the rotation, or Z if Y and Z are null.
-   * @param {number | null} ry The (optional) Y component of the rotation value.
-   * @param {number | null} rz The (optional) Z component of the rotation value.
+   * @param {number=} ry The (optional) Y component of the rotation value.
+   * @param {number=} rz The (optional) Z component of the rotation value.
    * @return {CSSMatrix} The resulted matrix
    */
   CSSMatrix.prototype.rotate = function rotate (rx, ry, rz) {
     var RX = rx;
     var RY = ry;
     var RZ = rz;
-    if (RY == null) { RY = 0; }
-    if (RZ == null) { RZ = RX; RX = 0; }
+    if (RY === undefined) { RY = 0; }
+    if (RZ === undefined) { RZ = RX; RX = 0; }
     return Multiply(this, Rotate(RX, RY, RZ));
   };
 
@@ -2030,8 +2013,8 @@
    *
    * @copyright thednp © 2021
    *
-   * @param {CSSMatrixNS.PointTuple | DOMPoint} v Tuple or DOMPoint
-   * @return {CSSMatrixNS.PointTuple} the resulting Tuple
+   * @param {CSSMatrix.PointTuple | DOMPoint} v Tuple or DOMPoint
+   * @return {CSSMatrix.PointTuple} the resulting Tuple
    */
   CSSMatrix.prototype.transformPoint = function transformPoint (v) {
     var M = this;
@@ -2053,8 +2036,8 @@
    * {x,y,z,w} Tuple *Object* comprising the transformed vector.
    * Neither the matrix nor the original vector are altered.
    *
-   * @param {CSSMatrixNS.PointTuple} t Tuple with `{x,y,z,w}` components
-   * @return {CSSMatrixNS.PointTuple} the resulting Tuple
+   * @param {CSSMatrix.PointTuple} t Tuple with `{x,y,z,w}` components
+   * @return {CSSMatrix.PointTuple} the resulting Tuple
    */
   CSSMatrix.prototype.transform = function transform (t) {
     var m = this;
@@ -2074,16 +2057,19 @@
   Object.defineProperties( CSSMatrix.prototype, prototypeAccessors );
 
   // Add Transform Functions to CSSMatrix object
-  CSSMatrix.Translate = Translate;
-  CSSMatrix.Rotate = Rotate;
-  CSSMatrix.RotateAxisAngle = RotateAxisAngle;
-  CSSMatrix.Scale = Scale;
-  CSSMatrix.SkewX = SkewX;
-  CSSMatrix.SkewY = SkewY;
-  CSSMatrix.Multiply = Multiply;
-  CSSMatrix.fromArray = fromArray;
-  CSSMatrix.fromMatrix = fromMatrix;
-  CSSMatrix.fromString = fromString;
+  // without creating a TypeScript namespace.
+  Object.assign(CSSMatrix, {
+    Translate: Translate,
+    Rotate: Rotate,
+    RotateAxisAngle: RotateAxisAngle,
+    Scale: Scale,
+    SkewX: SkewX,
+    SkewY: SkewY,
+    Multiply: Multiply,
+    fromArray: fromArray,
+    fromMatrix: fromMatrix,
+    fromString: fromString,
+  });
 
   /**
    * Returns a transformation matrix to apply to `<path>` elements.
@@ -2766,7 +2752,7 @@
    * Returns a new `pathArray` from line attributes.
    *
    * @param {SVGPathCommander.lineAttr} attr shape configuration
-   * @return {SVGPathCommander.pathArray} a new line `pathArray`
+   * @returns {SVGPathCommander.pathArray} a new line `pathArray`
    */
   function getLinePath(attr) {
     var x1 = attr.x1;
@@ -2895,9 +2881,6 @@
     var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     var type = element.tagName;
     var shapeAttrs = shapeParams[type];
-    /** set config
-     * @type {any}
-     */
     var config = {};
     config.type = type;
 
@@ -2957,7 +2940,7 @@
       .concat(rotatedCurve.map(function (x) { return ['C'].concat(x.slice(2)); }));
   }
 
-  var version = "0.1.11alpha1";
+  var version = "0.1.11alpha2";
 
   // @ts-ignore
 
@@ -3170,8 +3153,8 @@
     return pathToString(this.segments, this.round);
   };
 
-  // @ts-ignore
-  Object.keys(Util).forEach(function (x) { SVGPathCommander[x] = Util[x]; });
+  // Export Util to global
+  Object.assign(SVGPathCommander, Util);
 
   return SVGPathCommander;
 

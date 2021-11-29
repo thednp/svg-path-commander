@@ -1,49 +1,5 @@
 export default SVGPathCommander;
 export as namespace SVGPathCommander;
-  
-declare namespace SVGPathCommander {
-  export { PathParser };
-  // UTIL
-  export { parsePathString };
-  export { isPathArray };
-  export { isCurveArray };
-  export { isAbsoluteArray };
-  export { isRelativeArray };
-  export { isNormalizedArray };
-  export { isValidPath };
-  export { pathToAbsolute };
-  export { pathToRelative };
-  export { pathToCurve };
-  export { pathToString };
-  export { getDrawDirection };
-  export { getPathArea };
-  export { getPathBBox };
-  export { getPathLength };
-  export { getPointAtLength };
-  export { clonePath };
-  export { splitPath };
-  export { roundPath };
-  export { optimizePath };
-  export { reverseCurve };
-  export { reversePath };
-  export { normalizePath };
-  export { transformPath };
-  export { getSVGMatrix };
-  export { shapeToPath };
-  export { parserParams };
-  export { pathSegment };
-  export { pathArray };
-  export { options };
-  export { transformObject };
-  export { shapeTypes };
-  export { segmentLimits };
-  export { lineAttr };
-  export { polyAttr };
-  export { circleAttr };
-  export { ellipseAttr };
-  export { rectAttr };
-  export { pathBBox };
-}
 
 // custom types
 export type parserParams = {
@@ -116,34 +72,39 @@ export type pathBBox = {
   cx: number; cy: number;
 };
 
-export {default as SVGPathCommander} from './svg-path-commander';
-import PathParser from "./parser/pathParser";
+// dependency
+export * as CSSMatrix from "dommatrix";
 
-import getPathArea from './util/getPathArea';
-import getPathLength from './util/getPathLength';
-import getDrawDirection from './util/getDrawDirection';
-import getPointAtLength from './util/getPointAtLength';
-import getPathBBox from './util/getPathBBox';
-import isValidPath from './util/isValidPath';
-import isPathArray from './util/isPathArray';
-import isAbsoluteArray from './util/isAbsoluteArray';
-import isRelativeArray from './util/isRelativeArray';
-import isCurveArray from './util/isCurveArray';
-import isNormalizedArray from './util/isNormalizedArray';
-import shapeToPath from './util/shapeToPath';
+// UTIL
+export { default as PathParser } from "./parser/pathParser";
+export { default as getPathArea } from './util/getPathArea';
+export { default as getPathLength } from './util/getPathLength';
+export { default as getDrawDirection } from './util/getDrawDirection';
+export { default as getPointAtLength } from './util/getPointAtLength';
+export { default as getPathBBox } from './util/getPathBBox';
+export { default as isValidPath } from './util/isValidPath';
+export { default as isPathArray } from './util/isPathArray';
+export { default as isAbsoluteArray } from './util/isAbsoluteArray';
+export { default as isRelativeArray } from './util/isRelativeArray';
+export { default as isCurveArray } from './util/isCurveArray';
+export { default as isNormalizedArray } from './util/isNormalizedArray';
+export { default as shapeToPath } from './util/shapeToPath';
 
-import parsePathString from './parser/parsePathString';
-import clonePath from './process/clonePath';
-import roundPath from './process/roundPath';
-import splitPath from './process/splitPath';
-import optimizePath from './process/optimizePath';
-import reverseCurve from './process/reverseCurve';
-import reversePath from './process/reversePath';
-import normalizePath from './process/normalizePath';
-import transformPath from './process/transformPath';
-import getSVGMatrix from './process/getSVGMatrix';
+export { default as parsePathString } from './parser/parsePathString';
+export { default as clonePath } from './process/clonePath';
+export { default as roundPath } from './process/roundPath';
+export { default as splitPath } from './process/splitPath';
+export { default as optimizePath } from './process/optimizePath';
+export { default as reverseCurve } from './process/reverseCurve';
+export { default as reversePath } from './process/reversePath';
+export { default as normalizePath } from './process/normalizePath';
+export { default as transformPath } from './process/transformPath';
+export { default as getSVGMatrix } from './process/getSVGMatrix';
 
-import pathToAbsolute from './convert/pathToAbsolute';
-import pathToRelative from './convert/pathToRelative';
-import pathToCurve from './convert/pathToCurve';
-import pathToString from './convert/pathToString';
+export { default as pathToAbsolute } from './convert/pathToAbsolute';
+export { default as pathToRelative } from './convert/pathToRelative';
+export { default as pathToCurve } from './convert/pathToCurve';
+export { default as pathToString } from './convert/pathToString';
+
+// main
+import {default as SVGPathCommander} from './svg-path-commander';

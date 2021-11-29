@@ -5,6 +5,7 @@
     "declaration": true,
     "resolveJsonModule": true,
     "emitDeclarationOnly": true,
+    "maxNodeModuleJsDepth": 2, // allows to incorporate dependency utils
     "strict": true,
     "allowJs": true,
     "checkJs": true,
@@ -12,9 +13,8 @@
     "removeComments": true
   },
   "files": [
-    // "src/svg-path-commander.js", // UN-comment when regenerating ignore error
-    "types/index.d.ts", // comment when regenerating
+    // "src/svg-path-commander.js", // UN-comment when regenerating, ignore error, keep commented after
+    "types/index.d.ts", // comment when regenerating, keep un-commented after
   ],
-  // "include": ["types/**/*.d.ts"], // comment when regenerating
   "types": [],
 }
