@@ -5,11 +5,8 @@ import shortenSegment from './shortenSegment';
 
 /**
  * Optimizes a `pathArray` object:
- * * convert segments to absolute and relative values
- * * create a new `pathArray` with elements with shortest segments
- * from absolute and relative `pathArray`s
- *
- * TO DO - denormalize segments, normalToShorthand
+ * * convert segments to shorthand if possible
+ * * select shortest segments from absolute and relative `pathArray`s
  *
  * @param {string | SVGPathCommander.pathArray} pathInput a string or `pathArray`
  * @param {number | boolean | null} round the amount of decimals to round values to

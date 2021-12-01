@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.11alpha3 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.11alpha4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -998,11 +998,8 @@ function shortenSegment(segment, params, prevCommand) {
 
 /**
  * Optimizes a `pathArray` object:
- * * convert segments to absolute and relative values
- * * create a new `pathArray` with elements with shortest segments
- * from absolute and relative `pathArray`s
- *
- * TO DO - denormalize segments, normalToShorthand
+ * * convert segments to shorthand if possible
+ * * select shortest segments from absolute and relative `pathArray`s
  *
  * @param {string | SVGPathCommander.pathArray} pathInput a string or `pathArray`
  * @param {number | boolean | null} round the amount of decimals to round values to
@@ -2733,7 +2730,7 @@ function getSegCubicLength(x1, y1, x2, y2, x3, y3, x4, y4, z) {
 function getPathLength(path) {
   let totalLength = 0;
   pathToCurve(path).forEach((s, i, curveArray) => {
-    const args = [...curveArray[i - 1].slice(-2), ...s.slice(1)];
+    const args = s[0] !== 'M' ? [...curveArray[i - 1].slice(-2), ...s.slice(1)] : [];
     totalLength += s[0] === 'M' ? 0
       // : getSegCubicLength.apply(0, curveArray[i - 1].slice(-2).concat(s.slice(1)));
       // @ts-ignore
@@ -3050,7 +3047,7 @@ function fixPath(pathInput) {
   return pathArray;
 }
 
-var version = "0.1.11alpha3";
+var version = "0.1.11alpha4";
 
 // @ts-ignore
 
