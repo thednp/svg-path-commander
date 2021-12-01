@@ -24,7 +24,7 @@ export function getLinePath(attr) {
   const {
     x1, y1, x2, y2,
   } = attr;
-  return [['M', +x1, +y1], ['L', +x2, +y2]];
+  return [['M', x1, y1], ['L', x2, y2]];
 }
 
 /**
@@ -44,7 +44,7 @@ export function getPolyPath(attr) {
     index += 2;
   }
 
-  return attr.type === 'polygon' ? pathArray.concat([['z']]) : pathArray;
+  return attr.type === 'polygon' ? [...pathArray, ['z']] : pathArray;
 }
 
 /**
@@ -132,32 +132,41 @@ export function getRectanglePath(attr) {
  * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>` or `<glyph>`. If `replace` parameter
  * is `true`, it will replace the target.
  *
+ * It can also work with an options object,
+ * @see SVGPathCommander.shapeOps
+ *
  * The newly created `<path>` element keeps all non-specific
  * attributes like `class`, `fill`, etc.
  *
- * @param {SVGPathCommander.shapeTypes} element target shape
+ * @param {SVGPathCommander.shapeTypes | SVGPathCommander.shapeOps} element target shape
  * @param {boolean} replace option to replace target
- * @return {?SVGPathElement} the newly created `<path>` element
+ * @return {SVGPathElement | boolean} the newly created `<path>` element
  */
 export default function shapeToPath(element, replace) {
-  const supportedShapes = Object.keys(shapeParams).concat(['glyph']);
+  const supportedShapes = Object.keys(shapeParams);
+  const isElement = element instanceof Element;
 
-  if (!supportedShapes.some((s) => element.tagName === s)) {
-    throw TypeError(`shapeToPath: ${element} is not SVGElement`);
+  if (isElement && !supportedShapes.some((s) => element.tagName === s)) {
+    throw TypeError(`shapeToPath: "${element}" is not SVGElement`);
   }
 
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const type = element.tagName;
-  const shapeAttrs = shapeParams[type];
+  /** @type {string} */
+  const type = isElement ? element.tagName : element.type;
+  /** @type {any} disables TS checking for something that's specific to shape */
   const config = {};
   config.type = type;
 
-  shapeAttrs.forEach((p) => { config[p] = element.getAttribute(p); });
-
-  // set no-specific shape attributes: fill, stroke, etc
-  Object.values(element.attributes).forEach(({ name, value }) => {
-    if (!shapeAttrs.includes(name)) path.setAttribute(name, value);
-  });
+  if (isElement) {
+    const shapeAttrs = shapeParams[type];
+    shapeAttrs.forEach((p) => { config[p] = element.getAttribute(p); });
+    // set no-specific shape attributes: fill, stroke, etc
+    Object.values(element.attributes).forEach(({ name, value }) => {
+      if (!shapeAttrs.includes(name)) path.setAttribute(name, value);
+    });
+  } else {
+    Object.assign(config, element);
+  }
 
   // set d
   let description;
@@ -169,16 +178,16 @@ export default function shapeToPath(element, replace) {
   else if (['polyline', 'polygon'].includes(type)) description = pathToString(getPolyPath(config), rounding);
   else if (type === 'rect') description = pathToString(getRectanglePath(config), rounding);
   else if (type === 'line') description = pathToString(getLinePath(config), rounding);
-  else if (type === 'glyph') description = element.getAttribute('d');
+  else if (type === 'glyph') description = isElement ? element.getAttribute('d') : element.type;
 
   // replace target element
   if (description) {
     path.setAttribute('d', description);
-    if (replace) {
+    if (replace && isElement) {
       element.before(path, element);
       element.remove();
     }
     return path;
   }
-  return null;
+  return false;
 }

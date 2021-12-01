@@ -1,1 +1,1 @@
-export default function midPoint(a: number[], b: number[], t: number): number[];
+export default function midPoint(a: [number, number], b: [number, number], t: number): [number, number];

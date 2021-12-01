@@ -1,6 +1,9 @@
 export default SVGPathCommander;
 export as namespace SVGPathCommander;
 
+// main
+import {default as SVGPathCommander} from './svg-path-commander';
+
 // custom types
 export type parserParams = {
   x1: number; y1: number;
@@ -18,23 +21,25 @@ export type options = {
   origin: [number, number];
 };
 
+export type pathTransformList = {s: pathSegment, c: string, x: number, y: number};
+
 export type transformObject = {
-  translate: number | number[];
-  rotate: number | number[];
-  scale: number | number[];
-  skew: number[];
+  // translate?: number | [number, number, number];
+  // rotate?: number | [number, number, number];
+  // scale?: number | [number, number, number];
+  // skew?: number | [number, number];
+  translate?: number | number[];
+  rotate?: number | number[];
+  scale?: number | number[];
+  skew?: number | number[];
   origin: number[];
 };
 
 export type shapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;
-
-export type segmentLimits = {
-  min : {x: number; y: number};
-  max : {x: number; y: number}
-};
+export type shapeOps = lineAttr | polyAttr | ellipseAttr | circleAttr | rectAttr | glyphAttr;
 
 export type lineAttr = {
-  type: string | null;
+  type: string;
   x1: number;
   y1: number;
   x2: number;
@@ -64,6 +69,11 @@ export type rectAttr = {
   x : number;   y : number;
   rx : number; ry : number;
 };
+export type glyphAttr = {
+  type: string;
+  d : string;
+};
+
 export type pathBBox = {
   width: number;
   height: number;
@@ -71,9 +81,13 @@ export type pathBBox = {
   x2: number; y2: number;
   cx: number; cy: number;
 };
+export type segmentLimits = {
+  min : {x: number; y: number};
+  max : {x: number; y: number}
+};
 
 // dependency
-export * as CSSMatrix from "dommatrix";
+export {default as CSSMatrix} from "dommatrix";
 
 // UTIL
 export { default as PathParser } from "./parser/pathParser";
@@ -100,11 +114,9 @@ export { default as reversePath } from './process/reversePath';
 export { default as normalizePath } from './process/normalizePath';
 export { default as transformPath } from './process/transformPath';
 export { default as getSVGMatrix } from './process/getSVGMatrix';
+export { default as fixPath } from './process/fixPath';
 
 export { default as pathToAbsolute } from './convert/pathToAbsolute';
 export { default as pathToRelative } from './convert/pathToRelative';
 export { default as pathToCurve } from './convert/pathToCurve';
 export { default as pathToString } from './convert/pathToString';
-
-// main
-import {default as SVGPathCommander} from './svg-path-commander';

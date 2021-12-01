@@ -23,6 +23,7 @@ import reversePath from '../process/reversePath';
 import normalizePath from '../process/normalizePath';
 import transformPath from '../process/transformPath';
 import getSVGMatrix from '../process/getSVGMatrix';
+import fixPath from '../process/fixPath';
 
 import pathToAbsolute from '../convert/pathToAbsolute';
 import pathToRelative from '../convert/pathToRelative';
@@ -50,6 +51,7 @@ const Util = {
   getPointAtLength,
   clonePath,
   splitPath,
+  fixPath,
   roundPath,
   optimizePath,
   reverseCurve,

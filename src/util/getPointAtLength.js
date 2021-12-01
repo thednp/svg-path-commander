@@ -16,16 +16,19 @@ export default function getPointAtLength(path, length) {
   let result;
   // @ts-ignore
   return pathToCurve(path).map((seg, i, curveArray) => {
-    data = i ? curveArray[i - 1].slice(-2).concat(seg.slice(1)) : seg.slice(1);
+    // data = i ? curveArray[i - 1].slice(-2).concat(seg.slice(1)) : seg.slice(1);
+    data = i ? [...curveArray[i - 1].slice(-2), ...seg.slice(1)] : seg.slice(1);
     // @ts-ignore
-    segLen = i ? getSegCubicLength.apply(0, data) : 0;
+    segLen = i ? getSegCubicLength(...data) : 0;
     totalLength += segLen;
 
     if (i === 0) {
       result = { x: data[0], y: data[1] };
     } else if (totalLength > length && length > totalLength - segLen) {
+      // result = getPointAtSegLength.apply(0, data.concat(1 - (totalLength - length) / segLen));
+      const args = [...data, 1 - (totalLength - length) / segLen];
       // @ts-ignore
-      result = getPointAtSegLength.apply(0, data.concat(1 - (totalLength - length) / segLen));
+      result = getPointAtSegLength(...args);
     } else {
       result = null;
     }

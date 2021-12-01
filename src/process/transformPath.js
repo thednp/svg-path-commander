@@ -15,7 +15,7 @@ import projection2d from './projection2d';
  * creates a 2D projection of the <path> element.
  *
  * @param {SVGPathCommander.pathArray} path the `pathArray` to apply transformation
- * @param {any} transform the transform functions `Object`
+ * @param {SVGPathCommander.transformObject} transform the transform functions `Object`
  * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
  */
 export default function transformPath(path, transform) {
@@ -32,13 +32,14 @@ export default function transformPath(path, transform) {
   const params = {
     x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
   };
-  let segment = [];
+  /** @ts-ignore */
+  /** @type {SVGPathCommander.pathSegment} */
+  let segment = [''];
   let seglen = 0;
   let pathCommand = '';
-  /** @type {any} */
+  /** @type {SVGPathCommander.pathTransformList[]} */
   let transformedPath = [];
   const allPathCommands = []; // needed for arc to curve transformation
-  let result = [];
 
   if (!matrixInstance.isIdentity) {
     for (i = 0, ii = absolutePath.length; i < ii; i += 1) {
@@ -52,7 +53,8 @@ export default function transformPath(path, transform) {
       allPathCommands[i] = pathCommand;
 
       // Arcs don't work very well with 3D transformations or skews
-      if (pathCommand === 'A' && (!matrixInstance.is2D || !['skewX', 'skewY'].find((p) => transformProps.includes(p)))) {
+      if (pathCommand === 'A' && (!matrixInstance.is2D
+        || !['skewX', 'skewY'].find((p) => transformProps.includes(p)))) {
         segment = segmentToCubic(normalizedPath[i], params);
 
         absolutePath[i] = segmentToCubic(normalizedPath[i], params);
@@ -71,31 +73,27 @@ export default function transformPath(path, transform) {
       params.y1 = +segment[seglen - 1];
       params.x2 = +(segment[seglen - 4]) || params.x1;
       params.y2 = +(segment[seglen - 3]) || params.y1;
-      // @ts-ignore
-      result = { s: absolutePath[i], c: absolutePath[i][0] };
 
-      if (pathCommand !== 'Z') {
-        // @ts-ignore
-        result.x = params.x1;
-        // @ts-ignore
-        result.y = params.y1;
-      }
-      // @ts-ignore
-      transformedPath = transformedPath.concat(result);
+      /** @type {SVGPathCommander.pathTransformList} */
+      const result = {
+        s: absolutePath[i], c: absolutePath[i][0], x: params.x1, y: params.y1,
+      };
+
+      transformedPath = [...transformedPath, ...[result]];
     }
-    // @ts-ignore
+
     return transformedPath.map((seg) => {
       pathCommand = seg.c;
       segment = seg.s;
       switch (pathCommand) {
         case 'A': // only apply to 2D transformations
-          te = transformEllipse(matrix2d, segment[1], segment[2], segment[3]);
+          te = transformEllipse(matrix2d, +segment[1], +segment[2], +segment[3]);
 
           if (matrix2d[0] * matrix2d[3] - matrix2d[1] * matrix2d[2] < 0) {
             segment[5] = +segment[5] ? 0 : 1;
           }
 
-          [lx, ly] = projection2d(matrixInstance, [segment[6], segment[7]], origin);
+          [lx, ly] = projection2d(matrixInstance, [+segment[6], +segment[7]], origin);
 
           if ((x === lx && y === ly) || (te.rx < epsilon * te.ry) || (te.ry < epsilon * te.rx)) {
             segment = ['L', lx, ly];
@@ -109,7 +107,6 @@ export default function transformPath(path, transform) {
         case 'L':
         case 'H':
         case 'V':
-
           [lx, ly] = projection2d(matrixInstance, [seg.x, seg.y], origin);
 
           if (x !== lx && y !== ly) {
@@ -124,12 +121,14 @@ export default function transformPath(path, transform) {
 
           return segment;
         default:
+
           for (j = 1, jj = segment.length; j < jj; j += 2) {
             // compute line coordinates without altering previous coordinates
-            [x, y] = projection2d(matrixInstance, [segment[j], segment[j + 1]], origin);
+            [x, y] = projection2d(matrixInstance, [+segment[j], +segment[j + 1]], origin);
             segment[j] = x;
             segment[j + 1] = y;
           }
+
           return segment;
       }
     });

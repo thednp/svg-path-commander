@@ -47,7 +47,7 @@
           <button type="button" data-toggle="tooltip" title="Initialize, convert to absolute and update pathString" onclick="toAbs()">toAbsolute</button>
           <button type="button" data-toggle="tooltip" title="Initialize, convert to relative and update pathString" onclick="toRel()">toRelative</button>
           <button type="button" data-toggle="tooltip" title="Initialize, normalize and update pathString" onclick="toNormal()">Normalize</button>
-          <button type="button" data-toggle="tooltip" title="Initialize, optimize and update pathString" onclick="toOptimal()">Optimize</button>
+          <button type="button" data-toggle="tooltip" title="Initialize, optimize, remove decimals, and update pathString" onclick="toOptimal()">Optimize</button>
           <button type="button" data-toggle="tooltip" title="Initialize, reverse, optimize and update pathString" onclick="toRev()">Reverse</button>
           <button type="button" data-toggle="tooltip" title="Initialize, reverse subpath, optimize and update pathString" onclick="toRev(1)">Reverse Subpath</button>
         </p>
@@ -106,6 +106,7 @@
     </div>
   </div>
 
+  <!-- <script src="./dist/svg-path-commander.min.js"></script> -->
   <script src="./dist/svg-path-commander.js"></script>
   <script>
     SVGPathCommander.options.decimals = 3;
@@ -177,7 +178,7 @@
 
     function toOptimal() { // optimize
       pathValue = inputTextArea.value || pathValue
-      var nm = new SVGPathCommander( pathValue ).optimize();
+      var nm = new SVGPathCommander( pathValue, {decimals: 0} ).optimize();
 
       path.setAttribute('d', nm.toString());
       path.setAttribute('fill', randomColor());
@@ -228,7 +229,7 @@
       outputTextArea.value = cvPath;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
       if (!usedCurve) 
-      console.warn(`This "toCurve()" instance doesn't round the path values as configured with 'round: false' option.`);
+      console.warn(`The "toCurve()" instance example doesn\'t round the path values as configured with 'round: false' option.`);
       usedCurve = true;
     }
 

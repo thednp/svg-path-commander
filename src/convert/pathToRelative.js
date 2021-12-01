@@ -40,13 +40,19 @@ export default function pathToRelative(pathInput) {
     /** @type {SVGPathCommander.pathSegment} */
     // @ts-ignore -- trust me DON'T CHANGE
     const relativeSegment = [];
+    /** @type {number[]} */
     let newSeg = [];
+
+    // do not change order
+    // keep this push at this location
+    resultArray.push(relativeSegment);
 
     if (pathCommand !== relativeCommand) {
       relativeSegment[0] = relativeCommand;
       switch (relativeCommand) {
         case 'a':
-          newSeg = segment.slice(1, -2).concat([+segment[6] - x, +segment[7] - y]);
+          // newSeg = segment.slice(1, -2).concat([+segment[6] - x, +segment[7] - y]);
+          newSeg = [...segment.slice(1, -2).map(Number), segment[6] - x, segment[7] - y];
 
           for (let j = 0; j < newSeg.length; j += 1) {
             relativeSegment.push(newSeg[j]);
@@ -75,7 +81,6 @@ export default function pathToRelative(pathInput) {
         relativeSegment.push(segment[j]);
       }
     }
-    resultArray.push(relativeSegment);
 
     const segLength = relativeSegment.length;
     switch (relativeSegment[0]) {

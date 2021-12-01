@@ -144,14 +144,26 @@ class SVGPathCommander {
     if (!source || typeof source !== 'object' || (typeof source === 'object'
       && !['translate', 'rotate', 'skew', 'scale'].some((x) => x in source))) return this;
 
-    const transform = source || {};
+    /** @type {SVGPathCommander.transformObject} */
+    const transform = {};
+    Object.keys(source).forEach((fn) => {
+      transform[fn] = Array.isArray(source[fn])
+        // @ts-ignore
+        ? source[fn].map(Number)
+        : Number(source[fn]);
+    });
     const { segments } = this;
 
     // if origin is not specified
     // it's important that we have one
     if (!transform.origin) {
       const BBox = getPathBBox(segments);
-      transform.origin = [+BBox.cx, +BBox.cy];
+      const {
+        cx, cy, width, height,
+      } = BBox;
+      // an estimted guest
+      const originZ = Math.max(width, height) + Math.min(width, height) / 2;
+      transform.origin = [cx, cy, originZ];
     }
 
     this.segments = transformPath(segments, transform);

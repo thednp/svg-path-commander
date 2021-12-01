@@ -14,25 +14,32 @@ export default function getPathBBox(path) {
     };
   }
   const pathCurve = pathToCurve(path);
-  // @ts-ignore
-  let x = 0; let y = 0; let X = []; let Y = [];
+
+  let x = 0; let y = 0;
+  /** @type {number[]} */
+  let X = [];
+  /** @type {number[]} */
+  let Y = [];
 
   pathCurve.forEach((segment) => {
-    const [s1, s2] = segment.slice(-2);
+    const [s1, s2] = segment.slice(-2).map(Number);
     if (segment[0] === 'M') {
-      x = +s1;
-      y = +s2;
+      x = s1;
+      y = s2;
       X.push(s1);
       Y.push(s2);
     } else {
-      // @ts-ignore
-      const dim = getCubicSize.apply(0, [x, y].concat(segment.slice(1)));
-      // @ts-ignore
-      X = X.concat(dim.min.x, dim.max.x);
-      // @ts-ignore
-      Y = Y.concat(dim.min.y, dim.max.y);
-      x = +s1;
-      y = +s2;
+      // const dim = getCubicSize.apply(0, [x, y].concat(segment.slice(1)));
+      // @ts-ignore -- this should be fine
+      const dim = getCubicSize(...[x, y, ...segment.slice(1).map(Number)]);
+
+      // X = X.concat(dim.min.x, dim.max.x);
+      X = [...X, dim.min.x, dim.max.x];
+
+      // Y = Y.concat(dim.min.y, dim.max.y);
+      Y = [...Y, dim.min.y, dim.max.y];
+      x = s1;
+      y = s2;
     }
   });
 

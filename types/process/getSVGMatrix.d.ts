@@ -1,2 +1,2 @@
-export default function getSVGMatrix(transform: SVGPathCommander.transformObject): typeof CSSMatrix;
+export default function getSVGMatrix(transform: any): CSSMatrix;
 import CSSMatrix from "dommatrix";

@@ -60,7 +60,7 @@ For developer guidelines, head over to the [wiki pages](https://github.com/thedn
 
 # Technical Considerations
 
-* as already mentioned, the `optimize()` method will not simplify/merge the path commands or determine and create shorthand notations; you might need [SVGO](https://github.com/svg/svgo) and its `convertPathData` plugin; however, while computing path command values, the library will try to deliver the best outcome in path reverse or transformation;
+* the `optimize()` instance method will not merge path segments (for instance 2 or more cubic-bezier segments into one or more arc segments); however, it will try to provide shorthand notations where possible, pick the shortest string for each segment; while computing path command values, the script will try to deliver the best possible outcome;
 * all tools processing path segments will always round float values to 3 decimals; EG: 0.5666 => 0.566, 0.50 => 0.5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`; you can also control this feature via instance options;
 * the `getSVGMatrix` utility we developed will always compute the matrix by applying the transform functions in the following order: `translate`, `rotate`, `skew` and `scale`, which is the default composition/recomposition order specified in the W3C draft;
 * all 3d transformations as well as skews will convert `A` (arc) path commands to `C` (cubic bezier) due to the lack of resources on 3D to 2D projection;

@@ -15,10 +15,9 @@ import rotateVector from '../math/rotateVector';
  * @param {number} SF sweep-flag of the arc
  * @param {number} X2 the ending x position
  * @param {number} Y2 the ending y position
- * @param {number[] | null} recursive the parameters needed to split arc into 2 segments
- * @return {any} the resulting cubic-bezier segment(s)
+ * @param {number[]=} recursive the parameters needed to split arc into 2 segments
+ * @return {number[]} the resulting cubic-bezier segment(s)
  */
-// export default function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recursive) {
 export default function arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, recursive) {
   let x1 = X1; let y1 = Y1; let rx = RX; let ry = RY; let x2 = X2; let y2 = Y2;
   // for more information of where this Math came from visit:
@@ -26,6 +25,7 @@ export default function arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, recur
   const d120 = (Math.PI * 120) / 180;
 
   const rad = (Math.PI / 180) * (+angle || 0);
+  /** @type {number[]} */
   let res = [];
   let xy;
   let f1;
@@ -101,14 +101,16 @@ export default function arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, recur
   m2[0] = 2 * m1[0] - m2[0];
   m2[1] = 2 * m1[1] - m2[1];
   if (recursive) {
-    return [m2, m3, m4].concat(res);
+    // return [m2, m3, m4].concat(res);
+    return [...m2, ...m3, ...m4, ...res];
   }
-  res = [m2, m3, m4].concat(res).join().split(',');
+  // res = [m2, m3, m4].concat(res).join().split(',');
+  res = [...m2, ...m3, ...m4, ...res];
   const newres = [];
   for (let i = 0, ii = res.length; i < ii; i += 1) {
     newres[i] = i % 2
-      // @ts-ignore
-      ? rotateVector(res[i - 1], res[i], rad).y : rotateVector(res[i], res[i + 1], rad).x;
+      ? rotateVector(res[i - 1], res[i], rad).y
+      : rotateVector(res[i], res[i + 1], rad).x;
   }
   return newres;
 }

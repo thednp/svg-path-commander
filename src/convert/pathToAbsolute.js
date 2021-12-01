@@ -25,8 +25,9 @@ export default function pathToAbsolute(pathInput) {
   let start = 0;
 
   if (path[0][0] === 'M') {
-    x = +path[0][1];
-    y = +path[0][2];
+    // x = path[0][1];
+    // y = path[0][2];
+    [x, y] = path[0].slice(1).map(Number);
     mx = x;
     my = y;
     start += 1;
@@ -40,28 +41,33 @@ export default function pathToAbsolute(pathInput) {
     /** @type {SVGPathCommander.pathSegment} */
     // @ts-ignore -- trust me
     const absoluteSegment = [];
+    /** @type {number[]} */
     let newSeg = [];
+    // do not change order,
+    // keep this push at this location
+    resultArray.push(absoluteSegment);
 
     if (pathCommand !== absCommand) {
       absoluteSegment[0] = absCommand;
 
       switch (absCommand) {
         case 'A':
-          newSeg = segment.slice(1, -2).concat([+segment[6] + x, +segment[7] + y]);
+          // newSeg = segment.slice(1, -2).concat([+segment[6] + x, +segment[7] + y]);
+          newSeg = [...segment.slice(1, -2).map(Number), segment[6] + x, segment[7] + y];
           for (let j = 0; j < newSeg.length; j += 1) {
             absoluteSegment.push(newSeg[j]);
           }
           break;
         case 'V':
-          absoluteSegment[1] = +segment[1] + y;
+          absoluteSegment[1] = segment[1] + y;
           break;
         case 'H':
-          absoluteSegment[1] = +segment[1] + x;
+          absoluteSegment[1] = segment[1] + x;
           break;
         default:
           if (absCommand === 'M') {
-            mx = +segment[1] + x;
-            my = +segment[2] + y;
+            mx = segment[1] + x;
+            my = segment[2] + y;
           }
           // for is here to stay for eslint
           for (let j = 1; j < segment.length; j += 1) {
@@ -73,8 +79,6 @@ export default function pathToAbsolute(pathInput) {
         absoluteSegment.push(segment[j]);
       }
     }
-
-    resultArray.push(absoluteSegment);
 
     const segLength = absoluteSegment.length;
     switch (absCommand) {

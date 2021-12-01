@@ -2,10 +2,10 @@
  * Returns the coordinates of a specified distance
  * ratio between two points.
  *
- * @param {Number[]} a the first point coordinates
- * @param {Number[]} b the second point coordinates
- * @param {Number} t the ratio
- * @returns {Number[]} the midpoint coordinates
+ * @param {[number, number]} a the first point coordinates
+ * @param {[number, number]} b the second point coordinates
+ * @param {number} t the ratio
+ * @returns {[number, number]} the midpoint coordinates
  */
 export default function midPoint(a, b, t) {
   const [ax, ay] = a; const [bx, by] = b;

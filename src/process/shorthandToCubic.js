@@ -10,7 +10,7 @@
  * @returns {{x1: number, y1: number}}} the missing control point
  */
 export default function shorthandToCubic(x1, y1, x2, y2, prevCommand) {
-  return 'CS'.indexOf(prevCommand) > -1
+  return 'CS'.includes(prevCommand)
     ? { x1: x1 * 2 - x2, y1: y1 * 2 - y2 }
     : { x1, y1 };
 }

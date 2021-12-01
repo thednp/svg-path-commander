@@ -19,6 +19,7 @@ declare namespace Util {
     export { getPointAtLength };
     export { clonePath };
     export { splitPath };
+    export { fixPath };
     export { roundPath };
     export { optimizePath };
     export { reverseCurve };
@@ -49,6 +50,7 @@ import getPathLength from "./getPathLength";
 import getPointAtLength from "./getPointAtLength";
 import clonePath from "../process/clonePath";
 import splitPath from "../process/splitPath";
+import fixPath from "../process/fixPath";
 import roundPath from "../process/roundPath";
 import optimizePath from "../process/optimizePath";
 import reverseCurve from "../process/reverseCurve";

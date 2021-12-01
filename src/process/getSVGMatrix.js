@@ -3,57 +3,59 @@ import CSSMatrix from 'dommatrix';
 /**
  * Returns a transformation matrix to apply to `<path>` elements.
  *
- * @param {SVGPathCommander.transformObject} transform the `transformObject`
+ * @see SVGPathCommander.transformObject
+ *
+ * @param {any} transform the `transformObject`
  * @returns {CSSMatrix} a new transformation matrix
  */
 export default function getSVGMatrix(transform) {
   let matrix = new CSSMatrix();
   const { origin } = transform;
-  const originX = origin[0];
-  const originY = origin[1];
+  const [originX, originY] = origin;
   const { translate } = transform;
   const { rotate } = transform;
   const { skew } = transform;
   const { scale } = transform;
 
-  // set translate
-  if ((Array.isArray(translate) && translate.some((x) => +x !== 0)) || !Number.isNaN(translate)) {
-    matrix = Array.isArray(translate)
-      ? matrix.translate(+translate[0] || 0, +translate[1] || 0, +translate[2] || 0)
-      : matrix.translate(+translate || 0, 0, 0);
-  }
-
   if (rotate || skew || scale) {
     // set SVG transform-origin, always defined
-    // matrix = matrix.translate(+originX,+originY,+originZ)
-    // @ts-ignore -- SVG transform origin is always 2D
-    matrix = matrix.translate(+originX, +originY);
+    matrix = matrix.translate(originX, originY);
 
     // set rotation
-    if (rotate) {
-      matrix = Array.isArray(rotate) && rotate.some((x) => +x !== 0)
-        ? matrix.rotate(+rotate[0] || 0, +rotate[1] || 0, +rotate[2] || 0)
-        : matrix.rotate(0, 0, +rotate || 0);
+    if (Array.isArray(rotate) && rotate.every((x) => !Number.isNaN(+x))
+      && rotate.some((x) => x !== 0)) {
+      matrix = matrix.rotate(rotate[0], rotate[1], rotate[2]);
+    } else if (!Number.isNaN(+rotate)) {
+      matrix = matrix.rotate(0, 0, rotate);
     }
+
     // set skew(s)
-    if (Array.isArray(skew) && skew.some((x) => +x !== 0)) {
-      if (Array.isArray(skew)) {
-        matrix = skew[0] ? matrix.skewX(+skew[0] || 0) : matrix;
-        matrix = skew[1] ? matrix.skewY(+skew[1] || 0) : matrix;
-      } else {
-        matrix = matrix.skewX(+skew || 0);
-      }
+    if (Array.isArray(skew) && skew.every((x) => !Number.isNaN(+x))
+      && skew.some((x) => x !== 0)) {
+      matrix = skew[0] ? matrix.skewX(skew[0]) : matrix;
+      matrix = skew[1] ? matrix.skewY(skew[1]) : matrix;
+    } else if (!Number.isNaN(+skew)) {
+      matrix = matrix.skewX(skew || 0);
     }
+
     // set scale
-    if (!Number.isNaN(scale) || (Array.isArray(scale) && scale.some((x) => +x !== 1))) {
-      matrix = Array.isArray(scale)
-        ? (matrix.scale(+scale[0] || 1, +scale[1] || 1, +scale[2] || 1))
-        : matrix.scale(+scale || 1, +scale || 1, +scale || 1);
+    if (Array.isArray(scale) && scale.every((x) => !Number.isNaN(+x))
+      && scale.some((x) => x !== 1)) {
+      matrix = matrix.scale(scale[0], scale[1], scale[2]);
+    } else if (!Number.isNaN(+scale)) {
+      matrix = matrix.scale(scale || 1, scale || 1, scale || 1);
     }
     // set SVG transform-origin
-    // matrix = matrix.translate(-originX,-originY,-originZ)
-    // @ts-ignore -- SVG transform origin is always 2D
     matrix = matrix.translate(-originX, -originY);
   }
+
+  // set translate
+  if (Array.isArray(translate) && translate.every((x) => !Number.isNaN(+x))
+    && translate.some((x) => x !== 0)) {
+    matrix = matrix.translate(translate[0] || 0, translate[1] || 0, translate[2] || 0);
+  } else if (!Number.isNaN(+translate)) {
+    matrix = matrix.translate(translate || 0, 0, 0);
+  }
+
   return matrix;
 }

@@ -15,27 +15,34 @@ export default function segmentToCubic(segment, params) {
     params.qy = null;
   }
 
-  const [s1, s2] = segment.slice(1);
+  const values = segment.slice(1).map(Number);
+  const [x, y] = values;
+  const {
+    x1: px1, y1: py1, x: px, y: py,
+  } = params;
 
   switch (segment[0]) {
     case 'M':
-      params.x = +s1;
-      params.y = +s2;
+      params.x = x;
+      params.y = y;
       return segment;
     case 'A':
       // @ts-ignore
-      return ['C'].concat(arcToCubic.apply(0, [params.x1, params.y1].concat(segment.slice(1))));
+      // return ['C'].concat(arcToCubic.apply(0, [px1, py1].concat(segment.slice(1))));
+      return ['C', ...arcToCubic(...[px1, py1, ...values])];
     case 'Q':
-      params.qx = +s1;
-      params.qy = +s2;
+      params.qx = x;
+      params.qy = y;
       // @ts-ignore
-      return ['C'].concat(quadToCubic.apply(0, [params.x1, params.y1].concat(segment.slice(1))));
+      // return ['C'].concat(quadToCubic.apply(0, [px1, py1].concat(segment.slice(1))));
+      return ['C', ...quadToCubic(...[px1, py1, ...values])];
     case 'L':
-      // @ts-ignore
-      return ['C'].concat(lineToCubic(params.x1, params.y1, segment[1], segment[2]));
+
+      // return ['C'].concat(lineToCubic(px1, py1, x, y));
+      return ['C', ...lineToCubic(px1, py1, x, y)];
     case 'Z':
-      // @ts-ignore
-      return ['C'].concat(lineToCubic(params.x1, params.y1, params.x, params.y));
+      // return ['C'].concat(lineToCubic(px1, py1, px, py));
+      return ['C', ...lineToCubic(px1, py1, px, py)];
     default:
   }
   return segment;

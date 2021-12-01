@@ -38,16 +38,16 @@ export default function getPathArea(path) {
     switch (seg[0]) {
       case 'M':
       case 'Z':
-        // @ts-ignore
         mx = seg[0] === 'M' ? seg[1] : mx; my = seg[0] === 'M' ? seg[2] : my;
         x = mx;
         y = my;
         return 0;
       default:
+        // len = getCubicSegArea.apply(0, [x, y].concat(seg.slice(1)));
         // @ts-ignore
-        len = getCubicSegArea.apply(0, [x, y].concat(seg.slice(1)));
-        // @ts-ignore
-        [x, y] = seg.slice(-2);
+        len = getCubicSegArea(...[x, y, ...seg.slice(1).map(Number)]);
+
+        [x, y] = seg.slice(-2).map(Number);
         return len;
     }
   }).reduce((a, b) => a + b, 0);

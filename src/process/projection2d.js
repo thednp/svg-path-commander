@@ -8,17 +8,16 @@
  * https://stackoverflow.com/questions/23792505/predicted-rendering-of-css-3d-transformed-pixel
  *
  * @param {SVGPathCommander.CSSMatrix} m the transformation matrix
- * @param {Number[]} point2D the initial [x,y] coordinates
+ * @param {[number, number]} point2D the initial [x,y] coordinates
  * @param {number[]} origin the initial [x,y] coordinates
- * @returns {Number[]} the projected [x,y] coordinates
+ * @returns {[number, number]} the projected [x,y] coordinates
  */
 export default function projection2d(m, point2D, origin) {
+  const [originX, originY, originZ] = origin;
   const point3D = m.transformPoint({
     x: point2D[0], y: point2D[1], z: 0, w: 1,
   });
-  const originX = origin[0] || 0;
-  const originY = origin[1] || 0;
-  const originZ = origin[2] || 0;
+
   const relativePositionX = point3D.x - originX;
   const relativePositionY = point3D.y - originY;
   const relativePositionZ = point3D.z - originZ;

@@ -19,8 +19,8 @@ export default function finalizeSegment(path) {
   }
 
   while (data.length >= paramsCount[LK]) {
-    // @ts-ignore
-    path.segments.push([pathCommand].concat(data.splice(0, paramsCount[LK])));
+    // path.segments.push([pathCommand].concat(data.splice(0, paramsCount[LK])));
+    path.segments.push([pathCommand, ...data.splice(0, paramsCount[LK])]);
     if (!paramsCount[LK]) {
       break;
     }

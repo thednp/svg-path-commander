@@ -12,19 +12,21 @@ export default function reversePath(pathInput) {
   const absolutePath = pathToAbsolute(pathInput);
   const isClosed = absolutePath.slice(-1)[0][0] === 'Z';
   let reversedPath = [];
-  let segLength = 0;
 
   reversedPath = normalizePath(absolutePath).map((segment, i) => {
-    segLength = segment.length;
+    const values = segment.slice(1).map(Number);
+    const [x, y] = values.slice(-2);
     return {
       seg: absolutePath[i], // absolute
       n: segment, // normalized
       c: absolutePath[i][0], // pathCommand
-      x: segment[segLength - 2], // x
-      y: segment[segLength - 1], // y
+      values,
+      x, // x
+      y, // y
     };
   }).map((seg, i, path) => {
     const segment = seg.seg;
+    const { values } = seg;
     const data = seg.n;
     const prevSeg = i && path[i - 1];
     const nextSeg = path[i + 1] && path[i + 1];
@@ -32,14 +34,16 @@ export default function reversePath(pathInput) {
     const pLen = path.length;
     const x = i ? path[i - 1].x : path[pLen - 1].x;
     const y = i ? path[i - 1].y : path[pLen - 1].y;
-    let result = [];
+    /** @type {SVGPathCommander.pathSegment} */
+    let result = [''];
 
     switch (pathCommand) {
       case 'M':
         result = isClosed ? ['Z'] : [pathCommand, x, y];
         break;
       case 'A':
-        result = segment.slice(0, -3).concat([(segment[5] === 1 ? 0 : 1), x, y]);
+        // result = segment.slice(0, -3).concat([(segment[5] === 1 ? 0 : 1), x, y]);
+        result = [pathCommand, ...values.slice(0, -3), (segment[5] === 1 ? 0 : 1), x, y];
         break;
       case 'C':
         if (nextSeg && nextSeg.c === 'S') {
@@ -49,7 +53,7 @@ export default function reversePath(pathInput) {
         }
         break;
       case 'S':
-        if ((prevSeg && 'CS'.indexOf(prevSeg.c) > -1) && (!nextSeg || (nextSeg && nextSeg.c !== 'S'))) {
+        if ((prevSeg && 'CS'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'S'))) {
           result = ['C', data[3], data[4], data[1], data[2], x, y];
         } else {
           result = [pathCommand, data[1], data[2], x, y];
@@ -59,11 +63,12 @@ export default function reversePath(pathInput) {
         if (nextSeg && nextSeg.c === 'T') {
           result = ['T', x, y];
         } else {
-          result = segment.slice(0, -2).concat([x, y]);
+          // result = segment.slice(0, -2).concat([x, y]);
+          result = [pathCommand, ...values.slice(0, -2), x, y];
         }
         break;
       case 'T':
-        if ((prevSeg && 'QT'.indexOf(prevSeg.c) > -1) && (!nextSeg || (nextSeg && nextSeg.c !== 'T'))) {
+        if ((prevSeg && 'QT'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'T'))) {
           result = ['Q', data[1], data[2], x, y];
         } else {
           result = [pathCommand, x, y];
@@ -79,12 +84,13 @@ export default function reversePath(pathInput) {
         result = [pathCommand, y];
         break;
       default:
-        result = segment.slice(0, -2).concat([x, y]);
+        // result = segment.slice(0, -2).concat([x, y]);
+        result = [pathCommand, ...values.slice(0, -2), x, y];
     }
 
     return result;
   });
-  // @ts-ignore
+
   return isClosed ? reversedPath.reverse()
-    : [reversedPath[0]].concat(reversedPath.slice(1).reverse());
+    : [reversedPath[0], ...reversedPath.slice(1).reverse()];
 }

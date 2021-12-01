@@ -10,7 +10,7 @@
  * @returns {{qx: number, qy: number}}} the missing control point
  */
 export default function shorthandToQuad(x1, y1, qx, qy, prevCommand) {
-  return 'QT'.indexOf(prevCommand) > -1
+  return 'QT'.includes(prevCommand)
     ? { qx: x1 * 2 - qx, qy: y1 * 2 - qy }
     : { qx: x1, qy: y1 };
 }

@@ -12,7 +12,7 @@ import isNormalizedArray from '../util/isNormalizedArray';
  * @returns {SVGPathCommander.pathArray} the normalized `pathArray`
  */
 export default function normalizePath(pathInput) { // path|pathString
-  if (Array.isArray(pathInput) && isNormalizedArray(pathInput)) {
+  if (isNormalizedArray(pathInput)) {
     return clonePath(pathInput);
   }
 
@@ -35,7 +35,7 @@ export default function normalizePath(pathInput) { // path|pathString
     allPathCommands[i] = pathCommand;
     // Get previous path command
     if (i) prevCommand = allPathCommands[i - 1];
-    // Previous path command is inputted to processSegment
+    // Previous path command is used to normalizeSegment
     path[i] = normalizeSegment(path[i], params, prevCommand);
 
     segment = path[i];
@@ -46,5 +46,6 @@ export default function normalizePath(pathInput) { // path|pathString
     params.x2 = +(segment[seglen - 4]) || params.x1;
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
+
   return path;
 }
