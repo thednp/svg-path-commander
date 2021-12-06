@@ -113,8 +113,8 @@
 
       if (!hasSVG) {
         const bbox = getPathBBox(desc);
-        const {width, height} = bbox;
-        SVG.setAttribute('viewBox', (`0 0 ${width} ${height}`));
+        const {width, height, x, y} = bbox;
+        SVG.setAttribute('viewBox', (`0 0 ${width + x} ${height + y}`));
       }
 
       if (tempDocument.body.children[0].tagName === 'svg') {
