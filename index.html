@@ -4,28 +4,38 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0">
-  <title>SVGPathCommander Test</title>
-  <meta name="description" content="SVGPathCommander Demo">
-  <meta name="keywords" content="javascript,svg,svg path,svgpathcommander">
+  <title>SVGPathCommander Path Tools</title>
+  <meta name="description" content="SVGPathCommander Path Tools">
+  <meta name="keywords" content="javascript,svg,svg path,svgpathcommander,path to absolute,path to relative, normalize path">
   <meta name="author" content="thednp">
   <link href="./assets/style.css" rel="stylesheet">
   <link rel="shortcut icon" href="./assets/favicon.ico">
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap.native/dist/bootstrap-native.min.js"></script>
-  <script src="./dist/svg-path-commander.js"></script>
 </head>
 <body>
-  <h1><a href="https://github.com/thednp/svg-path-commander">SVGPathCommander <small class="d-none d-md-block">modern SVG path processing tool</small></a></h1>
+  <h1><a href="https://github.com/thednp/svg-path-commander">
+    <svg id="svg-path-commander" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1135 256" aria-label="SVGPathCommander - modern path processing tool" fill="currentColor">
+      <path id="svg_" fill="orangered" d="M222.7 102.2l-1.7 1.6c-7.6 -10 -20.4 -14.3 -32.6 -11.6c-12 2.6 -20.9 12.5 -23.7 24.2c-2.9 12.1 -0.1 25.8 9.3 34.4c9.2 8.4 23.5 10.5 34.9 5.9c6.2 -2.5 11.2 -7.3 14 -13.4c2.4 -5.5 2.9 -11.2 2.9 -17.1l0.6 0.5h-29.6l0 -2.2h31.3c0 11.9 -2.5 24.5 -13.1 31.5c-10.8 7.2 -27 6.8 -37.9 0c-11.3 -7.1 -16.2 -20.4 -15.5 -33.3c0.8 -13.3 8 -25.6 20.5 -30.9c7 -3 15 -3.5 22.4 -1.7c7.5 1.7 13.5 6.3 18.2 12.1zM46.1 148.7l1.8 -1.6c6.3 9.8 19.2 13.8 30.3 11.2C83.6 157 89 153.5 91.1 148.1c2.2 -5.5 0.5 -11.3 -4.1 -14.8c-4.5 -3.4 -10.3 -5 -15.6 -6.5c-5.8 -1.7 -11.6 -3.3 -16.6 -6.7c-4.9 -3.4 -7.2 -8.7 -6.5 -14.6C49 99.9 52.8 95.1 57.7 92.4C63.5 89.2 70.5 88.6 77 89.5c6.5 1 12 4.3 16 9.5l-1.7 1.5C87.7 96 83.3 93 77.6 91.9C72 90.8 65.9 91 60.8 93.3c-5 2.2 -9.3 6.4 -10.1 11.9c-0.9 6 1.9 11 6.9 14.1c5.2 3.3 11.4 4.3 17.2 6c5.5 1.6 11.8 3.8 15.8 8c4 4.2 4.8 10.3 2.6 15.7c-2.1 5 -6.6 8.6 -11.6 10.4c-12.3 4.6 -28 0.1 -35.5 -10.7zM130 160.2h-2.7l-26.8 -70h2.6c2.9 7.7 5.8 15.5 8.8 23.2c4.3 11.4 8.6 22.8 13 34.3c0.5 1.4 1.1 2.9 1.6 4.3c0.1 0.2 0.2 0.4 0.2 0.6c0.5 1.4 1 2.7 1.6 4.1c0.3 0.8 1 1.9 1 2.7H128c0 -0.5 0.7 -1.7 0.9 -2.2c0.6 -1.4 1.1 -2.7 1.6 -4.1c0.1 -0.2 0.2 -0.5 0.3 -0.7c0.4 -1.1 0.9 -2.3 1.3 -3.4c1.8 -4.8 3.6 -9.6 5.5 -14.4c4.6 -12 9.1 -23.9 13.7 -35.9c1.1 -2.8 2.2 -5.7 3.2 -8.5h2.6l-27.1 70z"/>
+
+      <path id="path-commander_" d="M628.2 158.3h-16.1l0 -53.1h15.2l0 6.8c3 -4.9 9.7 -7.7 15.2 -7.8c6.6 -0.1 13.5 2.8 15.9 9.3c0.7 -1.8 2.7 -3.4 4.2 -4.6c1.9 -1.5 4 -2.6 6.2 -3.5c4.4 -1.7 9.2 -1.9 13.7 -0.6c9 2.4 12.6 11.1 12.7 19.7c0.1 7.9 0 15.8 0 23.7c0 3.3 0 6.6 0 9.9H679c0 -10.3 0 -20.5 0 -30.8c0 -4.5 -1.5 -9.2 -6.6 -9.8c-5.6 -0.6 -10.7 3.2 -10.8 9c-0.1 5 0 10 0 14.9c0 5.5 0 11.1 0 16.6h-16.1c0 -10.3 0 -20.6 0 -30.8c0 -4.7 -1.8 -9.2 -7 -9.7c-5.4 -0.5 -10.3 3.3 -10.4 8.9c-0.1 5 0 10 0 15c0 5.7 0 11.3 0.1 16.9v0zM724.4 158.3h-16.1l0 -53.1h15.2c0 0.7 0.4 6.7 0.2 6.7c0.2 0 1.1 -1.4 1.2 -1.6c0.5 -0.5 1 -1.1 1.6 -1.5c1.2 -1 2.5 -1.8 3.9 -2.5c2.9 -1.4 6 -2.2 9.3 -2.1c3.2 0.1 6.5 0.8 9.2 2.5c1.3 0.8 2.5 1.8 3.4 3c0.4 0.4 2 3.8 2.3 3.8c0 0 1.5 -2.1 1.7 -2.3c0.7 -0.8 1.5 -1.6 2.4 -2.3c1.9 -1.5 4 -2.6 6.2 -3.5c4.4 -1.7 9.2 -1.9 13.7 -0.6c9 2.4 12.6 11.1 12.7 19.7c0.1 7.9 0 15.8 0 23.7c0 3.3 0 6.6 0 9.9h-16.1c0 -10.3 0 -20.5 0 -30.8c0 -4.5 -1.5 -9.2 -6.6 -9.8c-5.6 -0.6 -10.7 3.2 -10.8 9c-0.1 5 0 10 0 14.9c0 5.5 0 11.1 0 16.6h-16.1c0 -10.3 0 -20.6 0 -30.8c0 -4.7 -1.8 -9.2 -7 -9.7c-5.4 -0.5 -10.2 3.4 -10.3 8.9c-0.1 5 0 10 0 15.1c0 5.6 0 11.2 0 16.8v0zM415.2 158.3v-74h15.7c0 7.9 0 15.8 0 23.6c0 1.2 0.2 2.5 -0.1 3.7c3.1 -3.1 6.4 -5.5 10.7 -6.7c4.4 -1.2 9.4 -0.9 13.6 0.8c7.9 3.2 10 12.3 10.1 20c0 7.7 0 15.5 0 23.2c0 3.1 0 6.3 0 9.4h-16.1c0 -10.3 0 -20.7 0 -31c0 -4.7 -1.6 -9.2 -6.9 -9.7c-5.6 -0.6 -11.1 2.8 -11.2 8.8c-0.1 5 0 9.9 0 14.9c0 5.6 0 11.3 0 16.9c-5.3 0 -10.5 0 -15.8 0v0.1zM1047.8 130.9l-0.1 4.3H1011c-0.7 -3.1 -0.8 -5.9 0 -9c3.7 0 7.5 0 11.2 0c2.5 0 5 0 7.6 0c0.8 0 2.6 0.4 3.2 -0.1c-0.3 -5.1 -4.8 -8.4 -9.6 -8.6c-4.8 -0.2 -9.6 2 -11.6 6.5c-1.8 4.3 -1.8 9.3 0.1 13.6c1.8 4.1 5.7 6.6 9.9 7.4c2.7 0.6 5.8 0.6 8.5 0c2.9 -0.7 5.3 -2.3 7.6 -4l7.5 10.6c-7.9 6.7 -18.6 9.4 -28.7 7c-9.7 -2.3 -17.7 -9.1 -20.3 -18.8c-2.6 -9.5 -0.3 -20.7 6.6 -27.8c7.1 -7.3 18.4 -9.8 28 -6.5c5.1 1.7 9.4 5.1 12.4 9.6c1.3 2.1 2.4 4.3 3.1 6.7c0.4 1.5 0.8 3 1 4.6c0 1.5 0.5 2.9 0.3 4.5zM538.8 98.1L528.4 110c-4.7 -4.7 -10.4 -7.7 -17.2 -7.2c-6.4 0.4 -12.2 3.8 -15.3 9.5c-3.1 5.8 -3.4 13.1 -1.1 19.3c2.3 6.2 7.8 10.2 14.1 11.4c7.6 1.4 15.5 -0.6 20.9 -6.4l8.2 13c-3.6 4 -8.8 6.3 -13.9 7.8c-5.8 1.6 -11.8 2.2 -17.7 1.4c-10.9 -1.5 -20.8 -7.6 -26.1 -17.4C474.8 131.3 474.2 118 479 107.6c4.6 -10.1 13.8 -17.3 24.5 -19.7c6.6 -1.5 13.7 -1.4 20.1 0.6c2.9 0.9 5.8 2.1 8.4 3.8c1.3 0.8 2.6 1.8 3.8 2.8c1.1 0.8 2 2 3 3zM870.5 158.3v-53.1h15.2c0.1 2.1 0.3 4.3 0.3 6.4c0 -0.3 0.9 -1 1.1 -1.2c0.8 -0.8 1.7 -1.6 2.7 -2.3c1.8 -1.3 3.8 -2.3 5.9 -3c4.4 -1.5 9.3 -1.4 13.7 0c8.7 2.9 11.1 12.2 11.2 20.4c0 7.7 0 15.4 0 23.1c0 3.2 0 6.3 0 9.5h-16.1c0 -10.3 0 -20.6 0 -30.9c0 -4.7 -1.6 -9.2 -6.9 -9.7c-5.6 -0.6 -11.1 2.8 -11.2 8.8c-0.1 5 0 9.9 0 14.9c0 5.6 0 11.3 0 16.9c-5.3 0 -10.5 0 -15.8 0v0.2zM969.8 110.5V84.3h16.1l0 74H971c-0.1 -1.1 -0.2 -2.2 -0.2 -3.4c0 -0.6 -0.5 -2.2 0 -2.7c-2.7 2.7 -5.4 4.8 -9.1 6c-3.9 1.2 -7.9 1.6 -11.9 0.8c-7.2 -1.3 -13 -6.5 -16.2 -13c-6.7 -14 -2.6 -35.5 13.6 -40.9c4.1 -1.4 8.6 -1.5 12.8 -0.4c2 0.5 4 1.3 5.8 2.4c1 0.6 1.9 1.2 2.7 2c0.3 0.3 1.2 1.4 1.3 1.4zM345.4 111.1v-5.9h15.9l0 53.1h-16.2c0 -0.7 0.4 -6.2 0.1 -6.3c-0.3 -0.1 -3.1 2.8 -3.5 3.1c-1.6 1.2 -3.3 2.1 -5.1 2.8c-3.6 1.3 -7.4 1.7 -11.2 1C318 157.7 312 152.5 308.8 145.8c-6.7 -13.9 -2.7 -35 13.3 -40.5c4.2 -1.5 8.8 -1.5 13.1 -0.4c2 0.5 4 1.3 5.7 2.5c1 0.7 1.9 1.4 2.7 2.3c0.5 0.3 1.1 1.4 1.8 1.4zM840.5 111.4v-6.1h15.9l0 53.1h-16.2l0 -6.7c0.3 0.9 -2.7 3 -3.4 3.5c-1.6 1.2 -3.3 2.1 -5.1 2.8c-3.6 1.3 -7.4 1.7 -11.2 1c-7.4 -1.2 -13.4 -6.4 -16.6 -13.1c-6.7 -13.9 -2.7 -35 13.3 -40.5c4.2 -1.5 8.8 -1.5 13.1 -0.4c2 0.5 4 1.3 5.7 2.5c0.9 0.6 1.8 1.3 2.6 2.1c0.5 0.5 1.4 2 1.9 2.2c0.1 -0.1 0 -0.4 0 -0.4zM263 158.3h-17l0 -70c9.9 0 19.9 0 29.8 0c4.6 0 9 1 12.9 3.5c4.8 3 8.3 7.8 9.7 13.3c3.1 11.9 -3.3 25.4 -15.4 28.9c-3.7 1.1 -7.6 0.9 -11.4 0.9c-2.9 0 -5.7 0 -8.6 0v23.4zM1074.1 158.3H1058l0 -53.1h15.2c0.1 1.4 0.1 2.9 0.2 4.3c0 1.2 0.3 2.7 0.1 3.9c4.3 -7.3 13.7 -11.3 21.8 -8.3l-4.4 17.7c-2.3 -1.7 -6 -1.9 -8.7 -1.4c-2.8 0.5 -5.1 2 -6.6 4.5c-1.4 2.4 -1.4 5.1 -1.4 7.7c0 6.3 0 12.6 0 18.9c0 1.9 0 3.9 0 5.8h-0.1zM564.8 158.3c-11.5 -3.1 -20.1 -13 -20.5 -25.1c-0.2 -6.1 1.2 -12 4.6 -17c3.1 -4.5 7.5 -8 12.6 -10c10.9 -4.3 24.5 -2.1 32.8 6.4s10.1 22.6 4 32.9c-6.7 11.5 -20.9 16.1 -33.5 12.8zM395.8 158.3h-16c0 -8.6 0 -17.2 0 -25.8c0 -9.1 0 -18.2 0 -27.4c0 -4.5 0 -8.9 0 -13.4h16l0 66.6zM380.1 119.2h-9.7l0 -14h9.7l0 14zM958.2 146.1c6.1 0 10.4 -4.5 11.5 -10.2c1 -5.1 0.4 -11.3 -3.4 -15.1c-3.9 -3.9 -10.4 -4.5 -14.9 -1.3s-5.6 9.4 -5.1 14.6c0.6 6.4 5 12 11.9 12zM573.1 145.5c12.4 0 16.3 -17.3 7.9 -24.9c-4.1 -3.7 -10.5 -3.9 -15 -0.7c-4.5 3.3 -5.8 9.2 -5.1 14.4c0.8 6.3 5.8 11.2 12.2 11.2zM333.5 145.7c5.9 0 10.2 -3.8 11.6 -9.4c1.3 -5.3 0.5 -11.8 -3.5 -15.7c-3.9 -3.8 -10.7 -4 -15 -0.8c-4.4 3.3 -5.5 9.3 -4.9 14.4c0.7 6.4 5.2 11.5 11.8 11.5zM828.6 145.7c5.9 0 10.2 -3.8 11.6 -9.4c1.3 -5.3 0.5 -11.8 -3.5 -15.7c-3.9 -3.8 -10.7 -4 -15 -0.8c-4.4 3.3 -5.5 9.3 -4.9 14.4c0.7 6.4 5.2 11.5 11.8 11.5zM262.7 103.3V120c2.3 0 4.6 0 6.9 0c2.8 0 5.8 0.4 8.4 -1.2c4.4 -2.7 5.2 -9.7 1.5 -13.3c-2.5 -2.4 -5.6 -2.2 -8.8 -2.2c-0.6 0 -8 0 -8 0zM395.8 105.2h11.7l0 14h-11.7l0 -14z"/>
+
+      <path id="subtext_" fill-opacity="0.6" d="M253.2 190.3c0 -5 5.2 -8.8 10 -7.5c3.9 1 4.6 4.9 4.6 8.3c0 5.1 0 10.2 0 15.3c0 0.9 0 1.9 0 2.8c0 0.6 -0.1 0.5 0.4 0.7c1.1 0.3 2.8 0 3.9 0c0.4 0 1.9 0.2 2.1 0c0.2 -0.2 0 -1.4 0 -1.7c0 -1.2 0 -2.4 0 -3.5c0 -3 0 -5.9 0 -8.9c0 -1.7 0 -3.5 0 -5.2c0.1 -4.7 3.8 -7.9 8.4 -7.8c7.3 0.1 6.2 8.6 6.2 13.8c0 2.9 0 5.8 0 8.7c0 1.1 0 2.3 0 3.4c0 0.2 -0.1 1.1 0 1.2c0.3 0.3 2.5 0 2.9 0c0.7 0 1.4 0 2.1 0c0.2 0 1.1 0.1 1.3 0c0.4 -0.4 0.1 -3.4 0.1 -4c0 -5 0 -10.1 0 -15.1c0 -3.7 -0.4 -8 -3 -10.9c-3.5 -4 -9.4 -3.6 -13.7 -1.4c-2.3 1.2 -4.1 3 -5.4 5.1c-1.4 -4.2 -4.9 -6.6 -9.2 -6.8c-3.9 -0.2 -9.1 2 -11 5.7c0 -1.3 0 -2.6 0 -3.9s0.2 -1.3 -1.1 -1.3c-1.6 0 -3.1 0 -4.7 0c-0.7 0 -0.5 -0.1 -0.7 0.4c-0.2 0.6 0 1.5 0 2.2c0 1.2 0 2.3 0 3.5c0 3.2 0 6.5 0 9.7c0 5.4 0 10.7 0 16.1c0 0.3 -0.1 0.6 0.1 0.7c0.3 0.2 1.3 0 1.6 0c0.8 0 1.7 0 2.5 0c0.5 0 1.9 0.2 2.1 -0.1c0.3 -0.4 0 -1.9 0 -2.4c0 -3.6 0 -7.1 0 -10.7c0 -1.5 0 -3 0 -4.6c0.2 -0.6 -0.1 -1.9 0.5 -1.8zM410.6 190.7c-0.4 -6.8 -5.4 -12.7 -12.2 -13.9c-6.9 -1.2 -13.9 2.1 -17.2 8.3c-3.3 6.1 -2.7 14.4 2 19.7c4.5 5.1 11.7 6.6 18.1 4.9c1.9 -0.5 3.8 -1.3 5.5 -2.4c0.6 -0.4 1.7 -1 2.1 -1.6c0.4 -0.7 0.3 0 0.1 -0.6c-0.3 -0.8 -1.2 -1.7 -1.7 -2.4c-0.4 -0.6 -0.9 -1.2 -1.3 -1.8c-2.3 2 -4.9 3.5 -8.1 3.7c-2.9 0.2 -6 -0.4 -8.4 -2.2c-4.6 -3.5 -5.3 -11.8 -1.9 -16.4c3.4 -4.5 11.3 -4.5 14.8 -0.1c0.5 0.7 2.3 3.8 1.3 4.3c-0.7 0.3 -2.3 0 -3.1 0c-3.4 0 -6.8 0 -10.3 0c-1.2 0 -2.5 0 -3.7 0c-1 0 -0.9 0 -1.1 1.2c-0.1 0.5 -0.4 3.6 0.1 3.9c0.4 0.3 1.8 0 2.3 0c3.1 0 6.3 0 9.4 0c3.6 0 7.2 0 10.7 0c0.4 0 2 0.2 2.2 0c0.5 -0.4 0.4 -4.1 0.4 -4.6zM816.1 190.7c-0.4 -6.8 -5.4 -12.7 -12.2 -13.9c-6.9 -1.2 -13.9 2.1 -17.2 8.3c-3.3 6.1 -2.7 14.4 2 19.7c4.5 5.1 11.6 6.6 18.1 4.9c1.9 -0.5 3.8 -1.3 5.5 -2.4c0.6 -0.4 1.7 -1 2.1 -1.6c0.4 -0.7 0.3 0 0.1 -0.6c-0.3 -0.8 -1.2 -1.7 -1.7 -2.4c-0.4 -0.6 -0.9 -1.2 -1.3 -1.8c-3.2 2.8 -7 4.2 -11.3 3.6c-4.2 -0.6 -7.6 -3.3 -8.7 -7.5c-0.9 -3.5 -0.6 -8.3 1.8 -11.2c2.3 -2.9 6.9 -3.9 10.4 -2.9c2 0.6 3.9 2 4.9 3.8c0.5 1 0.5 2 0.9 3c0.1 0.2 -0.1 0.3 0.1 0.4c0.1 0.1 0.6 0 0.8 0c-3.4 0 -6.9 0 -10.3 0c-2.2 0 -4.4 0 -6.6 0c-0.5 0 -1.3 -0.2 -1.8 0s-0.4 0.5 -0.5 1.1c-0.1 0.8 -0.5 2.9 -0.1 3.7c0.2 0.4 0 0.2 0.5 0.3c1.4 0.3 3 0 4.4 0c4.7 0 9.5 0 14.2 0c1.6 0 3.6 0.3 5.1 0c0.6 -0.1 0.4 0.2 0.5 -0.6c0.1 -0.6 0 -1.2 0.1 -1.8c0.1 -0.7 0.3 -1.4 0.2 -2.1zM944.1 223c8.9 2.7 19.9 0.4 22.8 -9.5c1.1 -3.7 0.8 -7.6 0.8 -11.4c0 -5.1 0 -10.2 0 -15.2c0 -2.1 0 -4.3 0 -6.4c0 -0.5 0.3 -2.7 0 -3.1c-0.2 -0.2 -1.5 0 -1.9 0c-1.3 0 -2.7 -0.1 -4 0c-0.2 0 -0.5 -0.1 -0.6 0.1c-0.2 0.2 0 1.2 0 1.4c0 0.5 -0.3 2.7 0.1 2.9c-0.8 -0.6 -1.5 -1.5 -2.3 -2.1c-1.1 -0.8 -2.2 -1.5 -3.5 -2c-2.4 -1 -5.1 -1.3 -7.7 -0.9c-5.1 0.8 -9.3 4 -11.7 8.5c-4.8 9.1 -0.3 22.1 10.1 24.7c2.8 0.7 5.7 0.7 8.5 -0.3c2.4 -0.8 5.3 -2.5 6.5 -4.9c-0.2 0.3 0 1.3 0 1.7c0 0.7 0 1.5 0 2.2c0 2.7 -0.6 5.4 -2.7 7.3c-4.4 4.2 -13.4 3 -17.8 -0.6c-0.7 1.4 -1.3 2.7 -2 4.1c-0.5 1 -0.5 0.9 0.6 1.5c1.6 0.8 3.2 1.5 4.8 2zM600.4 209.8c0.6 0 1.2 0 1.8 0c0.6 0 2.4 0.3 2.9 0c0.3 -0.3 0.1 -1.9 0.1 -2.4c0 -4.3 0 -8.5 0 -12.8c0 -3.8 -0.5 -7.6 2.9 -10.2c2.6 -2.1 7.4 -2.9 10.3 -0.8c2.2 1.6 2.3 4.8 2.3 7.2c0 3.7 0 7.4 0 11c0 1.9 0 3.9 0 5.8c0 0.5 -0.2 2 0.1 2.2c0.4 0.3 1.9 0 2.4 0c1.1 0 2.1 0 3.2 0c1 0 0.7 -0.5 0.7 -1.5c0 -4 0 -8.1 0 -12.1c0 -4.3 0.6 -9.4 -1 -13.4c-3.5 -8.9 -15.9 -7.6 -20.8 -0.5c-0.1 -5.1 0 -10.2 0 -15.3c0 -0.7 0.3 -2.1 0 -2.8c-0.2 -0.5 -1.1 -0.3 -1.7 -0.3c-0.8 0 -1.5 0 -2.3 0c-0.6 0 -1.5 -0.2 -2 0s-0.2 -0.1 -0.4 0.4c-0.3 1.4 0 3.3 0 4.7c0 2.8 0 5.5 0 8.3c0 6.7 0 13.4 0 20c0 4.1 0 8.2 0 12.4c0.5 0.1 1 0.1 1.5 0.1zM444.1 209.8c0.6 0 1.3 0 1.9 0c0.5 0 2.3 0.3 2.8 0c0.3 -0.3 0.1 -1.9 0.1 -2.4c0 -4.3 0 -8.5 0 -12.8c0 -3.9 -0.4 -7.9 3.3 -10.5c2.7 -1.9 7.6 -2.6 10.2 -0.3c1.9 1.7 2 4.7 2 7.1c0 3.7 0 7.5 0 11.2c0 2 0 4 0 6c0 0.4 -0.2 1.2 0 1.5c0.2 0.4 -0.1 0.1 0.4 0.3c0.9 0.2 2 0 2.9 0c0.7 0 2.1 0.3 2.8 0c0.4 -0.2 0.1 0.1 0.3 -0.3c0.1 -0.4 0 -1.2 0 -1.6c0 -4.2 0 -8.4 0 -12.6c0 -3.7 0.4 -7.9 -0.7 -11.5c-1.1 -3.7 -3.6 -6.2 -7.4 -7c-4.1 -0.9 -8.2 0.4 -11.4 3c-0.8 0.6 -1.7 1.5 -2.2 2.4c0.2 -0.4 0 -1.4 0 -1.8c0 -0.8 0.3 -2.2 0 -2.9c-0.2 -0.4 0 -0.3 -0.7 -0.3c-1 0 -2 0 -2.9 0c-0.6 0 -2.5 -0.3 -2.8 0.2c-0.3 0.4 0 1.9 0 2.4c0 7.7 0 15.4 0 23.1c0 2.3 0 4.6 0 6.9c0.4 -0.1 0.9 -0.1 1.4 -0.1zM901.2 209.8c0.6 0 1.2 0 1.8 0c0.6 0 2.4 0.3 2.9 0c0.3 -0.3 0.1 -1.9 0.1 -2.4c0 -4.3 0 -8.5 0 -12.8c0 -4 -0.4 -7.9 3.3 -10.5c2.6 -1.8 7.2 -2.5 9.9 -0.5c2.2 1.6 2.3 4.8 2.3 7.2c0 3.7 0 7.4 0 11c0 2 0 4 0 6c0 0.6 -0.2 1.8 0.2 2.1c0.5 0.3 2 0 2.6 0c1 0 2.1 0.2 3.1 0c0.5 -0.1 0.3 0.1 0.5 -0.2c0.2 -0.2 0 -1.1 0 -1.3c0 -4.1 0 -8.3 0 -12.4c0 -4.4 0.5 -9.4 -1.2 -13.5c-1.8 -4.3 -5.9 -6.1 -10.4 -5.9c-4.2 0.2 -8.1 2.6 -10.4 6.1c0.7 -1.1 0.2 -3.4 0.2 -4.6c0 -0.6 0.1 -0.6 -0.2 -0.8c-0.5 -0.3 -2 0 -2.6 0s-3.3 -0.3 -3.6 0.1c-0.2 0.3 0 1.7 0 2.2c0 7.7 0 15.4 0 23.1c0 2.4 0 4.8 0 7.1c0.5 0 1 0 1.5 0zM366.1 181.3c-7.4 -7.4 -19.8 -5.6 -24.4 4c-4.2 8.8 -0.9 21.6 9.2 24.5c5.4 1.6 11.5 0.1 15.1 -4.4c0 1.1 0 2.3 0 3.4s-0.2 1.1 1 1.1c1.4 0 2.8 0 4.2 0c0.3 0 1.1 0.1 1.3 -0.1c0.4 -0.5 0 -2.6 0 -3.2c0 -2.2 0 -4.3 0 -6.5c0 -11 0 -22 0 -32.9c0 -0.5 0.3 -2.9 0 -3.2c-0.3 -0.3 -2.4 0 -2.8 0c-1.2 0 -2.4 0 -3.6 0c-0.1 5.7 0 11.9 0 17.3zM503.1 205.6c2.8 3.5 7.9 5.1 12.2 4.7c5 -0.5 9.2 -3.7 11.5 -8.1c4.6 -8.7 1.3 -21.9 -8.9 -24.8c-5.1 -1.4 -11.8 0 -14.9 4.6c0.1 -0.2 0 -0.7 0 -0.9c0 -0.8 0 -1.6 0 -2.4c0 -1.2 0.2 -1.2 -1 -1.2c-1.4 0 -2.8 0 -4.2 0c-0.4 0 -1.1 -0.1 -1.3 0.1c-0.4 0.5 0 2.6 0 3.1c0 2.2 0 4.4 0 6.6c0 11 0 22 0 33c0 0.5 -0.3 2.8 0 3.2c0.3 0.3 2.4 0 2.8 0c1.2 0 2.4 0 3.6 0c0 -3.1 0 -6.2 0 -9.3c0 -2.1 0 -4.1 0 -6.2c0.2 -0.5 0.4 -2.2 0.2 -2.4zM660.1 206.3c3.2 3.2 8.2 4.6 12.7 3.8c4.8 -0.9 8.8 -4.4 10.8 -8.9c3.9 -8.8 0.5 -21.3 -9.5 -24c-4.9 -1.3 -11.6 0.1 -14.6 4.7c0.2 -0.3 0 -1.4 0 -1.7c0 -0.5 0.3 -2.1 0 -2.6s-2.7 -0.2 -3.3 -0.2c-0.5 0 -2.8 -0.3 -3.1 0.1c-0.1 0.2 0 1.2 0 1.4c0 6.1 0 12.3 0 18.4c0 7.2 0 14.4 0 21.5c0 1.1 0 2.1 0 3.2c0 0.3 -0.2 1.2 0 1.5c0.3 0.3 2.3 0.1 2.8 0.1c0.6 0 3.2 0.4 3.6 0c0.3 -0.3 0 -2.8 0 -3.2c0 -2.1 0 -4.2 0 -6.3c0 -2 0 -4.1 0 -6.1c0 -0.6 -0.2 -1.7 0 -2.3c-0.2 0 0.6 0.6 0.6 0.6zM826.6 209c4.2 1.7 9.5 2.1 13.6 0c4.4 -2.2 6.3 -6.5 5.1 -11.2c-1.1 -4.5 -6.2 -6.1 -10.1 -7.2c-1.7 -0.5 -3.7 -0.9 -5.2 -1.9c-1.8 -1.2 -2.4 -4.1 -0.5 -5.5c3.8 -3 9.6 -0.2 12.6 2.8c0.9 -1 1.8 -2 2.7 -3c0.2 -0.2 0.9 -0.8 0.9 -1c0.1 -0.7 -2.3 -2.2 -2.8 -2.6c-5 -3.3 -12.6 -3.8 -17.4 0c-5 3.8 -4.2 11.2 1 14.4c2.6 1.6 5.4 2.2 8.3 3c2 0.6 5 1.4 5.3 3.9c0.4 3.2 -2.9 4.7 -5.6 4.7c-3.3 -0.1 -6.6 -1.3 -8.5 -4.1c-1.2 1.1 -2.4 2.1 -3.7 3.2c-0.1 0.1 -0.6 0.4 -0.6 0.5c-0.1 0.3 0.7 1 0.9 1.3c1 1.1 2.4 2.1 4 2.7zM856.2 209c4.2 1.7 9.5 2.1 13.6 0c4.4 -2.2 6.3 -6.5 5.1 -11.2c-1.1 -4.5 -6.2 -6.1 -10.1 -7.2c-1.7 -0.5 -3.7 -0.9 -5.2 -1.9c-1.8 -1.2 -2.4 -4.1 -0.5 -5.5c3.8 -3 9.6 -0.2 12.6 2.8c0.9 -1 1.8 -2 2.7 -3c0.2 -0.2 0.9 -0.8 0.9 -1c0.1 -0.7 -2.3 -2.2 -2.8 -2.6c-5 -3.3 -12.6 -3.8 -17.4 0c-5 3.8 -4.2 11.2 1 14.4c2.6 1.6 5.4 2.2 8.3 3c2 0.6 5 1.4 5.3 3.9c0.4 3.2 -2.9 4.7 -5.6 4.7c-3.3 -0.1 -6.6 -1.3 -8.5 -4.1c-1.2 1.1 -2.4 2.1 -3.7 3.2c-0.1 0.1 -0.6 0.4 -0.6 0.5c-0.1 0.3 0.7 1 0.9 1.3c1 1.1 2.4 2.1 4 2.7zM778.7 180.6c-4.4 -4 -11.7 -5 -17.1 -2.8c-5.6 2.3 -9 7.9 -9.7 13.8c-0.7 6.2 1.8 12.5 6.9 16.2s11.8 3.4 17.2 0.6c1.5 -0.8 2.9 -1.8 4 -3.1c0.8 -1 0.9 -0.9 0.2 -1.8c-1 -1.2 -1.9 -2.4 -2.9 -3.5c-2.6 3.9 -7.6 6 -12.1 4.5c-4.4 -1.5 -7.1 -5.9 -7.3 -10.4c-0.1 -4.4 2.2 -9.2 6.6 -10.7c4.8 -1.7 9.9 0.4 12.8 4.5c0.8 -1 1.6 -2 2.4 -3c0.2 -0.3 1 -0.9 1 -1.3c0.2 -0.9 -1.5 -2.5 -2 -3zM545.4 177c-10.4 2.6 -14.1 15.8 -9.7 24.7c2.1 4.3 5.8 7.8 10.6 8.6c5 0.8 10.5 -1.2 13.6 -5.3c0 1 -0.5 4.4 0.2 4.8s2.6 0 3.4 0c0.5 0 2.4 0.3 2.8 0c0.2 -0.2 0 -1.5 0 -1.8c0 -1.7 0 -3.3 0 -5c0 -4.7 0 -9.4 0 -14.1c0 -3.5 0 -7.1 0 -10.6c0 -1 0.1 -1 -1 -1c-1.8 0 -3.6 0 -5.4 0c0 1 0 1.9 0 2.9c0 0.5 -0.2 2.1 0 2.3c-3 -5 -9.1 -6.8 -14.5 -5.5zM424 191.9c0 -6 6.2 -10 11.7 -7.8c0.3 -1.1 0.5 -2.2 0.8 -3.3c0.2 -0.8 0.4 -1.6 0.6 -2.5c0.1 -0.2 0.4 -0.9 0.3 -1.1c-0.2 -0.4 -2.4 -0.6 -2.8 -0.6c-1.5 -0.1 -3.1 0.2 -4.5 0.8c-2.7 1.1 -5.2 3.4 -6.3 6.1c0.3 -0.8 0.1 -2.1 0.1 -3c0 -0.5 0.3 -3 0 -3.3c-0.1 -0.1 -1.1 0 -1.3 0c-0.8 0 -1.6 0 -2.3 0c-0.5 0 -2.5 -0.3 -2.8 0c-0.1 0.1 0 1.1 0 1.3c0 1 0 2 0 2.9c0 2.9 0 5.9 0 8.8c0 5.9 0 11.8 0 17.6c0 0.3 -0.2 1.3 0 1.6c0.2 0.3 1.2 0.2 1.6 0.2c0.8 0 1.5 0 2.3 0c0.6 0 1.6 0.2 2.2 0c0.5 -0.2 0.4 -0.2 0.4 -0.9c-0.1 -5.5 0 -11.2 0 -16.8zM698.4 191.9c0 -6 6.2 -10 11.7 -7.8c0.3 -1.1 0.5 -2.2 0.8 -3.3c0.2 -0.8 0.4 -1.6 0.6 -2.5c0.1 -0.2 0.4 -0.9 0.3 -1.1c-0.2 -0.4 -2.4 -0.6 -2.8 -0.6c-1.5 -0.1 -3.1 0.2 -4.5 0.8c-2.7 1.1 -5.1 3.5 -6.3 6.2c0.4 -0.8 0.1 -2.1 0.1 -3c0 -0.5 0.3 -3 0 -3.3c-0.1 -0.1 -1.1 0 -1.3 0c-0.8 0 -1.6 0 -2.4 0c-0.4 0 -2.3 -0.3 -2.6 0c-0.2 0.2 0 1.2 0 1.4c0 1 0 1.9 0 2.9c0 3 0 6 0 9c0 5.8 0 11.6 0 17.4c0 0.3 -0.2 1.4 0 1.7c0.2 0.3 1.3 0.1 1.7 0.1c0.8 0 1.5 0 2.3 0c0.6 0 1.5 0.2 2 0s0.4 -0.2 0.4 -1c0 -5.6 0 -11.3 0 -16.9zM313.4 209.7c6.6 2 14.1 -0.1 18.4 -5.6c4.3 -5.7 4.5 -14.1 0.7 -20c-3.8 -6 -11.1 -8.5 -17.9 -7c-6.8 1.5 -11.7 7.6 -12.4 14.4c-0.4 4 0.4 8.1 2.6 11.5c1.8 2.9 5.1 5.8 8.6 6.7zM725 209.7c6.6 1.9 14 0 18.2 -5.5c4.5 -5.7 4.6 -14.2 0.8 -20.2c-3.8 -5.9 -10.9 -8.5 -17.7 -7c-6.8 1.4 -11.7 7.2 -12.6 14c-0.9 7.7 3.4 16.5 11.3 18.7zM1026.9 209.7c6.6 2 14.1 -0.1 18.4 -5.6c4.3 -5.7 4.5 -14.1 0.7 -20c-3.8 -6 -11.1 -8.5 -17.9 -7c-6.8 1.5 -11.7 7.6 -12.4 14.4c-0.4 4 0.4 8.1 2.6 11.5c1.8 2.9 5.1 5.8 8.6 6.7zM1065 209.7c6.6 2 14.1 -0.1 18.4 -5.6c4.3 -5.7 4.5 -14.1 0.7 -20c-3.8 -6 -11.1 -8.5 -17.9 -7c-6.8 1.5 -11.7 7.6 -12.4 14.4c-0.4 4 0.4 8.1 2.6 11.5c1.8 2.9 5.1 5.8 8.6 6.7zM1100.1 164c-1.9 0 -3.8 0 -5.6 0c-0.9 0 -0.8 0 -0.8 0.9c0 3.1 0 6.1 0 9.2c0 9.5 0 19.1 0 28.6c0 1.6 0 3.2 0 4.8c0 0.4 -0.3 1.9 0 2.3c0.4 0.5 3.3 0.1 4 0.1c0.3 0 2.2 0.2 2.4 0c0.1 -0.1 0 -0.3 0 -0.4c0.3 -0.8 0 -2.1 0 -2.9c0 -1.7 0 -3.5 0 -5.2c0 -4.7 0 -9.5 0 -14.2c0 -7.5 0 -15.1 0 -22.6c0 -0.3 0 -0.5 0 -0.6zM585.4 169c-0.8 0 -1.7 0 -2.5 0c-1 0 -2.5 -0.3 -3.5 0c-0.6 0.2 -0.4 0.1 -0.4 0.9c0 1.2 0 2.5 0 3.7c0 1 0.2 2.2 0 3.3c-0.1 0.6 0 0.5 -0.8 0.5c-1.3 0 -2.5 0 -3.8 0c-0.3 0 -1.9 -0.2 -2.2 0c-0.3 0.3 0 2.6 0 3.1c0 1 0 2.1 0 3.1c2.3 0 4.5 0 6.8 0c0 4.3 0 8.7 0 13c0 3 0 6 0 9c0 1 0 2 0 3c0 0.2 -0.1 1.1 0 1.3c0.2 0.3 2.4 0 2.8 0c0.7 0 1.5 0 2.2 0c0.2 0 1.2 0.1 1.4 0c0.1 -0.1 0 -0.8 0 -0.9c0 -0.9 0 -1.9 0 -2.8c0 -6 0 -11.9 0 -17.9c0 -1.2 0 -2.4 0 -3.5c0 -0.2 -0.1 -1.1 0 -1.2c0.2 -0.1 1.1 0 1.3 0c0.9 0 1.7 0 2.6 0c1.2 0 2.4 0 3.6 0c0 -0.9 0 -1.7 0 -2.6c0 -0.7 0 -1.4 0 -2.1c0 -0.3 0.1 -1.1 0 -1.3c-0.2 -0.4 -0.7 -0.2 -1.3 -0.2c-1.3 0 -2.6 0 -3.9 0c-0.3 0 -2.1 0.2 -2.3 0c-0.2 -0.2 0 -1.8 0 -2.1c0 -2.2 0 -4.3 0 -6.3zM889.8 177.3c-1.4 0 -2.8 0 -4.1 0c-0.5 0 -2 -0.2 -2.3 0.1c-0.2 0.3 0 1.6 0 2c0 1.2 0 2.5 0 3.7c0 7.1 0 14.1 0 21.2c0 1.2 0 2.5 0 3.7c0 0.3 -0.2 1.5 0 1.8s2.2 0.1 2.7 0.1c0.8 0 1.7 0 2.5 0c0.1 0 1.2 0.1 1.3 0c0.1 -0.2 0 -1.1 0 -1.3c0 -1.1 0 -2.3 0 -3.4c0 -3.4 0 -6.9 0 -10.3c-0.1 -5.9 -0.1 -11.8 -0.1 -17.6zM951.3 204.6c-5.3 0 -9.6 -4.3 -10.2 -9.4c-0.5 -4.4 1 -8.9 4.9 -11.4c3.7 -2.4 9.2 -1.6 12.4 1.3c3.3 3 4.1 8.1 2.8 12.3c-1.4 4.3 -5.3 7.2 -9.9 7.2zM356.5 205c-5.4 0 -9.1 -4.5 -9.8 -9.6c-0.6 -4.3 0.7 -9.2 4.4 -11.8c3.6 -2.5 8.9 -2.1 11.9 1.1c6 6.4 3.7 20.3 -6.5 20.3zM322 204.1c-2.7 1 -5.3 1 -7.9 -0.2c-2 -1 -3.7 -2.8 -4.6 -4.9c-1.7 -3.9 -1.5 -9.2 1.2 -12.6c2.7 -3.5 7.4 -4.8 11.5 -3.2c8.5 3.2 8.7 17.9 -0.2 20.9zM733.6 204.1c-2.7 1 -5.3 1 -7.9 -0.2c-2 -1 -3.7 -2.8 -4.6 -4.9c-1.7 -3.9 -1.5 -9.2 1.2 -12.6c2.7 -3.5 7.4 -4.8 11.5 -3.2c8.5 3.2 8.7 17.9 -0.2 20.9zM1035.5 204.1c-2.7 1 -5.3 1 -7.9 -0.2c-2 -1 -3.7 -2.8 -4.6 -4.9c-1.7 -3.9 -1.5 -9.2 1.2 -12.6c2.7 -3.5 7.4 -4.8 11.5 -3.2c8.5 3.2 8.7 17.9 -0.2 20.9zM1073.6 204.1c-2.7 1 -5.3 1 -7.9 -0.2c-2 -1 -3.7 -2.8 -4.6 -4.9c-1.7 -3.9 -1.5 -9.2 1.2 -12.6c2.7 -3.5 7.4 -4.8 11.5 -3.2c8.5 3.2 8.7 17.9 -0.2 20.9zM559.9 195.4c-0.7 5.1 -4.5 9.2 -9.9 9.2c-9.7 0 -12.9 -13.1 -6.6 -19.4c3 -3 8.2 -3.5 11.8 -1.2c3.7 2.4 5.3 7.1 4.7 11.4zM512.8 204.5c-2.5 0 -4.7 -0.6 -6.6 -2.4c-1.8 -1.6 -2.8 -3.9 -3.3 -6.2c-0.8 -4.3 0.6 -8.9 4.2 -11.5c3.7 -2.7 9.1 -2.3 12.4 0.9c6.2 6.1 2.8 19.2 -6.7 19.2zM669 204.5c-2.5 0 -4.7 -0.6 -6.6 -2.4c-1.8 -1.6 -2.8 -3.9 -3.3 -6.2c-0.8 -4.3 0.6 -8.9 4.2 -11.5c3.7 -2.7 9.1 -2.3 12.4 0.9c6.2 6.1 2.8 19.2 -6.7 19.2zM887.9 170c2.5 -0.4 3.5 -3.5 2.7 -5.6s-3.3 -2.7 -5.3 -2.2c-2.4 0.5 -3.6 3.4 -2.7 5.6c0.8 2.1 3.3 2.6 5.3 2.2zM1004.5 169c-0.8 0 -1.7 0 -2.5 0c-1 0 -2.5 -0.3 -3.5 0c-0.6 0.2 -0.4 0.1 -0.4 0.9c0 1.2 0 2.5 0 3.7c0 1 0.2 2.2 0 3.3c-0.1 0.6 0 0.5 -0.8 0.5c-1.3 0 -2.5 0 -3.8 0c-0.3 0 -1.9 -0.2 -2.2 0c-0.3 0.3 0 2.6 0 3.1c0 1 0 2.1 0 3.1c2.3 0 4.5 0 6.8 0c0 4.3 0 8.7 0 13c0 3 0 6 0 9c0 1 0 2 0 3c0 0.2 -0.1 1.1 0 1.3c0.2 0.3 2.4 0 2.8 0c0.7 0 1.5 0 2.2 0c0.2 0 1.2 0.1 1.4 0c0.1 -0.1 0 -0.8 0 -0.9c0 -0.9 0 -1.9 0 -2.8c0 -6 0 -11.9 0 -17.9c0 -1.2 0 -2.4 0 -3.5c0 -0.2 -0.1 -1.1 0 -1.2c0.2 -0.1 1.1 0 1.3 0c0.9 0 1.7 0 2.6 0c1.2 0 2.4 0 3.6 0c0 -0.9 0 -1.7 0 -2.6c0 -0.7 0 -1.4 0 -2.1c0 -0.3 0.1 -1.1 0 -1.3c-0.2 -0.4 -0.7 -0.2 -1.3 -0.2c-1.3 0 -2.6 0 -3.9 0c-0.3 0 -2.1 0.2 -2.3 0c-0.2 -0.2 0 -1.8 0 -2.1c0 -2.2 0 -4.2 0 -6.3z"/>
+      </svg>
+  </a></h1>
   <div class="row m-0 copy">
     <div class="col p-0" style="min-width: 57%;">
-      <p>
+      <p class="nav">
+        <a class="active" href="./index.html">Process</a> | 
+        <a href="./convert.html">Convert</a>
+      </p>
+    </div>
+    <div class="col p-0">
+      <p class="text-right">
         <a href="https://github.com/thednp/svg-path-commander">Github</a> | 
         <a href="https://www.npmjs.com/package/svg-path-commander">npm</a> |
         <a href="https://www.jsdelivr.com/package/npm/svg-path-commander">cdn</a>
       </p>
-    </div>
-    <div class="col p-0">
-      <p class="text-right">2021 &copy; <a href="https://github.com/thednp">thednp</a></p>
     </div>
   </div>
   <hr>
@@ -34,54 +44,50 @@
       <div class="d-none d-md-block">
         <p><b>SVG viewBox</b></p>
         <input type="text" class="form-input" id="i1" placeholder="Type in viewBox value" value="0 0 16 16" />
-        <!-- <input type="text" class="form-input" id="i1" placeholder="Type in viewBox value" value="0 0 270 160" /> -->
         
         <p><b>PathValue Input</b></p>
         <textarea class="form-input" id="t1" placeholder="Type in d value"></textarea>
-        <!-- <textarea class="form-input" id="t1" placeholder="Type in d value">M8 15 A7 7 0 1 0 8 1</textarea> -->
-        <!-- <textarea class="form-input" id="t1" placeholder="Type in d value">M 10 80 Q 52.5 10, 95 80 T 180 80 T 270 80</textarea> -->
-        <!-- <textarea class="form-input" id="t1" placeholder="Type in d value">M 10 80 Q 52.5 10, 95 80</textarea> -->
-    
+
         <p><b>Instance Methods</b></p>
         <p>
-          <button type="button" data-toggle="tooltip" title="Initialize and update pathString" onclick="parse()">Init</button>
-          <button type="button" data-toggle="tooltip" title="Initialize, convert to absolute and update pathString" onclick="toAbs()">toAbsolute</button>
-          <button type="button" data-toggle="tooltip" title="Initialize, convert to relative and update pathString" onclick="toRel()">toRelative</button>
-          <button type="button" data-toggle="tooltip" title="Initialize, normalize and update pathString" onclick="toNormal()">Normalize</button>
-          <button type="button" data-toggle="tooltip" title="Initialize, optimize and update pathString" onclick="toOptimal()">Optimize</button>
-          <button type="button" data-toggle="tooltip" title="Initialize, reverse, optimize and update pathString" onclick="toRev()">Reverse</button>
-          <button type="button" data-toggle="tooltip" title="Initialize, reverse subpath, optimize and update pathString" onclick="toRev(1)">Reverse Subpath</button>
+          <button type="button" data-bs-toggle="tooltip" title="Initialize and update pathString" onclick="parse()">Init</button>
+          <button type="button" data-bs-toggle="tooltip" title="Initialize, convert to absolute and update pathString" onclick="toAbs()">toAbsolute</button>
+          <button type="button" data-bs-toggle="tooltip" title="Initialize, convert to relative and update pathString" onclick="toRel()">toRelative</button>
+          <button type="button" data-bs-toggle="tooltip" title="Initialize, normalize and update pathString" onclick="toNormal()">Normalize</button>
+          <button type="button" data-bs-toggle="tooltip" title="Initialize, optimize, remove decimals, and update pathString" onclick="toOptimal()">Optimize</button>
+          <button type="button" data-bs-toggle="tooltip" title="Initialize, reverse, optimize and update pathString" onclick="toRev()">Reverse</button>
+          <button type="button" data-bs-toggle="tooltip" title="Initialize, reverse subpath, optimize and update pathString" onclick="toRev(1)">Reverse Subpath</button>
         </p>
         
         <p><b>KUTE.js Tools</b></p>
         <p>
-          <button type="button" data-toggle="tooltip" title="Initialize, convert path commands to cubic bezier, and update pathString. The resulted pathString has intentionally no rounded numbers. The utility is used by KUTE.js" onclick="toCurve()">toCurve</button>
-          <button type="button" data-toggle="tooltip" title="Initialize, convert path commands to cubic bezier, reverse and update pathString. The utility is used by KUTE.js" onclick="toRevCurve()">Reverse Curve</button>
-          <button type="button" data-toggle="tooltip" title="Initialize, convert path commands to cubic bezier, reverse only subpath and update pathString" onclick="toRevCurve(1)">Reverse Subpath Curve</button>
-          <button type="button" data-toggle="tooltip" title="Convert to absolute, convert to string, split pathString, optimize each subpath then update the overall pathString. Also useful for KUTE.js" onclick="toSplit()">Split</button>
+          <button type="button" data-bs-toggle="tooltip" title="Initialize, convert path commands to cubic bezier, and update pathString. The resulted pathString has intentionally no rounded numbers. The utility is used by KUTE.js" onclick="toCurve()">toCurve</button>
+          <button type="button" data-bs-toggle="tooltip" title="Initialize, convert path commands to cubic bezier, reverse and update pathString. The utility is used by KUTE.js" onclick="toRevCurve()">Reverse Curve</button>
+          <button type="button" data-bs-toggle="tooltip" title="Initialize, convert path commands to cubic bezier, reverse only subpath and update pathString" onclick="toRevCurve(1)">Reverse Subpath Curve</button>
+          <button type="button" data-bs-toggle="tooltip" title="Convert to absolute, convert to string, split pathString, optimize each subpath then update the overall pathString. Also useful for KUTE.js" onclick="toSplit()">Split</button>
         </p>
       </div>
 
       <p><b>Matrix Transformation</b></p>
       <p>
-        <button type="button" data-toggle="tooltip" title="Rotate 180deg on X axis, the default transform origin is shape's center, Font-Icon creators love it" onclick="flipX()">FlipX</button>
-        <button type="button" data-toggle="tooltip" title="Rotate 180deg on Y axis, the default transform origin is shape's center, and using {decimals:5} option" onclick="flipY()">FlipY</button>
-        <button type="button" data-toggle="tooltip" title="Rotate 180deg on both X and Y axes, the default transform origin is shape's center" onclick="flipXY()">FlipXY</button>
-        <button type="button" data-toggle="tooltip" title="Transform multiple functions in object { translate: 1, skew: 15, rotate:-45, scale: 0.5 }. Transform origin is auto" onclick="transform({ translate: 1, skew: 15, rotate:-45, scale: 0.5 })">Quick transform</button>
+        <button type="button" data-bs-toggle="tooltip" title="Rotate 180deg on X axis, the default transform origin is shape's center, Font-Icon creators love it" onclick="flipX()">FlipX</button>
+        <button type="button" data-bs-toggle="tooltip" title="Rotate 180deg on Y axis, the default transform origin is shape's center, and using {round:5} option" onclick="flipY()">FlipY</button>
+        <button type="button" data-bs-toggle="tooltip" title="Rotate 180deg on both X and Y axes, the default transform origin is shape's center" onclick="flipXY()">FlipXY</button>
+        <button type="button" data-bs-toggle="tooltip" title="Transform multiple functions in object { translate: 1, skew: 15, rotate:-45, scale: 0.5 }. Transform origin is auto" onclick="transform({ translate: 1, skew: 15, rotate:-45, scale: 0.5 })">Quick transform</button>
       </p>
       <p>
-        <!-- <input class="form-input d-inline" data-toggle="tooltip" data-title="Perspective" type="number" name="perspective" id="perspective" placeholder="Perspective" value="400" min="200" max="2000" step="100"> -->
-        <input class="form-input d-inline" data-toggle="tooltip" data-title="TranslateX" type="number" name="translateX" id="translateX" placeholder="TranslateX" value="0" min="-16" max="16" step="1">
-        <input class="form-input d-inline" data-toggle="tooltip" data-title="TranslateY" type="number" name="translateY" id="translateY" placeholder="TranslateY" value="0" min="-16" max="16" step="1">
-        <input class="form-input d-inline" data-toggle="tooltip" data-title="TranslateZ" type="number" name="translateZ" id="translateZ" placeholder="TranslateZ" value="0" min="-16" max="16" step="1">
-        <input class="form-input d-inline" data-toggle="tooltip" data-title="RotateX" type="number" name="rotateX" id="rotateX" placeholder="RotateX" value="0" min="-360" max="360" step="5">
-        <input class="form-input d-inline" data-toggle="tooltip" data-title="RotateY" type="number" name="rotateY" id="rotateY" placeholder="RotateY" value="0" min="-360" max="360" step="5">
-        <input class="form-input d-inline" data-toggle="tooltip" data-title="RotateZ" type="number" name="rotateZ" id="rotateZ" placeholder="RotateZ" value="0" min="-360" max="360" step="5"> 
-        <input class="form-input d-inline" data-toggle="tooltip" data-title="SkewX" type="number" name="skewX" id="skewX" placeholder="SkewX" value="0" min="-360" max="360" step="5">
-        <input class="form-input d-inline" data-toggle="tooltip" data-title="SkewY" type="number" name="skewY" id="skewY" placeholder="SkewY" value="0" min="-360" max="360" step="5">
-        <input class="form-input d-inline" data-toggle="tooltip" data-title="Scale" type="number" name="scale" id="scale" placeholder="Scale" value="1" min="0" max="10" step="0.1">
+        <!-- <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="Perspective" type="number" name="perspective" id="perspective" placeholder="Perspective" value="400" min="200" max="2000" step="100"> -->
+        <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="TranslateX" type="number" name="translateX" id="translateX" placeholder="TranslateX" value="0" min="-16" max="16" step="1">
+        <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="TranslateY" type="number" name="translateY" id="translateY" placeholder="TranslateY" value="0" min="-16" max="16" step="1">
+        <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="TranslateZ" type="number" name="translateZ" id="translateZ" placeholder="TranslateZ" value="0" min="-16" max="16" step="1">
+        <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="RotateX" type="number" name="rotateX" id="rotateX" placeholder="RotateX" value="0" min="-360" max="360" step="5">
+        <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="RotateY" type="number" name="rotateY" id="rotateY" placeholder="RotateY" value="0" min="-360" max="360" step="5">
+        <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="RotateZ" type="number" name="rotateZ" id="rotateZ" placeholder="RotateZ" value="0" min="-360" max="360" step="5"> 
+        <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="SkewX" type="number" name="skewX" id="skewX" placeholder="SkewX" value="0" min="-360" max="360" step="5">
+        <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="SkewY" type="number" name="skewY" id="skewY" placeholder="SkewY" value="0" min="-360" max="360" step="5">
+        <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="Scale" type="number" name="scale" id="scale" placeholder="Scale" value="1" min="0" max="10" step="0.1">
         <button 
-        type="button" data-toggle="tooltip" title="Transform multiple functions in the form" 
+        type="button" data-bs-toggle="tooltip" title="Transform multiple functions in the form" 
           onclick="transform({translate: [translateX.value||0,translateY.value||0,translateZ.value||0], rotate:[rotateX.value||0,rotateY.value||0,rotateZ.value||0], skew:[skewX.value||0,skewY.value||0], scale:[scale.value||1,scale.value||1,scale.value||1]})">
           Transform
         </button>
@@ -96,20 +102,28 @@
     <div class="col col-lg">
       <p class="d-none d-md-block"><b>Test</b></p>
       <div class="text-center">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+        <svg id="test-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
           <path d="M0 0L0 0" fill="rgba(125,125,125,0.3)"></path>
-          <!-- <path d="M0 0L0 0" stroke="orange" stroke-width="2" fill="transparent"> -->
-          <!-- <glyph d="M0 0L0 0" fill="cyan"> -->
         </svg>
       </div>
-      <!-- <div id='test3d' style="background: rgba(155,155,155,0.3); width: 100%;height:150px"></div> -->
-
     </div>
   </div>
-
-
+  <hr style="margin-top:1.5rem">
+  <div class="row m-0 copy">
+    <div class="col p-0" style="min-width: 57%;">
+      <p>
+        <a href="https://github.com/thednp/svg-path-commander">Github</a> | 
+        <a href="https://www.npmjs.com/package/svg-path-commander">npm</a> |
+        <a href="https://www.jsdelivr.com/package/npm/svg-path-commander">cdn</a>
+      </p>
+    </div>
+    <div class="col p-0">
+      <p class="text-right">2021 &copy; <a href="https://github.com/thednp">thednp</a></p>
+    </div>
+  </div>
+  <script src="./dist/svg-path-commander.js"></script>
   <script>
-    SVGPathCommander.options.decimals = 3;
+    SVGPathCommander.options.round = 3;
 
     var pathToCurve = SVGPathCommander.pathToCurve,
         pathToString = SVGPathCommander.pathToString,
@@ -118,11 +132,8 @@
         getPathLength = SVGPathCommander.getPathLength,
         reverseCurve = SVGPathCommander.reverseCurve,
         optimizePath = SVGPathCommander.optimizePath,
-        // splitCubicSegment = SVGPathCommander.splitCubicSegment,
-        // splitCubic = SVGPathCommander.splitCubic,
-        // getPathArea = SVGPathCommander.getPathArea,
 
-        svg = document.querySelector('svg'),
+        svg = document.getElementById('test-svg'),
         path = svg.children[0],
         inputTextArea = document.getElementById('t1'),
         outputTextArea = document.getElementById('t2'),
@@ -154,7 +165,7 @@
 
     function parse() { // Init
       pathValue = inputTextArea.value || pathValue
-      var pv = new SVGPathCommander( pathValue ).optimize();
+      var pv = new SVGPathCommander( pathValue );
       path.setAttribute('d', pv.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
@@ -178,13 +189,13 @@
 
     function toOptimal() { // optimize
       pathValue = inputTextArea.value || pathValue
-      var nm = new SVGPathCommander( pathValue ).optimize();
+      var opt = new SVGPathCommander( pathValue, {round: 'auto'} ).optimize();
 
-      path.setAttribute('d', nm.toString());
+      path.setAttribute('d', opt.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
-      outputTextArea.value = nm.toString();
+      outputTextArea.value = opt.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
@@ -218,39 +229,35 @@
     function toCurve() { // To curve coordinates
       pathValue = inputTextArea.value || pathValue
 
-      var cvInit = new SVGPathCommander(pathValue,{round:0}), cvPath;
-      cvInit.segments = pathToCurve( cvInit.segments, 3 );
-      cvPath = cvInit.toString();
+      var cv = new SVGPathCommander(pathValue, {round: false}).toCurve();
 
-      path.setAttribute('d', cvPath);
+      path.setAttribute('d', cv.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = '';
-      outputTextArea.value = cvPath;
+      outputTextArea.value = cv.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
       if (!usedCurve) 
-      alert(`This instance doesn't round the path values as configured with 'round: false' option.`);
+      console.warn(`The "toCurve()" instance example doesn\'t round the path values as configured with 'round: false' option.`);
       usedCurve = true;
     }
 
     function toRevCurve(onlySubpath) { // To curve coordinates
       pathValue = inputTextArea.value || pathValue
 
-      var revCVinit = new SVGPathCommander(pathValue), revCPath
-      revCVinit.segments = pathToCurve( revCVinit.segments, 3 )
-      revCPath = revCVinit.reverse(onlySubpath).toString()
+      var cv = new SVGPathCommander(pathValue, {round: 'auto'}).toCurve().reverse(onlySubpath);
 
-      path.setAttribute('d', revCPath);
+      path.setAttribute('d', cv.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
-      outputTextArea.value = revCPath;
+      outputTextArea.value = cv.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
     function toRev(onlySubpath) { // reverse coordinates
       pathValue = inputTextArea.value || pathValue
 
-      var revPath = new SVGPathCommander( pathValue ).reverse(onlySubpath).optimize().toString();
+      var revPath = new SVGPathCommander( pathValue ).reverse(onlySubpath).toString();
       
       path.setAttribute('d', revPath);
       path.setAttribute('fill', randomColor());
@@ -274,8 +281,7 @@
     function flipX() { // transform
       pathValue = inputTextArea.value || pathValue         
       
-      var transformObject = { translate: 0.05, rotate: 90, scale: 0.9 },
-          tfPath = new SVGPathCommander( pathValue ).flipX().optimize().toString();
+      var tfPath = new SVGPathCommander( pathValue ).flipX().optimize().toString();
       
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());
@@ -287,7 +293,7 @@
     function flipY() { // transform
       pathValue = inputTextArea.value || pathValue         
       
-      var tfPath = new SVGPathCommander( pathValue, {decimals:5} ).flipY().optimize().toString();
+      var tfPath = new SVGPathCommander( pathValue, {round:5} ).flipY().optimize().toString();
 
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());
