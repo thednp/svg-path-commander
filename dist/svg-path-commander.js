@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.8 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.15 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -9,31 +9,1504 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.SVGPathCommander = factory());
 })(this, (function () { 'use strict';
 
-  var SVGPCO = {
-    origin: null,
-    decimals: 4,
-    round: 1,
+  /**
+   * SVGPathCommander default options
+   * @type {SVGPathCommander.options}
+   */
+  var defaultOptions = {
+    origin: [0, 0, 0],
+    round: 4,
   };
 
-  // DOMMatrix Static methods
-  // * `fromFloat64Array` and `fromFloat32Array` methods are not supported;
-  // * `fromArray` a more simple implementation, should also accept float[32/64]Array;
-  // * `fromMatrix` load values from another CSSMatrix/DOMMatrix instance;
-  // * `fromString` parses and loads values from any valid CSS transform string.
+  /**
+   * Segment params length
+   */
+  var paramsCount = {
+    a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0,
+  };
 
   /**
-   * Creates a new mutable `CSSMatrix` object given an array float values.
+   * Breaks the parsing of a pathString once a segment is finalized.
+   *
+   * @param {SVGPathCommander.PathParser} path the `PathParser` instance
+   */
+  function finalizeSegment(path) {
+    var pathCommand = path.pathValue[path.segmentStart];
+    var LK = pathCommand.toLowerCase();
+    var data = path.data;
+
+    // Process duplicated commands (without comand name)
+    if (LK === 'm' && data.length > 2) {
+      // @ts-ignore
+      path.segments.push([pathCommand, data[0], data[1]]);
+      data = data.slice(2);
+      LK = 'l';
+      pathCommand = pathCommand === 'm' ? 'l' : 'L';
+    }
+
+    // @ts-ignore
+    while (data.length >= paramsCount[LK]) {
+      // path.segments.push([pathCommand].concat(data.splice(0, paramsCount[LK])));
+      // @ts-ignore
+      path.segments.push([pathCommand ].concat( data.splice(0, paramsCount[LK])));
+      // @ts-ignore
+      if (!paramsCount[LK]) {
+        break;
+      }
+    }
+  }
+
+  var invalidPathValue = 'Invalid path value';
+
+  /**
+   * Validates an A (arc-to) specific path command value.
+   * Usually a `large-arc-flag` or `sweep-flag`.
+   *
+   * @param {SVGPathCommander.PathParser} path the `PathParser` instance
+   */
+  function scanFlag(path) {
+    var index = path.index;
+    var ch = path.pathValue.charCodeAt(index);
+
+    if (ch === 0x30/* 0 */) {
+      path.param = 0;
+      path.index += 1;
+      return;
+    }
+
+    if (ch === 0x31/* 1 */) {
+      path.param = 1;
+      path.index += 1;
+      return;
+    }
+
+    path.err = invalidPathValue + ": invalid Arc flag \"" + ch + "\", expecting 0 or 1 at index " + index;
+  }
+
+  /**
+   * Checks if a character is a digit.
+   *
+   * @param {number} code the character to check
+   * @returns {boolean} check result
+   */
+  function isDigit(code) {
+    return (code >= 48 && code <= 57); // 0..9
+  }
+
+  /**
+   * Validates every character of the path string,
+   * every path command, negative numbers or floating point numbers.
+   *
+   * @param {SVGPathCommander.PathParser} path the `PathParser` instance
+   */
+  function scanParam(path) {
+    var max = path.max;
+    var pathValue = path.pathValue;
+    var start = path.index;
+    var index = start;
+    var zeroFirst = false;
+    var hasCeiling = false;
+    var hasDecimal = false;
+    var hasDot = false;
+    var ch;
+
+    if (index >= max) {
+      // path.err = 'SvgPath: missed param (at pos ' + index + ')';
+      path.err = invalidPathValue + " at " + index + ": missing param " + (pathValue[index]);
+      return;
+    }
+    ch = pathValue.charCodeAt(index);
+
+    if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
+      index += 1;
+      ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+    }
+
+    // This logic is shamelessly borrowed from Esprima
+    // https://github.com/ariya/esprimas
+    if (!isDigit(ch) && ch !== 0x2E/* . */) {
+      // path.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
+      path.err = invalidPathValue + " at index " + index + ": " + (pathValue[index]) + " is not a number";
+      return;
+    }
+
+    if (ch !== 0x2E/* . */) {
+      zeroFirst = (ch === 0x30/* 0 */);
+      index += 1;
+
+      ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+
+      if (zeroFirst && index < max) {
+        // decimal number starts with '0' such as '09' is illegal.
+        if (ch && isDigit(ch)) {
+          // path.err = 'SvgPath: numbers started with `0` such as `09`
+          // are illegal (at pos ' + start + ')';
+          path.err = invalidPathValue + " at index " + start + ": " + (pathValue[start]) + " illegal number";
+          return;
+        }
+      }
+
+      while (index < max && isDigit(pathValue.charCodeAt(index))) {
+        index += 1;
+        hasCeiling = true;
+      }
+      ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+    }
+
+    if (ch === 0x2E/* . */) {
+      hasDot = true;
+      index += 1;
+      while (isDigit(pathValue.charCodeAt(index))) {
+        index += 1;
+        hasDecimal = true;
+      }
+      ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+    }
+
+    if (ch === 0x65/* e */ || ch === 0x45/* E */) {
+      if (hasDot && !hasCeiling && !hasDecimal) {
+        path.err = invalidPathValue + " at index " + index + ": " + (pathValue[index]) + " invalid float exponent";
+        return;
+      }
+
+      index += 1;
+
+      ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+      if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
+        index += 1;
+      }
+      if (index < max && isDigit(pathValue.charCodeAt(index))) {
+        while (index < max && isDigit(pathValue.charCodeAt(index))) {
+          index += 1;
+        }
+      } else {
+        // path.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+        path.err = invalidPathValue + " at index " + index + ": " + (pathValue[index]) + " invalid float exponent";
+        return;
+      }
+    }
+
+    path.index = index;
+    path.param = +path.pathValue.slice(start, index);
+  }
+
+  /**
+   * Checks if the character is a space.
+   *
+   * @param {number} ch the character to check
+   * @returns {boolean} check result
+   */
+  function isSpace(ch) {
+    var specialSpaces = [
+      0x1680, 0x180E, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006,
+      0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000, 0xFEFF];
+    return (ch === 0x0A) || (ch === 0x0D) || (ch === 0x2028) || (ch === 0x2029) // Line terminators
+      // White spaces
+      || (ch === 0x20) || (ch === 0x09) || (ch === 0x0B) || (ch === 0x0C) || (ch === 0xA0)
+      || (ch >= 0x1680 && specialSpaces.indexOf(ch) >= 0);
+  }
+
+  /**
+   * Points the parser to the next character in the
+   * path string every time it encounters any kind of
+   * space character.
+   *
+   * @param {SVGPathCommander.PathParser} path the `PathParser` instance
+   */
+  function skipSpaces(path) {
+    var pathValue = path.pathValue;
+    var max = path.max;
+    while (path.index < max && isSpace(pathValue.charCodeAt(path.index))) {
+      path.index += 1;
+    }
+  }
+
+  /**
+   * Checks if the character is a path command.
+   *
+   * @param {any} code the character to check
+   * @returns {boolean} check result
+   */
+  function isPathCommand(code) {
+    // eslint-disable-next-line no-bitwise -- Impossible to satisfy
+    switch (code | 0x20) {
+      case 0x6D/* m */:
+      case 0x7A/* z */:
+      case 0x6C/* l */:
+      case 0x68/* h */:
+      case 0x76/* v */:
+      case 0x63/* c */:
+      case 0x73/* s */:
+      case 0x71/* q */:
+      case 0x74/* t */:
+      case 0x61/* a */:
+      // case 0x72/* r */:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Checks if the character is or belongs to a number.
+   * [0-9]|+|-|.
+   *
+   * @param {number} code the character to check
+   * @returns {boolean} check result
+   */
+  function isDigitStart(code) {
+    return (code >= 48 && code <= 57) /* 0..9 */
+      || code === 0x2B /* + */
+      || code === 0x2D /* - */
+      || code === 0x2E; /* . */
+  }
+
+  /**
+   * Checks if the character is an A (arc-to) path command.
+   *
+   * @param {number} code the character to check
+   * @returns {boolean} check result
+   */
+  function isArcCommand(code) {
+    // eslint-disable-next-line no-bitwise -- Impossible to satisfy
+    return (code | 0x20) === 0x61;
+  }
+
+  /**
+   * Scans every character in the path string to determine
+   * where a segment starts and where it ends.
+   *
+   * @param {SVGPathCommander.PathParser} path the `PathParser` instance
+   */
+  function scanSegment(path) {
+    var max = path.max;
+    var pathValue = path.pathValue;
+    var index = path.index;
+    var cmdCode = pathValue.charCodeAt(index);
+    // @ts-ignore
+    var reqParams = paramsCount[pathValue[index].toLowerCase()];
+
+    path.segmentStart = index;
+
+    if (!isPathCommand(cmdCode)) {
+      path.err = invalidPathValue + ": " + (pathValue[index]) + " not a path command";
+      return;
+    }
+
+    path.index += 1;
+    skipSpaces(path);
+
+    path.data = [];
+
+    if (!reqParams) {
+      // Z
+      finalizeSegment(path);
+      return;
+    }
+
+    for (;;) {
+      for (var i = reqParams; i > 0; i -= 1) {
+        if (isArcCommand(cmdCode) && (i === 3 || i === 4)) { scanFlag(path); }
+        else { scanParam(path); }
+
+        if (path.err.length) {
+          return;
+        }
+        path.data.push(path.param);
+
+        skipSpaces(path);
+
+        // after ',' param is mandatory
+        if (path.index < max && pathValue.charCodeAt(path.index) === 0x2C/* , */) {
+          path.index += 1;
+          skipSpaces(path);
+        }
+      }
+
+      if (path.index >= path.max) {
+        break;
+      }
+
+      // Stop on next segment
+      if (!isDigitStart(pathValue.charCodeAt(path.index))) {
+        break;
+      }
+    }
+
+    finalizeSegment(path);
+  }
+
+  /**
+   * Returns a clone of an existing `pathArray`.
+   *
+   * @param {SVGPathCommander.pathArray | SVGPathCommander.pathSegment} path the source `pathArray`
+   * @returns {any} the cloned `pathArray`
+   */
+  function clonePath(path) {
+    return path.map(function (x) { return (Array.isArray(x) ? [].concat( x ) : x); });
+  }
+
+  /**
+   * The `PathParser` used by the parser.
+   *
+   * @param {string} pathString
+   */
+  function PathParser(pathString) {
+    /** @type {SVGPathCommander.pathArray} */
+    // @ts-ignore
+    this.segments = [];
+    /** @type {string} */
+    this.pathValue = pathString;
+    /** @type {number} */
+    this.max = pathString.length;
+    /** @type {number} */
+    this.index = 0;
+    /** @type {number} */
+    this.param = 0.0;
+    /** @type {number} */
+    this.segmentStart = 0;
+    /** @type {any} */
+    this.data = [];
+    /** @type {string} */
+    this.err = '';
+  }
+
+  /**
+   * Iterates an array to check if it's an actual `pathArray`.
+   *
+   * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
+   * @returns {boolean} iteration result
+   */
+  function isPathArray(path) {
+    return Array.isArray(path) && path.every(function (seg) {
+      var lk = seg[0].toLowerCase();
+      return paramsCount[lk] === seg.length - 1 && 'achlmqstvz'.includes(lk);
+    });
+  }
+
+  /**
+   * Parses a path string value and returns an array
+   * of segments we like to call `pathArray`.
+   *
+   * @param {SVGPathCommander.pathArray | string} pathInput the string to be parsed
+   * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
+   */
+  function parsePathString(pathInput) {
+    if (Array.isArray(pathInput) && isPathArray(pathInput)) {
+      return clonePath(pathInput);
+    }
+
+    // @ts-ignore
+    var path = new PathParser(pathInput); // TS expects string
+
+    skipSpaces(path);
+
+    while (path.index < path.max && !path.err.length) {
+      scanSegment(path);
+    }
+
+    if (path.err.length) {
+      // @ts-ignore
+      path.segments = [];
+    } else if (path.segments.length) {
+      if (!'mM'.includes(path.segments[0][0])) {
+        path.err = invalidPathValue + ": missing M/m";
+        // @ts-ignore
+        path.segments = [];
+      } else {
+        path.segments[0][0] = 'M';
+      }
+    }
+
+    return path.segments;
+  }
+
+  /**
+   * Iterates an array to check if it's a `pathArray`
+   * with all absolute values.
+   *
+   * @param {SVGPathCommander.pathArray} path the `pathArray` to be checked
+   * @returns {boolean} iteration result
+   */
+  function isAbsoluteArray(path) {
+    return isPathArray(path)
+      && path.every(function (x) { return x[0] === x[0].toUpperCase(); });
+  }
+
+  /**
+   * Parses a path string value or object and returns an array
+   * of segments, all converted to absolute values.
+   *
+   * @param {SVGPathCommander.pathArray | string} pathInput the path string | object
+   * @returns {SVGPathCommander.absoluteArray} the resulted `pathArray` with absolute values
+   */
+  function pathToAbsolute(pathInput) {
+    if (Array.isArray(pathInput) && isAbsoluteArray(pathInput)) {
+      return clonePath(pathInput);
+    }
+
+    var path = parsePathString(pathInput);
+    var x = 0; var y = 0;
+    var mx = 0; var my = 0;
+
+    // @ts-ignore -- the `absoluteSegment[]` is for sure an `absolutePath`
+    return path.map(function (segment) {
+      var assign, assign$1, assign$2;
+
+      var values = segment.slice(1).map(Number);
+      var pathCommand = segment[0];
+      /** @type {SVGPathCommander.absoluteCommand} */
+      // @ts-ignore
+      var absCommand = pathCommand.toUpperCase();
+
+      if (pathCommand === 'M') {
+        (assign = values, x = assign[0], y = assign[1]);
+        mx = x;
+        my = y;
+        return ['M', x, y];
+      }
+      /** @type {SVGPathCommander.absoluteSegment} */
+      // @ts-ignore
+      var absoluteSegment = [];
+
+      if (pathCommand !== absCommand) {
+        switch (absCommand) {
+          case 'A':
+            absoluteSegment = [
+              absCommand, values[0], values[1], values[2],
+              values[3], values[4], values[5] + x, values[6] + y];
+            break;
+          case 'V':
+            absoluteSegment = [absCommand, values[0] + y];
+            break;
+          case 'H':
+            absoluteSegment = [absCommand, values[0] + x];
+            break;
+          default: {
+            // use brakets for `eslint: no-case-declaration`
+            // https://stackoverflow.com/a/50753272/803358
+            var absValues = values.map(function (n, j) { return n + (j % 2 ? y : x); });
+            // @ts-ignore for n, l, c, s, q, t
+            absoluteSegment = [absCommand ].concat( absValues);
+          }
+        }
+      } else {
+        // @ts-ignore
+        absoluteSegment = [absCommand ].concat( values);
+      }
+
+      var segLength = absoluteSegment.length;
+      switch (absCommand) {
+        case 'Z':
+          x = mx;
+          y = my;
+          break;
+        case 'H':
+          // @ts-ignore
+          (assign$1 = absoluteSegment, x = assign$1[1]);
+          break;
+        case 'V':
+          // @ts-ignore
+          (assign$2 = absoluteSegment, y = assign$2[1]);
+          break;
+        default:
+          // @ts-ignore
+          x = absoluteSegment[segLength - 2];
+          // @ts-ignore
+          y = absoluteSegment[segLength - 1];
+
+          if (absCommand === 'M') {
+            mx = x;
+            my = y;
+          }
+      }
+      return absoluteSegment;
+    });
+  }
+
+  /**
+   * Iterates an array to check if it's a `pathArray`
+   * with relative values.
+   *
+   * @param {SVGPathCommander.pathArray} path the `pathArray` to be checked
+   * @returns {boolean} iteration result
+   */
+  function isRelativeArray(path) {
+    return isPathArray(path)
+      && path.slice(1).every(function (seg) { return seg[0] === seg[0].toLowerCase(); });
+  }
+
+  /**
+   * Parses a path string value or object and returns an array
+   * of segments, all converted to relative values.
+   *
+   * @param {SVGPathCommander.pathArray} pathInput the path string | object
+   * @returns {SVGPathCommander.relativeArray} the resulted `pathArray` with relative values
+   */
+  function pathToRelative(pathInput) {
+    if (isRelativeArray(pathInput)) {
+      return clonePath(pathInput);
+    }
+
+    var path = parsePathString(pathInput);
+    var x = 0; var y = 0;
+    var mx = 0; var my = 0;
+
+    // @ts-ignore -- this is actually a `relativeArray`
+    return path.map(function (segment) {
+      var assign, assign$1;
+
+      var values = segment.slice(1).map(Number);
+      var pathCommand = segment[0];
+      /** @type {SVGPathCommander.relativeCommand} */
+      // @ts-ignore
+      var relativeCommand = pathCommand.toLowerCase();
+
+      if (pathCommand === 'M') {
+        (assign = values, x = assign[0], y = assign[1]);
+        mx = x;
+        my = y;
+        return ['M', x, y];
+      }
+
+      /** @type {SVGPathCommander.relativeSegment} */
+      // @ts-ignore -- trust me DON'T CHANGE
+      var relativeSegment = [];
+
+      if (pathCommand !== relativeCommand) {
+        switch (relativeCommand) {
+          case 'a':
+            relativeSegment = [
+              relativeCommand, values[0], values[1], values[2],
+              values[3], values[4], values[5] - x, values[6] - y];
+            break;
+          case 'v':
+            relativeSegment = [relativeCommand, values[0] - y];
+            break;
+          case 'h':
+            relativeSegment = [relativeCommand, values[0] - x];
+            break;
+          default: {
+            // use brakets for `eslint: no-case-declaration`
+            // https://stackoverflow.com/a/50753272/803358
+            var relValues = values.map(function (n, j) { return n - (j % 2 ? y : x); });
+            // @ts-ignore for M, L, C, S, Q, T
+            relativeSegment = [relativeCommand ].concat( relValues);
+
+            if (relativeCommand === 'm') {
+              (assign$1 = values, x = assign$1[0], y = assign$1[1]);
+              mx = x;
+              my = y;
+            }
+          }
+        }
+      } else {
+        if (pathCommand === 'm') {
+          mx = values[0] + x;
+          my = values[1] + y;
+        }
+        // @ts-ignore
+        relativeSegment = [relativeCommand ].concat( values);
+      }
+
+      var segLength = relativeSegment.length;
+      switch (relativeCommand) {
+        case 'z':
+          x = mx;
+          y = my;
+          break;
+        case 'h':
+          // @ts-ignore
+          x += relativeSegment[1];
+          break;
+        case 'v':
+          // @ts-ignore
+          y += relativeSegment[1];
+          break;
+        default:
+          // @ts-ignore
+          x += relativeSegment[segLength - 2];
+          // @ts-ignore
+          y += relativeSegment[segLength - 1];
+      }
+      return relativeSegment;
+    });
+  }
+
+  /**
+   * Splits an extended A (arc-to) segment into two cubic-bezier segments.
+   *
+   * @param {SVGPathCommander.pathArray} path the `pathArray` this segment belongs to
+   * @param {string[]} allPathCommands all previous path commands
+   * @param {number} i the segment index
+   */
+
+  function fixArc(path, allPathCommands, i) {
+    if (path[i].length > 7) {
+      path[i].shift();
+      var segment = path[i];
+      var ni = i; // ESLint
+      while (segment.length) {
+        // if created multiple C:s, their original seg is saved
+        allPathCommands[i] = 'A';
+        // @ts-ignore
+        path.splice(ni += 1, 0, ['C' ].concat( segment.splice(0, 6)));
+      }
+      path.splice(i, 1);
+    }
+  }
+
+  /**
+   * Returns the missing control point from an
+   * T (shorthand quadratic bezier) segment.
+   *
+   * @param {number} x1 curve start x
+   * @param {number} y1 curve start y
+   * @param {number} qx control point x
+   * @param {number} qy control point y
+   * @param {string} prevCommand the previous path command
+   * @returns {{qx: number, qy: number}}} the missing control point
+   */
+  function shorthandToQuad(x1, y1, qx, qy, prevCommand) {
+    return 'QT'.includes(prevCommand)
+      ? { qx: x1 * 2 - qx, qy: y1 * 2 - qy }
+      : { qx: x1, qy: y1 };
+  }
+
+  /**
+   * Returns the missing control point from an
+   * S (shorthand cubic bezier) segment.
+   *
+   * @param {number} x1 curve start x
+   * @param {number} y1 curve start y
+   * @param {number} x2 curve end x
+   * @param {number} y2 curve end y
+   * @param {string} prevCommand the previous path command
+   * @returns {{x1: number, y1: number}}} the missing control point
+   */
+  function shorthandToCubic(x1, y1, x2, y2, prevCommand) {
+    return 'CS'.includes(prevCommand)
+      ? { x1: x1 * 2 - x2, y1: y1 * 2 - y2 }
+      : { x1: x1, y1: y1 };
+  }
+
+  /**
+   * Normalizes a single segment of a `pathArray` object.
+   *
+   * @param {SVGPathCommander.pathSegment} segment the segment object
+   * @param {any} params the coordinates of the previous segment
+   * @param {string} prevCommand the path command of the previous segment
+   * @returns {SVGPathCommander.normalSegment} the normalized segment
+   */
+  function normalizeSegment(segment, params, prevCommand) {
+    var pathCommand = segment[0];
+    var px1 = params.x1;
+    var py1 = params.y1;
+    var px2 = params.x2;
+    var py2 = params.y2;
+    var values = segment.slice(1).map(Number);
+    var result = segment;
+
+    if (!'TQ'.includes(pathCommand)) {
+      // optional but good to be cautious
+      params.qx = null;
+      params.qy = null;
+    }
+
+    if (pathCommand === 'H') {
+      result = ['L', segment[1], py1];
+    } else if (pathCommand === 'V') {
+      result = ['L', px1, segment[1]];
+    } else if (pathCommand === 'S') {
+      var ref = shorthandToCubic(px1, py1, px2, py2, prevCommand);
+      var x1 = ref.x1;
+      var y1 = ref.y1;
+      params.x1 = x1;
+      params.y1 = y1;
+      // @ts-ignore
+      result = ['C', x1, y1 ].concat( values);
+    } else if (pathCommand === 'T') {
+      var ref$1 = shorthandToQuad(px1, py1, params.qx, params.qy, prevCommand);
+      var qx = ref$1.qx;
+      var qy = ref$1.qy;
+      params.qx = qx;
+      params.qy = qy;
+      // @ts-ignore
+      result = ['Q', qx, qy ].concat( values);
+    } else if (pathCommand === 'Q') {
+      var nqx = values[0];
+      var nqy = values[1];
+      params.qx = nqx;
+      params.qy = nqy;
+    }
+
+    // @ts-ignore -- we-re switching `pathSegment` type
+    return result;
+  }
+
+  /**
+   * Iterates an array to check if it's a `pathArray`
+   * with all segments are in non-shorthand notation
+   * with absolute values.
+   *
+   * @param {SVGPathCommander.pathArray} path the `pathArray` to be checked
+   * @returns {boolean} iteration result
+   */
+  function isNormalizedArray(path) {
+    return isAbsoluteArray(path) && path.every(function (seg) { return 'ACLMQZ'.includes(seg[0]); });
+  }
+
+  /**
+   * @type {SVGPathCommander.parserParams}
+   */
+  var paramsParser = {
+    x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
+  };
+
+  /**
+   * Normalizes a `path` object for further processing:
+   * * convert segments to absolute values
+   * * convert shorthand path commands to their non-shorthand notation
+   *
+   * @param {SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
+   * @returns {SVGPathCommander.normalArray} the normalized `pathArray`
+   */
+  function normalizePath(pathInput) {
+    var assign;
+
+    if (isNormalizedArray(pathInput)) {
+      return clonePath(pathInput);
+    }
+
+    var path = pathToAbsolute(pathInput);
+    var params = Object.assign({}, paramsParser);
+    var allPathCommands = [];
+    var ii = path.length;
+    var pathCommand = '';
+    var prevCommand = '';
+
+    for (var i = 0; i < ii; i += 1) {
+      (assign = path[i], pathCommand = assign[0]);
+
+      // Save current path command
+      allPathCommands[i] = pathCommand;
+      // Get previous path command
+      if (i) { prevCommand = allPathCommands[i - 1]; }
+      // Previous path command is used to normalizeSegment
+      // @ts-ignore -- expected on normalization
+      path[i] = normalizeSegment(path[i], params, prevCommand);
+
+      var segment = path[i];
+      var seglen = segment.length;
+
+      params.x1 = +segment[seglen - 2];
+      params.y1 = +segment[seglen - 1];
+      params.x2 = +(segment[seglen - 4]) || params.x1;
+      params.y2 = +(segment[seglen - 3]) || params.y1;
+    }
+
+    // @ts-ignore -- a `normalArray` is absolutely an `absoluteArray`
+    return path;
+  }
+
+  /**
+   * Checks a `pathArray` for an unnecessary `Z` segment
+   * and returns a new `pathArray` without it.
+   *
+   * The `pathInput` must be a single path, without
+   * sub-paths. For multi-path `<path>` elements,
+   * use `splitPath` first and apply this utility on each
+   * sub-path separately.
+   *
+   * @param {SVGPathCommander.pathArray | string} pathInput the `pathArray` source
+   * @return {SVGPathCommander.pathArray} a fixed `pathArray`
+   */
+  function fixPath(pathInput) {
+    var pathArray = parsePathString(pathInput);
+    var normalArray = normalizePath(pathArray);
+    var length = pathArray.length;
+    var isClosed = normalArray.slice(-1)[0][0] === 'Z';
+    var segBeforeZ = isClosed ? length - 2 : length - 1;
+
+    var ref = normalArray[0].slice(1);
+    var mx = ref[0];
+    var my = ref[1];
+    var ref$1 = normalArray[segBeforeZ].slice(-2);
+    var x = ref$1[0];
+    var y = ref$1[1];
+
+    if (isClosed && mx === x && my === y) {
+      // @ts-ignore -- `pathSegment[]` is a `pathArray`
+      return pathArray.slice(0, -1);
+    }
+    return pathArray;
+  }
+
+  /**
+   * Iterates an array to check if it's a `pathArray`
+   * with all C (cubic bezier) segments.
+   *
+   * @param {SVGPathCommander.pathArray} path the `Array` to be checked
+   * @returns {boolean} iteration result
+   */
+  function isCurveArray(path) {
+    return isPathArray(path) && path.every(function (seg) { return 'MC'.includes(seg[0]); });
+  }
+
+  /**
+   * Returns an {x,y} vector rotated by a given
+   * angle in radian.
+   *
+   * @param {number} x the initial vector x
+   * @param {number} y the initial vector y
+   * @param {number} rad the radian vector angle
+   * @returns {{x: number, y: number}} the rotated vector
+   */
+  function rotateVector(x, y, rad) {
+    var X = x * Math.cos(rad) - y * Math.sin(rad);
+    var Y = x * Math.sin(rad) + y * Math.cos(rad);
+    return { x: X, y: Y };
+  }
+
+  /**
+   * Converts A (arc-to) segments to C (cubic-bezier-to).
+   *
+   * For more information of where this math came from visit:
+   * http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+   *
+   * @param {number} X1 the starting x position
+   * @param {number} Y1 the starting y position
+   * @param {number} RX x-radius of the arc
+   * @param {number} RY y-radius of the arc
+   * @param {number} angle x-axis-rotation of the arc
+   * @param {number} LAF large-arc-flag of the arc
+   * @param {number} SF sweep-flag of the arc
+   * @param {number} X2 the ending x position
+   * @param {number} Y2 the ending y position
+   * @param {number[]=} recursive the parameters needed to split arc into 2 segments
+   * @return {number[]} the resulting cubic-bezier segment(s)
+   */
+  function arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, recursive) {
+    var assign;
+
+    var x1 = X1; var y1 = Y1; var rx = RX; var ry = RY; var x2 = X2; var y2 = Y2;
+    // for more information of where this Math came from visit:
+    // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+    var d120 = (Math.PI * 120) / 180;
+
+    var rad = (Math.PI / 180) * (+angle || 0);
+    /** @type {number[]} */
+    var res = [];
+    var xy;
+    var f1;
+    var f2;
+    var cx;
+    var cy;
+
+    if (!recursive) {
+      xy = rotateVector(x1, y1, -rad);
+      x1 = xy.x;
+      y1 = xy.y;
+      xy = rotateVector(x2, y2, -rad);
+      x2 = xy.x;
+      y2 = xy.y;
+
+      var x = (x1 - x2) / 2;
+      var y = (y1 - y2) / 2;
+      var h = (x * x) / (rx * rx) + (y * y) / (ry * ry);
+      if (h > 1) {
+        h = Math.sqrt(h);
+        rx *= h;
+        ry *= h;
+      }
+      var rx2 = rx * rx;
+      var ry2 = ry * ry;
+
+      var k = (LAF === SF ? -1 : 1)
+              * Math.sqrt(Math.abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x)
+                  / (rx2 * y * y + ry2 * x * x)));
+
+      cx = ((k * rx * y) / ry) + ((x1 + x2) / 2);
+      cy = ((k * -ry * x) / rx) + ((y1 + y2) / 2);
+      // eslint-disable-next-line no-bitwise -- Impossible to satisfy no-bitwise
+      f1 = (Math.asin((((y1 - cy) / ry))) * (Math.pow( 10, 9 )) >> 0) / (Math.pow( 10, 9 ));
+      // eslint-disable-next-line no-bitwise -- Impossible to satisfy no-bitwise
+      f2 = (Math.asin((((y2 - cy) / ry))) * (Math.pow( 10, 9 )) >> 0) / (Math.pow( 10, 9 ));
+
+      f1 = x1 < cx ? Math.PI - f1 : f1;
+      f2 = x2 < cx ? Math.PI - f2 : f2;
+      if (f1 < 0) { (f1 = Math.PI * 2 + f1); }
+      if (f2 < 0) { (f2 = Math.PI * 2 + f2); }
+      if (SF && f1 > f2) {
+        f1 -= Math.PI * 2;
+      }
+      if (!SF && f2 > f1) {
+        f2 -= Math.PI * 2;
+      }
+    } else {
+      (assign = recursive, f1 = assign[0], f2 = assign[1], cx = assign[2], cy = assign[3]);
+    }
+    var df = f2 - f1;
+    if (Math.abs(df) > d120) {
+      var f2old = f2;
+      var x2old = x2;
+      var y2old = y2;
+      f2 = f1 + d120 * (SF && f2 > f1 ? 1 : -1);
+      x2 = cx + rx * Math.cos(f2);
+      y2 = cy + ry * Math.sin(f2);
+      res = arcToCubic(x2, y2, rx, ry, angle, 0, SF, x2old, y2old, [f2, f2old, cx, cy]);
+    }
+    df = f2 - f1;
+    var c1 = Math.cos(f1);
+    var s1 = Math.sin(f1);
+    var c2 = Math.cos(f2);
+    var s2 = Math.sin(f2);
+    var t = Math.tan(df / 4);
+    var hx = (4 / 3) * rx * t;
+    var hy = (4 / 3) * ry * t;
+    var m1 = [x1, y1];
+    var m2 = [x1 + hx * s1, y1 - hy * c1];
+    var m3 = [x2 + hx * s2, y2 - hy * c2];
+    var m4 = [x2, y2];
+    m2[0] = 2 * m1[0] - m2[0];
+    m2[1] = 2 * m1[1] - m2[1];
+    if (recursive) {
+      return m2.concat( m3, m4, res);
+    }
+    res = m2.concat( m3, m4, res);
+    var newres = [];
+    for (var i = 0, ii = res.length; i < ii; i += 1) {
+      newres[i] = i % 2
+        ? rotateVector(res[i - 1], res[i], rad).y
+        : rotateVector(res[i], res[i + 1], rad).x;
+    }
+    return newres;
+  }
+
+  /**
+   * Converts a Q (quadratic-bezier) segment to C (cubic-bezier).
+   *
+   * @param {number} x1 curve start x
+   * @param {number} y1 curve start y
+   * @param {number} qx control point x
+   * @param {number} qy control point y
+   * @param {number} x2 curve end x
+   * @param {number} y2 curve end y
+   * @returns {number[]} the cubic-bezier segment
+   */
+  function quadToCubic(x1, y1, qx, qy, x2, y2) {
+    var r13 = 1 / 3;
+    var r23 = 2 / 3;
+    return [
+      r13 * x1 + r23 * qx, // cpx1
+      r13 * y1 + r23 * qy, // cpy1
+      r13 * x2 + r23 * qx, // cpx2
+      r13 * y2 + r23 * qy, // cpy2
+      x2, y2 ];
+  }
+
+  /**
+   * Returns the {x,y} coordinates of a point at a
+   * given length of a cubic-bezier segment.
+   *
+   * @param {number} p1x the starting point X
+   * @param {number} p1y the starting point Y
+   * @param {number} c1x the first control point X
+   * @param {number} c1y the first control point Y
+   * @param {number} c2x the second control point X
+   * @param {number} c2y the second control point Y
+   * @param {number} p2x the ending point X
+   * @param {number} p2y the ending point Y
+   * @param {number} t a [0-1] ratio
+   * @returns {{x: number, y: number}} the requested {x,y} coordinates
+   */
+  function getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
+    var t1 = 1 - t;
+    return {
+      x: (Math.pow( t1, 3 )) * p1x
+        + t1 * t1 * 3 * t * c1x
+        + t1 * 3 * t * t * c2x
+        + (Math.pow( t, 3 )) * p2x,
+      y: (Math.pow( t1, 3 )) * p1y
+        + t1 * t1 * 3 * t * c1y
+        + t1 * 3 * t * t * c2y
+        + (Math.pow( t, 3 )) * p2y,
+    };
+  }
+
+  /**
+   * Returns the coordinates of a specified distance
+   * ratio between two points.
+   *
+   * @param {[number, number]} a the first point coordinates
+   * @param {[number, number]} b the second point coordinates
+   * @param {number} t the ratio
+   * @returns {[number, number]} the midpoint coordinates
+   */
+  function midPoint(a, b, t) {
+    var ax = a[0];
+    var ay = a[1]; var bx = b[0];
+    var by = b[1];
+    return [ax + (bx - ax) * t, ay + (by - ay) * t];
+  }
+
+  /**
+   * Converts an L (line-to) segment to C (cubic-bezier).
+   *
+   * @param {number} x1 line start x
+   * @param {number} y1 line start y
+   * @param {number} x2 line end x
+   * @param {number} y2 line end y
+   * @returns {number[]} the cubic-bezier segment
+   */
+  function lineToCubic(x1, y1, x2, y2) {
+    var t = 0.5;
+    /** @type {[number, number]} */
+    var p0 = [x1, y1];
+    /** @type {[number, number]} */
+    var p1 = [x2, y2];
+    var p2 = midPoint(p0, p1, t);
+    var p3 = midPoint(p1, p2, t);
+    var p4 = midPoint(p2, p3, t);
+    var p5 = midPoint(p3, p4, t);
+    var p6 = midPoint(p4, p5, t);
+    // const cp1 = getPointAtSegLength.apply(0, p0.concat(p2, p4, p6, t));
+    var seg1 = p0.concat( p2, p4, p6, [t]);
+    // @ts-ignore
+    var cp1 = getPointAtSegLength.apply(void 0, seg1);
+    // const cp2 = getPointAtSegLength.apply(0, p6.concat(p5, p3, p1, 0));
+    var seg2 = p6.concat( p5, p3, p1, [0]);
+    // @ts-ignore
+    var cp2 = getPointAtSegLength.apply(void 0, seg2);
+
+    return [cp1.x, cp1.y, cp2.x, cp2.y, x2, y2];
+  }
+
+  /**
+   * Converts any segment to C (cubic-bezier).
+   *
+   * @param {SVGPathCommander.pathSegment} segment the source segment
+   * @param {SVGPathCommander.parserParams} params the source segment parameters
+   * @returns {SVGPathCommander.cubicSegment | SVGPathCommander.MSegment} the cubic-bezier segment
+   */
+  function segmentToCubic(segment, params) {
+    var pathCommand = segment[0];
+    var values = segment.slice(1).map(function (n) { return +n; });
+    var x = values[0];
+    var y = values[1];
+    var args;
+    var px1 = params.x1;
+    var py1 = params.y1;
+    var px = params.x;
+    var py = params.y;
+
+    if (!'TQ'.includes(pathCommand)) {
+      params.qx = null;
+      params.qy = null;
+    }
+
+    switch (pathCommand) {
+      case 'M':
+        params.x = x;
+        params.y = y;
+        return segment;
+      case 'A':
+        args = [px1, py1 ].concat( values);
+        // @ts-ignore -- relax, the utility will return 6 numbers
+        return ['C' ].concat( arcToCubic.apply(void 0, args));
+      case 'Q':
+        params.qx = x;
+        params.qy = y;
+        args = [px1, py1 ].concat( values);
+        // @ts-ignore -- also returning 6 numbers
+        return ['C' ].concat( quadToCubic.apply(void 0, args));
+      case 'L':
+        // @ts-ignore -- also returning 6 numbers
+        return ['C' ].concat( lineToCubic(px1, py1, x, y));
+      case 'Z':
+        // @ts-ignore -- also returning 6 numbers
+        return ['C' ].concat( lineToCubic(px1, py1, px, py));
+    }
+    // @ts-ignore -- we're switching `pathSegment` type
+    return segment;
+  }
+
+  /**
+   * Parses a path string value or 'pathArray' and returns a new one
+   * in which all segments are converted to cubic-bezier.
+   *
+   * In addition, un-necessary `Z` segment is removed if previous segment
+   * extends to the `M` segment.
+   *
+   * @param {SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
+   * @returns {SVGPathCommander.curveArray} the resulted `pathArray` converted to cubic-bezier
+   */
+  function pathToCurve(pathInput) {
+    var assign;
+
+    if (isCurveArray(pathInput)) {
+      return clonePath(pathInput);
+    }
+
+    var path = fixPath(normalizePath(pathInput));
+    var params = Object.assign({}, paramsParser);
+    var allPathCommands = [];
+    var pathCommand = ''; // ts-lint
+    var ii = path.length;
+
+    for (var i = 0; i < ii; i += 1) {
+      (assign = path[i], pathCommand = assign[0]);
+      allPathCommands[i] = pathCommand;
+
+      path[i] = segmentToCubic(path[i], params);
+
+      fixArc(path, allPathCommands, i);
+      ii = path.length;
+
+      var segment = path[i];
+      var seglen = segment.length;
+      params.x1 = +segment[seglen - 2];
+      params.y1 = +segment[seglen - 1];
+      params.x2 = +(segment[seglen - 4]) || params.x1;
+      params.y2 = +(segment[seglen - 3]) || params.y1;
+    }
+
+    // @ts-ignore
+    return path;
+  }
+
+  /**
+   * Rounds the values of a `pathArray` instance to
+   * a specified amount of decimals and returns it.
+   *
+   * @param {SVGPathCommander.pathArray} path the source `pathArray`
+   * @param {number | boolean} roundOption the amount of decimals to round numbers to
+   * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with rounded values
+   */
+  function roundPath(path, roundOption) {
+    var round = defaultOptions.round;
+    if (roundOption === false || round === false) { return clonePath(path); }
+    round = roundOption >= 1 ? roundOption : round;
+    // to round values to the power
+    // the `round` value must be integer
+    // @ts-ignore
+    var pow = round >= 1 ? (Math.pow( 10, round )) : 1;
+
+    // @ts-ignore -- `pathSegment[]` is `pathArray`
+    return path.map(function (pi) {
+      var values = pi.slice(1).map(Number)
+        .map(function (n) { return (n % 1 === 0 ? n : Math.round(n * pow) / pow); });
+      return [pi[0] ].concat( values);
+    });
+  }
+
+  /**
+   * Returns a valid `d` attribute string value created
+   * by rounding values and concatenating the `pathArray` segments.
+   *
+   * @param {SVGPathCommander.pathArray} path the `pathArray` object
+   * @param {any} round amount of decimals to round values to
+   * @returns {string} the concatenated path string
+   */
+  function pathToString(path, round) {
+    return roundPath(path, round)
+      .map(function (x) { return x[0] + x.slice(1).join(' '); }).join('');
+  }
+
+  /**
+   * Reverses all segments and their values of a `pathArray`
+   * and returns a new instance.
+   *
+   * @param {SVGPathCommander.pathArray} pathInput the source `pathArray`
+   * @returns {SVGPathCommander.pathArray} the reversed `pathArray`
+   */
+  function reversePath(pathInput) {
+    var absolutePath = pathToAbsolute(pathInput);
+    var isClosed = absolutePath.slice(-1)[0][0] === 'Z';
+
+    var reversedPath = normalizePath(absolutePath).map(function (segment, i) {
+      var ref = segment.slice(-2).map(Number);
+      var x = ref[0];
+      var y = ref[1];
+      return {
+        seg: absolutePath[i], // absolute
+        n: segment, // normalized
+        c: absolutePath[i][0], // pathCommand
+        x: x, // x
+        y: y, // y
+      };
+    }).map(function (seg, i, path) {
+      var segment = seg.seg;
+      var data = seg.n;
+      var prevSeg = i && path[i - 1];
+      var nextSeg = path[i + 1] && path[i + 1];
+      var pathCommand = seg.c;
+      var pLen = path.length;
+      /** @type {number} */
+      var x = i ? path[i - 1].x : path[pLen - 1].x;
+      var y = i ? path[i - 1].y : path[pLen - 1].y;
+      /** @type {SVGPathCommander.pathSegment} */
+      // @ts-ignore
+      var result = [];
+
+      switch (pathCommand) {
+        case 'M':
+          result = isClosed ? ['Z'] : [pathCommand, x, y];
+          break;
+        case 'A':
+          // @ts-ignore -- expected on reverse
+          result = [pathCommand ].concat( segment.slice(1, -3), [(segment[5] === 1 ? 0 : 1)], [x], [y]);
+          break;
+        case 'C':
+          if (nextSeg && nextSeg.c === 'S') {
+            // @ts-ignore -- expected on reverse
+            result = ['S', segment[1], segment[2], x, y];
+          } else {
+            // @ts-ignore -- expected on reverse
+            result = [pathCommand, segment[3], segment[4], segment[1], segment[2], x, y];
+          }
+          break;
+        case 'S':
+          if ((prevSeg && 'CS'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'S'))) {
+            // @ts-ignore -- expected on reverse
+            result = ['C', data[3], data[4], data[1], data[2], x, y];
+          } else {
+            // @ts-ignore -- expected on reverse
+            result = [pathCommand, data[1], data[2], x, y];
+          }
+          break;
+        case 'Q':
+          if (nextSeg && nextSeg.c === 'T') {
+            result = ['T', x, y];
+          } else {
+            // @ts-ignore -- expected on reverse
+            result = [pathCommand ].concat( segment.slice(1, -2), [x], [y]);
+          }
+          break;
+        case 'T':
+          if ((prevSeg && 'QT'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'T'))) {
+            // @ts-ignore -- expected on reverse
+            result = ['Q', data[1], data[2], x, y];
+          } else {
+            result = [pathCommand, x, y];
+          }
+          break;
+        case 'Z':
+          result = ['M', x, y];
+          break;
+        case 'H':
+          result = [pathCommand, x];
+          break;
+        case 'V':
+          result = [pathCommand, y];
+          break;
+        default:
+          // @ts-ignore -- expected on reverse
+          result = [pathCommand ].concat( segment.slice(1, -2), [x], [y]);
+      }
+
+      return result;
+    });
+
+    // @ts-ignore -- `pathSegment[]` is definitely `pathArray`
+    return isClosed ? reversedPath.reverse()
+      : [reversedPath[0] ].concat( reversedPath.slice(1).reverse());
+  }
+
+  /**
+   * Split a path into an `Array` of sub-path strings.
+   *
+   * In the process, values are converted to absolute
+   * for visual consistency.
+   *
+   * @param {SVGPathCommander.pathArray | string} pathInput the source `pathArray`
+   * @return {string[]} an array with all sub-path strings
+   */
+  function splitPath(pathInput) {
+    return pathToString(pathToAbsolute(pathInput), 0)
+      .replace(/(m|M)/g, '|$1')
+      .split('|')
+      .map(function (s) { return s.trim(); })
+      .filter(function (s) { return s; });
+  }
+
+  /**
+   * Shorten a single segment of a `pathArray` object.
+   *
+   * @param {SVGPathCommander.pathSegment} segment the segment object
+   * @param {any} params the coordinates of the previous segment
+   * @param {string} prevCommand the path command of the previous segment
+   * @returns {SVGPathCommander.shortSegment | SVGPathCommander.pathSegment} the shortened segment
+   */
+  function shortenSegment(segment, params, prevCommand) {
+    var pathCommand = segment[0];
+    var values = segment.slice(1).map(function (n) { return +n; });
+    var px1 = params.x1;
+    var py1 = params.y1;
+    var px2 = params.x2;
+    var py2 = params.y2;
+    var px = params.x;
+    var py = params.y;
+    var result = segment;
+    var ref = values.slice(-2);
+    var x = ref[0];
+    var y = ref[1];
+
+    if (!'TQ'.includes(pathCommand)) {
+      // optional but good to be cautious
+      params.qx = null;
+      params.qy = null;
+    }
+
+    if (pathCommand === 'L') {
+      if (px === x) {
+        result = ['V', y];
+      } else if (py === y) {
+        result = ['H', x];
+      }
+    } else if (pathCommand === 'C') {
+      var x1 = values[0];
+      var y1 = values[1];
+
+      if ('CS'.includes(prevCommand)
+        && x1 === px1 * 2 - px2
+        && y1 === py1 * 2 - py2) {
+        // @ts-ignore -- the amount of numbers should suffice
+        result = ['S' ].concat( values.slice(-4));
+      }
+      params.x1 = x1;
+      params.y1 = y1;
+    } else if (pathCommand === 'Q') {
+      var qx = values[0];
+      var qy = values[1];
+      params.qx = qx;
+      params.qy = qy;
+
+      if ('QT'.includes(prevCommand)
+        && qx === px1 * 2 - px2
+        && qy === py1 * 2 - py2) {
+        // @ts-ignore -- the amount of numbers should suffice
+        result = ['T' ].concat( values.slice(-2));
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Optimizes a `pathArray` object:
+   * * convert segments to shorthand if possible
+   * * select shortest segments from absolute and relative `pathArray`s
+   *
+   * TO DO
+   * * implement `auto` for rounding values based on pathBBox
+   * * also revers path check if it's smaller string, maybe?
+   *
+   * @param {SVGPathCommander.pathArray} pathInput a string or `pathArray`
+   * @param {number | boolean} round the amount of decimals to round values to
+   * @returns {SVGPathCommander.pathArray} the optimized `pathArray`
+   */
+  function optimizePath(pathInput, round) {
+    var assign, assign$1, assign$2, assign$3;
+
+    var path = normalizePath(pathInput);
+    var params = Object.assign({}, paramsParser);
+    var allPathCommands = [];
+    var ii = path.length;
+    var pathCommand = '';
+    var prevCommand = '';
+    var x = 0;
+    var y = 0;
+    var mx = 0;
+    var my = 0;
+
+    for (var i = 0; i < ii; i += 1) {
+      (assign = path[i], pathCommand = assign[0]);
+
+      // Save current path command
+      allPathCommands[i] = pathCommand;
+      // Get previous path command
+      if (i) { prevCommand = allPathCommands[i - 1]; }
+      // Previous path command is used in shortenSegment
+      // @ts-ignore -- expected when switching `pathSegment` type
+      path[i] = shortenSegment(path[i], params, prevCommand);
+
+      var segment = path[i];
+      var seglen = segment.length;
+
+      params.x1 = +segment[seglen - 2];
+      params.y1 = +segment[seglen - 1];
+      params.x2 = +(segment[seglen - 4]) || params.x1;
+      params.y2 = +(segment[seglen - 3]) || params.y1;
+
+      switch (pathCommand) {
+        case 'Z':
+          x = mx;
+          y = my;
+          break;
+        case 'H':
+          // @ts-ignore
+          (assign$1 = segment, x = assign$1[1]);
+          break;
+        case 'V':
+          // @ts-ignore
+          (assign$2 = segment, y = assign$2[1]);
+          break;
+        default:
+          (assign$3 = segment.slice(-2).map(Number), x = assign$3[0], y = assign$3[1]);
+
+          if (pathCommand === 'M') {
+            mx = x;
+            my = y;
+          }
+      }
+      params.x = x;
+      params.y = y;
+    }
+
+    var absolutePath = roundPath(pathToAbsolute(path), round);
+    var relativePath = roundPath(pathToRelative(path), round);
+
+    // @ts-ignore - it's expected an optimized `pathArray` to contain all kinds of segments
+    return absolutePath.map(function (a, i) {
+      if (i) {
+        return a.join('').length < relativePath[i].join('').length
+          ? a : relativePath[i];
+      }
+      return a;
+    });
+  }
+
+  /**
+   * A global namespace for epsilon.
+   *
+   * @type {number}
+   */
+  var epsilon = 1e-9;
+
+  // DOMMatrix Static methods
+  // * `fromFloat64Array` and `fromFloat32Array are not implemented;
+  // * `fromArray` is a more simple implementation, should also accept Float[32/64]Array;
+  // * `fromMatrix` load values from another CSSMatrix/DOMMatrix instance or JSON object;
+  // * `fromString` parses and loads values from any valid CSS transform string (TransformList).
+
+  /**
+   * Creates a new mutable `CSSMatrix` instance given an array of 16/6 floating point values.
+   * This static method invalidates arrays that contain non-number elements.
    *
    * If the array has six values, the result is a 2D matrix; if the array has 16 values,
    * the result is a 3D matrix. Otherwise, a TypeError exception is thrown.
    *
-   * @param {Number[]} array an `Array` to feed values from.
+   * @param {number[]} array an `Array` to feed values from.
    * @return {CSSMatrix} the resulted matrix.
    */
   function fromArray(array) {
     var m = new CSSMatrix();
     var a = Array.from(array);
 
+    if (!a.every(function (n) { return !Number.isNaN(n); })) {
+      throw TypeError(("CSSMatrix: \"" + array + "\" must only have numbers."));
+    }
     if (a.length === 16) {
       var m11 = a[0];
       var m12 = a[1];
@@ -83,91 +1556,94 @@
       m.m34 = m34;
       m.m44 = m44;
     } else if (a.length === 6) {
-      var m11$1 = a[0];
-      var m12$1 = a[1];
-      var m21$1 = a[2];
-      var m22$1 = a[3];
-      var m41$1 = a[4];
-      var m42$1 = a[5];
+      var M11 = a[0];
+      var M12 = a[1];
+      var M21 = a[2];
+      var M22 = a[3];
+      var M41 = a[4];
+      var M42 = a[5];
 
-      m.m11 = m11$1;
-      m.a = m11$1;
+      m.m11 = M11;
+      m.a = M11;
 
-      m.m12 = m12$1;
-      m.b = m12$1;
+      m.m12 = M12;
+      m.b = M12;
 
-      m.m21 = m21$1;
-      m.c = m21$1;
+      m.m21 = M21;
+      m.c = M21;
 
-      m.m22 = m22$1;
-      m.d = m22$1;
+      m.m22 = M22;
+      m.d = M22;
 
-      m.m41 = m41$1;
-      m.e = m41$1;
+      m.m41 = M41;
+      m.e = M41;
 
-      m.m42 = m42$1;
-      m.f = m42$1;
+      m.m42 = M42;
+      m.f = M42;
     } else {
-      throw new TypeError('CSSMatrix: expecting a 6/16 values Array');
+      throw new TypeError('CSSMatrix: expecting an Array of 6/16 values.');
     }
     return m;
   }
 
   /**
-   * Creates a new mutable `CSSMatrix` object given an existing matrix or a
-   * `DOMMatrix` *Object* which provides the values for its properties.
+   * Creates a new mutable `CSSMatrix` instance given an existing matrix or a
+   * `DOMMatrix` instance which provides the values for its properties.
    *
-   * @param {CSSMatrix | DOMMatrix} m the source matrix to feed values from.
+   * @param {CSSMatrix | DOMMatrix | CSSMatrix.JSONMatrix} m the source matrix to feed values from.
    * @return {CSSMatrix} the resulted matrix.
    */
   function fromMatrix(m) {
-    return fromArray(
-      [m.m11, m.m12, m.m13, m.m14,
-        m.m21, m.m22, m.m23, m.m24,
-        m.m31, m.m32, m.m33, m.m34,
-        m.m41, m.m42, m.m43, m.m44]
-    );
+    var keys = Object.keys(new CSSMatrix());
+    if (typeof m === 'object' && keys.every(function (k) { return k in m; })) {
+      return fromArray(
+        [m.m11, m.m12, m.m13, m.m14,
+          m.m21, m.m22, m.m23, m.m24,
+          m.m31, m.m32, m.m33, m.m34,
+          m.m41, m.m42, m.m43, m.m44]
+      );
+    }
+    throw TypeError(("CSSMatrix: \"" + m + "\" is not a DOMMatrix / CSSMatrix / JSON compatible object."));
   }
 
   /**
-   * Feed a CSSMatrix object with a valid CSS transform value.
-   * * matrix(a, b, c, d, e, f) - valid matrix() transform function
-   * * matrix3d(m11, m12, m13, ...m44) - valid matrix3d() transform function
-   * * translate(tx, ty) rotateX(alpha) - any valid transform function(s)
+   * Creates a new mutable `CSSMatrix` given any valid CSS transform string,
+   * or what we call `TransformList`:
+   *
+   * * `matrix(a, b, c, d, e, f)` - valid matrix() transform function
+   * * `matrix3d(m11, m12, m13, ...m44)` - valid matrix3d() transform function
+   * * `translate(tx, ty) rotateX(alpha)` - any valid transform function(s)
+   *
+   * @copyright thednp © 2021
    *
    * @param {string} source valid CSS transform string syntax.
    * @return {CSSMatrix} the resulted matrix.
    */
   function fromString(source) {
+    if (typeof source !== 'string') {
+      throw TypeError(("CSSMatrix: \"" + source + "\" is not a string."));
+    }
     var str = String(source).replace(/\s/g, '');
     var m = new CSSMatrix();
-    var is2D = true;
-    var tramsformObject = str.split(')').filter(function (f) { return f; }).map(function (fn) {
-      var ref = fn.split('(');
+    var invalidStringError = "CSSMatrix: invalid transform string \"" + source + "\"";
+
+    // const px = ['perspective'];
+    // const length = ['translate', 'translate3d', 'translateX', 'translateY', 'translateZ'];
+    // const deg = ['rotate', 'rotate3d', 'rotateX', 'rotateY', 'rotateZ', 'skew', 'skewX', 'skewY'];
+    // const abs = ['scale', 'scale3d', 'matrix', 'matrix3d'];
+    // const transformFunctions = px.concat(length, deg, abs);
+
+    str.split(')').filter(function (f) { return f; }).forEach(function (tf) {
+      var ref = tf.split('(');
       var prop = ref[0];
       var value = ref[1];
+
+      // invalidate empty string
+      if (!value) { throw TypeError(invalidStringError); }
+
       var components = value.split(',')
         .map(function (n) { return (n.includes('rad') ? parseFloat(n) * (180 / Math.PI) : parseFloat(n)); });
-      var x = components[0];
-      var y = components[1];
-      var z = components[2];
-      var a = components[3];
 
-      // don't add perspective if is2D
-      if (prop === 'matrix3d'
-          || (prop === 'rotate3d' && [x, y].every(function (n) { return !Number.isNaN(+n) && n !== 0; }) && a)
-          || (['rotateX', 'rotateY'].includes(prop) && x)
-          || (prop === 'translate3d' && [x, y, z].every(function (n) { return !Number.isNaN(+n); }) && z)
-          || (prop === 'scale3d' && [x, y, z].every(function (n) { return !Number.isNaN(+n) && n !== x; }))
-      ) {
-        is2D = false;
-      }
-      return { prop: prop, components: components };
-    });
-
-    tramsformObject.forEach(function (tf) {
-      var prop = tf.prop;
-      var components = tf.components;
       var x = components[0];
       var y = components[1];
       var z = components[2];
@@ -175,30 +1651,41 @@
       var xyz = [x, y, z];
       var xyza = [x, y, z, a];
 
-      if (prop === 'perspective' && !is2D) {
+      // single number value expected
+      if (prop === 'perspective' && x && [y, z].every(function (n) { return n === undefined; })) {
         m.m34 = -1 / x;
-      } else if (prop.includes('matrix')) {
+      // 6/16 number values expected
+      } else if (prop.includes('matrix') && [6, 16].includes(components.length)
+        && components.every(function (n) { return !Number.isNaN(+n); })) {
         var values = components.map(function (n) { return (Math.abs(n) < 1e-6 ? 0 : n); });
-        if ([6, 16].includes(values.length)) {
-          m = m.multiply(fromArray(values));
-        }
-      } else if (['translate', 'translate3d'].some(function (p) { return prop === p; }) && x) {
-        m = m.translate(x, y || 0, z || 0);
+        m = m.multiply(fromArray(values));
+      // 3 values expected
+      } else if (prop === 'translate3d' && xyz.every(function (n) { return !Number.isNaN(+n); })) {
+        m = m.translate(x, y, z);
+      // single/double number value(s) expected
+      } else if (prop === 'translate' && x && z === undefined) {
+        m = m.translate(x, y || 0, 0);
+      // all 4 values expected
       } else if (prop === 'rotate3d' && xyza.every(function (n) { return !Number.isNaN(+n); }) && a) {
         m = m.rotateAxisAngle(x, y, z, a);
+      // single value expected
+      } else if (prop === 'rotate' && x && [y, z].every(function (n) { return n === undefined; })) {
+        m = m.rotate(0, 0, x);
+      // 4 values expected
       } else if (prop === 'scale3d' && xyz.every(function (n) { return !Number.isNaN(+n); }) && xyz.some(function (n) { return n !== 1; })) {
         m = m.scale(x, y, z);
-      } else if (prop === 'rotate' && x) {
-        m = m.rotate(0, 0, x);
-      } else if (prop === 'scale' && !Number.isNaN(x) && x !== 1) {
+      // single value expected
+      } else if (prop === 'scale' && !Number.isNaN(x) && x !== 1 && z === undefined) {
         var nosy = Number.isNaN(+y);
         var sy = nosy ? x : y;
         m = m.scale(x, sy, 1);
-      } else if (prop === 'skew' && (x || y)) {
-        m = x ? m.skewX(x) : m;
+      // single/double value expected
+      } else if (prop === 'skew' && x && z === undefined) {
+        m = m.skewX(x);
         m = y ? m.skewY(y) : m;
-      } else if (/[XYZ]/.test(prop) && x) {
-        if (prop.includes('skew')) {
+      } else if (/[XYZ]/.test(prop) && x && [y, z].every(function (n) { return n === undefined; }) // a single value expected
+        && ['translate', 'rotate', 'scale', 'skew'].some(function (p) { return prop.includes(p); })) {
+        if (['skewX', 'skewY'].includes(prop)) {
           // @ts-ignore unfortunately
           m = m[prop](x);
         } else {
@@ -212,6 +1699,8 @@
           // @ts-ignore unfortunately
           m = m[fn].apply(m, axeValues);
         }
+      } else {
+        throw TypeError(invalidStringError);
       }
     });
 
@@ -227,9 +1716,9 @@
    *
    * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translate3d
    *
-   * @param {Number} x the `x-axis` position.
-   * @param {Number} y the `y-axis` position.
-   * @param {Number} z the `z-axis` position.
+   * @param {number} x the `x-axis` position.
+   * @param {number} y the `y-axis` position.
+   * @param {number} z the `z-axis` position.
    * @return {CSSMatrix} the resulted matrix.
    */
   function Translate(x, y, z) {
@@ -247,9 +1736,9 @@
    *
    * http://en.wikipedia.org/wiki/Rotation_matrix
    *
-   * @param {Number} rx the `x-axis` rotation.
-   * @param {Number} ry the `y-axis` rotation.
-   * @param {Number} rz the `z-axis` rotation.
+   * @param {number} rx the `x-axis` rotation.
+   * @param {number} ry the `y-axis` rotation.
+   * @param {number} rz the `z-axis` rotation.
    * @return {CSSMatrix} the resulted matrix.
    */
   function Rotate(rx, ry, rz) {
@@ -301,10 +1790,10 @@
    *
    * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotate3d
    *
-   * @param {Number} x the `x-axis` vector length.
-   * @param {Number} y the `y-axis` vector length.
-   * @param {Number} z the `z-axis` vector length.
-   * @param {Number} alpha the value in degrees of the rotation.
+   * @param {number} x the `x-axis` vector length.
+   * @param {number} y the `y-axis` vector length.
+   * @param {number} z the `z-axis` vector length.
+   * @param {number} alpha the value in degrees of the rotation.
    * @return {CSSMatrix} the resulted matrix.
    */
   function RotateAxisAngle(x, y, z, alpha) {
@@ -361,13 +1850,14 @@
 
   /**
    * Creates a new `CSSMatrix` for the scale matrix and returns it.
-   * This method is equivalent to the CSS `scale3d()` function.
+   * This method is equivalent to the CSS `scale3d()` function, except it doesn't
+   * accept {x, y, z} transform origin parameters.
    *
    * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/scale3d
    *
-   * @param {Number} x the `x-axis` scale.
-   * @param {Number} y the `y-axis` scale.
-   * @param {Number} z the `z-axis` scale.
+   * @param {number} x the `x-axis` scale.
+   * @param {number} y the `y-axis` scale.
+   * @param {number} z the `z-axis` scale.
    * @return {CSSMatrix} the resulted matrix.
    */
   function Scale(x, y, z) {
@@ -388,7 +1878,7 @@
    *
    * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/skewX
    *
-   * @param {Number} angle the angle in degrees.
+   * @param {number} angle the angle in degrees.
    * @return {CSSMatrix} the resulted matrix.
    */
   function SkewX(angle) {
@@ -406,7 +1896,7 @@
    *
    * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/skewY
    *
-   * @param {Number} angle the angle in degrees.
+   * @param {number} angle the angle in degrees.
    * @return {CSSMatrix} the resulted matrix.
    */
   function SkewY(angle) {
@@ -456,18 +1946,18 @@
   }
 
   /**
-   * Creates and returns a new `DOMMatrix` compatible *Object*
-   * with equivalent instance methods.
+   * Creates and returns a new `DOMMatrix` compatible instance
+   * with equivalent instance.
+   * @class CSSMatrix
    *
-   * https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix
-   * https://github.com/thednp/DOMMatrix/
+   * @author thednp <https://github.com/thednp/DOMMatrix/>
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix
    */
 
   var CSSMatrix = function CSSMatrix() {
-    var assign;
-
     var args = [], len = arguments.length;
     while ( len-- ) args[ len ] = arguments[ len ];
+
     var m = this;
     // array 6
     m.a = 1; m.b = 0;
@@ -480,15 +1970,8 @@
     m.m41 = 0; m.m42 = 0; m.m43 = 0; m.m44 = 1;
 
     if (args && args.length) {
-      var ARGS = args;
+      var ARGS = [16, 6].some(function (l) { return l === args.length; }) ? args : args[0];
 
-      if (args instanceof Array) {
-        if ((args[0] instanceof Array && [16, 6].includes(args[0].length))
-          || typeof args[0] === 'string'
-          || [CSSMatrix, DOMMatrix].some(function (x) { return args[0] instanceof x; })) {
-          (assign = args, ARGS = assign[0]);
-        }
-      }
       return m.setMatrixValue(ARGS);
     }
     return m;
@@ -499,7 +1982,7 @@
   /**
    * Sets a new `Boolean` flag value for `this.isIdentity` matrix property.
    *
-   * @param {Boolean} value sets a new flag for this property
+   * @param {boolean} value sets a new flag for this property
    */
   prototypeAccessors.isIdentity.set = function (value) {
     this.isIdentity = value;
@@ -510,7 +1993,7 @@
    * matrix is one in which every value is 0 except those on the main diagonal from top-left
    * to bottom-right corner (in other words, where the offsets in each direction are equal).
    *
-   * @return {Boolean} the current property value
+   * @return {boolean} the current property value
    */
   prototypeAccessors.isIdentity.get = function () {
     var m = this;
@@ -524,7 +2007,7 @@
    * A `Boolean` flag whose value is `true` if the matrix was initialized as a 2D matrix
    * and `false` if the matrix is 3D.
    *
-   * @return {Boolean} the current property value
+   * @return {boolean} the current property value
    */
   prototypeAccessors.is2D.get = function () {
     var m = this;
@@ -534,7 +2017,7 @@
   /**
    * Sets a new `Boolean` flag value for `this.is2D` matrix property.
    *
-   * @param {Boolean} value sets a new flag for this property
+   * @param {boolean} value sets a new flag for this property
    */
   prototypeAccessors.is2D.set = function (value) {
     this.is2D = value;
@@ -551,60 +2034,37 @@
    * This method expects valid *matrix()* / *matrix3d()* string values, as well
    * as other transform functions like *translateX(10px)*.
    *
-   * @param {String[] | Number[] | String | CSSMatrix | DOMMatrix} source
-   * @return {CSSMatrix} a new matrix
-   * can be one of the following
-   * * valid CSS matrix string,
-   * * 6/16 elements *Array*,
-   * * CSSMatrix | DOMMatrix instance.
+   * @param {string | number[] | CSSMatrix | DOMMatrix} source
+   * @return {CSSMatrix} the matrix instance
    */
   CSSMatrix.prototype.setMatrixValue = function setMatrixValue (source) {
     var m = this;
 
-    // new CSSMatrix(CSSMatrix | DOMMatrix)
-    if ([DOMMatrix, CSSMatrix].some(function (x) { return source instanceof x; })) {
-      // @ts-ignore
-      return fromMatrix(source);
-    // CSS transform string source
-    } if (typeof source === 'string' && source.length && source !== 'none') {
-      return fromString(source);
     // [Arguments list | Array] come here
-    } if (Array.isArray(source)) {
-      // @ts-ignore
+    if ([Array, Float64Array, Float32Array].some(function (a) { return source instanceof a; })) {
       return fromArray(source);
+    }
+    // CSS transform string source - TransformList
+    if (typeof source === 'string' && source.length && source !== 'none') {
+      return fromString(source);
+    }
+    // new CSSMatrix(CSSMatrix | DOMMatrix | JSON)
+    if (typeof source === 'object') {
+      return fromMatrix(source);
     }
     return m;
   };
 
   /**
-   * Creates and returns a string representation of the matrix in `CSS` matrix syntax,
-   * using the appropriate `CSS` matrix notation.
+   * Returns an *Array* containing elements which comprise the matrix.
+   * The method can return either the 16 elements or the 6 elements
+   * depending on the value of the `is2D` property.
    *
-   * The 16 items in the array 3D matrix array are *transposed* in row-major order.
-   *
-   * matrix3d *matrix3d(m11, m12, m13, m14, m21, ...)*
-   * matrix *matrix(a, b, c, d, e, f)*
-   *
-   * @return {String} a string representation of the matrix
-   */
-  CSSMatrix.prototype.toString = function toString () {
-    var m = this;
-    var values = m.toArray().join(',');
-    var type = m.is2D ? 'matrix' : 'matrix3d';
-    return (type + "(" + values + ")");
-  };
-
-  /**
-   * Returns an *Array* containing all 16 elements which comprise the matrix.
-   * The method can return either the elements.
-   *
-   * Other methods make use of this method to feed their output values from this matrix.
-   *
-   * @return {Number[]} an *Array* representation of the matrix
+   * @return {number[]} an *Array* representation of the matrix
    */
   CSSMatrix.prototype.toArray = function toArray () {
     var m = this;
-    var pow6 = (Math.pow( 10, 6 ));
+    var pow = (Math.pow( 10, 6 ));
     var result;
 
     if (m.is2D) {
@@ -616,22 +2076,41 @@
         m.m41, m.m42, m.m43, m.m44];
     }
     // clean up the numbers
-    // eslint-disable-next-line
-    return result.map(function (n) { return (Math.abs(n) < 1e-6 ? 0 : ((n * pow6) >> 0) / pow6); });
+    // eslint-disable-next-line -- no-bitwise
+    return result.map(function (n) { return (Math.abs(n) < 1e-6 ? 0 : ((n * pow) >> 0) / pow); });
   };
 
   /**
-   * Returns a JSON representation of the `CSSMatrix` object, a standard *Object*
-   * that includes `{a,b,c,d,e,f}` and `{m11,m12,m13,..m44}` properties and
-   * excludes `is2D` & `isIdentity` properties.
+   * Creates and returns a string representation of the matrix in `CSS` matrix syntax,
+   * using the appropriate `CSS` matrix notation.
+   *
+   * matrix3d *matrix3d(m11, m12, m13, m14, m21, ...)*
+   * matrix *matrix(a, b, c, d, e, f)*
+   *
+   * @return {string} a string representation of the matrix
+   */
+  CSSMatrix.prototype.toString = function toString () {
+    var m = this;
+    var values = m.toArray();
+    var type = m.is2D ? 'matrix' : 'matrix3d';
+    return (type + "(" + values + ")");
+  };
+
+  /**
+   * Returns a JSON representation of the `CSSMatrix` instance, a standard *Object*
+   * that includes `{a,b,c,d,e,f}` and `{m11,m12,m13,..m44}` properties as well
+   * as the `is2D` & `isIdentity` properties.
    *
    * The result can also be used as a second parameter for the `fromMatrix` static method
-   * to load values into a matrix instance.
+   * to load values into another matrix instance.
    *
-   * @return {Object} an *Object* with all matrix values.
+   * @return {CSSMatrix.JSONMatrix} an *Object* with all matrix values.
    */
   CSSMatrix.prototype.toJSON = function toJSON () {
-    return JSON.parse(JSON.stringify(this));
+    var m = this;
+    var is2D = m.is2D;
+      var isIdentity = m.isIdentity;
+    return Object.assign({}, m, {is2D: is2D, isIdentity: isIdentity});
   };
 
   /**
@@ -639,8 +2118,8 @@
    * matrix multiplied by the passed matrix, with the passed matrix to the right.
    * This matrix is not modified.
    *
-   * @param {CSSMatrix} m2 CSSMatrix
-   * @return {CSSMatrix} The result matrix.
+   * @param {CSSMatrix | DOMMatrix | CSSMatrix.JSONMatrix} m2 CSSMatrix
+   * @return {CSSMatrix} The resulted matrix.
    */
   CSSMatrix.prototype.multiply = function multiply (m2) {
     return Multiply(this, m2);
@@ -653,16 +2132,16 @@
    * modified.
    *
    * @param {number} x X component of the translation value.
-   * @param {number} y Y component of the translation value.
-   * @param {number} z Z component of the translation value.
-   * @return {CSSMatrix} The result matrix
+   * @param {number=} y Y component of the translation value.
+   * @param {number=} z Z component of the translation value.
+   * @return {CSSMatrix} The resulted matrix
    */
   CSSMatrix.prototype.translate = function translate (x, y, z) {
     var X = x;
     var Y = y;
     var Z = z;
-    if (Z == null) { Z = 0; }
-    if (Y == null) { Y = 0; }
+    if (Z === undefined) { Z = 0; }
+    if (Y === undefined) { Y = 0; }
     return Multiply(this, Translate(X, Y, Z));
   };
 
@@ -673,16 +2152,16 @@
    * component value is used in its place. This matrix is not modified.
    *
    * @param {number} x The X component of the scale value.
-   * @param {number} y The Y component of the scale value.
-   * @param {number} z The Z component of the scale value.
-   * @return {CSSMatrix} The result matrix
+   * @param {number=} y The Y component of the scale value.
+   * @param {number=} z The Z component of the scale value.
+   * @return {CSSMatrix} The resulted matrix
    */
   CSSMatrix.prototype.scale = function scale (x, y, z) {
     var X = x;
     var Y = y;
     var Z = z;
-    if (Y == null) { Y = x; }
-    if (Z == null) { Z = x; }
+    if (Y === undefined) { Y = x; }
+    if (Z === undefined) { Z = 1; } // Z must be 1 if undefined
 
     return Multiply(this, Scale(X, Y, Z));
   };
@@ -695,16 +2174,16 @@
    * rotation values are in degrees. This matrix is not modified.
    *
    * @param {number} rx The X component of the rotation, or Z if Y and Z are null.
-   * @param {number} ry The (optional) Y component of the rotation value.
-   * @param {number} rz The (optional) Z component of the rotation value.
-   * @return {CSSMatrix} The result matrix
+   * @param {number=} ry The (optional) Y component of the rotation value.
+   * @param {number=} rz The (optional) Z component of the rotation value.
+   * @return {CSSMatrix} The resulted matrix
    */
   CSSMatrix.prototype.rotate = function rotate (rx, ry, rz) {
     var RX = rx;
     var RY = ry;
     var RZ = rz;
-    if (RY == null) { RY = 0; }
-    if (RZ == null) { RZ = RX; RX = 0; }
+    if (RY === undefined) { RY = 0; }
+    if (RZ === undefined) { RZ = RX; RX = 0; }
     return Multiply(this, Rotate(RX, RY, RZ));
   };
 
@@ -718,10 +2197,10 @@
    * @param {number} y The Y component of the axis vector.
    * @param {number} z The Z component of the axis vector.
    * @param {number} angle The angle of rotation about the axis vector, in degrees.
-   * @return {CSSMatrix} The `CSSMatrix` result
+   * @return {CSSMatrix} The resulted matrix
    */
   CSSMatrix.prototype.rotateAxisAngle = function rotateAxisAngle (x, y, z, angle) {
-    if (arguments.length !== 4) {
+    if ([x, y, z, angle].some(function (n) { return Number.isNaN(n); })) {
       throw new TypeError('CSSMatrix: expecting 4 values');
     }
     return Multiply(this, RotateAxisAngle(x, y, z, angle));
@@ -732,7 +2211,7 @@
    * This matrix is not modified.
    *
    * @param {number} angle The angle amount in degrees to skew.
-   * @return {CSSMatrix} The `CSSMatrix` result
+   * @return {CSSMatrix} The resulted matrix
    */
   CSSMatrix.prototype.skewX = function skewX (angle) {
     return Multiply(this, SkewX(angle));
@@ -743,24 +2222,24 @@
    * This matrix is not modified.
    *
    * @param {number} angle The angle amount in degrees to skew.
-   * @return {CSSMatrix} The `CSSMatrix` result
+   * @return {CSSMatrix} The resulted matrix
    */
   CSSMatrix.prototype.skewY = function skewY (angle) {
     return Multiply(this, SkewY(angle));
   };
 
   /**
-   * Transforms the specified point using the matrix, returning a new
+   * Transforms a specified point using the matrix, returning a new
    * Tuple *Object* comprising of the transformed point.
    * Neither the matrix nor the original point are altered.
    *
    * The method is equivalent with `transformPoint()` method
    * of the `DOMMatrix` constructor.
    *
-   * JavaScript implementation by thednp
+   * @copyright thednp © 2021
    *
-   * @param {{x: number, y: number, z: number, w: number}} v Tuple with `{x,y,z,w}` components
-   * @return {{x: number, y: number, z: number, w: number}} the resulting Tuple
+   * @param {CSSMatrix.PointTuple | DOMPoint} v Tuple or DOMPoint
+   * @return {CSSMatrix.PointTuple} the resulting Tuple
    */
   CSSMatrix.prototype.transformPoint = function transformPoint (v) {
     var M = this;
@@ -778,12 +2257,12 @@
   };
 
   /**
-   * Transforms the specified vector using the matrix, returning a new
+   * Transforms a specified vector using the matrix, returning a new
    * {x,y,z,w} Tuple *Object* comprising the transformed vector.
    * Neither the matrix nor the original vector are altered.
    *
-   * @param {{x: number, y: number, z: number, w: number}} t Tuple with `{x,y,z,w}` components
-   * @return {{x: number, y: number, z: number, w: number}} the resulting Tuple
+   * @param {CSSMatrix.PointTuple} t Tuple with `{x,y,z,w}` components
+   * @return {CSSMatrix.PointTuple} the resulting Tuple
    */
   CSSMatrix.prototype.transform = function transform (t) {
     var m = this;
@@ -803,1253 +2282,89 @@
   Object.defineProperties( CSSMatrix.prototype, prototypeAccessors );
 
   // Add Transform Functions to CSSMatrix object
-  CSSMatrix.Translate = Translate;
-  CSSMatrix.Rotate = Rotate;
-  CSSMatrix.RotateAxisAngle = RotateAxisAngle;
-  CSSMatrix.Scale = Scale;
-  CSSMatrix.SkewX = SkewX;
-  CSSMatrix.SkewY = SkewY;
-  CSSMatrix.Multiply = Multiply;
-  CSSMatrix.fromArray = fromArray;
-  CSSMatrix.fromMatrix = fromMatrix;
-  CSSMatrix.fromString = fromString;
-
-  var CSS3Matrix = typeof DOMMatrix !== 'undefined' ? DOMMatrix : CSSMatrix;
-
-  function fixArc(pathArray, allPathCommands, i) {
-    if (pathArray[i].length > 7) {
-      pathArray[i].shift();
-      var pi = pathArray[i];
-      var ni = i; // ESLint
-      while (pi.length) {
-        // if created multiple C:s, their original seg is saved
-        allPathCommands[i] = 'A';
-        pathArray.splice(ni += 1, 0, ['C'].concat(pi.splice(0, 6)));
-      }
-      pathArray.splice(i, 1);
-    }
-  }
-
-  var paramsCount = {
-    a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0,
-  };
-
-  function isPathArray(pathArray) {
-    return Array.isArray(pathArray) && pathArray.every(function (seg) {
-      var pathCommand = seg[0].toLowerCase();
-      return paramsCount[pathCommand] === seg.length - 1 && /[achlmrqstvz]/gi.test(pathCommand);
-    });
-  }
-
-  function isCurveArray(pathArray) {
-    return isPathArray(pathArray) && pathArray.slice(1).every(function (seg) { return seg[0] === 'C'; });
-  }
-
-  function clonePath(pathArray) {
-    return pathArray.map(function (x) {
-      if (Array.isArray(x)) {
-        return clonePath(x);
-      }
-      return !Number.isNaN(+x) ? +x : x;
-    });
-  }
-
-  function finalizeSegment(state) {
-    var pathCommand = state.pathValue[state.segmentStart];
-    var pathComLK = pathCommand.toLowerCase();
-    var params = state.data;
-
-    // Process duplicated commands (without comand name)
-    if (pathComLK === 'm' && params.length > 2) {
-      state.segments.push([pathCommand, params[0], params[1]]);
-      params = params.slice(2);
-      pathComLK = 'l';
-      pathCommand = (pathCommand === 'm') ? 'l' : 'L';
-    }
-
-    if (pathComLK === 'r') {
-      state.segments.push([pathCommand].concat(params));
-    } else {
-      while (params.length >= paramsCount[pathComLK]) {
-        state.segments.push([pathCommand].concat(params.splice(0, paramsCount[pathComLK])));
-        if (!paramsCount[pathComLK]) {
-          break;
-        }
-      }
-    }
-  }
-
-  var invalidPathValue = 'Invalid path value';
-
-  function scanFlag(state) {
-    var ch = state.pathValue.charCodeAt(state.index);
-
-    if (ch === 0x30/* 0 */) {
-      state.param = 0;
-      state.index += 1;
-      return;
-    }
-
-    if (ch === 0x31/* 1 */) {
-      state.param = 1;
-      state.index += 1;
-      return;
-    }
-
-    // state.err = 'SvgPath: arc flag can be 0 or 1 only (at pos ' + state.index + ')';
-    state.err = invalidPathValue + ": invalid Arc flag " + ch;
-  }
-
-  function isDigit(code) {
-    return (code >= 48 && code <= 57); // 0..9
-  }
-
-  function scanParam(state) {
-    var start = state.index;
-    var max = state.max;
-    var index = start;
-    var zeroFirst = false;
-    var hasCeiling = false;
-    var hasDecimal = false;
-    var hasDot = false;
-    var ch;
-
-    if (index >= max) {
-      // state.err = 'SvgPath: missed param (at pos ' + index + ')';
-      state.err = invalidPathValue + ": missing param " + (state.pathValue[index]);
-      return;
-    }
-    ch = state.pathValue.charCodeAt(index);
-
-    if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
-      index += 1;
-      ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
-    }
-
-    // This logic is shamelessly borrowed from Esprima
-    // https://github.com/ariya/esprimas
-    if (!isDigit(ch) && ch !== 0x2E/* . */) {
-      // state.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
-      state.err = invalidPathValue + " at index " + index + ": " + (state.pathValue[index]) + " is not a number";
-      return;
-    }
-
-    if (ch !== 0x2E/* . */) {
-      zeroFirst = (ch === 0x30/* 0 */);
-      index += 1;
-
-      ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
-
-      if (zeroFirst && index < max) {
-        // decimal number starts with '0' such as '09' is illegal.
-        if (ch && isDigit(ch)) {
-          // state.err = 'SvgPath: numbers started with `0` such as `09`
-          // are illegal (at pos ' + start + ')';
-          state.err = invalidPathValue + ": " + (state.pathValue[start]) + " illegal number";
-          return;
-        }
-      }
-
-      while (index < max && isDigit(state.pathValue.charCodeAt(index))) {
-        index += 1;
-        hasCeiling = true;
-      }
-      ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
-    }
-
-    if (ch === 0x2E/* . */) {
-      hasDot = true;
-      index += 1;
-      while (isDigit(state.pathValue.charCodeAt(index))) {
-        index += 1;
-        hasDecimal = true;
-      }
-      ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
-    }
-
-    if (ch === 0x65/* e */ || ch === 0x45/* E */) {
-      if (hasDot && !hasCeiling && !hasDecimal) {
-        // state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
-        state.err = invalidPathValue + ": " + (state.pathValue[index]) + " invalid float exponent";
-        return;
-      }
-
-      index += 1;
-
-      ch = (index < max) ? state.pathValue.charCodeAt(index) : 0;
-      if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
-        index += 1;
-      }
-      if (index < max && isDigit(state.pathValue.charCodeAt(index))) {
-        while (index < max && isDigit(state.pathValue.charCodeAt(index))) {
-          index += 1;
-        }
-      } else {
-        // state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
-        state.err = invalidPathValue + ": " + (state.pathValue[index]) + " invalid float exponent";
-        return;
-      }
-    }
-
-    state.index = index;
-    state.param = +state.pathValue.slice(start, index);
-  }
-
-  function isSpace(ch) {
-    var specialSpaces = [
-      0x1680, 0x180E, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006,
-      0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000, 0xFEFF];
-    return (ch === 0x0A) || (ch === 0x0D) || (ch === 0x2028) || (ch === 0x2029) // Line terminators
-      // White spaces
-      || (ch === 0x20) || (ch === 0x09) || (ch === 0x0B) || (ch === 0x0C) || (ch === 0xA0)
-      || (ch >= 0x1680 && specialSpaces.indexOf(ch) >= 0);
-  }
-
-  function skipSpaces(state) {
-    while (state.index < state.max && isSpace(state.pathValue.charCodeAt(state.index))) {
-      state.index += 1;
-    }
-  }
-
-  function isPathCommand(code) {
-    // eslint-disable-next-line no-bitwise -- Impossible to satisfy
-    switch (code | 0x20) {
-      case 0x6D/* m */:
-      case 0x7A/* z */:
-      case 0x6C/* l */:
-      case 0x68/* h */:
-      case 0x76/* v */:
-      case 0x63/* c */:
-      case 0x73/* s */:
-      case 0x71/* q */:
-      case 0x74/* t */:
-      case 0x61/* a */:
-      case 0x72/* r */:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  function isDigitStart(code) {
-    return (code >= 48 && code <= 57) /* 0..9 */
-      || code === 0x2B /* + */
-      || code === 0x2D /* - */
-      || code === 0x2E; /* . */
-  }
-
-  function isArcCommand(code) {
-    // eslint-disable-next-line no-bitwise -- Impossible to satisfy
-    return (code | 0x20) === 0x61;
-  }
-
-  function scanSegment(state) {
-    var max = state.max;
-    var cmdCode = state.pathValue.charCodeAt(state.index);
-    var reqParams = paramsCount[state.pathValue[state.index].toLowerCase()];
-
-    state.segmentStart = state.index;
-
-    if (!isPathCommand(cmdCode)) {
-      state.err = invalidPathValue + ": " + (state.pathValue[state.index]) + " not a path command";
-      return;
-    }
-
-    state.index += 1;
-    skipSpaces(state);
-
-    state.data = [];
-
-    if (!reqParams) {
-      // Z
-      finalizeSegment(state);
-      return;
-    }
-
-    for (;;) {
-      for (var i = reqParams; i > 0; i -= 1) {
-        if (isArcCommand(cmdCode) && (i === 3 || i === 4)) { scanFlag(state); }
-        else { scanParam(state); }
-
-        if (state.err.length) {
-          return;
-        }
-        state.data.push(state.param);
-
-        skipSpaces(state);
-
-        // after ',' param is mandatory
-        if (state.index < max && state.pathValue.charCodeAt(state.index) === 0x2C/* , */) {
-          state.index += 1;
-          skipSpaces(state);
-        }
-      }
-
-      if (state.index >= state.max) {
-        break;
-      }
-
-      // Stop on next segment
-      if (!isDigitStart(state.pathValue.charCodeAt(state.index))) {
-        break;
-      }
-    }
-
-    finalizeSegment(state);
-  }
-
-  function SVGPathArray(pathString) {
-    this.segments = [];
-    this.pathValue = pathString;
-    this.max = pathString.length;
-    this.index = 0;
-    this.param = 0.0;
-    this.segmentStart = 0;
-    this.data = [];
-    this.err = '';
-  }
-
-  // Returns array of segments:
-  function parsePathString(pathString) {
-    if (isPathArray(pathString)) {
-      return clonePath(pathString);
-    }
-
-    var state = new SVGPathArray(pathString);
-
-    skipSpaces(state);
-
-    while (state.index < state.max && !state.err.length) {
-      scanSegment(state);
-    }
-
-    if (state.err.length) {
-      state.segments = [];
-    } else if (state.segments.length) {
-      if ('mM'.indexOf(state.segments[0][0]) < 0) {
-        // state.err = 'Path string should start with `M` or `m`';
-        state.err = invalidPathValue + ": missing M/m";
-        state.segments = [];
-      } else {
-        state.segments[0][0] = 'M';
-      }
-    }
-
-    return state.segments;
-  }
-
-  function isAbsoluteArray(pathInput) {
-    return isPathArray(pathInput) && pathInput.every(function (x) { return x[0] === x[0].toUpperCase(); });
-  }
-
-  function pathToAbsolute(pathInput) {
-    if (isAbsoluteArray(pathInput)) {
-      return clonePath(pathInput);
-    }
-
-    var pathArray = parsePathString(pathInput);
-    var ii = pathArray.length;
-    var resultArray = [];
-    var x = 0;
-    var y = 0;
-    var mx = 0;
-    var my = 0;
-    var start = 0;
-
-    if (pathArray[0][0] === 'M') {
-      x = +pathArray[0][1];
-      y = +pathArray[0][2];
-      mx = x;
-      my = y;
-      start += 1;
-      resultArray.push(['M', x, y]);
-    }
-
-    for (var i = start; i < ii; i += 1) {
-      var segment = pathArray[i];
-      var pathCommand = segment[0];
-      var absCommand = pathCommand.toUpperCase();
-      var absoluteSegment = [];
-      var newSeg = [];
-      resultArray.push(absoluteSegment);
-
-      if (pathCommand !== absCommand) {
-        absoluteSegment[0] = absCommand;
-
-        switch (absCommand) {
-          case 'A':
-            newSeg = segment.slice(1, -2).concat([+segment[6] + x, +segment[7] + y]);
-            for (var j = 0; j < newSeg.length; j += 1) {
-              absoluteSegment.push(newSeg[j]);
-            }
-            break;
-          case 'V':
-            absoluteSegment[1] = +segment[1] + y;
-            break;
-          case 'H':
-            absoluteSegment[1] = +segment[1] + x;
-            break;
-          default:
-            if (absCommand === 'M') {
-              mx = +segment[1] + x;
-              my = +segment[2] + y;
-            }
-            // for is here to stay for eslint
-            for (var j$1 = 1; j$1 < segment.length; j$1 += 1) {
-              absoluteSegment.push(+segment[j$1] + (j$1 % 2 ? x : y));
-            }
-        }
-      } else {
-        for (var j$2 = 0; j$2 < segment.length; j$2 += 1) {
-          absoluteSegment.push(segment[j$2]);
-        }
-      }
-
-      var segLength = absoluteSegment.length;
-      switch (absCommand) {
-        case 'Z':
-          x = mx;
-          y = my;
-          break;
-        case 'H':
-          x = +absoluteSegment[1];
-          break;
-        case 'V':
-          y = +absoluteSegment[1];
-          break;
-        default:
-          x = +absoluteSegment[segLength - 2];
-          y = +absoluteSegment[segLength - 1];
-
-          if (absCommand === 'M') {
-            mx = x;
-            my = y;
-          }
-      }
-    }
-
-    return resultArray;
-  }
-
-  // returns {qx,qy} for shorthand quadratic bezier segments
-  function shorthandToQuad(x1, y1, qx, qy, prevCommand) {
-    return 'QT'.indexOf(prevCommand) > -1
-      ? { qx: x1 * 2 - qx, qy: y1 * 2 - qy }
-      : { qx: x1, qy: y1 };
-  }
-
-  // returns {x1,x2} for shorthand cubic bezier segments
-  function shorthandToCubic(x1, y1, x2, y2, prevCommand) {
-    return 'CS'.indexOf(prevCommand) > -1
-      ? { x1: x1 * 2 - x2, y1: y1 * 2 - y2 }
-      : { x1: x1, y1: y1 };
-  }
-
-  function normalizeSegment(segment, params, prevCommand) {
-    var pathCommand = segment[0];
-    var xy = segment.slice(1);
-    var result = segment;
-
-    if ('TQ'.indexOf(segment[0]) < 0) {
-      // optional but good to be cautious
-      params.qx = null;
-      params.qy = null;
-    }
-
-    if (pathCommand === 'H') {
-      result = ['L', segment[1], params.y1];
-    } else if (pathCommand === 'V') {
-      result = ['L', params.x1, segment[1]];
-    } else if (pathCommand === 'S') {
-      var ref = shorthandToCubic(params.x1, params.y1, params.x2, params.y2, prevCommand);
-      var x1 = ref.x1;
-      var y1 = ref.y1;
-      params.x1 = x1;
-      params.y1 = y1;
-      result = ['C', x1, y1].concat(xy);
-    } else if (pathCommand === 'T') {
-      var ref$1 = shorthandToQuad(params.x1, params.y1, params.qx, params.qy, prevCommand);
-      var qx = ref$1.qx;
-      var qy = ref$1.qy;
-      params.qx = qx;
-      params.qy = qy;
-      result = ['Q', qx, qy].concat(xy);
-    } else if (pathCommand === 'Q') {
-      var nqx = xy[0];
-      var nqy = xy[1];
-      params.qx = nqx;
-      params.qy = nqy;
-    }
-    return result;
-  }
-
-  function isNormalizedArray(pathArray) {
-    return Array.isArray(pathArray) && pathArray.every(function (seg) {
-      var pathCommand = seg[0].toLowerCase();
-      return paramsCount[pathCommand] === seg.length - 1 && /[ACLMQZ]/.test(seg[0]); // achlmrqstvz
-    });
-  }
-
-  function normalizePath(pathInput) { // pathArray|pathString
-    if (isNormalizedArray(pathInput)) {
-      return clonePath(pathInput);
-    }
-
-    var pathArray = pathToAbsolute(pathInput);
-    var params = {
-      x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
-    };
-    var allPathCommands = [];
-    var ii = pathArray.length;
-    var prevCommand = '';
-    var segment;
-    var seglen;
-
-    for (var i = 0; i < ii; i += 1) {
-      // save current path command
-      var ref = pathArray[i];
-      var pathCommand = ref[0];
-
-      // Save current path command
-      allPathCommands[i] = pathCommand;
-      // Get previous path command
-      if (i) { prevCommand = allPathCommands[i - 1]; }
-      // Previous path command is inputted to processSegment
-      pathArray[i] = normalizeSegment(pathArray[i], params, prevCommand);
-
-      segment = pathArray[i];
-      seglen = segment.length;
-
-      params.x1 = +segment[seglen - 2];
-      params.y1 = +segment[seglen - 1];
-      params.x2 = +(segment[seglen - 4]) || params.x1;
-      params.y2 = +(segment[seglen - 3]) || params.y1;
-    }
-    return pathArray;
-  }
-
-  function rotateVector(x, y, rad) {
-    var X = x * Math.cos(rad) - y * Math.sin(rad);
-    var Y = x * Math.sin(rad) + y * Math.cos(rad);
-    return { x: X, y: Y };
-  }
-
-  // for more information of where this math came from visit:
-  // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-  // LAF = largeArcFlag, SF = sweepFlag
-
-  function arcToCubic(x1, y1, rx, ry, angle, LAF, SF, x2, y2, recursive) {
-    var d120 = (Math.PI * 120) / 180;
-    var rad = (Math.PI / 180) * (angle || 0);
-    var res = [];
-    var X1 = x1;
-    var X2 = x2;
-    var Y1 = y1;
-    var Y2 = y2;
-    var RX = rx;
-    var RY = ry;
-    var xy;
-    var f1;
-    var f2;
-    var cx;
-    var cy;
-
-    if (!recursive) {
-      xy = rotateVector(X1, Y1, -rad);
-      X1 = xy.x;
-      Y1 = xy.y;
-      xy = rotateVector(X2, Y2, -rad);
-      X2 = xy.x;
-      Y2 = xy.y;
-
-      var x = (X1 - X2) / 2;
-      var y = (Y1 - Y2) / 2;
-      var h = (Math.pow( x, 2 )) / (Math.pow( RX, 2 )) + (Math.pow( y, 2 )) / (Math.pow( RY, 2 ));
-      if (h > 1) {
-        h = Math.sqrt(h);
-        RX *= h;
-        RY *= h;
-      }
-      var rx2 = Math.pow( RX, 2 );
-      var ry2 = Math.pow( RY, 2 );
-      var k = (LAF === SF ? -1 : 1)
-            * Math.sqrt(Math.abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x)
-            / (rx2 * y * y + ry2 * x * x)));
-
-      cx = ((k * RX * y) / RY) + ((X1 + X2) / 2);
-      cy = ((k * -RY * x) / RX) + ((Y1 + Y2) / 2);
-
-      // eslint-disable-next-line no-bitwise -- Impossible to satisfy no-bitwise
-      f1 = Math.asin((((Y1 - cy) / RY) * Math.pow( 10, 9 ) >> 0) / (Math.pow( 10, 9 )));
-      // eslint-disable-next-line no-bitwise -- Impossible to satisfy no-bitwise
-      f2 = Math.asin((((Y2 - cy) / RY) * Math.pow( 10, 9 ) >> 0) / (Math.pow( 10, 9 )));
-
-      f1 = X1 < cx ? Math.PI - f1 : f1;
-      f2 = X2 < cx ? Math.PI - f2 : f2;
-
-      if (f1 < 0) { f1 = Math.PI * 2 + f1; }
-      if (f2 < 0) { f2 = Math.PI * 2 + f2; }
-
-      if (SF && f1 > f2) {
-        f1 -= Math.PI * 2;
-      }
-      if (!SF && f2 > f1) {
-        f2 -= Math.PI * 2;
-      }
-    } else {
-      var r1 = recursive[0];
-      var r2 = recursive[1];
-      var r3 = recursive[2];
-      var r4 = recursive[3];
-      f1 = r1;
-      f2 = r2;
-      cx = r3;
-      cy = r4;
-    }
-
-    var df = f2 - f1;
-
-    if (Math.abs(df) > d120) {
-      var f2old = f2;
-      var x2old = X2;
-      var y2old = Y2;
-
-      f2 = f1 + d120 * (SF && f2 > f1 ? 1 : -1);
-      X2 = cx + RX * Math.cos(f2);
-      Y2 = cy + RY * Math.sin(f2);
-      res = arcToCubic(X2, Y2, RX, RY, angle, 0, SF, x2old, y2old, [f2, f2old, cx, cy]);
-    }
-
-    df = f2 - f1;
-    var c1 = Math.cos(f1);
-    var s1 = Math.sin(f1);
-    var c2 = Math.cos(f2);
-    var s2 = Math.sin(f2);
-    var t = Math.tan(df / 4);
-    var hx = (4 / 3) * RX * t;
-    var hy = (4 / 3) * RY * t;
-    var m1 = [X1, Y1];
-    var m2 = [X1 + hx * s1, Y1 - hy * c1];
-    var m3 = [X2 + hx * s2, Y2 - hy * c2];
-    var m4 = [X2, Y2];
-    m2[0] = 2 * m1[0] - m2[0];
-    m2[1] = 2 * m1[1] - m2[1];
-
-    if (recursive) {
-      return [m2, m3, m4].concat(res);
-    }
-    res = [m2, m3, m4].concat(res).join().split(',');
-    return res.map(function (rz, i) {
-      if (i % 2) {
-        return rotateVector(res[i - 1], rz, rad).y;
-      }
-      return rotateVector(rz, res[i + 1], rad).x;
-    });
-  }
-
-  function quadToCubic(x1, y1, qx, qy, x2, y2) {
-    var r13 = 1 / 3;
-    var r23 = 2 / 3;
-    return [
-      r13 * x1 + r23 * qx, // cpx1
-      r13 * y1 + r23 * qy, // cpy1
-      r13 * x2 + r23 * qx, // cpx2
-      r13 * y2 + r23 * qy, // cpy2
-      x2, y2 ];
-  }
-
-  // t = [0-1]
-  function getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
-    var t1 = 1 - t;
-    return {
-      x: (Math.pow( t1, 3 )) * p1x
-        + t1 * t1 * 3 * t * c1x
-        + t1 * 3 * t * t * c2x
-        + (Math.pow( t, 3 )) * p2x,
-      y: (Math.pow( t1, 3 )) * p1y
-        + t1 * t1 * 3 * t * c1y
-        + t1 * 3 * t * t * c2y
-        + (Math.pow( t, 3 )) * p2y,
-    };
-  }
-
-  function midPoint(a, b, t) {
-    var ax = a[0];
-    var ay = a[1];
-    var bx = b[0];
-    var by = b[1];
-    return [ax + (bx - ax) * t, ay + (by - ay) * t];
-  }
-
-  function lineToCubic(x1, y1, x2, y2) {
-    var t = 0.5;
-    var p0 = [x1, y1];
-    var p1 = [x2, y2];
-    var p2 = midPoint(p0, p1, t);
-    var p3 = midPoint(p1, p2, t);
-    var p4 = midPoint(p2, p3, t);
-    var p5 = midPoint(p3, p4, t);
-    var p6 = midPoint(p4, p5, t);
-    var cp1 = getPointAtSegLength.apply(0, p0.concat(p2, p4, p6, t));
-    var cp2 = getPointAtSegLength.apply(0, p6.concat(p5, p3, p1, 0));
-
-    return [cp1.x, cp1.y, cp2.x, cp2.y, x2, y2];
-  }
-
-  function segmentToCubic(segment, params) {
-    if ('TQ'.indexOf(segment[0]) < 0) {
-      params.qx = null;
-      params.qy = null;
-    }
-
-    var ref = segment.slice(1);
-    var s1 = ref[0];
-    var s2 = ref[1];
-
-    switch (segment[0]) {
-      case 'M':
-        params.x = s1;
-        params.y = s2;
-        return segment;
-      case 'A':
-        return ['C'].concat(arcToCubic.apply(0, [params.x1, params.y1].concat(segment.slice(1))));
-      case 'Q':
-        params.qx = s1;
-        params.qy = s2;
-        return ['C'].concat(quadToCubic.apply(0, [params.x1, params.y1].concat(segment.slice(1))));
-      case 'L':
-        return ['C'].concat(lineToCubic(params.x1, params.y1, segment[1], segment[2]));
-      case 'Z':
-        return ['C'].concat(lineToCubic(params.x1, params.y1, params.x, params.y));
-    }
-    return segment;
-  }
-
-  function pathToCurve(pathInput) {
-    var assign;
-   // pathArray|pathString
-    if (isCurveArray(pathInput)) {
-      return clonePath(pathInput);
-    }
-
-    var pathArray = normalizePath(pathInput);
-    var params = {
-      x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
-    };
-    var allPathCommands = [];
-    var pathCommand = '';
-    var ii = pathArray.length;
-    var segment;
-    var seglen;
-
-    for (var i = 0; i < ii; i += 1) {
-      if (pathArray[i]) { (assign = pathArray[i], pathCommand = assign[0]); }
-
-      allPathCommands[i] = pathCommand;
-      pathArray[i] = segmentToCubic(pathArray[i], params);
-
-      fixArc(pathArray, allPathCommands, i);
-      ii = pathArray.length; // solves curveArrays ending in Z
-
-      segment = pathArray[i];
-      seglen = segment.length;
-
-      params.x1 = +segment[seglen - 2];
-      params.y1 = +segment[seglen - 1];
-      params.x2 = +(segment[seglen - 4]) || params.x1;
-      params.y2 = +(segment[seglen - 3]) || params.y1;
-    }
-
-    return pathArray;
-  }
-
-  // https://github.com/paperjs/paper.js/blob/develop/src/path/Path.js
-
-  function getCubicSegArea(x0, y0, x1, y1, x2, y2, x3, y3) {
-    // http://objectmix.com/graphics/133553-area-closed-bezier-curve.html
-    return (3 * ((y3 - y0) * (x1 + x2) - (x3 - x0) * (y1 + y2)
-             + (y1 * (x0 - x2)) - (x1 * (y0 - y2))
-             + (y3 * (x2 + x0 / 3)) - (x3 * (y2 + y0 / 3)))) / 20;
-  }
-
-  function getPathArea(pathArray) {
-    var x = 0; var y = 0; var mx = 0; var my = 0; var
-      len = 0;
-    return pathToCurve(pathArray).map(function (seg) {
-      var assign;
-
-      switch (seg[0]) {
-        case 'M':
-        case 'Z':
-          mx = seg[0] === 'M' ? seg[1] : mx;
-          my = seg[0] === 'M' ? seg[2] : my;
-          x = mx;
-          y = my;
-          return 0;
-        default:
-          len = getCubicSegArea.apply(0, [x, y].concat(seg.slice(1)));
-          (assign = seg.slice(-2), x = assign[0], y = assign[1]);
-          return len;
-      }
-    }).reduce(function (a, b) { return a + b; }, 0);
-  }
-
-  function base3(p1, p2, p3, p4, t) {
-    var t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4;
-    var t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
-    return t * t2 - 3 * p1 + 3 * p2;
-  }
-
-  // returns the cubic bezier segment length
-  function getSegCubicLength(x1, y1, x2, y2, x3, y3, x4, y4, z) {
-    var Z;
-    if (z === null || Number.isNaN(+z)) { Z = 1; }
-
-    // Z = Z > 1 ? 1 : Z < 0 ? 0 : Z;
-    if (Z > 1) { Z = 1; }
-    if (Z < 0) { Z = 0; }
-
-    var z2 = Z / 2; var ct = 0; var xbase = 0; var ybase = 0; var sum = 0;
-    var Tvalues = [-0.1252, 0.1252, -0.3678, 0.3678,
-      -0.5873, 0.5873, -0.7699, 0.7699,
-      -0.9041, 0.9041, -0.9816, 0.9816];
-    var Cvalues = [0.2491, 0.2491, 0.2335, 0.2335,
-      0.2032, 0.2032, 0.1601, 0.1601,
-      0.1069, 0.1069, 0.0472, 0.0472];
-
-    Tvalues.forEach(function (T, i) {
-      ct = z2 * T + z2;
-      xbase = base3(x1, x2, x3, x4, ct);
-      ybase = base3(y1, y2, y3, y4, ct);
-      sum += Cvalues[i] * Math.sqrt(xbase * xbase + ybase * ybase);
-    });
-    return z2 * sum;
-  }
-
-  // calculates the shape total length
-  // equivalent to shape.getTotalLength()
-  // pathToCurve version
-  function getPathLength(pathArray) {
-    var totalLength = 0;
-    pathToCurve(pathArray).forEach(function (s, i, curveArray) {
-      totalLength += s[0] !== 'M' ? getSegCubicLength.apply(0, curveArray[i - 1].slice(-2).concat(s.slice(1))) : 0;
-    });
-    return totalLength;
-  }
-
-  function getDrawDirection(pathArray) {
-    return getPathArea(pathToCurve(pathArray)) >= 0;
-  }
-
-  // calculates the shape total length
-  // almost equivalent to shape.getTotalLength()
-  function getPointAtLength(pathArray, length) {
-    var totalLength = 0;
-    var segLen;
-    var data;
-    var result;
-
-    return pathToCurve(pathArray).map(function (seg, i, curveArray) { // process data
-      data = i ? curveArray[i - 1].slice(-2).concat(seg.slice(1)) : seg.slice(1);
-      segLen = i ? getSegCubicLength.apply(0, data) : 0;
-      totalLength += segLen;
-
-      if (i === 0) {
-        result = { x: data[0], y: data[1] };
-      } else if (totalLength > length && length > totalLength - segLen) {
-        result = getPointAtSegLength.apply(0, data.concat(1 - (totalLength - length) / segLen));
-      } else {
-        result = null;
-      }
-
-      return result;
-    }).filter(function (x) { return x; }).slice(-1)[0]; // isolate last segment
-  }
-
-  // returns the cubic bezier segment length
-  function getCubicSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
-    var a = (c2x - 2 * c1x + p1x) - (p2x - 2 * c2x + c1x);
-    var b = 2 * (c1x - p1x) - 2 * (c2x - c1x);
-    var c = p1x - c1x;
-    var t1 = (-b + Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-    var t2 = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-    var y = [p1y, p2y];
-    var x = [p1x, p2x];
-    var dot;
-
-    if (Math.abs(t1) > '1e12') { t1 = 0.5; }
-    if (Math.abs(t2) > '1e12') { t2 = 0.5; }
-
-    if (t1 > 0 && t1 < 1) {
-      dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
-      x.push(dot.x);
-      y.push(dot.y);
-    }
-    if (t2 > 0 && t2 < 1) {
-      dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
-      x.push(dot.x);
-      y.push(dot.y);
-    }
-    a = (c2y - 2 * c1y + p1y) - (p2y - 2 * c2y + c1y);
-    b = 2 * (c1y - p1y) - 2 * (c2y - c1y);
-    c = p1y - c1y;
-    t1 = (-b + Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-    t2 = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-
-    if (Math.abs(t1) > '1e12') { t1 = 0.5; }
-    if (Math.abs(t2) > '1e12') { t2 = 0.5; }
-
-    if (t1 > 0 && t1 < 1) {
-      dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
-      x.push(dot.x);
-      y.push(dot.y);
-    }
-    if (t2 > 0 && t2 < 1) {
-      dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
-      x.push(dot.x);
-      y.push(dot.y);
-    }
-    return {
-      min: { x: Math.min.apply(0, x), y: Math.min.apply(0, y) },
-      max: { x: Math.max.apply(0, x), y: Math.max.apply(0, y) },
-    };
-  }
-
-  function getPathBBox(pathArray) {
-    if (!pathArray) {
-      return {
-        x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0,
-      };
-    }
-    var pathCurve = pathToCurve(pathArray);
-
-    var x = 0;
-    var y = 0;
-    var X = [];
-    var Y = [];
-
-    pathCurve.forEach(function (segment) {
-      var ref = segment.slice(-2);
-      var s1 = ref[0];
-      var s2 = ref[1];
-      if (segment[0] === 'M') {
-        x = s1;
-        y = s2;
-        X.push(s1);
-        Y.push(s2);
-      } else {
-        var dim = getCubicSize.apply(0, [x, y].concat(segment.slice(1)));
-        X = X.concat(dim.min.x, dim.max.x);
-        Y = Y.concat(dim.min.y, dim.max.y);
-        x = s1;
-        y = s2;
-      }
-    });
-
-    var xTop = Math.min.apply(0, X);
-    var yTop = Math.min.apply(0, Y);
-    var xBot = Math.max.apply(0, X);
-    var yBot = Math.max.apply(0, Y);
-    var width = xBot - xTop;
-    var height = yBot - yTop;
-
-    return {
-      x: xTop,
-      y: yTop,
-      x2: xBot,
-      y2: yBot,
-      width: width,
-      height: height,
-      cx: xTop + width / 2,
-      cy: yTop + height / 2,
-    };
-  }
-
-  function isRelativeArray(pathInput) {
-    return isPathArray(pathInput)
-      && pathInput.slice(1).every(function (seg) { return seg[0] === seg[0].toLowerCase(); });
-  }
-
-  function roundPath(pathArray, round) {
-    var decimalsOption = !Number.isNaN(+round) ? +round : SVGPCO.round && SVGPCO.decimals;
-    var result;
-
-    if (decimalsOption) {
-      result = pathArray.map(function (seg) { return seg.map(function (c) {
-        var nr = +c;
-        var dc = Math.pow( 10, decimalsOption );
-        if (nr) {
-          return nr % 1 === 0 ? nr : Math.round(nr * dc) / dc;
-        }
-        return c;
-      }); });
-    } else {
-      result = clonePath(pathArray);
-    }
-    return result;
-  }
-
-  function pathToString(pathArray, round) {
-    return roundPath(pathArray, round)
-      .map(function (x) { return x[0].concat(x.slice(1).join(' ')); }).join('');
-  }
-
-  function splitPath(pathInput) {
-    return pathToString(pathToAbsolute(pathInput))
-      .replace(/(m|M)/g, '|$1')
-      .split('|')
-      .map(function (s) { return s.trim(); })
-      .filter(function (s) { return s; });
-  }
-
-  function pathToRelative(pathInput) {
-    if (isRelativeArray(pathInput)) {
-      return clonePath(pathInput);
-    }
-
-    var pathArray = parsePathString(pathInput);
-    var ii = pathArray.length;
-    var resultArray = [];
-    var x = 0;
-    var y = 0;
-    var mx = 0;
-    var my = 0;
-    var start = 0;
-
-    if (pathArray[0][0] === 'M') {
-      x = +pathArray[0][1];
-      y = +pathArray[0][2];
-      mx = x;
-      my = y;
-      start += 1;
-      resultArray.push(['M', x, y]);
-    }
-
-    for (var i = start; i < ii; i += 1) {
-      var segment = pathArray[i];
-      var pathCommand = segment[0];
-      var relativeCommand = pathCommand.toLowerCase();
-      var relativeSegment = [];
-      var newSeg = [];
-      resultArray.push(relativeSegment);
-
-      if (pathCommand !== relativeCommand) {
-        relativeSegment[0] = relativeCommand;
-        switch (relativeCommand) {
-          case 'a':
-            newSeg = segment.slice(1, -2).concat([+segment[6] - x, +segment[7] - y]);
-
-            for (var j = 0; j < newSeg.length; j += 1) {
-              relativeSegment.push(newSeg[j]);
-            }
-            break;
-          case 'v':
-            relativeSegment[1] = +segment[1] - y;
-            break;
-          default:
-            // for is here to stay for eslint
-            for (var j$1 = 1; j$1 < segment.length; j$1 += 1) {
-              relativeSegment.push(+segment[j$1] - (j$1 % 2 ? x : y));
-            }
-
-            if (relativeCommand === 'm') {
-              mx = +segment[1];
-              my = +segment[2];
-            }
-        }
-      } else {
-        if (pathCommand === 'm') {
-          mx = +segment[1] + x;
-          my = +segment[2] + y;
-        }
-        for (var j$2 = 0; j$2 < segment.length; j$2 += 1) {
-          relativeSegment.push(segment[j$2]);
-        }
-      }
-
-      var segLength = relativeSegment.length;
-      switch (relativeSegment[0]) {
-        case 'z':
-          x = mx;
-          y = my;
-          break;
-        case 'h':
-          x += relativeSegment[segLength - 1];
-          break;
-        case 'v':
-          y += relativeSegment[segLength - 1];
-          break;
-        default:
-          x += resultArray[i][segLength - 2];
-          y += resultArray[i][segLength - 1];
-      }
-    }
-
-    return resultArray;
-  }
-
-  function optimizePath(pathArray, round) {
-    var absolutePath = roundPath(pathToAbsolute(pathArray), round);
-    var relativePath = roundPath(pathToRelative(pathArray), round);
-    return absolutePath.map(function (x, i) {
-      if (i) {
-        return x.join('').length < relativePath[i].join('').length ? x : relativePath[i];
-      }
-      return x;
-    });
-  }
-
-  // reverse CURVE based pathArray segments only
-  function reverseCurve(pathArray) {
-    var rotatedCurve = pathArray.slice(1)
-      .map(function (x, i, curveOnly) { return (!i
-        ? pathArray[0].slice(1).concat(x.slice(1))
-        : curveOnly[i - 1].slice(-2).concat(x.slice(1))); })
-      .map(function (x) { return x.map(function (y, i) { return x[x.length - i - 2 * (1 - (i % 2))]; }); })
-      .reverse();
-
-    return [['M'].concat(rotatedCurve[0]
-      .slice(0, 2))]
-      .concat(rotatedCurve.map(function (x) { return ['C'].concat(x.slice(2)); }));
-  }
-
-  function reversePath(pathString) { // pathArray | pathString
-    var absolutePath = pathToAbsolute(pathString);
-    var isClosed = absolutePath.slice(-1)[0][0] === 'Z';
-    var reversedPath = [];
-    var segLength = 0;
-
-    reversedPath = normalizePath(absolutePath).map(function (segment, i) {
-      segLength = segment.length;
-      return {
-        seg: absolutePath[i], // absolute
-        n: segment, // normalized
-        c: absolutePath[i][0], // pathCommand
-        x: segment[segLength - 2], // x
-        y: segment[segLength - 1], // y
-      };
-    }).map(function (seg, i, pathArray) {
-      var segment = seg.seg;
-      var data = seg.n;
-      var prevSeg = i && pathArray[i - 1];
-      var nextSeg = pathArray[i + 1] && pathArray[i + 1];
-      var pathCommand = seg.c;
-      var pLen = pathArray.length;
-      var x = i ? pathArray[i - 1].x : pathArray[pLen - 1].x;
-      var y = i ? pathArray[i - 1].y : pathArray[pLen - 1].y;
-      var result = [];
-
-      switch (pathCommand) {
-        case 'M':
-          result = isClosed ? ['Z'] : [pathCommand, x, y];
-          break;
-        case 'A':
-          result = segment.slice(0, -3).concat([(segment[5] === 1 ? 0 : 1), x, y]);
-          break;
-        case 'C':
-          if (nextSeg && nextSeg.c === 'S') {
-            result = ['S', segment[1], segment[2], x, y];
-          } else {
-            result = [pathCommand, segment[3], segment[4], segment[1], segment[2], x, y];
-          }
-          break;
-        case 'S':
-          if ((prevSeg && 'CS'.indexOf(prevSeg.c) > -1) && (!nextSeg || (nextSeg && nextSeg.c !== 'S'))) {
-            result = ['C', data[3], data[4], data[1], data[2], x, y];
-          } else {
-            result = [pathCommand, data[1], data[2], x, y];
-          }
-          break;
-        case 'Q':
-          if (nextSeg && nextSeg.c === 'T') {
-            result = ['T', x, y];
-          } else {
-            result = segment.slice(0, -2).concat([x, y]);
-          }
-          break;
-        case 'T':
-          if ((prevSeg && 'QT'.indexOf(prevSeg.c) > -1) && (!nextSeg || (nextSeg && nextSeg.c !== 'T'))) {
-            result = ['Q', data[1], data[2], x, y];
-          } else {
-            result = [pathCommand, x, y];
-          }
-          break;
-        case 'Z':
-          result = ['M', x, y];
-          break;
-        case 'H':
-          result = [pathCommand, x];
-          break;
-        case 'V':
-          result = [pathCommand, y];
-          break;
-        default:
-          result = segment.slice(0, -2).concat([x, y]);
-      }
-
-      return result;
-    });
-
-    return isClosed ? reversedPath.reverse()
-      : [reversedPath[0]].concat(reversedPath.slice(1).reverse());
-  }
-
-  var epsilon = 1e-9;
-
-  function getSVGMatrix(transformObject) {
-    var matrix = new CSS3Matrix();
-    var origin = transformObject.origin;
-    var originX = +origin[0];
-    var originY = +origin[1];
-    // originZ = +origin[2] || originX, // maybe later. maybe not required
-    // perspective = transformObject.perspective,
-    var translate = transformObject.translate;
-    var rotate = transformObject.rotate;
-    var skew = transformObject.skew;
-    var scale = transformObject.scale;
-
-    // !isNaN(perspective) && perspective && (matrix.m34 = -1/perspective)
+  // without creating a TypeScript namespace.
+  Object.assign(CSSMatrix, {
+    Translate: Translate,
+    Rotate: Rotate,
+    RotateAxisAngle: RotateAxisAngle,
+    Scale: Scale,
+    SkewX: SkewX,
+    SkewY: SkewY,
+    Multiply: Multiply,
+    fromArray: fromArray,
+    fromMatrix: fromMatrix,
+    fromString: fromString,
+  });
+
+  /**
+   * Returns a transformation matrix to apply to `<path>` elements.
+   *
+   * @see SVGPathCommander.transformObject
+   *
+   * @param {SVGPathCommander.transformObject} transform the `transformObject`
+   * @returns {CSSMatrix} a new transformation matrix
+   */
+  function getSVGMatrix(transform) {
+    var matrix = new CSSMatrix();
+    var origin = transform.origin;
+    var originX = origin[0];
+    var originY = origin[1];
+    var translate = transform.translate;
+    var rotate = transform.rotate;
+    var skew = transform.skew;
+    var scale = transform.scale;
 
     // set translate
-    if (!Number.isNaN(translate) || (Array.isArray(translate) && translate.some(function (x) { return +x !== 0; }))) {
-      matrix = Array.isArray(translate)
-        ? matrix.translate(+translate[0] || 0, +translate[1] || 0, +translate[2] || 0)
-        : matrix.translate(+translate || 0, 0, 0);
+    if (Array.isArray(translate) && translate.every(function (x) { return !Number.isNaN(+x); })
+      && translate.some(function (x) { return x !== 0; })) {
+      matrix = matrix.translate(translate[0] || 0, translate[1] || 0, translate[2] || 0);
+    } else if (typeof translate === 'number' && !Number.isNaN(+translate)) {
+      matrix = matrix.translate(translate || 0, 0, 0);
     }
 
     if (rotate || skew || scale) {
       // set SVG transform-origin, always defined
-      // matrix = matrix.translate(+originX,+originY,+originZ)
-      matrix = matrix.translate(+originX, +originY);
+      matrix = matrix.translate(originX, originY);
 
       // set rotation
-      if (rotate) {
-        matrix = Array.isArray(rotate) && rotate.some(function (x) { return +x !== 0; })
-          ? matrix.rotate(+rotate[0] || 0, +rotate[1] || 0, +rotate[2] || 0)
-          : matrix.rotate(+rotate || 0);
+      if (Array.isArray(rotate) && rotate.every(function (x) { return !Number.isNaN(+x); })
+        && rotate.some(function (x) { return x !== 0; })) {
+        matrix = matrix.rotate(rotate[0], rotate[1], rotate[2]);
+      } else if (typeof rotate === 'number' && !Number.isNaN(+rotate)) {
+        matrix = matrix.rotate(0, 0, rotate);
       }
+
       // set skew(s)
-      if (Array.isArray(skew) && skew.some(function (x) { return +x !== 0; })) {
-        if (Array.isArray(skew)) {
-          matrix = skew[0] ? matrix.skewX(+skew[0] || 0) : matrix;
-          matrix = skew[1] ? matrix.skewY(+skew[1] || 0) : matrix;
-        } else {
-          matrix = matrix.skewX(+skew || 0);
-        }
+      if (Array.isArray(skew) && skew.every(function (x) { return !Number.isNaN(+x); })
+        && skew.some(function (x) { return x !== 0; })) {
+        matrix = skew[0] ? matrix.skewX(skew[0]) : matrix;
+        matrix = skew[1] ? matrix.skewY(skew[1]) : matrix;
+      } else if (typeof skew === 'number' && !Number.isNaN(+skew)) {
+        matrix = matrix.skewX(skew || 0);
       }
+
       // set scale
-      if (!Number.isNaN(scale) || (Array.isArray(scale) && scale.some(function (x) { return +x !== 1; }))) {
-        matrix = Array.isArray(scale)
-          ? (matrix.scale(+scale[0] || 1, +scale[1] || 1, +scale[2] || 1))
-          : matrix.scale(+scale || 1);
+      if (Array.isArray(scale) && scale.every(function (x) { return !Number.isNaN(+x); })
+        && scale.some(function (x) { return x !== 1; })) {
+        matrix = matrix.scale(scale[0], scale[1], scale[2]);
+      } else if (typeof scale === 'number' && !Number.isNaN(+scale)) {
+        matrix = matrix.scale(scale || 1, scale || 1, scale || 1);
       }
       // set SVG transform-origin
-      // matrix = matrix.translate(-originX,-originY,-originZ)
       matrix = matrix.translate(-originX, -originY);
     }
+
     return matrix;
   }
 
+  /**
+   * Apply a 2D transformation matrix to an ellipse.
+   *
+   * @param {number[]} m the 2D transformation matrix
+   * @param {number} rx ellipse radius X
+   * @param {number} ry ellipse radius Y
+   * @param {number} ax ellipse rotation angle
+   */
   function transformEllipse(m, rx, ry, ax) {
     // We consider the current ellipse as image of the unit circle
     // by first scale(rx,ry) and then rotate(ax) ...
@@ -2113,18 +2428,28 @@
     return { rx: RX, ry: RY, ax: AX };
   }
 
-  // Given an xyz point and an xyz perspective origin point,
-  // this will return the xy projected location
-  // Using the equation found here: http://en.wikipedia.org/wiki/3D_projection#Diagram
-  // https://stackoverflow.com/questions/23792505/predicted-rendering-of-css-3d-transformed-pixel
-
+  /**
+   * Returns the [x,y] projected coordinates for a given an [x,y] point
+   * and an [x,y,z] perspective origin point.
+   *
+   * Equation found here =>
+   * http://en.wikipedia.org/wiki/3D_projection#Diagram
+   * Details =>
+   * https://stackoverflow.com/questions/23792505/predicted-rendering-of-css-3d-transformed-pixel
+   *
+   * @param {SVGPathCommander.CSSMatrix} m the transformation matrix
+   * @param {[number, number]} point2D the initial [x,y] coordinates
+   * @param {number[]} origin the initial [x,y] coordinates
+   * @returns {[number, number]} the projected [x,y] coordinates
+   */
   function projection2d(m, point2D, origin) {
+    var originX = origin[0];
+    var originY = origin[1];
+    var originZ = origin[2];
     var point3D = m.transformPoint({
       x: point2D[0], y: point2D[1], z: 0, w: 1,
     });
-    var originX = origin[0] || 0;
-    var originY = origin[1] || 0;
-    var originZ = origin[2] || 0;
+
     var relativePositionX = point3D.x - originX;
     var relativePositionY = point3D.y - originY;
     var relativePositionZ = point3D.z - originZ;
@@ -2134,15 +2459,25 @@
       relativePositionY * (Math.abs(originZ) / Math.abs(relativePositionZ)) + originY ];
   }
 
-  function transformPath(pathArray, transformObject) {
+  /**
+   * Apply a 2D / 3D transformation to a `pathArray` instance.
+   *
+   * Since *SVGElement* doesn't support 3D transformation, this function
+   * creates a 2D projection of the <path> element.
+   *
+   * @param {SVGPathCommander.pathArray} path the `pathArray` to apply transformation
+   * @param {SVGPathCommander.transformObject} transform the transform functions `Object`
+   * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
+   */
+  function transformPath(path, transform) {
     var assign;
 
-    var x; var y; var i; var j; var ii; var jj; var lx; var ly; var te;
-    var absolutePath = pathToAbsolute(pathArray);
+    var x = 0; var y = 0; var i; var j; var ii; var jj; var lx; var ly; var te;
+    var absolutePath = pathToAbsolute(path);
     var normalizedPath = normalizePath(absolutePath);
-    var matrixInstance = getSVGMatrix(transformObject);
-    var transformProps = Object.keys(transformObject);
-    var origin = transformObject.origin;
+    var matrixInstance = getSVGMatrix(transform);
+    var transformProps = Object.keys(transform);
+    var origin = transform.origin;
     var a = matrixInstance.a;
     var b = matrixInstance.b;
     var c = matrixInstance.c;
@@ -2150,15 +2485,16 @@
     var e = matrixInstance.e;
     var f = matrixInstance.f;
     var matrix2d = [a, b, c, d, e, f];
-    var params = {
-      x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0,
-    };
+    var params = Object.assign({}, paramsParser);
+    /** @ts-ignore */
+    /** @type {SVGPathCommander.pathSegment} */
+    // @ts-ignore
     var segment = [];
     var seglen = 0;
     var pathCommand = '';
+    /** @type {SVGPathCommander.pathTransformList[]} */
     var transformedPath = [];
     var allPathCommands = []; // needed for arc to curve transformation
-    var result = [];
 
     if (!matrixInstance.isIdentity) {
       for (i = 0, ii = absolutePath.length; i < ii; i += 1) {
@@ -2172,12 +2508,15 @@
         allPathCommands[i] = pathCommand;
 
         // Arcs don't work very well with 3D transformations or skews
-        if (pathCommand === 'A' && (!matrixInstance.is2D || !['skewX', 'skewY'].find(function (p) { return transformProps.includes(p); }))) {
+        if (pathCommand === 'A' && (!matrixInstance.is2D
+          || !['skewX', 'skewY'].find(function (p) { return transformProps.includes(p); }))) {
           segment = segmentToCubic(normalizedPath[i], params);
 
+          // @ts-ignore -- expected when switching `pathSegment` type
           absolutePath[i] = segmentToCubic(normalizedPath[i], params);
           fixArc(absolutePath, allPathCommands, i);
 
+          // @ts-ignore -- expected when switching `pathSegment` type
           normalizedPath[i] = segmentToCubic(normalizedPath[i], params);
           fixArc(normalizedPath, allPathCommands, i);
           ii = Math.max(absolutePath.length, normalizedPath.length);
@@ -2192,33 +2531,36 @@
         params.x2 = +(segment[seglen - 4]) || params.x1;
         params.y2 = +(segment[seglen - 3]) || params.y1;
 
-        result = { s: absolutePath[i], c: absolutePath[i][0] };
+        /** @type {SVGPathCommander.pathTransformList} */
+        var result = {
+          s: absolutePath[i], c: absolutePath[i][0], x: params.x1, y: params.y1,
+        };
 
-        if (pathCommand !== 'Z') {
-          result.x = params.x1;
-          result.y = params.y1;
-        }
-        transformedPath = transformedPath.concat(result);
+        transformedPath = transformedPath.concat( [result]);
       }
 
-      transformedPath = transformedPath.map(function (seg) {
+      // @ts-ignore
+      return transformedPath.map(function (seg) {
         var assign, assign$1, assign$2;
 
         pathCommand = seg.c;
         segment = seg.s;
         switch (pathCommand) {
           case 'A': // only apply to 2D transformations
+            // @ts-ignore
             te = transformEllipse(matrix2d, segment[1], segment[2], segment[3]);
 
             if (matrix2d[0] * matrix2d[3] - matrix2d[1] * matrix2d[2] < 0) {
-              segment[5] = +segment[5] ? 0 : 1;
+              segment[5] = segment[5] ? 0 : 1;
             }
 
-            (assign = projection2d(matrixInstance, [segment[6], segment[7]], origin), lx = assign[0], ly = assign[1]);
+            // @ts-ignore
+            (assign = projection2d(matrixInstance, [+segment[6], +segment[7]], origin), lx = assign[0], ly = assign[1]);
 
             if ((x === lx && y === ly) || (te.rx < epsilon * te.ry) || (te.ry < epsilon * te.rx)) {
               segment = ['L', lx, ly];
             } else {
+              // @ts-ignore
               segment = [pathCommand, te.rx, te.ry, te.ax, segment[4], segment[5], lx, ly];
             }
 
@@ -2228,7 +2570,6 @@
           case 'L':
           case 'H':
           case 'V':
-
             (assign$1 = projection2d(matrixInstance, [seg.x, seg.y], origin), lx = assign$1[0], ly = assign$1[1]);
 
             if (x !== lx && y !== ly) {
@@ -2243,28 +2584,573 @@
 
             return segment;
           default:
+
             for (j = 1, jj = segment.length; j < jj; j += 2) {
               // compute line coordinates without altering previous coordinates
-              (assign$2 = projection2d(matrixInstance, [segment[j], segment[j + 1]], origin), x = assign$2[0], y = assign$2[1]);
+              (assign$2 = projection2d(matrixInstance, [+segment[j], +segment[j + 1]], origin), x = assign$2[0], y = assign$2[1]);
               segment[j] = x;
               segment[j + 1] = y;
             }
+
             return segment;
         }
       });
-      return transformedPath;
     }
     return clonePath(absolutePath);
   }
 
+  /**
+   * Returns the cubic-bezier segment length.
+   *
+   * @param {number} p1x the starting point X
+   * @param {number} p1y the starting point Y
+   * @param {number} c1x the first control point X
+   * @param {number} c1y the first control point Y
+   * @param {number} c2x the second control point X
+   * @param {number} c2y the second control point Y
+   * @param {number} p2x the ending point X
+   * @param {number} p2y the ending point Y
+   * @returns {SVGPathCommander.segmentLimits} the length of the cubic-bezier segment
+   */
+  function getCubicSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
+    var a = (c2x - 2 * c1x + p1x) - (p2x - 2 * c2x + c1x);
+    var b = 2 * (c1x - p1x) - 2 * (c2x - c1x);
+    var c = p1x - c1x;
+    var t1 = (-b + Math.sqrt(b * b - 4 * a * c)) / 2 / a;
+    var t2 = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
+    var y = [p1y, p2y];
+    var x = [p1x, p2x];
+    var dot;
+    // @ts-ignore
+    if (Math.abs(t1) > '1e12') { t1 = 0.5; }
+    // @ts-ignore
+    if (Math.abs(t2) > '1e12') { t2 = 0.5; }
+
+    if (t1 > 0 && t1 < 1) {
+      dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
+      x.push(dot.x);
+      y.push(dot.y);
+    }
+    if (t2 > 0 && t2 < 1) {
+      dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
+      x.push(dot.x);
+      y.push(dot.y);
+    }
+    a = (c2y - 2 * c1y + p1y) - (p2y - 2 * c2y + c1y);
+    b = 2 * (c1y - p1y) - 2 * (c2y - c1y);
+    c = p1y - c1y;
+    t1 = (-b + Math.sqrt(b * b - 4 * a * c)) / 2 / a;
+    t2 = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
+    // @ts-ignore
+    if (Math.abs(t1) > '1e12') { t1 = 0.5; }
+    // @ts-ignore
+    if (Math.abs(t2) > '1e12') { t2 = 0.5; }
+
+    if (t1 > 0 && t1 < 1) {
+      dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
+      x.push(dot.x);
+      y.push(dot.y);
+    }
+    if (t2 > 0 && t2 < 1) {
+      dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
+      x.push(dot.x);
+      y.push(dot.y);
+    }
+    return {
+      min: { x: Math.min.apply(0, x), y: Math.min.apply(0, y) },
+      max: { x: Math.max.apply(0, x), y: Math.max.apply(0, y) },
+    };
+  }
+
+  /**
+   * Returns the bounding box of a shape.
+   *
+   * @param {SVGPathCommander.pathArray} path the shape `pathArray`
+   * @returns {SVGPathCommander.pathBBox} the length of the cubic-bezier segment
+   */
+  function getPathBBox(path) {
+    if (!path) {
+      return {
+        x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0, cx: 0, cy: 0,
+      };
+    }
+    var pathCurve = pathToCurve(path);
+
+    var x = 0; var y = 0;
+    /** @type {number[]} */
+    var X = [];
+    /** @type {number[]} */
+    var Y = [];
+
+    pathCurve.forEach(function (segment) {
+      var ref = segment.slice(-2).map(Number);
+      var s1 = ref[0];
+      var s2 = ref[1];
+      if (segment[0] === 'M') {
+        x = s1;
+        y = s2;
+        X.push(s1);
+        Y.push(s2);
+      } else {
+        var sizeArgs = [x, y ].concat( segment.slice(1));
+        // @ts-ignore -- this should be fine
+        var dim = getCubicSize.apply(void 0, sizeArgs);
+
+        // X = X.concat(dim.min.x, dim.max.x);
+        X = X.concat( [dim.min.x], [dim.max.x]);
+
+        // Y = Y.concat(dim.min.y, dim.max.y);
+        Y = Y.concat( [dim.min.y], [dim.max.y]);
+        x = s1;
+        y = s2;
+      }
+    });
+
+    // @ts-ignore
+    var xTop = Math.min.apply(0, X);
+    // @ts-ignore
+    var yTop = Math.min.apply(0, Y);
+    // @ts-ignore
+    var xBot = Math.max.apply(0, X);
+    // @ts-ignore
+    var yBot = Math.max.apply(0, Y);
+    var width = xBot - xTop;
+    var height = yBot - yTop;
+
+    return {
+      width: width,
+      height: height,
+      x: xTop,
+      y: yTop,
+      x2: xBot,
+      y2: yBot,
+      cx: xTop + width / 2,
+      cy: yTop + height / 2,
+    };
+  }
+
+  /**
+   * Returns the area of a single segment shape.
+   *
+   * http://objectmix.com/graphics/133553-area-closed-bezier-curve.html
+   *
+   * @param {number} x0 the starting point X
+   * @param {number} y0 the starting point Y
+   * @param {number} x1 the first control point X
+   * @param {number} y1 the first control point Y
+   * @param {number} x2 the second control point X
+   * @param {number} y2 the second control point Y
+   * @param {number} x3 the ending point X
+   * @param {number} y3 the ending point Y
+   * @returns {number} the area of the cubic-bezier segment
+   */
+  function getCubicSegArea(x0, y0, x1, y1, x2, y2, x3, y3) {
+    return (3 * ((y3 - y0) * (x1 + x2) - (x3 - x0) * (y1 + y2)
+             + (y1 * (x0 - x2)) - (x1 * (y0 - y2))
+             + (y3 * (x2 + x0 / 3)) - (x3 * (y2 + y0 / 3)))) / 20;
+  }
+
+  /**
+   * Returns the area of a shape.
+   * @author Jürg Lehni & Jonathan Puckey
+   *
+   * => https://github.com/paperjs/paper.js/blob/develop/src/path/Path.js
+   *
+   * @param {SVGPathCommander.pathArray} path the shape `pathArray`
+   * @returns {number} the length of the cubic-bezier segment
+   */
+  function getPathArea(path) {
+    var x = 0; var y = 0;
+    var len = 0;
+    return pathToCurve(path).map(function (seg) {
+      var assign, assign$1;
+
+      switch (seg[0]) {
+        case 'M':
+          (assign = seg, x = assign[1], y = assign[2]);
+          return 0;
+        default:
+          // @ts-ignore -- the utility will have proper amount of params
+          len = getCubicSegArea.apply(void 0, [ x, y ].concat( seg.slice(1) ));
+
+          (assign$1 = seg.slice(-2).map(Number), x = assign$1[0], y = assign$1[1]);
+          return len;
+      }
+    }).reduce(function (a, b) { return a + b; }, 0);
+  }
+
+  /**
+   * @param {number} p1
+   * @param {number} p2
+   * @param {number} p3
+   * @param {number} p4
+   * @param {number} t a [0-1] ratio
+   * @returns {number}
+   */
+  function base3(p1, p2, p3, p4, t) {
+    var t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4;
+    var t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
+    return t * t2 - 3 * p1 + 3 * p2;
+  }
+
+  /**
+   * Returns the C (cubic-bezier) segment length.
+   *
+   * @param {number} x1 the starting point X
+   * @param {number} y1 the starting point Y
+   * @param {number} x2 the first control point X
+   * @param {number} y2 the first control point Y
+   * @param {number} x3 the second control point X
+   * @param {number} y3 the second control point Y
+   * @param {number} x4 the ending point X
+   * @param {number} y4 the ending point Y
+   * @param {number} z a [0-1] ratio
+   * @returns {number} the cubic-bezier segment length
+   */
+  function getSegCubicLength(x1, y1, x2, y2, x3, y3, x4, y4, z) {
+    var Z = z;
+    if (z === null || Number.isNaN(+z)) { Z = 1; }
+
+    // Z = Z > 1 ? 1 : Z < 0 ? 0 : Z;
+    if (Z > 1) { Z = 1; }
+    if (Z < 0) { Z = 0; }
+
+    var z2 = Z / 2; var ct = 0; var xbase = 0; var ybase = 0; var sum = 0;
+    var Tvalues = [-0.1252, 0.1252, -0.3678, 0.3678,
+      -0.5873, 0.5873, -0.7699, 0.7699,
+      -0.9041, 0.9041, -0.9816, 0.9816];
+    var Cvalues = [0.2491, 0.2491, 0.2335, 0.2335,
+      0.2032, 0.2032, 0.1601, 0.1601,
+      0.1069, 0.1069, 0.0472, 0.0472];
+
+    Tvalues.forEach(function (T, i) {
+      ct = z2 * T + z2;
+      xbase = base3(x1, x2, x3, x4, ct);
+      ybase = base3(y1, y2, y3, y4, ct);
+      sum += Cvalues[i] * Math.sqrt(xbase * xbase + ybase * ybase);
+    });
+    return z2 * sum;
+  }
+
+  /**
+   * Returns the shape total length,
+   * or the equivalent to `shape.getTotalLength()`
+   * pathToCurve version
+   *
+   * @param {SVGPathCommander.pathArray} path the target `pathArray`
+   * @returns {number} the shape total length
+   */
+  function getPathLength(path) {
+    var totalLength = 0;
+    pathToCurve(path).forEach(function (s, i, curveArray) {
+      var args = s[0] !== 'M' ? curveArray[i - 1].slice(-2).concat( s.slice(1)) : [];
+      totalLength += s[0] === 'M' ? 0
+        // @ts-ignore
+        : getSegCubicLength.apply(void 0, args);
+    });
+    return totalLength;
+  }
+
+  /**
+   * Check if a path is drawn clockwise and returns true if so,
+   * false otherwise.
+   *
+   * @param {SVGPathCommander.pathArray} path the path string or `pathArray`
+   * @returns {boolean} true when clockwise or false if not
+   */
+  function getDrawDirection(path) {
+    return getPathArea(pathToCurve(path)) >= 0;
+  }
+
+  /**
+   * Returns [x,y] coordinates of a point at a given length of a shape.
+   *
+   * @param {string | SVGPathCommander.pathArray} path the `pathArray` to look into
+   * @param {number} length the length of the shape to look at
+   * @returns {number[]} the requested [x,y] coordinates
+   */
+  function getPointAtLength(path, length) {
+    var totalLength = 0;
+    var segLen;
+    var data;
+    var result;
+    // @ts-ignore
+    return pathToCurve(path).map(function (seg, i, curveArray) {
+      data = i ? curveArray[i - 1].slice(-2).concat( seg.slice(1)) : seg.slice(1);
+      // @ts-ignore
+      segLen = i ? getSegCubicLength.apply(void 0, data) : 0;
+      totalLength += segLen;
+
+      if (i === 0) {
+        result = { x: data[0], y: data[1] };
+      } else if (totalLength > length && length > totalLength - segLen) {
+        var args = data.concat( [1 - ((totalLength - length) / segLen)]);
+        // @ts-ignore
+        result = getPointAtSegLength.apply(void 0, args);
+      } else {
+        result = null;
+      }
+
+      return result;
+    }).filter(function (x) { return x; }).slice(-1)[0]; // isolate last segment
+  }
+
+  /**
+   * Parses a path string value to determine its validity
+   * then returns true if it's valid or false otherwise.
+   *
+   * @param {string} pathString the path string to be parsed
+   * @returns {boolean} the path string validity
+   */
+  function isValidPath(pathString) {
+    if (typeof pathString !== 'string') {
+      return false;
+    }
+
+    var path = new PathParser(pathString);
+
+    skipSpaces(path);
+
+    while (path.index < path.max && !path.err.length) {
+      scanSegment(path);
+    }
+
+    return !path.err.length && 'mM'.includes(path.segments[0][0]);
+  }
+
+  /**
+   * Supported shapes and their specific parameters.
+   * @type {Object.<string, string[]>}
+   */
+  var shapeParams = {
+    circle: ['cx', 'cy', 'r'],
+    ellipse: ['cx', 'cy', 'rx', 'ry'],
+    rect: ['width', 'height', 'x', 'y', 'rx', 'ry'],
+    polygon: ['points'],
+    polyline: ['points'],
+    glyph: [],
+  };
+
+  /**
+   * Returns a new `pathArray` from line attributes.
+   *
+   * @param {SVGPathCommander.lineAttr} attr shape configuration
+   * @returns {SVGPathCommander.pathArray} a new line `pathArray`
+   */
+  function getLinePath(attr) {
+    var x1 = attr.x1;
+    var y1 = attr.y1;
+    var x2 = attr.x2;
+    var y2 = attr.y2;
+    return [['M', x1, y1], ['L', x2, y2]];
+  }
+
+  /**
+   * Returns a new `pathArray` like from polyline/polygon attributes.
+   *
+   * @param {SVGPathCommander.polyAttr} attr shape configuration
+   * @return {SVGPathCommander.pathArray} a new polygon/polyline `pathArray`
+   */
+  function getPolyPath(attr) {
+    /** @type {SVGPathCommander.pathArray} */
+    // @ts-ignore -- it's an empty `pathArray`
+    var pathArray = [];
+    var points = attr.points.split(/[\s|,]/).map(Number);
+
+    var index = 0;
+    while (index < points.length) {
+      pathArray.push([(index ? 'L' : 'M'), (points[index]), (points[index + 1])]);
+      index += 2;
+    }
+    // @ts-ignore -- it's a `pathArray`
+    return attr.type === 'polygon' ? pathArray.concat( [['z']]) : pathArray;
+  }
+
+  /**
+   * Returns a new `pathArray` from circle attributes.
+   *
+   * @param {SVGPathCommander.circleAttr} attr shape configuration
+   * @return {SVGPathCommander.pathArray} a circle `pathArray`
+   */
+  function getCirclePath(attr) {
+    var cx = attr.cx;
+    var cy = attr.cy;
+    var r = attr.r;
+
+    return [
+      ['M', (cx - r), cy],
+      ['a', r, r, 0, 1, 0, (2 * r), 0],
+      ['a', r, r, 0, 1, 0, (-2 * r), 0] ];
+  }
+
+  /**
+   * Returns a new `pathArray` from ellipse attributes.
+   *
+   * @param {SVGPathCommander.ellipseAttr} attr shape configuration
+   * @return {SVGPathCommander.pathArray} an ellipse `pathArray`
+   */
+  function getEllipsePath(attr) {
+    var cx = attr.cx;
+    var cy = attr.cy;
+    var rx = attr.rx;
+    var ry = attr.ry;
+
+    return [
+      ['M', (cx - rx), cy],
+      ['a', rx, ry, 0, 1, 0, (2 * rx), 0],
+      ['a', rx, ry, 0, 1, 0, (-2 * rx), 0] ];
+  }
+
+  /**
+   * Returns a new `pathArray` like from rect attributes.
+   *
+   * @param {SVGPathCommander.rectAttr} attr object with properties above
+   * @return {SVGPathCommander.pathArray} a new `pathArray` from `<rect>` attributes
+   */
+  function getRectanglePath(attr) {
+    var x = +attr.x || 0;
+    var y = +attr.y || 0;
+    var w = +attr.width;
+    var h = +attr.height;
+    var rx = +attr.rx;
+    var ry = +attr.ry;
+
+    // Validity checks from http://www.w3.org/TR/SVG/shapes.html#RectElement:
+    if (rx || ry) {
+      rx = !rx ? ry : rx;
+      ry = !ry ? rx : ry;
+
+      if (rx * 2 > w) { rx -= (rx * 2 - w) / 2; }
+      if (ry * 2 > h) { ry -= (ry * 2 - h) / 2; }
+
+      return [
+        ['M', x + rx, y],
+        ['h', w - rx * 2],
+        ['s', rx, 0, rx, ry],
+        ['v', h - ry * 2],
+        ['s', 0, ry, -rx, ry],
+        ['h', -w + rx * 2],
+        ['s', -rx, 0, -rx, -ry],
+        ['v', -h + ry * 2],
+        ['s', 0, -ry, rx, -ry] ];
+    }
+
+    return [
+      ['M', x, y],
+      ['h', w],
+      ['v', h],
+      ['H', x],
+      ['Z'] ];
+  }
+
+  /**
+   * Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`,
+   * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>` or `<glyph>`. If `replace` parameter
+   * is `true`, it will replace the target.
+   *
+   * It can also work with an options object,
+   * @see SVGPathCommander.shapeOps
+   *
+   * The newly created `<path>` element keeps all non-specific
+   * attributes like `class`, `fill`, etc.
+   *
+   * @param {SVGPathCommander.shapeTypes | SVGPathCommander.shapeOps} element target shape
+   * @param {boolean=} replace option to replace target
+   * @return {SVGPathElement | boolean} the newly created `<path>` element
+   */
+  function shapeToPath(element, replace) {
+    var supportedShapes = Object.keys(shapeParams);
+    var isElement = element instanceof Element;
+
+    if (isElement && !supportedShapes.some(function (s) { return element.tagName === s; })) {
+      throw TypeError(("shapeToPath: \"" + element + "\" is not SVGElement"));
+    }
+
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    /** @type {string} */
+    var type = isElement ? element.tagName : element.type;
+    /** @type {any} disables TS checking for something that's specific to shape */
+    var config = {};
+    config.type = type;
+
+    if (isElement) {
+      var shapeAttrs = shapeParams[type];
+      shapeAttrs.forEach(function (p) { config[p] = element.getAttribute(p); });
+      // set no-specific shape attributes: fill, stroke, etc
+      Object.values(element.attributes).forEach(function (ref) {
+        var name = ref.name;
+        var value = ref.value;
+
+        if (!shapeAttrs.includes(name)) { path.setAttribute(name, value); }
+      });
+    } else {
+      Object.assign(config, element);
+    }
+
+    // set d
+    var description;
+    var round = defaultOptions.round;
+
+    if (type === 'circle') { description = pathToString(getCirclePath(config), round); }
+    else if (type === 'ellipse') { description = pathToString(getEllipsePath(config), round); }
+    else if (['polyline', 'polygon'].includes(type)) { description = pathToString(getPolyPath(config), round); }
+    else if (type === 'rect') { description = pathToString(getRectanglePath(config), round); }
+    else if (type === 'line') { description = pathToString(getLinePath(config), round); }
+    else if (type === 'glyph') { description = isElement ? element.getAttribute('d') : element.type; }
+
+    // replace target element
+    if (description) {
+      path.setAttribute('d', description);
+      if (replace && isElement) {
+        element.before(path, element);
+        element.remove();
+      }
+      return path;
+    }
+    return false;
+  }
+
+  /**
+   * Reverses all segments and their values from a `pathArray`
+   * which consists of only C (cubic-bezier) path commands.
+   *
+   * @param {SVGPathCommander.curveArray} path the source `pathArray`
+   * @returns {SVGPathCommander.curveArray} the reversed `pathArray`
+   */
+  function reverseCurve(path) {
+    var rotatedCurve = path.slice(1)
+      .map(function (x, i, curveOnly) { return (!i
+        ? path[0].slice(1).concat( x.slice(1))
+        : curveOnly[i - 1].slice(-2).concat( x.slice(1))); })
+      .map(function (x) { return x.map(function (_, i) { return x[x.length - i - 2 * (1 - (i % 2))]; }); })
+      .reverse();
+
+    // @ts-ignore -- expected on reverse operations
+    return [['M' ].concat( rotatedCurve[0].slice(0, 2)) ].concat( rotatedCurve.map(function (x) { return ['C' ].concat( x.slice(2)); }));
+  }
+
+  var version = "0.1.15";
+
+  // @ts-ignore
+
+  /**
+   * A global namespace for library version.
+   * @type {string}
+   */
+  var Version = version;
+
+  /**
+   * @interface
+   */
   var Util = {
-    CSSMatrix: CSS3Matrix,
+    CSSMatrix: CSSMatrix,
     parsePathString: parsePathString,
     isPathArray: isPathArray,
     isCurveArray: isCurveArray,
     isAbsoluteArray: isAbsoluteArray,
     isRelativeArray: isRelativeArray,
     isNormalizedArray: isNormalizedArray,
+    isValidPath: isValidPath,
     pathToAbsolute: pathToAbsolute,
     pathToRelative: pathToRelative,
     pathToCurve: pathToCurve,
@@ -2276,61 +3162,73 @@
     getPointAtLength: getPointAtLength,
     clonePath: clonePath,
     splitPath: splitPath,
+    fixPath: fixPath,
     roundPath: roundPath,
     optimizePath: optimizePath,
     reverseCurve: reverseCurve,
     reversePath: reversePath,
     normalizePath: normalizePath,
     transformPath: transformPath,
-    getSVGMatrix: getSVGMatrix,
-    options: SVGPCO,
+    shapeToPath: shapeToPath,
+    options: defaultOptions,
+    Version: Version,
   };
 
   /**
-   * Creates a new SVGPathCommander instance.
+   * Creates a new SVGPathCommander instance with the following properties:
+   * * segments: `pathArray`
+   * * round: number
+   * * origin: [number, number, number?]
+   *
    * @class
+   * @author thednp <https://github.com/thednp/svg-path-commander>
+   * @returns {SVGPathCommander} a new SVGPathCommander instance
    */
   var SVGPathCommander = function SVGPathCommander(pathValue, config) {
-    var options = config || {};
-    // check for either true or > 0
-    // const roundOption = +options.round === 0 || options.round === false ? 0 : SVGPCO.round;
-    var round = SVGPCO.round;
-    var roundOption = options.round;
-    if (+roundOption === 0 || roundOption === false) {
-      round = 0;
-    }
-
-    var ref = round && (options || SVGPCO);
-    var decimals = ref.decimals;
-    var origin = options.origin;
-
-    // set instance options
-    /**
-     * @type {Boolean | Number}
-     */
-    this.round = round === 0 ? 0 : decimals;
-    // ZERO | FALSE will disable rounding numbers
-
-    if (origin) {
-      var x = origin.x;
-      var y = origin.y;
-      if ([x, y].every(function (n) { return !Number.isNaN(n); })) {
-        /**
-         * @type {Object | null}
-         */
-        this.origin = origin;
-      }
-    }
+    var instanceOptions = config || {};
 
     /**
-     * @type {Object}
+     * @type {SVGPathCommander.pathArray}
      */
     this.segments = parsePathString(pathValue);
+    var BBox = getPathBBox(this.segments);
+    var width = BBox.width;
+    var height = BBox.height;
+
+    // set instance options
+    var round = defaultOptions.round;
+    var origin = defaultOptions.origin;
+    var roundOption = instanceOptions.round;
+    var originOption = instanceOptions.origin;
+
+    if (roundOption === 'auto') {
+      var pathScale = (("" + (Math.floor(Math.max(width, height))))).length;
+      round = pathScale >= 4 ? 0 : 4 - pathScale;
+    } else if ((Number.isInteger(roundOption) && roundOption >= 1) || roundOption === false) {
+      round = roundOption;
+    }
+
+    if (Array.isArray(originOption) && [2, 3].includes(originOption.length)
+      && originOption.map(function (n) { return !Number.isNaN(n); })) {
+      origin = [].concat( originOption.map(Number) );
+    } else {
+      // determine a transform origin
+      var cx = BBox.cx;
+      var cy = BBox.cy;
+      // an estimted guess
+      var originZ = Math.max(width, height) + Math.min(width, height) / 2;
+      origin = [cx, cy, originZ];
+    }
 
     /**
-     * @type {String}
+     * @type {number | boolean}
+     * @default 4
      */
-    this.pathValue = pathValue;
+    this.round = round;
+    /**
+     * @default [0,0]
+     */
+    this.origin = origin;
 
     return this;
   };
@@ -2358,8 +3256,21 @@
   };
 
   /**
-   * Reverse path
-   * @param {Boolean | Number} onlySubpath option to reverse all pathArray(s) except first
+   * Convert path to cubic-bezier values. In addition, un-necessary `Z`
+   * segment is removed if previous segment extends to the `M` segment.
+   *
+   * @public
+   */
+  SVGPathCommander.prototype.toCurve = function toCurve () {
+    var ref = this;
+      var segments = ref.segments;
+    this.segments = pathToCurve(segments);
+    return this;
+  };
+
+  /**
+   * Reverse the order of the segments and their values.
+   * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
    * @public
    */
   SVGPathCommander.prototype.reverse = function reverse (onlySubpath) {
@@ -2367,14 +3278,16 @@
 
     var ref = this;
       var segments = ref.segments;
-    var subPath = splitPath(this.pathValue).length > 1 && splitPath(this.toString());
-    var absoluteMultiPath = subPath && clonePath(subPath)
-      .map(function (x, i) {
-        if (onlySubpath) {
-          return i ? reversePath(x) : parsePathString(x);
-        }
-        return reversePath(x);
-      });
+    var split = splitPath(this.toString());
+    var subPath = split.length > 1 ? split : 0;
+
+    // @ts-ignore
+    var absoluteMultiPath = subPath && clonePath(subPath).map(function (x, i) {
+      if (onlySubpath) {
+        return i ? reversePath(x) : parsePathString(x);
+      }
+      return reversePath(x);
+    });
 
     var path = [];
     if (subPath) {
@@ -2389,7 +3302,7 @@
 
   /**
    * Normalize path in 2 steps:
-   * * convert pathArray(s) to absolute values
+   * * convert `pathArray`(s) to absolute values
    * * convert shorthand notation to standard notation
    * @public
    */
@@ -2401,7 +3314,7 @@
   };
 
   /**
-   * Optimize pathArray values:
+   * Optimize `pathArray` values:
    * * convert segments to absolute and/or relative values
    * * select segments with shortest resulted string
    * * round values to the specified `decimals` option value
@@ -2416,32 +3329,33 @@
   };
 
   /**
-   * Transform path using values from an `Object`
-   * with the following structure:
+   * Transform path using values from an `Object` defined as `transformObject`.
+   * @see SVGPathCommander.transformObject for a quick refference
    *
-   * {
-   * origin:  {x, y, z},
-   * translate: {x, y, z},
-   * rotate:  {x, y, z},
-   * skew:    {x, y, z},
-   * scale:   {x, y, z}
-   * }
-   * @param {Object} source a transform `Object`as described above
+   * @param {SVGPathCommander.transformObject} source a `transformObject`as described above
    * @public
    */
   SVGPathCommander.prototype.transform = function transform (source) {
-    var transformObject = source || {};
+    if (!source || typeof source !== 'object' || (typeof source === 'object'
+      && !['translate', 'rotate', 'skew', 'scale'].some(function (x) { return x in source; }))) { return this; }
+
+    /** @type {SVGPathCommander.transformObject} */
+    var transform = {};
+    Object.keys(source).forEach(function (fn) {
+      // @ts-ignore
+      transform[fn] = Array.isArray(source[fn]) ? [].concat( source[fn] ) : Number(source[fn]);
+    });
     var ref = this;
       var segments = ref.segments;
 
     // if origin is not specified
     // it's important that we have one
-    if (!transformObject.origin) {
-      var BBox = getPathBBox(segments);
-      transformObject.origin = [BBox.cx, BBox.cy, BBox.cx];
+    if (!transform.origin) {
+      // @ts-ignore
+      transform.origin = Object.assign({}, this.origin);
     }
 
-    this.segments = transformPath(segments, transformObject);
+    this.segments = transformPath(segments, transform);
     return this;
   };
 
@@ -2473,7 +3387,8 @@
     return pathToString(this.segments, this.round);
   };
 
-  Object.keys(Util).forEach(function (x) { SVGPathCommander[x] = Util[x]; });
+  // Export Util to global
+  Object.assign(SVGPathCommander, Util);
 
   return SVGPathCommander;
 
