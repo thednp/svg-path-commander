@@ -45,7 +45,7 @@ export function getPolyPath(attr) {
     index += 2;
   }
   // @ts-ignore -- it's a `pathArray`
-  return attr.type === 'polygon' ? [...pathArray, 'z'] : pathArray;
+  return attr.type === 'polygon' ? [...pathArray, ['z']] : pathArray;
 }
 
 /**

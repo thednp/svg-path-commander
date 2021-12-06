@@ -15,6 +15,10 @@ h1 small,h2 small,h3 small,h4 small,h5 small {
   display:inline-block; 
   font-weight: normal; font-size: 75%
 }
+#svg-path-commander {
+  width: 380px;
+  max-width: 100%
+}
 .row {
   display: flex;
   flex: 1 0 100%;
@@ -30,7 +34,14 @@ h1 small,h2 small,h3 small,h4 small,h5 small {
 }
 .form-input { 
   background: #333; border: 1px solid #555; color: #eee; 
-  width: calc(100% - 1.5rem) !important; padding: 0.5rem 0.75rem; line-height: 1.5 
+  width: calc(100% - 1.5rem) !important; padding: 0.5rem 0.75rem;
+  font-size: 14px; line-height: 1.5 
+}
+div.form-input {
+  min-height: 100px;
+  resize: vertical;
+  overflow: auto;
+  white-space: pre-wrap;
 }
 button { 
   background: #222; 
@@ -43,6 +54,12 @@ button:hover, button:focus {
 }
 a { color: #eee; text-decoration: none;}
 a:hover { color: cyan; text-decoration: none;}
+a.active { color: cyan;}
+
+.nav a {
+  font-size: 14px;
+  line-height: 1.2;
+}
 
 .copy {font-size: 12px;}
 .row.copy .col {
@@ -100,15 +117,15 @@ path {transition: fill 0.5s ease}
 /* BS Tooltip */
 .tooltip{position:absolute;z-index:1070;display:block;margin:0;font-family:var(--bs-font-sans-serif);font-style:normal;font-weight:400;line-height:1.5;text-align:left;text-align:start;text-decoration:none;text-shadow:none;text-transform:none;letter-spacing:normal;word-break:normal;word-spacing:normal;white-space:normal;line-break:auto;font-size:0.875rem;word-wrap:break-word;opacity:0}
 .tooltip.show{opacity:0.95}
-.tooltip .arrow{position:absolute;display:block;width:0.8rem;height:0.4rem}
-.tooltip .arrow::before{position:absolute;content:"";border-color:transparent;border-style:solid}
-.bs-tooltip-auto[x-placement^="top"],.bs-tooltip-top{padding:0.4rem 0}
-.bs-tooltip-auto[x-placement^="top"] .arrow,.bs-tooltip-top .arrow{bottom:0}
-.bs-tooltip-auto[x-placement^="top"] .arrow::before,.bs-tooltip-top .arrow::before{top:0;border-width:0.4rem 0.4rem 0;border-top-color:#fff}
-.bs-tooltip-auto[x-placement^="right"],.bs-tooltip-right{padding:0 0.4rem}.bs-tooltip-auto[x-placement^="right"] .arrow,.bs-tooltip-right .arrow{left:0;width:0.4rem;height:0.8rem}
-.bs-tooltip-auto[x-placement^="right"] .arrow::before,.bs-tooltip-right .arrow::before{right:0;border-width:0.4rem 0.4rem 0.4rem 0;border-right-color:#fff}
-.bs-tooltip-auto[x-placement^="bottom"],.bs-tooltip-bottom{padding:0.4rem 0}
-.bs-tooltip-auto[x-placement^="bottom"] .arrow,.bs-tooltip-bottom .arrow{top:0}.bs-tooltip-auto[x-placement^="bottom"] .arrow::before,.bs-tooltip-bottom .arrow::before{bottom:0;border-width:0 0.4rem 0.4rem;border-bottom-color:#fff}
-.bs-tooltip-auto[x-placement^="left"],.bs-tooltip-left{padding:0 0.4rem}.bs-tooltip-auto[x-placement^="left"] .arrow,.bs-tooltip-left .arrow{right:0;width:0.4rem;height:0.8rem}
-.bs-tooltip-auto[x-placement^="left"] .arrow::before,.bs-tooltip-left .arrow::before{left:0;border-width:0.4rem 0 0.4rem 0.4rem;border-left-color:#fff}
+.tooltip .tooltip-arrow{position:absolute;display:block;width:0.8rem;height:0.4rem}
+.tooltip .tooltip-arrow::before{position:absolute;content:"";border-color:transparent;border-style:solid}
+.bs-tooltip-top{padding:0.4rem 0}
+.bs-tooltip-top .tooltip-arrow{bottom:0}
+.bs-tooltip-top .tooltip-arrow::before{top:0;border-width:0.4rem 0.4rem 0;border-top-color:#fff}
+.bs-tooltip-right{padding:0 0.4rem}.bs-tooltip-auto[x-placement^="right"] .tooltip-arrow,.bs-tooltip-right .tooltip-arrow{left:0;width:0.4rem;height:0.8rem}
+.bs-tooltip-right .tooltip-arrow::before{right:0;border-width:0.4rem 0.4rem 0.4rem 0;border-right-color:#fff}
+.bs-tooltip-bottom{padding:0.4rem 0}
+.bs-tooltip-bottom .tooltip-arrow{top:0}.bs-tooltip-auto[x-placement^="bottom"] .tooltip-arrow::before,.bs-tooltip-bottom .tooltip-arrow::before{bottom:0;border-width:0 0.4rem 0.4rem;border-bottom-color:#fff}
+.bs-tooltip-left{padding:0 0.4rem}.bs-tooltip-auto[x-placement^="left"] .tooltip-arrow,.bs-tooltip-left .tooltip-arrow{right:0;width:0.4rem;height:0.8rem}
+.bs-tooltip-left .tooltip-arrow::before{left:0;border-width:0.4rem 0 0.4rem 0.4rem;border-left-color:#fff}
 .tooltip-inner{max-width:200px;padding:0.25rem 0.5rem;color:#222;text-align:center;background-color:#fff;border-radius:0.25rem}

@@ -2,7 +2,7 @@ export as namespace SVGPathCommander;
 export default SVGPathCommander;
 
 // modules
-import './modules';
+import './svg-path-commander';
 export { default as pathToAbsolute } from "svg-path-commander/src/convert/pathToAbsolute";
 export { default as pathToRelative } from "svg-path-commander/src/convert/pathToRelative";
 export { default as pathToCurve } from "svg-path-commander/src/convert/pathToCurve";
@@ -71,7 +71,6 @@ export { default as isRelativeArray } from "svg-path-commander/src/util/isRelati
 export { default as isValidPath } from "svg-path-commander/src/util/isValidPath";
 export { default as shapeToPath } from "svg-path-commander/src/util/shapeToPath";
 export { default as Version } from "svg-path-commander/src/util/version";
-
 
 // main
 import { default as SVGPathCommander } from 'svg-path-commander/src/svg-path-commander';

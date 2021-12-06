@@ -9,14 +9,14 @@
     "strict": true,
     "allowJs": true,
     "checkJs": true,
-    // "outFile": "types/modules.d.ts", // UN-comment to generate
+    // "outFile": "types/svg-path-commander.d.ts", // UN-comment to generate
     "rootDir": "../",
     "outDir": "types",
   },
   "files": [
     "types/index.d.ts",
     "types/more/svg.d.ts",
-    "types/modules.d.ts", // comment when regenerating, delete file
+    "types/svg-path-commander.d.ts", // comment when regenerating, delete file
     "types/more/modules.ts",
   ],
   "types": [],

@@ -184,10 +184,10 @@ declare module "svg-path-commander/src/convert/pathToAbsolute" {
      * Parses a path string value or object and returns an array
      * of segments, all converted to absolute values.
      *
-     * @param {SVGPathCommander.pathArray} pathInput the path string | object
+     * @param {SVGPathCommander.pathArray | string} pathInput the path string | object
      * @returns {SVGPathCommander.absoluteArray} the resulted `pathArray` with absolute values
      */
-    export default function pathToAbsolute(pathInput: SVGPathCommander.pathArray): SVGPathCommander.absoluteArray;
+    export default function pathToAbsolute(pathInput: SVGPathCommander.pathArray | string): SVGPathCommander.absoluteArray;
 }
 declare module "svg-path-commander/src/util/isRelativeArray" {
     /**
@@ -471,11 +471,11 @@ declare module "svg-path-commander/src/math/distanceSquareRoot" {
      * Returns the square root of the distance
      * between two given points.
      *
-     * @param {Number[][]} a the first point coordinates
-     * @param {Number[][]} b the second point coordinates
-     * @returns {Number} the distance value
+     * @param {[number, number]} a the first point coordinates
+     * @param {[number, number]} b the second point coordinates
+     * @returns {number} the distance value
      */
-    export default function distanceSquareRoot(a: number[][], b: number[][]): number;
+    export default function distanceSquareRoot(a: [number, number], b: [number, number]): number;
 }
 declare module "svg-path-commander/src/math/epsilon" {
     export default epsilon;
@@ -591,9 +591,9 @@ declare module "svg-path-commander/src/process/splitCubic" {
      * Split a cubic-bezier segment into two.
      *
      * @param {number[]} pts the cubic-bezier parameters
-     * @return {[string, ...number[]][]} two new cubic-bezier segments
+     * @return {SVGPathCommander.cubicSegment[]} two new cubic-bezier segments
      */
-    export default function splitCubic(pts: number[]): [string, ...number[]][];
+    export default function splitCubic(pts: number[]): SVGPathCommander.cubicSegment[];
 }
 declare module "svg-path-commander/src/process/splitPath" {
     /**
@@ -683,10 +683,10 @@ declare module "svg-path-commander/src/util/shapeToPath" {
      * attributes like `class`, `fill`, etc.
      *
      * @param {SVGPathCommander.shapeTypes | SVGPathCommander.shapeOps} element target shape
-     * @param {boolean} replace option to replace target
+     * @param {boolean=} replace option to replace target
      * @return {SVGPathElement | boolean} the newly created `<path>` element
      */
-    export default function shapeToPath(element: SVGPathCommander.shapeTypes | SVGPathCommander.shapeOps, replace: boolean): SVGPathElement | boolean;
+    export default function shapeToPath(element: SVGPathCommander.shapeTypes | SVGPathCommander.shapeOps, replace?: boolean | undefined): SVGPathElement | boolean;
 }
 declare module "svg-path-commander/src/util/createPath" {
     /**
@@ -698,10 +698,10 @@ declare module "svg-path-commander/src/util/createPath" {
      * @deprecated
      * @see shapeToPath a new and more flexible utility
      *
-     * @param {SVGElement | String} pathInput a `<glyph>` element or path string
-     * @returns {SVGPathElement} a new `<path>` element
+     * @param {SVGPathCommander.shapeTypes} pathInput a `<glyph>` element or path string
+     * @returns {SVGPathElement | boolean} a new `<path>` element
      */
-    export default function createPath(pathInput: SVGElement | string): SVGPathElement;
+    export default function createPath(pathInput: SVGPathCommander.shapeTypes): SVGPathElement | boolean;
 }
 declare module "svg-path-commander/src/util/getCubicSize" {
     /**
@@ -736,10 +736,10 @@ declare module "svg-path-commander/src/util/getDrawDirection" {
      * Check if a path is drawn clockwise and returns true if so,
      * false otherwise.
      *
-     * @param {string | SVGPathCommander.pathArray} path the path string or `pathArray`
+     * @param {SVGPathCommander.pathArray} path the path string or `pathArray`
      * @returns {boolean} true when clockwise or false if not
      */
-    export default function getDrawDirection(path: string | SVGPathCommander.pathArray): boolean;
+    export default function getDrawDirection(path: SVGPathCommander.pathArray): boolean;
 }
 declare module "svg-path-commander/src/util/getPathBBox" {
     /**
@@ -773,7 +773,7 @@ declare module "svg-path-commander/src/util/getPathLength" {
      * or the equivalent to `shape.getTotalLength()`
      * pathToCurve version
      *
-     * @param {SVGPathCommander.pathArray} path the ending point Y
+     * @param {SVGPathCommander.pathArray} path the target `pathArray`
      * @returns {number} the shape total length
      */
     export default function getPathLength(path: SVGPathCommander.pathArray): number;
@@ -792,10 +792,10 @@ declare module "svg-path-commander/src/util/getSegArcLength" {
     /**
      * Returns the A (arc-to) segment length.
      *
-     * @param {number[]} arguments the arc-to coordinates
+     * @param {number[]} args the arc-to coordinates
      * @returns {number} the arc-to segment length
      */
-    export default function getSegArcLength(...args: any[]): number;
+    export default function getSegArcLength(...args: number[]): number;
 }
 declare module "svg-path-commander/src/util/getSegLineLength" {
     /**

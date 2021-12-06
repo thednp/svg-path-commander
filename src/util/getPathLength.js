@@ -6,7 +6,7 @@ import pathToCurve from '../convert/pathToCurve';
  * or the equivalent to `shape.getTotalLength()`
  * pathToCurve version
  *
- * @param {SVGPathCommander.pathArray} path the ending point Y
+ * @param {SVGPathCommander.pathArray} path the target `pathArray`
  * @returns {number} the shape total length
  */
 export default function getPathLength(path) {

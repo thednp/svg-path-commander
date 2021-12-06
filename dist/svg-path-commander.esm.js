@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.14 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.15 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -2759,7 +2759,7 @@ function getSegCubicLength(x1, y1, x2, y2, x3, y3, x4, y4, z) {
  * or the equivalent to `shape.getTotalLength()`
  * pathToCurve version
  *
- * @param {SVGPathCommander.pathArray} path the ending point Y
+ * @param {SVGPathCommander.pathArray} path the target `pathArray`
  * @returns {number} the shape total length
  */
 function getPathLength(path) {
@@ -2884,7 +2884,7 @@ function getPolyPath(attr) {
     index += 2;
   }
   // @ts-ignore -- it's a `pathArray`
-  return attr.type === 'polygon' ? [...pathArray, 'z'] : pathArray;
+  return attr.type === 'polygon' ? [...pathArray, ['z']] : pathArray;
 }
 
 /**
@@ -3051,7 +3051,7 @@ function reverseCurve(path) {
     ...rotatedCurve.map((x) => ['C', ...x.slice(2)])];
 }
 
-var version = "0.1.14";
+var version = "0.1.15";
 
 // @ts-ignore
 
