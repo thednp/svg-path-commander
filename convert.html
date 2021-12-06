@@ -110,14 +110,10 @@
       shapes.forEach((shape) => svg.append(shape));
       shapes.forEach((shape) => SVG.append(shapeToPath(shape)));
       Array.from(SVG.children).forEach((shape) => (desc += shape.getAttribute('d')));
-      // Array.from(SVG.children).forEach((shape) => (desc += shape.getAttribute('d')));
-
-      // console.log(tempDocument.body, value, desc)
 
       if (!hasSVG) {
         const bbox = getPathBBox(desc);
         const {width, height} = bbox;
-        console.log(width, height)
         SVG.setAttribute('viewBox', (`0 0 ${width} ${height}`));
       }
 
