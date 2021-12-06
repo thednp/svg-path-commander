@@ -1,122 +1,109 @@
-export default SVGPathCommander;
 export as namespace SVGPathCommander;
+export default SVGPathCommander;
+
+// modules
+// import './modules';
+export { default as pathToAbsolute } from "svg-path-commander/src/convert/pathToAbsolute";
+export { default as pathToRelative } from "svg-path-commander/src/convert/pathToRelative";
+export { default as pathToCurve } from "svg-path-commander/src/convert/pathToCurve";
+export { default as pathToString } from "svg-path-commander/src/convert/pathToString";
+export { default as distanceSquareRoot } from "svg-path-commander/src/math/distanceSquareRoot";
+export { default as epsilon } from "svg-path-commander/src/math/epsilon";
+export { default as midPoint } from "svg-path-commander/src/math/midPoint";
+export { default as polygonArea } from "svg-path-commander/src/math/polygonArea";
+export { default as polygonLength } from "svg-path-commander/src/math/polygonLength";
+export { default as rotateVector } from "svg-path-commander/src/math/rotateVector";
+export { default as defaultOptions } from "svg-path-commander/src/options/options";
+export { default as finalizeSegment } from "svg-path-commander/src/parser/finalizeSegment";
+export { default as invalidPathValue } from "svg-path-commander/src/parser/invalidPathValue";
+export { default as isArcCommand } from "svg-path-commander/src/parser/isArcCommand";
+export { default as isDigit } from "svg-path-commander/src/parser/isDigit";
+export { default as isDigitStart } from "svg-path-commander/src/parser/isDigitStart";
+export { default as isPathCommand } from "svg-path-commander/src/parser/isPathCommand";
+export { default as isSpace } from "svg-path-commander/src/parser/isSpace";
+export { default as paramsCount } from "svg-path-commander/src/parser/paramsCount";
+export { default as paramsParser } from "svg-path-commander/src/parser/paramsParser";
+export { default as parsePathString } from "svg-path-commander/src/parser/parsePathString";
+export { default as PathParser } from "svg-path-commander/src/parser/pathParser";
+export { default as scanFlag } from "svg-path-commander/src/parser/scanFlag";
+export { default as scanParam } from "svg-path-commander/src/parser/scanParam";
+export { default as scanSegment } from "svg-path-commander/src/parser/scanSegment";
+export { default as skipSpaces } from "svg-path-commander/src/parser/skipSpaces";
+export { default as arcToCubic } from "svg-path-commander/src/process/arcToCubic";
+export { default as clonePath } from "svg-path-commander/src/process/clonePath";
+export { default as fixArc } from "svg-path-commander/src/process/fixArc";
+export { default as fixPath } from "svg-path-commander/src/process/fixPath";
+export { default as getSVGMatrix } from "svg-path-commander/src/process/getSVGMatrix";
+export { default as lineToCubic } from "svg-path-commander/src/process/lineToCubic";
+export { default as normalizePath } from "svg-path-commander/src/process/normalizePath";
+export { default as normalizeSegment } from "svg-path-commander/src/process/normalizeSegment";
+export { default as optimizePath } from "svg-path-commander/src/process/optimizePath";
+export { default as projection2d } from "svg-path-commander/src/process/projection2d";
+export { default as quadToCubic } from "svg-path-commander/src/process/quadToCubic";
+export { default as reverseCurve } from "svg-path-commander/src/process/reverseCurve";
+export { default as reversePath } from "svg-path-commander/src/process/reversePath";
+export { default as roundPath } from "svg-path-commander/src/process/roundPath";
+export { default as segmentToCubic } from "svg-path-commander/src/process/segmentToCubic";
+export { default as shortenSegment } from "svg-path-commander/src/process/shortenSegment";
+export { default as shorthandToCubic } from "svg-path-commander/src/process/shorthandToCubic";
+export { default as shorthandToQuad } from "svg-path-commander/src/process/shorthandToQuad";
+export { default as splitCubic } from "svg-path-commander/src/process/splitCubic";
+export { default as splitPath } from "svg-path-commander/src/process/splitPath";
+export { default as transformEllipse } from "svg-path-commander/src/process/transformEllipse";
+export { default as transformPath } from "svg-path-commander/src/process/transformPath";
+export { default as createPath } from "svg-path-commander/src/util/createPath";
+export { default as getCubicSize } from "svg-path-commander/src/util/getCubicSize";
+export { default as getDrawDirection } from "svg-path-commander/src/util/getDrawDirection";
+export { default as getPathArea } from "svg-path-commander/src/util/getPathArea";
+export { default as getPathBBox } from "svg-path-commander/src/util/getPathBBox";
+export { default as getPathLength } from "svg-path-commander/src/util/getPathLength";
+export { default as getPointAtLength } from "svg-path-commander/src/util/getPointAtLength";
+export { default as getPointAtSegLength } from "svg-path-commander/src/util/getPointAtSegLength";
+export { default as getSegArcLength } from "svg-path-commander/src/util/getSegArcLength";
+export { default as getSegCubicLength } from "svg-path-commander/src/util/getSegCubicLength";
+export { default as getSegLineLength } from "svg-path-commander/src/util/getSegLineLength";
+export { default as getSegQuadLength } from "svg-path-commander/src/util/getSegQuadLength";
+export { default as isAbsoluteArray } from "svg-path-commander/src/util/isAbsoluteArray";
+export { default as isCurveArray } from "svg-path-commander/src/util/isCurveArray";
+export { default as isNormalizedArray } from "svg-path-commander/src/util/isNormalizedArray";
+export { default as isPathArray } from "svg-path-commander/src/util/isPathArray";
+export { default as isRelativeArray } from "svg-path-commander/src/util/isRelativeArray";
+export { default as isValidPath } from "svg-path-commander/src/util/isValidPath";
+export { default as shapeToPath } from "svg-path-commander/src/util/shapeToPath";
+export { default as Version } from "svg-path-commander/src/util/version";
+
 
 // main
-import {default as SVGPathCommander} from './svg-path-commander';
-
-// custom types
-export type parserParams = {
-  x1: number; y1: number;
-  x2: number; y2: number;
-  x: number;  y: number;
-  qx: number | null;
-  qy: number | null;
-}
-export type pathSegment = [string, ...number[]];
-export type pathArray = pathSegment[];
-
-export type options = {
-  round: boolean | number | null;
-  decimals: number;
-  origin: [number, number];
-};
-
-export type pathTransformList = {s: pathSegment, c: string, x: number, y: number};
-
-export type transformObject = {
-  // translate?: number | [number, number, number];
-  // rotate?: number | [number, number, number];
-  // scale?: number | [number, number, number];
-  // skew?: number | [number, number];
-  translate?: number | number[];
-  rotate?: number | number[];
-  scale?: number | number[];
-  skew?: number | number[];
-  origin: number[];
-};
-
-export type shapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;
-export type shapeOps = lineAttr | polyAttr | ellipseAttr | circleAttr | rectAttr | glyphAttr;
-
-export type lineAttr = {
-  type: string;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number
-};
-export type polyAttr = {
-  type: string;
-  points : string;
-};
-export type circleAttr = {
-  type: string;
-  cx: number;
-  cy: number;
-  r: number;
-};
-export type ellipseAttr = {
-  type: string;
-  cx: number;
-  cy: number;
-  rx: number;
-  ry: number;
-};
-export type rectAttr = {
-  type: string;
-  width : number;
-  height : number;
-  x : number;   y : number;
-  rx : number; ry : number;
-};
-export type glyphAttr = {
-  type: string;
-  d : string;
-};
-
-export type pathBBox = {
-  width: number;
-  height: number;
-  x: number;   y: number;
-  x2: number; y2: number;
-  cx: number; cy: number;
-};
-export type segmentLimits = {
-  min : {x: number; y: number};
-  max : {x: number; y: number}
-};
+import { default as SVGPathCommander } from 'svg-path-commander/src/svg-path-commander';
 
 // dependency
 export {default as CSSMatrix} from "dommatrix";
 
-// UTIL
-export { default as PathParser } from "./parser/pathParser";
-export { default as getPathArea } from './util/getPathArea';
-export { default as getPathLength } from './util/getPathLength';
-export { default as getDrawDirection } from './util/getDrawDirection';
-export { default as getPointAtLength } from './util/getPointAtLength';
-export { default as getPathBBox } from './util/getPathBBox';
-export { default as isValidPath } from './util/isValidPath';
-export { default as isPathArray } from './util/isPathArray';
-export { default as isAbsoluteArray } from './util/isAbsoluteArray';
-export { default as isRelativeArray } from './util/isRelativeArray';
-export { default as isCurveArray } from './util/isCurveArray';
-export { default as isNormalizedArray } from './util/isNormalizedArray';
-export { default as shapeToPath } from './util/shapeToPath';
+// custom types
+export {
+  pathCommand, absoluteCommand, relativeCommand,
+  MSegment, mSegment, moveSegment,
+  LSegment, lSegment, lineSegment,
+  VSegment, vSegment, vertLineSegment,
+  HSegment, hSegment, horLineSegment,
+  CSegment, cSegment, cubicSegment,
+  SSegment, sSegment, shortCubicSegment,
+  QSegment, qSegment, quadSegment,
+  TSegment, tSegment, shortQuadSegment,
+  ZSegment, zSegment, closeSegment,
 
-export { default as parsePathString } from './parser/parsePathString';
-export { default as clonePath } from './process/clonePath';
-export { default as roundPath } from './process/roundPath';
-export { default as splitPath } from './process/splitPath';
-export { default as optimizePath } from './process/optimizePath';
-export { default as reverseCurve } from './process/reverseCurve';
-export { default as reversePath } from './process/reversePath';
-export { default as normalizePath } from './process/normalizePath';
-export { default as transformPath } from './process/transformPath';
-export { default as getSVGMatrix } from './process/getSVGMatrix';
-export { default as fixPath } from './process/fixPath';
+  shortSegment, absoluteSegment, relativeSegment, normalSegment, pathSegment,
+  pathArray, absoluteArray, relativeArray, normalArray, curveArray,
 
-export { default as pathToAbsolute } from './convert/pathToAbsolute';
-export { default as pathToRelative } from './convert/pathToRelative';
-export { default as pathToCurve } from './convert/pathToCurve';
-export { default as pathToString } from './convert/pathToString';
+  pathTransformList, transformObject,
+
+  shapeTypes, shapeOps,
+  lineAttr, polyAttr, circleAttr,
+  ellipseAttr, rectAttr, glyphAttr,
+
+  pathBBox,
+  segmentLimits,
+
+  options,
+  parserParams,
+} from './more/svg';

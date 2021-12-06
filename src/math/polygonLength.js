@@ -12,6 +12,7 @@ import distanceSquareRoot from './distanceSquareRoot';
 export default function polygonLength(polygon) {
   return polygon.reduce((length, point, i) => {
     if (i) {
+      // @ts-ignore
       return length + distanceSquareRoot(polygon[i - 1], point);
     }
     return 0;

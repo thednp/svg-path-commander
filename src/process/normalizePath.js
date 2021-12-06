@@ -2,33 +2,29 @@ import pathToAbsolute from '../convert/pathToAbsolute';
 import normalizeSegment from './normalizeSegment';
 import clonePath from './clonePath';
 import isNormalizedArray from '../util/isNormalizedArray';
+import paramsParser from '../parser/paramsParser';
 
 /**
  * Normalizes a `path` object for further processing:
  * * convert segments to absolute values
  * * convert shorthand path commands to their non-shorthand notation
  *
- * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
- * @returns {SVGPathCommander.pathArray} the normalized `pathArray`
+ * @param {SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
+ * @returns {SVGPathCommander.normalArray} the normalized `pathArray`
  */
-export default function normalizePath(pathInput) { // path|pathString
+export default function normalizePath(pathInput) {
   if (isNormalizedArray(pathInput)) {
     return clonePath(pathInput);
   }
 
   const path = pathToAbsolute(pathInput);
-  const params = {
-    x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
-  };
+  const params = { ...paramsParser };
   const allPathCommands = [];
   const ii = path.length;
   let pathCommand = '';
   let prevCommand = '';
-  let segment;
-  let seglen;
 
   for (let i = 0; i < ii; i += 1) {
-    // save current path command
     [pathCommand] = path[i];
 
     // Save current path command
@@ -36,10 +32,11 @@ export default function normalizePath(pathInput) { // path|pathString
     // Get previous path command
     if (i) prevCommand = allPathCommands[i - 1];
     // Previous path command is used to normalizeSegment
+    // @ts-ignore -- expected on normalization
     path[i] = normalizeSegment(path[i], params, prevCommand);
 
-    segment = path[i];
-    seglen = segment.length;
+    const segment = path[i];
+    const seglen = segment.length;
 
     params.x1 = +segment[seglen - 2];
     params.y1 = +segment[seglen - 1];
@@ -47,5 +44,6 @@ export default function normalizePath(pathInput) { // path|pathString
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
 
+  // @ts-ignore -- a `normalArray` is absolutely an `absoluteArray`
   return path;
 }

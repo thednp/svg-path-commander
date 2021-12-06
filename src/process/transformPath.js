@@ -7,7 +7,7 @@ import fixArc from './fixArc';
 import getSVGMatrix from './getSVGMatrix';
 import transformEllipse from './transformEllipse';
 import projection2d from './projection2d';
-
+import paramsParser from '../parser/paramsParser';
 /**
  * Apply a 2D / 3D transformation to a `pathArray` instance.
  *
@@ -29,12 +29,11 @@ export default function transformPath(path, transform) {
     a, b, c, d, e, f,
   } = matrixInstance;
   const matrix2d = [a, b, c, d, e, f];
-  const params = {
-    x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
-  };
+  const params = { ...paramsParser };
   /** @ts-ignore */
   /** @type {SVGPathCommander.pathSegment} */
-  let segment = [''];
+  // @ts-ignore
+  let segment = [];
   let seglen = 0;
   let pathCommand = '';
   /** @type {SVGPathCommander.pathTransformList[]} */
@@ -57,9 +56,11 @@ export default function transformPath(path, transform) {
         || !['skewX', 'skewY'].find((p) => transformProps.includes(p)))) {
         segment = segmentToCubic(normalizedPath[i], params);
 
+        // @ts-ignore -- expected when switching `pathSegment` type
         absolutePath[i] = segmentToCubic(normalizedPath[i], params);
         fixArc(absolutePath, allPathCommands, i);
 
+        // @ts-ignore -- expected when switching `pathSegment` type
         normalizedPath[i] = segmentToCubic(normalizedPath[i], params);
         fixArc(normalizedPath, allPathCommands, i);
         ii = Math.max(absolutePath.length, normalizedPath.length);
@@ -82,22 +83,26 @@ export default function transformPath(path, transform) {
       transformedPath = [...transformedPath, ...[result]];
     }
 
+    // @ts-ignore
     return transformedPath.map((seg) => {
       pathCommand = seg.c;
       segment = seg.s;
       switch (pathCommand) {
         case 'A': // only apply to 2D transformations
-          te = transformEllipse(matrix2d, +segment[1], +segment[2], +segment[3]);
+          // @ts-ignore
+          te = transformEllipse(matrix2d, segment[1], segment[2], segment[3]);
 
           if (matrix2d[0] * matrix2d[3] - matrix2d[1] * matrix2d[2] < 0) {
-            segment[5] = +segment[5] ? 0 : 1;
+            segment[5] = segment[5] ? 0 : 1;
           }
 
+          // @ts-ignore
           [lx, ly] = projection2d(matrixInstance, [+segment[6], +segment[7]], origin);
 
           if ((x === lx && y === ly) || (te.rx < epsilon * te.ry) || (te.ry < epsilon * te.rx)) {
             segment = ['L', lx, ly];
           } else {
+            // @ts-ignore
             segment = [pathCommand, te.rx, te.ry, te.ax, segment[4], segment[5], lx, ly];
           }
 

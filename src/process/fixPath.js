@@ -1,5 +1,5 @@
 import parsePathString from '../parser/parsePathString';
-import pathToAbsolute from '../convert/pathToAbsolute';
+import normalizePath from './normalizePath';
 
 /**
  * Checks a `pathArray` for an unnecessary `Z` segment
@@ -15,15 +15,16 @@ import pathToAbsolute from '../convert/pathToAbsolute';
  */
 export default function fixPath(pathInput) {
   const pathArray = parsePathString(pathInput);
-  const absoluteArray = pathToAbsolute(pathArray);
+  const normalArray = normalizePath(pathArray);
   const { length } = pathArray;
-  const isClosed = absoluteArray.slice(-1)[0][0] === 'Z';
+  const isClosed = normalArray.slice(-1)[0][0] === 'Z';
   const segBeforeZ = isClosed ? length - 2 : length - 1;
 
-  const [x1, y1] = absoluteArray[0].slice(1);
-  const [x2, y2] = absoluteArray[segBeforeZ].slice(1);
+  const [mx, my] = normalArray[0].slice(1);
+  const [x, y] = normalArray[segBeforeZ].slice(-2);
 
-  if (isClosed && x1 === x2 && y1 === y2) {
+  if (isClosed && mx === x && my === y) {
+    // @ts-ignore -- `pathSegment[]` is a `pathArray`
     return pathArray.slice(0, -1);
   }
   return pathArray;

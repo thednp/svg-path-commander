@@ -101,10 +101,8 @@ export default function arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, recur
   m2[0] = 2 * m1[0] - m2[0];
   m2[1] = 2 * m1[1] - m2[1];
   if (recursive) {
-    // return [m2, m3, m4].concat(res);
     return [...m2, ...m3, ...m4, ...res];
   }
-  // res = [m2, m3, m4].concat(res).join().split(',');
   res = [...m2, ...m3, ...m4, ...res];
   const newres = [];
   for (let i = 0, ii = res.length; i < ii; i += 1) {

@@ -1,5 +1,5 @@
 import pathToString from '../convert/pathToString';
-import SVGPCO from '../options/options';
+import defaultOptions from '../options/options';
 
 /**
  * Supported shapes and their specific parameters.
@@ -35,6 +35,7 @@ export function getLinePath(attr) {
  */
 export function getPolyPath(attr) {
   /** @type {SVGPathCommander.pathArray} */
+  // @ts-ignore -- it's an empty `pathArray`
   const pathArray = [];
   const points = attr.points.split(/[\s|,]/).map(Number);
 
@@ -43,8 +44,8 @@ export function getPolyPath(attr) {
     pathArray.push([(index ? 'L' : 'M'), (points[index]), (points[index + 1])]);
     index += 2;
   }
-
-  return attr.type === 'polygon' ? [...pathArray, ['z']] : pathArray;
+  // @ts-ignore -- it's a `pathArray`
+  return attr.type === 'polygon' ? [...pathArray, 'z'] : pathArray;
 }
 
 /**
@@ -139,7 +140,7 @@ export function getRectanglePath(attr) {
  * attributes like `class`, `fill`, etc.
  *
  * @param {SVGPathCommander.shapeTypes | SVGPathCommander.shapeOps} element target shape
- * @param {boolean} replace option to replace target
+ * @param {boolean=} replace option to replace target
  * @return {SVGPathElement | boolean} the newly created `<path>` element
  */
 export default function shapeToPath(element, replace) {
@@ -170,14 +171,13 @@ export default function shapeToPath(element, replace) {
 
   // set d
   let description;
-  const { round, decimals } = SVGPCO;
-  const rounding = round && decimals ? decimals : null;
+  const { round } = defaultOptions;
 
-  if (type === 'circle') description = pathToString(getCirclePath(config), rounding);
-  else if (type === 'ellipse') description = pathToString(getEllipsePath(config), rounding);
-  else if (['polyline', 'polygon'].includes(type)) description = pathToString(getPolyPath(config), rounding);
-  else if (type === 'rect') description = pathToString(getRectanglePath(config), rounding);
-  else if (type === 'line') description = pathToString(getLinePath(config), rounding);
+  if (type === 'circle') description = pathToString(getCirclePath(config), round);
+  else if (type === 'ellipse') description = pathToString(getEllipsePath(config), round);
+  else if (['polyline', 'polygon'].includes(type)) description = pathToString(getPolyPath(config), round);
+  else if (type === 'rect') description = pathToString(getRectanglePath(config), round);
+  else if (type === 'line') description = pathToString(getLinePath(config), round);
   else if (type === 'glyph') description = isElement ? element.getAttribute('d') : element.type;
 
   // replace target element

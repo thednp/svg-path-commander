@@ -9,12 +9,15 @@
     "strict": true,
     "allowJs": true,
     "checkJs": true,
+    // "outFile": "types/modules.d.ts", // UN-comment to generate
+    "rootDir": "../",
     "outDir": "types",
-    "removeComments": true
   },
   "files": [
-    "types/index.d.ts", // comment when regenerating, keep un-commented after
-    // "src/svg-path-commander.js", // UN-comment when regenerating, ignore error, keep commented after
+    "types/index.d.ts",
+    "types/more/svg.d.ts",
+    "types/modules.d.ts", // comment when regenerating, delete file
+    "types/more/modules.ts",
   ],
   "types": [],
 }

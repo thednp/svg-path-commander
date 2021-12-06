@@ -13,11 +13,12 @@ import isPathArray from '../util/isPathArray';
  * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
  */
 export default function parsePathString(pathInput) {
-  if (isPathArray(pathInput)) {
+  if (Array.isArray(pathInput) && isPathArray(pathInput)) {
     return clonePath(pathInput);
   }
 
-  const path = new PathParser(`${pathInput}`); // TS expects string
+  // @ts-ignore
+  const path = new PathParser(pathInput); // TS expects string
 
   skipSpaces(path);
 
@@ -26,10 +27,12 @@ export default function parsePathString(pathInput) {
   }
 
   if (path.err.length) {
+    // @ts-ignore
     path.segments = [];
   } else if (path.segments.length) {
     if (!'mM'.includes(path.segments[0][0])) {
       path.err = `${invalidPathValue}: missing M/m`;
+      // @ts-ignore
       path.segments = [];
     } else {
       path.segments[0][0] = 'M';

@@ -17,6 +17,7 @@ import invalidPathValue from './invalidPathValue';
 export default function scanSegment(path) {
   const { max, pathValue, index } = path;
   const cmdCode = pathValue.charCodeAt(index);
+  // @ts-ignore
   const reqParams = paramCounts[pathValue[index].toLowerCase()];
 
   path.segmentStart = index;

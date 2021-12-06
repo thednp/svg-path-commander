@@ -29,15 +29,15 @@ export default function getPathBBox(path) {
       X.push(s1);
       Y.push(s2);
     } else {
-      // const dim = getCubicSize.apply(0, [x, y].concat(segment.slice(1)));
+      const sizeArgs = [x, y, ...segment.slice(1)];
       // @ts-ignore -- this should be fine
-      const dim = getCubicSize(...[x, y, ...segment.slice(1).map(Number)]);
+      const dim = getCubicSize(...sizeArgs);
 
       // X = X.concat(dim.min.x, dim.max.x);
-      X = [...X, dim.min.x, dim.max.x];
+      X = [...X, ...[dim.min.x, dim.max.x]];
 
       // Y = Y.concat(dim.min.y, dim.max.y);
-      Y = [...Y, dim.min.y, dim.max.y];
+      Y = [...Y, ...[dim.min.y, dim.max.y]];
       x = s1;
       y = s2;
     }

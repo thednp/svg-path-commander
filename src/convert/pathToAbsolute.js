@@ -1,83 +1,64 @@
 import parsePathString from '../parser/parsePathString';
 import clonePath from '../process/clonePath';
 import isAbsoluteArray from '../util/isAbsoluteArray';
-
 /**
  * Parses a path string value or object and returns an array
  * of segments, all converted to absolute values.
  *
  * @param {SVGPathCommander.pathArray | string} pathInput the path string | object
- * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with absolute values
+ * @returns {SVGPathCommander.absoluteArray} the resulted `pathArray` with absolute values
  */
 export default function pathToAbsolute(pathInput) {
-  if (isAbsoluteArray(pathInput)) {
+  if (Array.isArray(pathInput) && isAbsoluteArray(pathInput)) {
     return clonePath(pathInput);
   }
 
   const path = parsePathString(pathInput);
-  const ii = path.length;
-  /** @type {SVGPathCommander.pathArray} */
-  const resultArray = [];
-  let x = 0;
-  let y = 0;
-  let mx = 0;
-  let my = 0;
-  let start = 0;
+  let x = 0; let y = 0;
+  let mx = 0; let my = 0;
 
-  if (path[0][0] === 'M') {
-    // x = path[0][1];
-    // y = path[0][2];
-    [x, y] = path[0].slice(1).map(Number);
-    mx = x;
-    my = y;
-    start += 1;
-    resultArray.push(['M', x, y]);
-  }
-
-  for (let i = start; i < ii; i += 1) {
-    const segment = path[i];
+  // @ts-ignore -- the `absoluteSegment[]` is for sure an `absolutePath`
+  return path.map((segment) => {
+    const values = segment.slice(1).map(Number);
     const [pathCommand] = segment;
+    /** @type {SVGPathCommander.absoluteCommand} */
+    // @ts-ignore
     const absCommand = pathCommand.toUpperCase();
-    /** @type {SVGPathCommander.pathSegment} */
-    // @ts-ignore -- trust me
-    const absoluteSegment = [];
-    /** @type {number[]} */
-    let newSeg = [];
-    // do not change order,
-    // keep this push at this location
-    resultArray.push(absoluteSegment);
+
+    if (pathCommand === 'M') {
+      [x, y] = values;
+      mx = x;
+      my = y;
+      return ['M', x, y];
+    }
+    /** @type {SVGPathCommander.absoluteSegment} */
+    // @ts-ignore
+    let absoluteSegment = [];
 
     if (pathCommand !== absCommand) {
-      absoluteSegment[0] = absCommand;
-
       switch (absCommand) {
         case 'A':
-          // newSeg = segment.slice(1, -2).concat([+segment[6] + x, +segment[7] + y]);
-          newSeg = [...segment.slice(1, -2).map(Number), segment[6] + x, segment[7] + y];
-          for (let j = 0; j < newSeg.length; j += 1) {
-            absoluteSegment.push(newSeg[j]);
-          }
+          absoluteSegment = [
+            absCommand, values[0], values[1], values[2],
+            values[3], values[4], values[5] + x, values[6] + y];
           break;
         case 'V':
-          absoluteSegment[1] = segment[1] + y;
+          absoluteSegment = [absCommand, values[0] + y];
           break;
         case 'H':
-          absoluteSegment[1] = segment[1] + x;
+          absoluteSegment = [absCommand, values[0] + x];
           break;
-        default:
-          if (absCommand === 'M') {
-            mx = segment[1] + x;
-            my = segment[2] + y;
-          }
-          // for is here to stay for eslint
-          for (let j = 1; j < segment.length; j += 1) {
-            absoluteSegment.push(+segment[j] + (j % 2 ? x : y));
-          }
+        default: {
+          // use brakets for `eslint: no-case-declaration`
+          // https://stackoverflow.com/a/50753272/803358
+          const absValues = values.map((n, j) => n + (j % 2 ? y : x));
+          // @ts-ignore for n, l, c, s, q, t
+          absoluteSegment = [absCommand, ...absValues];
+        }
       }
     } else {
-      for (let j = 0; j < segment.length; j += 1) {
-        absoluteSegment.push(segment[j]);
-      }
+      // @ts-ignore
+      absoluteSegment = [absCommand, ...values];
     }
 
     const segLength = absoluteSegment.length;
@@ -87,21 +68,24 @@ export default function pathToAbsolute(pathInput) {
         y = my;
         break;
       case 'H':
-        x = +absoluteSegment[1];
+        // @ts-ignore
+        [, x] = absoluteSegment;
         break;
       case 'V':
-        y = +absoluteSegment[1];
+        // @ts-ignore
+        [, y] = absoluteSegment;
         break;
       default:
-        x = +absoluteSegment[segLength - 2];
-        y = +absoluteSegment[segLength - 1];
+        // @ts-ignore
+        x = absoluteSegment[segLength - 2];
+        // @ts-ignore
+        y = absoluteSegment[segLength - 1];
 
         if (absCommand === 'M') {
           mx = x;
           my = y;
         }
     }
-  }
-
-  return resultArray;
+    return absoluteSegment;
+  });
 }

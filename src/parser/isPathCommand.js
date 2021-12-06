@@ -17,7 +17,7 @@ export default function isPathCommand(code) {
     case 0x71/* q */:
     case 0x74/* t */:
     case 0x61/* a */:
-    // case 0x72/* r */: // R is not supported
+    // case 0x72/* r */:
       return true;
     default:
       return false;

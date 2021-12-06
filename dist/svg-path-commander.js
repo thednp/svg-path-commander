@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.11alpha4 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.14 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -11,16 +11,15 @@
 
   /**
    * SVGPathCommander default options
-   *
+   * @type {SVGPathCommander.options}
    */
-  var SVGPCO = {
-    origin: [0, 0],
-    decimals: 4,
-    round: 1,
+  var defaultOptions = {
+    origin: [0, 0, 0],
+    round: 4,
   };
 
   /**
-   * @type {Object.<string, number>}
+   * Segment params length
    */
   var paramsCount = {
     a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0,
@@ -38,15 +37,19 @@
 
     // Process duplicated commands (without comand name)
     if (LK === 'm' && data.length > 2) {
+      // @ts-ignore
       path.segments.push([pathCommand, data[0], data[1]]);
       data = data.slice(2);
       LK = 'l';
       pathCommand = pathCommand === 'm' ? 'l' : 'L';
     }
 
+    // @ts-ignore
     while (data.length >= paramsCount[LK]) {
       // path.segments.push([pathCommand].concat(data.splice(0, paramsCount[LK])));
+      // @ts-ignore
       path.segments.push([pathCommand ].concat( data.splice(0, paramsCount[LK])));
+      // @ts-ignore
       if (!paramsCount[LK]) {
         break;
       }
@@ -77,7 +80,7 @@
       return;
     }
 
-    path.err = invalidPathValue + ": invalid Arc flag " + ch + ", expecting 0 or 1 at index " + index;
+    path.err = invalidPathValue + ": invalid Arc flag \"" + ch + "\", expecting 0 or 1 at index " + index;
   }
 
   /**
@@ -237,7 +240,7 @@
       case 0x71/* q */:
       case 0x74/* t */:
       case 0x61/* a */:
-      // case 0x72/* r */: // R is not supported
+      // case 0x72/* r */:
         return true;
       default:
         return false;
@@ -280,6 +283,7 @@
     var pathValue = path.pathValue;
     var index = path.index;
     var cmdCode = pathValue.charCodeAt(index);
+    // @ts-ignore
     var reqParams = paramsCount[pathValue[index].toLowerCase()];
 
     path.segmentStart = index;
@@ -335,16 +339,11 @@
   /**
    * Returns a clone of an existing `pathArray`.
    *
-   * @param {SVGPathCommander.pathArray | any[] | string} path the source `pathArray`
+   * @param {SVGPathCommander.pathArray | SVGPathCommander.pathSegment} path the source `pathArray`
    * @returns {any} the cloned `pathArray`
    */
   function clonePath(path) {
-    return Array.isArray(path) ? path.map(function (x) {
-      if (Array.isArray(x)) {
-        return clonePath(x);
-      }
-      return !Number.isNaN(+x) ? +x : x;
-    }) : path;
+    return path.map(function (x) { return (Array.isArray(x) ? [].concat( x ) : x); });
   }
 
   /**
@@ -354,6 +353,7 @@
    */
   function PathParser(pathString) {
     /** @type {SVGPathCommander.pathArray} */
+    // @ts-ignore
     this.segments = [];
     /** @type {string} */
     this.pathValue = pathString;
@@ -380,7 +380,7 @@
   function isPathArray(path) {
     return Array.isArray(path) && path.every(function (seg) {
       var lk = seg[0].toLowerCase();
-      return paramsCount[lk] === seg.length - 1 && /[achlmqstvz]/gi.test(lk);
+      return paramsCount[lk] === seg.length - 1 && 'achlmqstvz'.includes(lk);
     });
   }
 
@@ -392,11 +392,12 @@
    * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
    */
   function parsePathString(pathInput) {
-    if (isPathArray(pathInput)) {
+    if (Array.isArray(pathInput) && isPathArray(pathInput)) {
       return clonePath(pathInput);
     }
 
-    var path = new PathParser(("" + pathInput)); // TS expects string
+    // @ts-ignore
+    var path = new PathParser(pathInput); // TS expects string
 
     skipSpaces(path);
 
@@ -405,10 +406,12 @@
     }
 
     if (path.err.length) {
+      // @ts-ignore
       path.segments = [];
     } else if (path.segments.length) {
       if (!'mM'.includes(path.segments[0][0])) {
         path.err = invalidPathValue + ": missing M/m";
+        // @ts-ignore
         path.segments = [];
       } else {
         path.segments[0][0] = 'M';
@@ -422,11 +425,11 @@
    * Iterates an array to check if it's a `pathArray`
    * with all absolute values.
    *
-   * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
+   * @param {SVGPathCommander.pathArray} path the `pathArray` to be checked
    * @returns {boolean} iteration result
    */
   function isAbsoluteArray(path) {
-    return Array.isArray(path) && isPathArray(path)
+    return isPathArray(path)
       && path.every(function (x) { return x[0] === x[0].toUpperCase(); });
   }
 
@@ -435,79 +438,61 @@
    * of segments, all converted to absolute values.
    *
    * @param {SVGPathCommander.pathArray | string} pathInput the path string | object
-   * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with absolute values
+   * @returns {SVGPathCommander.absoluteArray} the resulted `pathArray` with absolute values
    */
   function pathToAbsolute(pathInput) {
-    var assign;
-
-    if (isAbsoluteArray(pathInput)) {
+    if (Array.isArray(pathInput) && isAbsoluteArray(pathInput)) {
       return clonePath(pathInput);
     }
 
     var path = parsePathString(pathInput);
-    var ii = path.length;
-    /** @type {SVGPathCommander.pathArray} */
-    var resultArray = [];
-    var x = 0;
-    var y = 0;
-    var mx = 0;
-    var my = 0;
-    var start = 0;
+    var x = 0; var y = 0;
+    var mx = 0; var my = 0;
 
-    if (path[0][0] === 'M') {
-      // x = path[0][1];
-      // y = path[0][2];
-      (assign = path[0].slice(1).map(Number), x = assign[0], y = assign[1]);
-      mx = x;
-      my = y;
-      start += 1;
-      resultArray.push(['M', x, y]);
-    }
+    // @ts-ignore -- the `absoluteSegment[]` is for sure an `absolutePath`
+    return path.map(function (segment) {
+      var assign, assign$1, assign$2;
 
-    for (var i = start; i < ii; i += 1) {
-      var segment = path[i];
+      var values = segment.slice(1).map(Number);
       var pathCommand = segment[0];
+      /** @type {SVGPathCommander.absoluteCommand} */
+      // @ts-ignore
       var absCommand = pathCommand.toUpperCase();
-      /** @type {SVGPathCommander.pathSegment} */
-      // @ts-ignore -- trust me
+
+      if (pathCommand === 'M') {
+        (assign = values, x = assign[0], y = assign[1]);
+        mx = x;
+        my = y;
+        return ['M', x, y];
+      }
+      /** @type {SVGPathCommander.absoluteSegment} */
+      // @ts-ignore
       var absoluteSegment = [];
-      /** @type {number[]} */
-      var newSeg = [];
-      // do not change order,
-      // keep this push at this location
-      resultArray.push(absoluteSegment);
 
       if (pathCommand !== absCommand) {
-        absoluteSegment[0] = absCommand;
-
         switch (absCommand) {
           case 'A':
-            // newSeg = segment.slice(1, -2).concat([+segment[6] + x, +segment[7] + y]);
-            newSeg = segment.slice(1, -2).map(Number).concat( [segment[6] + x], [segment[7] + y]);
-            for (var j = 0; j < newSeg.length; j += 1) {
-              absoluteSegment.push(newSeg[j]);
-            }
+            absoluteSegment = [
+              absCommand, values[0], values[1], values[2],
+              values[3], values[4], values[5] + x, values[6] + y];
             break;
           case 'V':
-            absoluteSegment[1] = segment[1] + y;
+            absoluteSegment = [absCommand, values[0] + y];
             break;
           case 'H':
-            absoluteSegment[1] = segment[1] + x;
+            absoluteSegment = [absCommand, values[0] + x];
             break;
-          default:
-            if (absCommand === 'M') {
-              mx = segment[1] + x;
-              my = segment[2] + y;
-            }
-            // for is here to stay for eslint
-            for (var j$1 = 1; j$1 < segment.length; j$1 += 1) {
-              absoluteSegment.push(+segment[j$1] + (j$1 % 2 ? x : y));
-            }
+          default: {
+            // use brakets for `eslint: no-case-declaration`
+            // https://stackoverflow.com/a/50753272/803358
+            var absValues = values.map(function (n, j) { return n + (j % 2 ? y : x); });
+            // @ts-ignore for n, l, c, s, q, t
+            absoluteSegment = [absCommand ].concat( absValues);
+          }
         }
       } else {
-        for (var j$2 = 0; j$2 < segment.length; j$2 += 1) {
-          absoluteSegment.push(segment[j$2]);
-        }
+        // @ts-ignore
+        absoluteSegment = [absCommand ].concat( values);
       }
 
       var segLength = absoluteSegment.length;
@@ -517,34 +502,37 @@
           y = my;
           break;
         case 'H':
-          x = +absoluteSegment[1];
+          // @ts-ignore
+          (assign$1 = absoluteSegment, x = assign$1[1]);
           break;
         case 'V':
-          y = +absoluteSegment[1];
+          // @ts-ignore
+          (assign$2 = absoluteSegment, y = assign$2[1]);
           break;
         default:
-          x = +absoluteSegment[segLength - 2];
-          y = +absoluteSegment[segLength - 1];
+          // @ts-ignore
+          x = absoluteSegment[segLength - 2];
+          // @ts-ignore
+          y = absoluteSegment[segLength - 1];
 
           if (absCommand === 'M') {
             mx = x;
             my = y;
           }
       }
-    }
-
-    return resultArray;
+      return absoluteSegment;
+    });
   }
 
   /**
    * Iterates an array to check if it's a `pathArray`
    * with relative values.
    *
-   * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
+   * @param {SVGPathCommander.pathArray} path the `pathArray` to be checked
    * @returns {boolean} iteration result
    */
   function isRelativeArray(path) {
-    return Array.isArray(path) && isPathArray(path)
+    return isPathArray(path)
       && path.slice(1).every(function (seg) { return seg[0] === seg[0].toLowerCase(); });
   }
 
@@ -552,8 +540,8 @@
    * Parses a path string value or object and returns an array
    * of segments, all converted to relative values.
    *
-   * @param {string | SVGPathCommander.pathArray} pathInput the path string | object
-   * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with relative values
+   * @param {SVGPathCommander.pathArray} pathInput the path string | object
+   * @returns {SVGPathCommander.relativeArray} the resulted `pathArray` with relative values
    */
   function pathToRelative(pathInput) {
     if (isRelativeArray(pathInput)) {
@@ -561,147 +549,111 @@
     }
 
     var path = parsePathString(pathInput);
-    var ii = path.length;
-    /** @type {SVGPathCommander.pathArray} */
-    var resultArray = [];
-    var x = 0;
-    var y = 0;
-    var mx = 0;
-    var my = 0;
-    var start = 0;
+    var x = 0; var y = 0;
+    var mx = 0; var my = 0;
 
-    if (path[0][0] === 'M') {
-      x = +path[0][1];
-      y = +path[0][2];
-      mx = x;
-      my = y;
-      start += 1;
-      resultArray.push(['M', x, y]);
-    }
+    // @ts-ignore -- this is actually a `relativeArray`
+    return path.map(function (segment) {
+      var assign, assign$1;
 
-    for (var i = start; i < ii; i += 1) {
-      var segment = path[i];
+      var values = segment.slice(1).map(Number);
       var pathCommand = segment[0];
+      /** @type {SVGPathCommander.relativeCommand} */
+      // @ts-ignore
       var relativeCommand = pathCommand.toLowerCase();
-      /** @type {SVGPathCommander.pathSegment} */
+
+      if (pathCommand === 'M') {
+        (assign = values, x = assign[0], y = assign[1]);
+        mx = x;
+        my = y;
+        return ['M', x, y];
+      }
+
+      /** @type {SVGPathCommander.relativeSegment} */
       // @ts-ignore -- trust me DON'T CHANGE
       var relativeSegment = [];
-      /** @type {number[]} */
-      var newSeg = [];
-
-      // do not change order
-      // keep this push at this location
-      resultArray.push(relativeSegment);
 
       if (pathCommand !== relativeCommand) {
-        relativeSegment[0] = relativeCommand;
         switch (relativeCommand) {
           case 'a':
-            // newSeg = segment.slice(1, -2).concat([+segment[6] - x, +segment[7] - y]);
-            newSeg = segment.slice(1, -2).map(Number).concat( [segment[6] - x], [segment[7] - y]);
-
-            for (var j = 0; j < newSeg.length; j += 1) {
-              relativeSegment.push(newSeg[j]);
-            }
+            relativeSegment = [
+              relativeCommand, values[0], values[1], values[2],
+              values[3], values[4], values[5] - x, values[6] - y];
             break;
           case 'v':
-            relativeSegment[1] = +segment[1] - y;
+            relativeSegment = [relativeCommand, values[0] - y];
             break;
-          default:
-            // for is here to stay for eslint
-            for (var j$1 = 1; j$1 < segment.length; j$1 += 1) {
-              relativeSegment.push(+segment[j$1] - (j$1 % 2 ? x : y));
-            }
+          case 'h':
+            relativeSegment = [relativeCommand, values[0] - x];
+            break;
+          default: {
+            // use brakets for `eslint: no-case-declaration`
+            // https://stackoverflow.com/a/50753272/803358
+            var relValues = values.map(function (n, j) { return n - (j % 2 ? y : x); });
+            // @ts-ignore for M, L, C, S, Q, T
+            relativeSegment = [relativeCommand ].concat( relValues);
 
             if (relativeCommand === 'm') {
-              mx = +segment[1];
-              my = +segment[2];
+              (assign$1 = values, x = assign$1[0], y = assign$1[1]);
+              mx = x;
+              my = y;
             }
+          }
         }
       } else {
         if (pathCommand === 'm') {
-          mx = +segment[1] + x;
-          my = +segment[2] + y;
+          mx = values[0] + x;
+          my = values[1] + y;
         }
-        for (var j$2 = 0; j$2 < segment.length; j$2 += 1) {
-          relativeSegment.push(segment[j$2]);
-        }
+        // @ts-ignore
+        relativeSegment = [relativeCommand ].concat( values);
       }
 
       var segLength = relativeSegment.length;
-      switch (relativeSegment[0]) {
+      switch (relativeCommand) {
         case 'z':
           x = mx;
           y = my;
           break;
         case 'h':
-          x += +relativeSegment[segLength - 1];
+          // @ts-ignore
+          x += relativeSegment[1];
           break;
         case 'v':
-          y += +relativeSegment[segLength - 1];
+          // @ts-ignore
+          y += relativeSegment[1];
           break;
         default:
-          x += +resultArray[i][segLength - 2];
-          y += +resultArray[i][segLength - 1];
+          // @ts-ignore
+          x += relativeSegment[segLength - 2];
+          // @ts-ignore
+          y += relativeSegment[segLength - 1];
       }
-    }
-
-    return resultArray;
+      return relativeSegment;
+    });
   }
 
   /**
-   * Rounds the values of a `pathArray` instance to
-   * a specified amount of decimals and returns it.
+   * Splits an extended A (arc-to) segment into two cubic-bezier segments.
    *
-   * @param {SVGPathCommander.pathArray} path the source `pathArray`
-   * @param {number | boolean | null} round the amount of decimals to round numbers to
-   * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with rounded values
+   * @param {SVGPathCommander.pathArray} path the `pathArray` this segment belongs to
+   * @param {string[]} allPathCommands all previous path commands
+   * @param {number} i the segment index
    */
-  function roundPath(path, round) {
-    var defaultRound = SVGPCO.round;
-    var defaultDecimals = SVGPCO.decimals;
-    var decimalsOption = round && !Number.isNaN(+round) ? +round
-      : defaultRound && defaultDecimals;
 
-    if (round === false || (!defaultRound && !decimalsOption)) { return clonePath(path); }
-
-    var dc = Math.pow( 10, decimalsOption );
-    /** @type {SVGPathCommander.pathArray} */
-    var result = [];
-    var pl = path.length;
-    /** @type {SVGPathCommander.pathSegment} */
-    var segment;
-    /** @type {number} */
-    var n = 0;
-    var pi = [];
-
-    // FOR works best with TS
-    for (var i = 0; i < pl; i += 1) {
-      pi = path[i];
-      segment = [''];
-      for (var j = 0; j < pi.length; j += 1) {
-        if (!j) { segment[j] = pi[j]; }
-        else {
-          n = +pi[j];
-          segment.push(!j || n % 1 === 0 ? n : Math.round(n * dc) / dc);
-        }
+  function fixArc(path, allPathCommands, i) {
+    if (path[i].length > 7) {
+      path[i].shift();
+      var segment = path[i];
+      var ni = i; // ESLint
+      while (segment.length) {
+        // if created multiple C:s, their original seg is saved
+        allPathCommands[i] = 'A';
+        // @ts-ignore
+        path.splice(ni += 1, 0, ['C' ].concat( segment.splice(0, 6)));
       }
-      result.push(segment);
+      path.splice(i, 1);
     }
-    return result;
-  }
-
-  /**
-   * Returns a valid `d` attribute string value created
-   * by rounding values and concatenating the `pathArray` segments.
-   *
-   * @param {SVGPathCommander.pathArray} path the `pathArray` object
-   * @param {any} round amount of decimals to round values to
-   * @returns {string} the concatenated path string
-   */
-  function pathToString(path, round) {
-    return roundPath(path, round)
-      .map(function (x) { return x[0] + (x.slice(1).join(' ')); }).join('');
   }
 
   /**
@@ -744,20 +696,18 @@
    * @param {SVGPathCommander.pathSegment} segment the segment object
    * @param {any} params the coordinates of the previous segment
    * @param {string} prevCommand the path command of the previous segment
-   * @returns {SVGPathCommander.pathSegment} the normalized segment
+   * @returns {SVGPathCommander.normalSegment} the normalized segment
    */
   function normalizeSegment(segment, params, prevCommand) {
+    var pathCommand = segment[0];
     var px1 = params.x1;
     var py1 = params.y1;
     var px2 = params.x2;
     var py2 = params.y2;
-    var pathCommand = segment[0];
     var values = segment.slice(1).map(Number);
-    var x = values[0];
-    var y = values[1];
     var result = segment;
 
-    if (!'TQ'.includes(segment[0])) {
+    if (!'TQ'.includes(pathCommand)) {
       // optional but good to be cautious
       params.qx = null;
       params.qy = null;
@@ -773,6 +723,7 @@
       var y1 = ref.y1;
       params.x1 = x1;
       params.y1 = y1;
+      // @ts-ignore
       result = ['C', x1, y1 ].concat( values);
     } else if (pathCommand === 'T') {
       var ref$1 = shorthandToQuad(px1, py1, params.qx, params.qy, prevCommand);
@@ -780,11 +731,16 @@
       var qy = ref$1.qy;
       params.qx = qx;
       params.qy = qy;
+      // @ts-ignore
       result = ['Q', qx, qy ].concat( values);
     } else if (pathCommand === 'Q') {
-      params.qx = x;
-      params.qy = y;
+      var nqx = values[0];
+      var nqy = values[1];
+      params.qx = nqx;
+      params.qy = nqy;
     }
+
+    // @ts-ignore -- we-re switching `pathSegment` type
     return result;
   }
 
@@ -793,44 +749,43 @@
    * with all segments are in non-shorthand notation
    * with absolute values.
    *
-   * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
+   * @param {SVGPathCommander.pathArray} path the `pathArray` to be checked
    * @returns {boolean} iteration result
    */
   function isNormalizedArray(path) {
-    return Array.isArray(path) && isPathArray(path) && path.every(function (seg) {
-      var lk = seg[0].toLowerCase();
-      return paramsCount[lk] === seg.length - 1 && ('ACLMQZ').includes(seg[0]); // achlmqstvz
-    });
+    return isAbsoluteArray(path) && path.every(function (seg) { return 'ACLMQZ'.includes(seg[0]); });
   }
+
+  /**
+   * @type {SVGPathCommander.parserParams}
+   */
+  var paramsParser = {
+    x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
+  };
 
   /**
    * Normalizes a `path` object for further processing:
    * * convert segments to absolute values
    * * convert shorthand path commands to their non-shorthand notation
    *
-   * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
-   * @returns {SVGPathCommander.pathArray} the normalized `pathArray`
+   * @param {SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
+   * @returns {SVGPathCommander.normalArray} the normalized `pathArray`
    */
   function normalizePath(pathInput) {
     var assign;
-   // path|pathString
+
     if (isNormalizedArray(pathInput)) {
       return clonePath(pathInput);
     }
 
     var path = pathToAbsolute(pathInput);
-    var params = {
-      x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
-    };
+    var params = Object.assign({}, paramsParser);
     var allPathCommands = [];
     var ii = path.length;
     var pathCommand = '';
     var prevCommand = '';
-    var segment;
-    var seglen;
 
     for (var i = 0; i < ii; i += 1) {
-      // save current path command
       (assign = path[i], pathCommand = assign[0]);
 
       // Save current path command
@@ -838,10 +793,11 @@
       // Get previous path command
       if (i) { prevCommand = allPathCommands[i - 1]; }
       // Previous path command is used to normalizeSegment
+      // @ts-ignore -- expected on normalization
       path[i] = normalizeSegment(path[i], params, prevCommand);
 
-      segment = path[i];
-      seglen = segment.length;
+      var segment = path[i];
+      var seglen = segment.length;
 
       params.x1 = +segment[seglen - 2];
       params.y1 = +segment[seglen - 1];
@@ -849,245 +805,53 @@
       params.y2 = +(segment[seglen - 3]) || params.y1;
     }
 
+    // @ts-ignore -- a `normalArray` is absolutely an `absoluteArray`
     return path;
   }
 
   /**
-   * Reverses all segments and their values of a `pathArray`
-   * and returns a new instance.
+   * Checks a `pathArray` for an unnecessary `Z` segment
+   * and returns a new `pathArray` without it.
    *
-   * @param {SVGPathCommander.pathArray} pathInput the source `pathArray`
-   * @returns {SVGPathCommander.pathArray} the reversed `pathArray`
+   * The `pathInput` must be a single path, without
+   * sub-paths. For multi-path `<path>` elements,
+   * use `splitPath` first and apply this utility on each
+   * sub-path separately.
+   *
+   * @param {SVGPathCommander.pathArray | string} pathInput the `pathArray` source
+   * @return {SVGPathCommander.pathArray} a fixed `pathArray`
    */
-  function reversePath(pathInput) {
-    var absolutePath = pathToAbsolute(pathInput);
-    var isClosed = absolutePath.slice(-1)[0][0] === 'Z';
-    var reversedPath = [];
+  function fixPath(pathInput) {
+    var pathArray = parsePathString(pathInput);
+    var normalArray = normalizePath(pathArray);
+    var length = pathArray.length;
+    var isClosed = normalArray.slice(-1)[0][0] === 'Z';
+    var segBeforeZ = isClosed ? length - 2 : length - 1;
 
-    reversedPath = normalizePath(absolutePath).map(function (segment, i) {
-      var values = segment.slice(1).map(Number);
-      var ref = values.slice(-2);
-      var x = ref[0];
-      var y = ref[1];
-      return {
-        seg: absolutePath[i], // absolute
-        n: segment, // normalized
-        c: absolutePath[i][0], // pathCommand
-        values: values,
-        x: x, // x
-        y: y, // y
-      };
-    }).map(function (seg, i, path) {
-      var segment = seg.seg;
-      var values = seg.values;
-      var data = seg.n;
-      var prevSeg = i && path[i - 1];
-      var nextSeg = path[i + 1] && path[i + 1];
-      var pathCommand = seg.c;
-      var pLen = path.length;
-      var x = i ? path[i - 1].x : path[pLen - 1].x;
-      var y = i ? path[i - 1].y : path[pLen - 1].y;
-      /** @type {SVGPathCommander.pathSegment} */
-      var result = [''];
+    var ref = normalArray[0].slice(1);
+    var mx = ref[0];
+    var my = ref[1];
+    var ref$1 = normalArray[segBeforeZ].slice(-2);
+    var x = ref$1[0];
+    var y = ref$1[1];
 
-      switch (pathCommand) {
-        case 'M':
-          result = isClosed ? ['Z'] : [pathCommand, x, y];
-          break;
-        case 'A':
-          // result = segment.slice(0, -3).concat([(segment[5] === 1 ? 0 : 1), x, y]);
-          result = [pathCommand ].concat( values.slice(0, -3), [(segment[5] === 1 ? 0 : 1)], [x], [y]);
-          break;
-        case 'C':
-          if (nextSeg && nextSeg.c === 'S') {
-            result = ['S', segment[1], segment[2], x, y];
-          } else {
-            result = [pathCommand, segment[3], segment[4], segment[1], segment[2], x, y];
-          }
-          break;
-        case 'S':
-          if ((prevSeg && 'CS'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'S'))) {
-            result = ['C', data[3], data[4], data[1], data[2], x, y];
-          } else {
-            result = [pathCommand, data[1], data[2], x, y];
-          }
-          break;
-        case 'Q':
-          if (nextSeg && nextSeg.c === 'T') {
-            result = ['T', x, y];
-          } else {
-            // result = segment.slice(0, -2).concat([x, y]);
-            result = [pathCommand ].concat( values.slice(0, -2), [x], [y]);
-          }
-          break;
-        case 'T':
-          if ((prevSeg && 'QT'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'T'))) {
-            result = ['Q', data[1], data[2], x, y];
-          } else {
-            result = [pathCommand, x, y];
-          }
-          break;
-        case 'Z':
-          result = ['M', x, y];
-          break;
-        case 'H':
-          result = [pathCommand, x];
-          break;
-        case 'V':
-          result = [pathCommand, y];
-          break;
-        default:
-          // result = segment.slice(0, -2).concat([x, y]);
-          result = [pathCommand ].concat( values.slice(0, -2), [x], [y]);
-      }
-
-      return result;
-    });
-
-    return isClosed ? reversedPath.reverse()
-      : [reversedPath[0] ].concat( reversedPath.slice(1).reverse());
-  }
-
-  /**
-   * Split a path into an `Array` of sub-path strings.
-   *
-   * In the process, values are converted to absolute
-   * for visual consistency.
-   *
-   * @param {SVGPathCommander.pathArray | string} pathInput the source `pathArray`
-   * @return {string[]} an array with all sub-path strings
-   */
-  function splitPath(pathInput) {
-    return pathToString(pathToAbsolute(pathInput), 0)
-      .replace(/(m|M)/g, '|$1')
-      .split('|')
-      .map(function (s) { return s.trim(); })
-      .filter(function (s) { return s; });
-  }
-
-  /**
-   * Shorten a single segment of a `pathArray` object.
-   *
-   * @param {SVGPathCommander.pathSegment} segment the segment object
-   * @param {any} params the coordinates of the previous segment
-   * @param {string} prevCommand the path command of the previous segment
-   * @returns {any} the shortened segment
-   */
-  function shortenSegment(segment, params, prevCommand) {
-    var pathCommand = segment[0];
-    var values = segment.slice(1);
-    var px1 = params.x1;
-    var py1 = params.y1;
-    var px2 = params.x2;
-    var py2 = params.y2;
-    var result = segment.slice();
-    var ref = segment.slice(-2);
-    var x = ref[0];
-    var y = ref[1];
-
-    if (!'TQ'.includes(segment[0])) {
-      // optional but good to be cautious
-      params.qx = null;
-      params.qy = null;
+    if (isClosed && mx === x && my === y) {
+      // @ts-ignore -- `pathSegment[]` is a `pathArray`
+      return pathArray.slice(0, -1);
     }
-
-    if (pathCommand === 'L') {
-      if (px1 === segment[1]) {
-        result = ['V', segment[1]];
-      } else if (py1 === segment[2]) {
-        result = ['H', segment[2]];
-      }
-      params.x = +x;
-      params.y = +y;
-    } else if (pathCommand === 'C') {
-      var ref$1 = values.slice(-4);
-      var x2 = ref$1[0];
-      var y2 = ref$1[1];
-      var x1 = values[0];
-      var y1 = values[1];
-
-      if (['C', 'S'].includes(prevCommand)
-        && x1 === px1 * 2 - px2
-        && y1 === py1 * 2 - py2) {
-        result = ['S', x2, y2, x, y];
-      }
-      params.x1 = x1;
-      params.y1 = y1;
-    } else if (pathCommand === 'Q') {
-      var nx = values[0];
-      var ny = values[1];
-      if (['Q', 'T'].includes(prevCommand)
-        && nx === px1 * 2 - px2
-        && ny === py1 * 2 - py2) {
-        result = ['T', x, y];
-      }
-      params.qx = nx;
-      params.qy = ny;
-    }
-    return result;
+    return pathArray;
   }
 
   /**
-   * Optimizes a `pathArray` object:
-   * * convert segments to shorthand if possible
-   * * select shortest segments from absolute and relative `pathArray`s
+   * Iterates an array to check if it's a `pathArray`
+   * with all C (cubic bezier) segments.
    *
-   * @param {string | SVGPathCommander.pathArray} pathInput a string or `pathArray`
-   * @param {number | boolean | null} round the amount of decimals to round values to
-   * @returns {SVGPathCommander.pathArray} the optimized `pathArray`
+   * @param {SVGPathCommander.pathArray} path the `Array` to be checked
+   * @returns {boolean} iteration result
    */
-  function optimizePath(pathInput, round) {
-    var assign;
-
-    var path = pathToAbsolute(pathInput);
-    var params = {
-      x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
-    };
-    var allPathCommands = [];
-    var ii = path.length;
-    var pathCommand = '';
-    var prevCommand = '';
-    var segment;
-    var seglen;
-
-    for (var i = 0; i < ii; i += 1) {
-      // save current path command
-      (assign = path[i], pathCommand = assign[0]);
-
-      // Save current path command
-      allPathCommands[i] = pathCommand;
-      // Get previous path command
-      if (i) { prevCommand = allPathCommands[i - 1]; }
-      // Previous path command is inputted to processSegment
-      path[i] = shortenSegment(path[i], params, prevCommand);
-
-      segment = path[i];
-      seglen = segment.length;
-
-      params.x1 = +segment[seglen - 2];
-      params.y1 = +segment[seglen - 1];
-      params.x2 = +(segment[seglen - 4]) || params.x1;
-      params.y2 = +(segment[seglen - 3]) || params.y1;
-    }
-
-    var absolutePath = roundPath(pathToAbsolute(path), round);
-    var relativePath = roundPath(pathToRelative(path), round);
-
-    return absolutePath.map(function (x, i) {
-      if (i) {
-        return x.join('').length < relativePath[i].join('').length
-          ? x : relativePath[i];
-      }
-      return x;
-    });
+  function isCurveArray(path) {
+    return isPathArray(path) && path.every(function (seg) { return 'MC'.includes(seg[0]); });
   }
-
-  /**
-   * A global namespace for epsilon.
-   *
-   * @type {number}
-   */
-  var epsilon = 1e-9;
 
   /**
    * Returns an {x,y} vector rotated by a given
@@ -1207,10 +971,8 @@
     m2[0] = 2 * m1[0] - m2[0];
     m2[1] = 2 * m1[1] - m2[1];
     if (recursive) {
-      // return [m2, m3, m4].concat(res);
       return m2.concat( m3, m4, res);
     }
-    // res = [m2, m3, m4].concat(res).join().split(',');
     res = m2.concat( m3, m4, res);
     var newres = [];
     for (var i = 0, ii = res.length; i < ii; i += 1) {
@@ -1325,71 +1087,402 @@
    *
    * @param {SVGPathCommander.pathSegment} segment the source segment
    * @param {SVGPathCommander.parserParams} params the source segment parameters
-   * @returns {SVGPathCommander.pathSegment} the cubic-bezier segment
+   * @returns {SVGPathCommander.cubicSegment | SVGPathCommander.MSegment} the cubic-bezier segment
    */
   function segmentToCubic(segment, params) {
-    if (!'TQ'.includes(segment[0])) {
-      params.qx = null;
-      params.qy = null;
-    }
-
-    var values = segment.slice(1).map(Number);
+    var pathCommand = segment[0];
+    var values = segment.slice(1).map(function (n) { return +n; });
     var x = values[0];
     var y = values[1];
+    var args;
     var px1 = params.x1;
     var py1 = params.y1;
     var px = params.x;
     var py = params.y;
 
-    switch (segment[0]) {
+    if (!'TQ'.includes(pathCommand)) {
+      params.qx = null;
+      params.qy = null;
+    }
+
+    switch (pathCommand) {
       case 'M':
         params.x = x;
         params.y = y;
         return segment;
       case 'A':
-        // @ts-ignore
-        // return ['C'].concat(arcToCubic.apply(0, [px1, py1].concat(segment.slice(1))));
-        return ['C' ].concat( arcToCubic.apply(void 0, [ px1, py1 ].concat( values )));
+        args = [px1, py1 ].concat( values);
+        // @ts-ignore -- relax, the utility will return 6 numbers
+        return ['C' ].concat( arcToCubic.apply(void 0, args));
       case 'Q':
         params.qx = x;
         params.qy = y;
-        // @ts-ignore
-        // return ['C'].concat(quadToCubic.apply(0, [px1, py1].concat(segment.slice(1))));
-        return ['C' ].concat( quadToCubic.apply(void 0, [ px1, py1 ].concat( values )));
+        args = [px1, py1 ].concat( values);
+        // @ts-ignore -- also returning 6 numbers
+        return ['C' ].concat( quadToCubic.apply(void 0, args));
       case 'L':
-
-        // return ['C'].concat(lineToCubic(px1, py1, x, y));
+        // @ts-ignore -- also returning 6 numbers
         return ['C' ].concat( lineToCubic(px1, py1, x, y));
       case 'Z':
-        // return ['C'].concat(lineToCubic(px1, py1, px, py));
+        // @ts-ignore -- also returning 6 numbers
         return ['C' ].concat( lineToCubic(px1, py1, px, py));
     }
+    // @ts-ignore -- we're switching `pathSegment` type
     return segment;
   }
 
   /**
-   * Splits an extended A (arc-to) segment into two cubic-bezier segments.
+   * Parses a path string value or 'pathArray' and returns a new one
+   * in which all segments are converted to cubic-bezier.
    *
-   * @param {SVGPathCommander.pathArray} path the `pathArray` this segment belongs to
-   * @param {string[]} allPathCommands all previous path commands
-   * @param {number} i the segment index
+   * In addition, un-necessary `Z` segment is removed if previous segment
+   * extends to the `M` segment.
+   *
+   * @param {SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
+   * @returns {SVGPathCommander.curveArray} the resulted `pathArray` converted to cubic-bezier
    */
+  function pathToCurve(pathInput) {
+    var assign;
 
-  function fixArc(path, allPathCommands, i) {
-    if (path[i].length > 7) {
-      path[i].shift();
-      var segment = path[i];
-      var ni = i; // ESLint
-      while (segment.length) {
-        // if created multiple C:s, their original seg is saved
-        allPathCommands[i] = 'A';
-        // path.splice(i++, 0, ['C'].concat(segment.splice(0, 6)));
-
-        path.splice(ni += 1, 0, ['C' ].concat( segment.splice(0, 6).map(Number)));
-      }
-      path.splice(i, 1);
+    if (isCurveArray(pathInput)) {
+      return clonePath(pathInput);
     }
+
+    var path = fixPath(normalizePath(pathInput));
+    var params = Object.assign({}, paramsParser);
+    var allPathCommands = [];
+    var pathCommand = ''; // ts-lint
+    var ii = path.length;
+
+    for (var i = 0; i < ii; i += 1) {
+      (assign = path[i], pathCommand = assign[0]);
+      allPathCommands[i] = pathCommand;
+
+      path[i] = segmentToCubic(path[i], params);
+
+      fixArc(path, allPathCommands, i);
+      ii = path.length;
+
+      var segment = path[i];
+      var seglen = segment.length;
+      params.x1 = +segment[seglen - 2];
+      params.y1 = +segment[seglen - 1];
+      params.x2 = +(segment[seglen - 4]) || params.x1;
+      params.y2 = +(segment[seglen - 3]) || params.y1;
+    }
+
+    // @ts-ignore
+    return path;
   }
+
+  /**
+   * Rounds the values of a `pathArray` instance to
+   * a specified amount of decimals and returns it.
+   *
+   * @param {SVGPathCommander.pathArray} path the source `pathArray`
+   * @param {number | boolean} roundOption the amount of decimals to round numbers to
+   * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with rounded values
+   */
+  function roundPath(path, roundOption) {
+    var round = defaultOptions.round;
+    if (roundOption === false || round === false) { return clonePath(path); }
+    round = roundOption >= 1 ? roundOption : round;
+    // to round values to the power
+    // the `round` value must be integer
+    // @ts-ignore
+    var pow = round >= 1 ? (Math.pow( 10, round )) : 1;
+
+    // @ts-ignore -- `pathSegment[]` is `pathArray`
+    return path.map(function (pi) {
+      var values = pi.slice(1).map(Number)
+        .map(function (n) { return (n % 1 === 0 ? n : Math.round(n * pow) / pow); });
+      return [pi[0] ].concat( values);
+    });
+  }
+
+  /**
+   * Returns a valid `d` attribute string value created
+   * by rounding values and concatenating the `pathArray` segments.
+   *
+   * @param {SVGPathCommander.pathArray} path the `pathArray` object
+   * @param {any} round amount of decimals to round values to
+   * @returns {string} the concatenated path string
+   */
+  function pathToString(path, round) {
+    return roundPath(path, round)
+      .map(function (x) { return x[0] + x.slice(1).join(' '); }).join('');
+  }
+
+  /**
+   * Reverses all segments and their values of a `pathArray`
+   * and returns a new instance.
+   *
+   * @param {SVGPathCommander.pathArray} pathInput the source `pathArray`
+   * @returns {SVGPathCommander.pathArray} the reversed `pathArray`
+   */
+  function reversePath(pathInput) {
+    var absolutePath = pathToAbsolute(pathInput);
+    var isClosed = absolutePath.slice(-1)[0][0] === 'Z';
+
+    var reversedPath = normalizePath(absolutePath).map(function (segment, i) {
+      var ref = segment.slice(-2).map(Number);
+      var x = ref[0];
+      var y = ref[1];
+      return {
+        seg: absolutePath[i], // absolute
+        n: segment, // normalized
+        c: absolutePath[i][0], // pathCommand
+        x: x, // x
+        y: y, // y
+      };
+    }).map(function (seg, i, path) {
+      var segment = seg.seg;
+      var data = seg.n;
+      var prevSeg = i && path[i - 1];
+      var nextSeg = path[i + 1] && path[i + 1];
+      var pathCommand = seg.c;
+      var pLen = path.length;
+      /** @type {number} */
+      var x = i ? path[i - 1].x : path[pLen - 1].x;
+      var y = i ? path[i - 1].y : path[pLen - 1].y;
+      /** @type {SVGPathCommander.pathSegment} */
+      // @ts-ignore
+      var result = [];
+
+      switch (pathCommand) {
+        case 'M':
+          result = isClosed ? ['Z'] : [pathCommand, x, y];
+          break;
+        case 'A':
+          // @ts-ignore -- expected on reverse
+          result = [pathCommand ].concat( segment.slice(1, -3), [(segment[5] === 1 ? 0 : 1)], [x], [y]);
+          break;
+        case 'C':
+          if (nextSeg && nextSeg.c === 'S') {
+            // @ts-ignore -- expected on reverse
+            result = ['S', segment[1], segment[2], x, y];
+          } else {
+            // @ts-ignore -- expected on reverse
+            result = [pathCommand, segment[3], segment[4], segment[1], segment[2], x, y];
+          }
+          break;
+        case 'S':
+          if ((prevSeg && 'CS'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'S'))) {
+            // @ts-ignore -- expected on reverse
+            result = ['C', data[3], data[4], data[1], data[2], x, y];
+          } else {
+            // @ts-ignore -- expected on reverse
+            result = [pathCommand, data[1], data[2], x, y];
+          }
+          break;
+        case 'Q':
+          if (nextSeg && nextSeg.c === 'T') {
+            result = ['T', x, y];
+          } else {
+            // @ts-ignore -- expected on reverse
+            result = [pathCommand ].concat( segment.slice(1, -2), [x], [y]);
+          }
+          break;
+        case 'T':
+          if ((prevSeg && 'QT'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'T'))) {
+            // @ts-ignore -- expected on reverse
+            result = ['Q', data[1], data[2], x, y];
+          } else {
+            result = [pathCommand, x, y];
+          }
+          break;
+        case 'Z':
+          result = ['M', x, y];
+          break;
+        case 'H':
+          result = [pathCommand, x];
+          break;
+        case 'V':
+          result = [pathCommand, y];
+          break;
+        default:
+          // @ts-ignore -- expected on reverse
+          result = [pathCommand ].concat( segment.slice(1, -2), [x], [y]);
+      }
+
+      return result;
+    });
+
+    // @ts-ignore -- `pathSegment[]` is definitely `pathArray`
+    return isClosed ? reversedPath.reverse()
+      : [reversedPath[0] ].concat( reversedPath.slice(1).reverse());
+  }
+
+  /**
+   * Split a path into an `Array` of sub-path strings.
+   *
+   * In the process, values are converted to absolute
+   * for visual consistency.
+   *
+   * @param {SVGPathCommander.pathArray | string} pathInput the source `pathArray`
+   * @return {string[]} an array with all sub-path strings
+   */
+  function splitPath(pathInput) {
+    return pathToString(pathToAbsolute(pathInput), 0)
+      .replace(/(m|M)/g, '|$1')
+      .split('|')
+      .map(function (s) { return s.trim(); })
+      .filter(function (s) { return s; });
+  }
+
+  /**
+   * Shorten a single segment of a `pathArray` object.
+   *
+   * @param {SVGPathCommander.pathSegment} segment the segment object
+   * @param {any} params the coordinates of the previous segment
+   * @param {string} prevCommand the path command of the previous segment
+   * @returns {SVGPathCommander.shortSegment | SVGPathCommander.pathSegment} the shortened segment
+   */
+  function shortenSegment(segment, params, prevCommand) {
+    var pathCommand = segment[0];
+    var values = segment.slice(1).map(function (n) { return +n; });
+    var px1 = params.x1;
+    var py1 = params.y1;
+    var px2 = params.x2;
+    var py2 = params.y2;
+    var px = params.x;
+    var py = params.y;
+    var result = segment;
+    var ref = values.slice(-2);
+    var x = ref[0];
+    var y = ref[1];
+
+    if (!'TQ'.includes(pathCommand)) {
+      // optional but good to be cautious
+      params.qx = null;
+      params.qy = null;
+    }
+
+    if (pathCommand === 'L') {
+      if (px === x) {
+        result = ['V', y];
+      } else if (py === y) {
+        result = ['H', x];
+      }
+    } else if (pathCommand === 'C') {
+      var x1 = values[0];
+      var y1 = values[1];
+
+      if ('CS'.includes(prevCommand)
+        && x1 === px1 * 2 - px2
+        && y1 === py1 * 2 - py2) {
+        // @ts-ignore -- the amount of numbers should suffice
+        result = ['S' ].concat( values.slice(-4));
+      }
+      params.x1 = x1;
+      params.y1 = y1;
+    } else if (pathCommand === 'Q') {
+      var qx = values[0];
+      var qy = values[1];
+      params.qx = qx;
+      params.qy = qy;
+
+      if ('QT'.includes(prevCommand)
+        && qx === px1 * 2 - px2
+        && qy === py1 * 2 - py2) {
+        // @ts-ignore -- the amount of numbers should suffice
+        result = ['T' ].concat( values.slice(-2));
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Optimizes a `pathArray` object:
+   * * convert segments to shorthand if possible
+   * * select shortest segments from absolute and relative `pathArray`s
+   *
+   * TO DO
+   * * implement `auto` for rounding values based on pathBBox
+   * * also revers path check if it's smaller string, maybe?
+   *
+   * @param {SVGPathCommander.pathArray} pathInput a string or `pathArray`
+   * @param {number | boolean} round the amount of decimals to round values to
+   * @returns {SVGPathCommander.pathArray} the optimized `pathArray`
+   */
+  function optimizePath(pathInput, round) {
+    var assign, assign$1, assign$2, assign$3;
+
+    var path = normalizePath(pathInput);
+    var params = Object.assign({}, paramsParser);
+    var allPathCommands = [];
+    var ii = path.length;
+    var pathCommand = '';
+    var prevCommand = '';
+    var x = 0;
+    var y = 0;
+    var mx = 0;
+    var my = 0;
+
+    for (var i = 0; i < ii; i += 1) {
+      (assign = path[i], pathCommand = assign[0]);
+
+      // Save current path command
+      allPathCommands[i] = pathCommand;
+      // Get previous path command
+      if (i) { prevCommand = allPathCommands[i - 1]; }
+      // Previous path command is used in shortenSegment
+      // @ts-ignore -- expected when switching `pathSegment` type
+      path[i] = shortenSegment(path[i], params, prevCommand);
+
+      var segment = path[i];
+      var seglen = segment.length;
+
+      params.x1 = +segment[seglen - 2];
+      params.y1 = +segment[seglen - 1];
+      params.x2 = +(segment[seglen - 4]) || params.x1;
+      params.y2 = +(segment[seglen - 3]) || params.y1;
+
+      switch (pathCommand) {
+        case 'Z':
+          x = mx;
+          y = my;
+          break;
+        case 'H':
+          // @ts-ignore
+          (assign$1 = segment, x = assign$1[1]);
+          break;
+        case 'V':
+          // @ts-ignore
+          (assign$2 = segment, y = assign$2[1]);
+          break;
+        default:
+          (assign$3 = segment.slice(-2).map(Number), x = assign$3[0], y = assign$3[1]);
+
+          if (pathCommand === 'M') {
+            mx = x;
+            my = y;
+          }
+      }
+      params.x = x;
+      params.y = y;
+    }
+
+    var absolutePath = roundPath(pathToAbsolute(path), round);
+    var relativePath = roundPath(pathToRelative(path), round);
+
+    // @ts-ignore - it's expected an optimized `pathArray` to contain all kinds of segments
+    return absolutePath.map(function (a, i) {
+      if (i) {
+        return a.join('').length < relativePath[i].join('').length
+          ? a : relativePath[i];
+      }
+      return a;
+    });
+  }
+
+  /**
+   * A global namespace for epsilon.
+   *
+   * @type {number}
+   */
+  var epsilon = 1e-9;
 
   // DOMMatrix Static methods
   // * `fromFloat64Array` and `fromFloat32Array are not implemented;
@@ -2208,7 +2301,7 @@
    *
    * @see SVGPathCommander.transformObject
    *
-   * @param {any} transform the `transformObject`
+   * @param {SVGPathCommander.transformObject} transform the `transformObject`
    * @returns {CSSMatrix} a new transformation matrix
    */
   function getSVGMatrix(transform) {
@@ -2221,6 +2314,14 @@
     var skew = transform.skew;
     var scale = transform.scale;
 
+    // set translate
+    if (Array.isArray(translate) && translate.every(function (x) { return !Number.isNaN(+x); })
+      && translate.some(function (x) { return x !== 0; })) {
+      matrix = matrix.translate(translate[0] || 0, translate[1] || 0, translate[2] || 0);
+    } else if (typeof translate === 'number' && !Number.isNaN(+translate)) {
+      matrix = matrix.translate(translate || 0, 0, 0);
+    }
+
     if (rotate || skew || scale) {
       // set SVG transform-origin, always defined
       matrix = matrix.translate(originX, originY);
@@ -2229,7 +2330,7 @@
       if (Array.isArray(rotate) && rotate.every(function (x) { return !Number.isNaN(+x); })
         && rotate.some(function (x) { return x !== 0; })) {
         matrix = matrix.rotate(rotate[0], rotate[1], rotate[2]);
-      } else if (!Number.isNaN(+rotate)) {
+      } else if (typeof rotate === 'number' && !Number.isNaN(+rotate)) {
         matrix = matrix.rotate(0, 0, rotate);
       }
 
@@ -2238,7 +2339,7 @@
         && skew.some(function (x) { return x !== 0; })) {
         matrix = skew[0] ? matrix.skewX(skew[0]) : matrix;
         matrix = skew[1] ? matrix.skewY(skew[1]) : matrix;
-      } else if (!Number.isNaN(+skew)) {
+      } else if (typeof skew === 'number' && !Number.isNaN(+skew)) {
         matrix = matrix.skewX(skew || 0);
       }
 
@@ -2246,19 +2347,11 @@
       if (Array.isArray(scale) && scale.every(function (x) { return !Number.isNaN(+x); })
         && scale.some(function (x) { return x !== 1; })) {
         matrix = matrix.scale(scale[0], scale[1], scale[2]);
-      } else if (!Number.isNaN(+scale)) {
+      } else if (typeof scale === 'number' && !Number.isNaN(+scale)) {
         matrix = matrix.scale(scale || 1, scale || 1, scale || 1);
       }
       // set SVG transform-origin
       matrix = matrix.translate(-originX, -originY);
-    }
-
-    // set translate
-    if (Array.isArray(translate) && translate.every(function (x) { return !Number.isNaN(+x); })
-      && translate.some(function (x) { return x !== 0; })) {
-      matrix = matrix.translate(translate[0] || 0, translate[1] || 0, translate[2] || 0);
-    } else if (!Number.isNaN(+translate)) {
-      matrix = matrix.translate(translate || 0, 0, 0);
     }
 
     return matrix;
@@ -2392,12 +2485,11 @@
     var e = matrixInstance.e;
     var f = matrixInstance.f;
     var matrix2d = [a, b, c, d, e, f];
-    var params = {
-      x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
-    };
+    var params = Object.assign({}, paramsParser);
     /** @ts-ignore */
     /** @type {SVGPathCommander.pathSegment} */
-    var segment = [''];
+    // @ts-ignore
+    var segment = [];
     var seglen = 0;
     var pathCommand = '';
     /** @type {SVGPathCommander.pathTransformList[]} */
@@ -2420,9 +2512,11 @@
           || !['skewX', 'skewY'].find(function (p) { return transformProps.includes(p); }))) {
           segment = segmentToCubic(normalizedPath[i], params);
 
+          // @ts-ignore -- expected when switching `pathSegment` type
           absolutePath[i] = segmentToCubic(normalizedPath[i], params);
           fixArc(absolutePath, allPathCommands, i);
 
+          // @ts-ignore -- expected when switching `pathSegment` type
           normalizedPath[i] = segmentToCubic(normalizedPath[i], params);
           fixArc(normalizedPath, allPathCommands, i);
           ii = Math.max(absolutePath.length, normalizedPath.length);
@@ -2445,6 +2539,7 @@
         transformedPath = transformedPath.concat( [result]);
       }
 
+      // @ts-ignore
       return transformedPath.map(function (seg) {
         var assign, assign$1, assign$2;
 
@@ -2452,17 +2547,20 @@
         segment = seg.s;
         switch (pathCommand) {
           case 'A': // only apply to 2D transformations
-            te = transformEllipse(matrix2d, +segment[1], +segment[2], +segment[3]);
+            // @ts-ignore
+            te = transformEllipse(matrix2d, segment[1], segment[2], segment[3]);
 
             if (matrix2d[0] * matrix2d[3] - matrix2d[1] * matrix2d[2] < 0) {
-              segment[5] = +segment[5] ? 0 : 1;
+              segment[5] = segment[5] ? 0 : 1;
             }
 
+            // @ts-ignore
             (assign = projection2d(matrixInstance, [+segment[6], +segment[7]], origin), lx = assign[0], ly = assign[1]);
 
             if ((x === lx && y === ly) || (te.rx < epsilon * te.ry) || (te.ry < epsilon * te.rx)) {
               segment = ['L', lx, ly];
             } else {
+              // @ts-ignore
               segment = [pathCommand, te.rx, te.ry, te.ax, segment[4], segment[5], lx, ly];
             }
 
@@ -2565,59 +2663,6 @@
   }
 
   /**
-   * Iterates an array to check if it's a `pathArray`
-   * with all C (cubic bezier) segments.
-   *
-   * @param {string | SVGPathCommander.pathArray} path the `Array` to be checked
-   * @returns {boolean} iteration result
-   */
-  function isCurveArray(path) {
-    return Array.isArray(path) && isPathArray(path)
-      && path.slice(1).every(function (seg) { return seg[0] === 'C'; });
-  }
-
-  /**
-   * Parses a path string value or 'pathArray' and returns a new one
-   * in which all segments are converted to cubic-bezier.
-   *
-   * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or object
-   * @returns {SVGPathCommander.pathArray} the resulted `pathArray` converted to cubic-bezier
-   */
-  function pathToCurve(pathInput) {
-    var assign;
-
-    if (isCurveArray(pathInput)) {
-      return clonePath(pathInput);
-    }
-
-    var path = normalizePath(pathInput);
-    var params = {
-      x1: 0, y1: 0, x2: 0, y2: 0, x: 0, y: 0, qx: null, qy: null,
-    };
-    var allPathCommands = [];
-    var pathCommand = ''; // ts-lint
-    var ii = path.length;
-
-    for (var i = 0; i < ii; i += 1) {
-      var segment = path[i];
-      var seglen = segment.length;
-      if (segment) { (assign = segment, pathCommand = assign[0]); }
-      allPathCommands[i] = pathCommand;
-      path[i] = segmentToCubic(segment, params);
-
-      fixArc(path, allPathCommands, i);
-      ii = path.length; // solves curveArrays ending in Z
-
-      params.x1 = +segment[seglen - 2];
-      params.y1 = +segment[seglen - 1];
-      params.x2 = +(segment[seglen - 4]) || params.x1;
-      params.y2 = +(segment[seglen - 3]) || params.y1;
-    }
-
-    return path;
-  }
-
-  /**
    * Returns the bounding box of a shape.
    *
    * @param {SVGPathCommander.pathArray} path the shape `pathArray`
@@ -2647,9 +2692,9 @@
         X.push(s1);
         Y.push(s2);
       } else {
-        // const dim = getCubicSize.apply(0, [x, y].concat(segment.slice(1)));
+        var sizeArgs = [x, y ].concat( segment.slice(1));
         // @ts-ignore -- this should be fine
-        var dim = getCubicSize.apply(void 0, [ x, y ].concat( segment.slice(1).map(Number) ));
+        var dim = getCubicSize.apply(void 0, sizeArgs);
 
         // X = X.concat(dim.min.x, dim.max.x);
         X = X.concat( [dim.min.x], [dim.max.x]);
@@ -2716,24 +2761,19 @@
    */
   function getPathArea(path) {
     var x = 0; var y = 0;
-    var mx = 0; var my = 0;
     var len = 0;
     return pathToCurve(path).map(function (seg) {
-      var assign;
+      var assign, assign$1;
 
       switch (seg[0]) {
         case 'M':
-        case 'Z':
-          mx = seg[0] === 'M' ? seg[1] : mx; my = seg[0] === 'M' ? seg[2] : my;
-          x = mx;
-          y = my;
+          (assign = seg, x = assign[1], y = assign[2]);
           return 0;
         default:
-          // len = getCubicSegArea.apply(0, [x, y].concat(seg.slice(1)));
-          // @ts-ignore
-          len = getCubicSegArea.apply(void 0, [ x, y ].concat( seg.slice(1).map(Number) ));
+          // @ts-ignore -- the utility will have proper amount of params
+          len = getCubicSegArea.apply(void 0, [ x, y ].concat( seg.slice(1) ));
 
-          (assign = seg.slice(-2).map(Number), x = assign[0], y = assign[1]);
+          (assign$1 = seg.slice(-2).map(Number), x = assign$1[0], y = assign$1[1]);
           return len;
       }
     }).reduce(function (a, b) { return a + b; }, 0);
@@ -2805,7 +2845,6 @@
     pathToCurve(path).forEach(function (s, i, curveArray) {
       var args = s[0] !== 'M' ? curveArray[i - 1].slice(-2).concat( s.slice(1)) : [];
       totalLength += s[0] === 'M' ? 0
-        // : getSegCubicLength.apply(0, curveArray[i - 1].slice(-2).concat(s.slice(1)));
         // @ts-ignore
         : getSegCubicLength.apply(void 0, args);
     });
@@ -2816,7 +2855,7 @@
    * Check if a path is drawn clockwise and returns true if so,
    * false otherwise.
    *
-   * @param {string | SVGPathCommander.pathArray} path the path string or `pathArray`
+   * @param {SVGPathCommander.pathArray} path the path string or `pathArray`
    * @returns {boolean} true when clockwise or false if not
    */
   function getDrawDirection(path) {
@@ -2837,7 +2876,6 @@
     var result;
     // @ts-ignore
     return pathToCurve(path).map(function (seg, i, curveArray) {
-      // data = i ? curveArray[i - 1].slice(-2).concat(seg.slice(1)) : seg.slice(1);
       data = i ? curveArray[i - 1].slice(-2).concat( seg.slice(1)) : seg.slice(1);
       // @ts-ignore
       segLen = i ? getSegCubicLength.apply(void 0, data) : 0;
@@ -2846,8 +2884,7 @@
       if (i === 0) {
         result = { x: data[0], y: data[1] };
       } else if (totalLength > length && length > totalLength - segLen) {
-        // result = getPointAtSegLength.apply(0, data.concat(1 - (totalLength - length) / segLen));
-        var args = data.concat( [1 - (totalLength - length) / segLen]);
+        var args = data.concat( [1 - ((totalLength - length) / segLen)]);
         // @ts-ignore
         result = getPointAtSegLength.apply(void 0, args);
       } else {
@@ -2916,6 +2953,7 @@
    */
   function getPolyPath(attr) {
     /** @type {SVGPathCommander.pathArray} */
+    // @ts-ignore -- it's an empty `pathArray`
     var pathArray = [];
     var points = attr.points.split(/[\s|,]/).map(Number);
 
@@ -2924,8 +2962,8 @@
       pathArray.push([(index ? 'L' : 'M'), (points[index]), (points[index + 1])]);
       index += 2;
     }
-
-    return attr.type === 'polygon' ? pathArray.concat( [['z']]) : pathArray;
+    // @ts-ignore -- it's a `pathArray`
+    return attr.type === 'polygon' ? pathArray.concat( ['z']) : pathArray;
   }
 
   /**
@@ -3017,7 +3055,7 @@
    * attributes like `class`, `fill`, etc.
    *
    * @param {SVGPathCommander.shapeTypes | SVGPathCommander.shapeOps} element target shape
-   * @param {boolean} replace option to replace target
+   * @param {boolean=} replace option to replace target
    * @return {SVGPathElement | boolean} the newly created `<path>` element
    */
   function shapeToPath(element, replace) {
@@ -3051,15 +3089,13 @@
 
     // set d
     var description;
-    var round = SVGPCO.round;
-    var decimals = SVGPCO.decimals;
-    var rounding = round && decimals ? decimals : null;
+    var round = defaultOptions.round;
 
-    if (type === 'circle') { description = pathToString(getCirclePath(config), rounding); }
-    else if (type === 'ellipse') { description = pathToString(getEllipsePath(config), rounding); }
-    else if (['polyline', 'polygon'].includes(type)) { description = pathToString(getPolyPath(config), rounding); }
-    else if (type === 'rect') { description = pathToString(getRectanglePath(config), rounding); }
-    else if (type === 'line') { description = pathToString(getLinePath(config), rounding); }
+    if (type === 'circle') { description = pathToString(getCirclePath(config), round); }
+    else if (type === 'ellipse') { description = pathToString(getEllipsePath(config), round); }
+    else if (['polyline', 'polygon'].includes(type)) { description = pathToString(getPolyPath(config), round); }
+    else if (type === 'rect') { description = pathToString(getRectanglePath(config), round); }
+    else if (type === 'line') { description = pathToString(getLinePath(config), round); }
     else if (type === 'glyph') { description = isElement ? element.getAttribute('d') : element.type; }
 
     // replace target element
@@ -3078,8 +3114,8 @@
    * Reverses all segments and their values from a `pathArray`
    * which consists of only C (cubic-bezier) path commands.
    *
-   * @param {SVGPathCommander.pathArray} path the source `pathArray`
-   * @returns {SVGPathCommander.pathArray} the reversed `pathArray`
+   * @param {SVGPathCommander.curveArray} path the source `pathArray`
+   * @returns {SVGPathCommander.curveArray} the reversed `pathArray`
    */
   function reverseCurve(path) {
     var rotatedCurve = path.slice(1)
@@ -3089,42 +3125,11 @@
       .map(function (x) { return x.map(function (_, i) { return x[x.length - i - 2 * (1 - (i % 2))]; }); })
       .reverse();
 
-    return [['M' ].concat( rotatedCurve[0].slice(0, 2).map(Number)) ].concat( rotatedCurve.map(function (x) { return ['C' ].concat( x.slice(2).map(Number)); }));
+    // @ts-ignore -- expected on reverse operations
+    return [['M' ].concat( rotatedCurve[0].slice(0, 2)) ].concat( rotatedCurve.map(function (x) { return ['C' ].concat( x.slice(2)); }));
   }
 
-  /**
-   * Checks a `pathArray` for an unnecessary `Z` segment
-   * and returns a new `pathArray` without it.
-   *
-   * The `pathInput` must be a single path, without
-   * sub-paths. For multi-path `<path>` elements,
-   * use `splitPath` first and apply this utility on each
-   * sub-path separately.
-   *
-   * @param {SVGPathCommander.pathArray | string} pathInput the `pathArray` source
-   * @return {SVGPathCommander.pathArray} a fixed `pathArray`
-   */
-  function fixPath(pathInput) {
-    var pathArray = parsePathString(pathInput);
-    var absoluteArray = pathToAbsolute(pathArray);
-    var length = pathArray.length;
-    var isClosed = absoluteArray.slice(-1)[0][0] === 'Z';
-    var segBeforeZ = isClosed ? length - 2 : length - 1;
-
-    var ref = absoluteArray[0].slice(1);
-    var x1 = ref[0];
-    var y1 = ref[1];
-    var ref$1 = absoluteArray[segBeforeZ].slice(1);
-    var x2 = ref$1[0];
-    var y2 = ref$1[1];
-
-    if (isClosed && x1 === x2 && y1 === y2) {
-      return pathArray.slice(0, -1);
-    }
-    return pathArray;
-  }
-
-  var version = "0.1.11alpha4";
+  var version = "0.1.14";
 
   // @ts-ignore
 
@@ -3134,6 +3139,9 @@
    */
   var Version = version;
 
+  /**
+   * @interface
+   */
   var Util = {
     CSSMatrix: CSSMatrix,
     parsePathString: parsePathString,
@@ -3161,39 +3169,66 @@
     reversePath: reversePath,
     normalizePath: normalizePath,
     transformPath: transformPath,
-    getSVGMatrix: getSVGMatrix,
     shapeToPath: shapeToPath,
-    options: SVGPCO,
+    options: defaultOptions,
     Version: Version,
   };
 
   /**
-   * Creates a new SVGPathCommander instance.
+   * Creates a new SVGPathCommander instance with the following properties:
+   * * segments: `pathArray`
+   * * round: number
+   * * origin: [number, number, number?]
    *
-   * @class SVGPathCommander
+   * @class
    * @author thednp <https://github.com/thednp/svg-path-commander>
+   * @returns {SVGPathCommander} a new SVGPathCommander instance
    */
   var SVGPathCommander = function SVGPathCommander(pathValue, config) {
-    var options = config || {};
+    var instanceOptions = config || {};
 
-    var round = SVGPCO.round;
-    var roundOption = options.round;
-    if ((roundOption && +roundOption === 0) || roundOption === false) {
-      round = 0;
-    }
-
-    var ref = round ? (options || SVGPCO) : { decimals: false };
-    var decimals = ref.decimals;
+    /**
+     * @type {SVGPathCommander.pathArray}
+     */
+    this.segments = parsePathString(pathValue);
+    var BBox = getPathBBox(this.segments);
+    var width = BBox.width;
+    var height = BBox.height;
 
     // set instance options
-    this.round = decimals;
-    // ZERO | FALSE will disable rounding numbers
+    var round = defaultOptions.round;
+    var origin = defaultOptions.origin;
+    var roundOption = instanceOptions.round;
+    var originOption = instanceOptions.origin;
 
-    /** @type {SVGPathCommander.pathArray} */
-    this.segments = parsePathString(pathValue);
+    if (roundOption === 'auto') {
+      var pathScale = (("" + (Math.floor(Math.max(width, height))))).length;
+      round = pathScale >= 4 ? 0 : 4 - pathScale;
+    } else if ((Number.isInteger(roundOption) && roundOption >= 1) || roundOption === false) {
+      round = roundOption;
+    }
 
-    /** * @type {string} */
-    this.pathValue = pathValue;
+    if (Array.isArray(originOption) && [2, 3].includes(originOption.length)
+      && originOption.map(function (n) { return !Number.isNaN(n); })) {
+      origin = [].concat( originOption.map(Number) );
+    } else {
+      // determine a transform origin
+      var cx = BBox.cx;
+      var cy = BBox.cy;
+      // an estimted guess
+      var originZ = Math.max(width, height) + Math.min(width, height) / 2;
+      origin = [cx, cy, originZ];
+    }
+
+    /**
+     * @type {number | boolean}
+     * @default 4
+     */
+    this.round = round;
+    /**
+     * @default [0,0]
+     */
+    this.origin = origin;
 
     return this;
   };
@@ -3221,6 +3256,19 @@
   };
 
   /**
+   * Convert path to cubic-bezier values. In addition, un-necessary `Z`
+   * segment is removed if previous segment extends to the `M` segment.
+   *
+   * @public
+   */
+  SVGPathCommander.prototype.toCurve = function toCurve () {
+    var ref = this;
+      var segments = ref.segments;
+    this.segments = pathToCurve(segments);
+    return this;
+  };
+
+  /**
    * Reverse the order of the segments and their values.
    * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
    * @public
@@ -3232,18 +3280,14 @@
       var segments = ref.segments;
     var split = splitPath(this.toString());
     var subPath = split.length > 1 ? split : 0;
-    /**
-     * @param {import("../types").pathArray} x
-     * @param {number} i
-     */
-    var reverser = function (x, i) {
+
+    // @ts-ignore
+    var absoluteMultiPath = subPath && clonePath(subPath).map(function (x, i) {
       if (onlySubpath) {
         return i ? reversePath(x) : parsePathString(x);
       }
       return reversePath(x);
-    };
-
-    var absoluteMultiPath = subPath && clonePath(subPath).map(reverser);
+    });
 
     var path = [];
     if (subPath) {
@@ -3288,7 +3332,7 @@
    * Transform path using values from an `Object` defined as `transformObject`.
    * @see SVGPathCommander.transformObject for a quick refference
    *
-   * @param {Object.<string, (number | number[])>} source a `transformObject`as described above
+   * @param {SVGPathCommander.transformObject} source a `transformObject`as described above
    * @public
    */
   SVGPathCommander.prototype.transform = function transform (source) {
@@ -3298,10 +3342,8 @@
     /** @type {SVGPathCommander.transformObject} */
     var transform = {};
     Object.keys(source).forEach(function (fn) {
-      transform[fn] = Array.isArray(source[fn])
-        // @ts-ignore
-        ? source[fn].map(Number)
-        : Number(source[fn]);
+      // @ts-ignore
+      transform[fn] = Array.isArray(source[fn]) ? [].concat( source[fn] ) : Number(source[fn]);
     });
     var ref = this;
       var segments = ref.segments;
@@ -3309,14 +3351,8 @@
     // if origin is not specified
     // it's important that we have one
     if (!transform.origin) {
-      var BBox = getPathBBox(segments);
-      var cx = BBox.cx;
-        var cy = BBox.cy;
-        var width = BBox.width;
-        var height = BBox.height;
-      // an estimted guest
-      var originZ = Math.max(width, height) + Math.min(width, height) / 2;
-      transform.origin = [cx, cy, originZ];
+      // @ts-ignore
+      transform.origin = Object.assign({}, this.origin);
     }
 
     this.segments = transformPath(segments, transform);

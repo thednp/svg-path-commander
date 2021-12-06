@@ -1,11 +1,10 @@
 /**
  * SVGPathCommander default options
- *
+ * @type {SVGPathCommander.options}
  */
-const SVGPCO = {
-  origin: [0, 0],
-  decimals: 4,
-  round: 1,
+const defaultOptions = {
+  origin: [0, 0, 0],
+  round: 4,
 };
 
-export default SVGPCO;
+export default defaultOptions;

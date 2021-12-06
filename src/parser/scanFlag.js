@@ -22,5 +22,5 @@ export default function scanFlag(path) {
     return;
   }
 
-  path.err = `${invalidPathValue}: invalid Arc flag ${ch}, expecting 0 or 1 at index ${index}`;
+  path.err = `${invalidPathValue}: invalid Arc flag "${ch}", expecting 0 or 1 at index ${index}`;
 }

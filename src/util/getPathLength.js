@@ -14,7 +14,6 @@ export default function getPathLength(path) {
   pathToCurve(path).forEach((s, i, curveArray) => {
     const args = s[0] !== 'M' ? [...curveArray[i - 1].slice(-2), ...s.slice(1)] : [];
     totalLength += s[0] === 'M' ? 0
-      // : getSegCubicLength.apply(0, curveArray[i - 1].slice(-2).concat(s.slice(1)));
       // @ts-ignore
       : getSegCubicLength(...args);
   });

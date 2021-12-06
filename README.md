@@ -55,17 +55,17 @@ For developer guidelines, head over to the [wiki pages](https://github.com/thedn
 
 * converting and optimizing *SVGPathElement* for use in third party application; our [KUTE.js](https://github.com/thednp/kute.js) animation engine is using it to process *SVGPathElement* coordinates for [SVG morphing](https://thednp.github.io/kute.js/svgMorph.html) and [SVG cubic morphing](https://thednp.github.io/kute.js/svgCubicMorph.html);
 * animators that work with SVGs and need tools for performing specific path command processing;
-* font-icon creators can use it in both Node.js and web applications to process and test their creations.
+* font-icon creators can use it in both Node.js and web applications to process, optimize and test their creations.
 
 
 # Technical Considerations
 
-* the `optimize()` instance method will not merge path segments (for instance 2 or more cubic-bezier segments into one or more arc segments); however, it will try to provide shorthand notations where possible, pick the shortest string for each segment; while computing path command values, the script will try to deliver the best possible outcome;
-* all tools processing path segments will always round float values to 3 decimals; EG: 0.5666 => 0.566, 0.50 => 0.5; you can change the default option with `SVGPathCommander.options.decimals = 2` or remove the value rounding all together with `SVGPathCommander.options.round = 0`; you can also control this feature via instance options;
+* the `optimize()` instance method will not merge path segments (for instance two or more cubic-bezier segments into one or more arc segments); however, the script will try to provide shorthand notations where possible, pick the shortest string for each segment, and generally try to deliver the best possible outcome;
+* all tools processing path segments will never round float values, however `pathToString`, `optimizePath` and especially `roundPath` will always round values to the default of 4 decimals; EG: 0.56676 => 0.567, 0.50 => 0.5; you can change the default option with `SVGPathCommander.options.round = 2` or remove the value rounding all together with `SVGPathCommander.options.round = false`; you can also control this feature via instance options;
 * the `getSVGMatrix` utility we developed will always compute the matrix by applying the transform functions in the following order: `translate`, `rotate`, `skew` and `scale`, which is the default composition/recomposition order specified in the W3C draft;
-* all 3d transformations as well as skews will convert `A` (arc) path commands to `C` (cubic bezier) due to the lack of resources on 3D to 2D projection;
-* most tools included with **SVGPathCommander** should work in your Node.js apps, but if you choose to use other complimentary 3rd party libraries, make sure you have the proper tools for them;
-* other path commands like `R` (catmulRomBezier), `O`, `U` (ellipse and shorthand ellipse) are not present in the current draft and they are not supported;
+* all 3d transformations as well as skews will convert `A` (arc) path commands to `C` (cubic bezier) due to the lack of resources;
+* most tools included with **SVGPathCommander** should work in your Node.js apps, but feel free to report any issue;
+* other path commands like `R` (catmulRomBezier), `O`, `U` (ellipse and shorthand ellipse) are not present in the current draft and are not supported;
 * normalization can mean many things to many people and our library is developed to convert path command values to absolute and shorthand to non-shorthand commands to provide a solid foundation for the main processing tools of our library.
 
 

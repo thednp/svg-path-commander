@@ -1,5 +1,5 @@
 import CSSMatrix from 'dommatrix';
-import SVGPCO from '../options/options';
+import defaultOptions from '../options/options';
 import getPathArea from './getPathArea';
 import getPathLength from './getPathLength';
 import getDrawDirection from './getDrawDirection';
@@ -22,7 +22,6 @@ import reverseCurve from '../process/reverseCurve';
 import reversePath from '../process/reversePath';
 import normalizePath from '../process/normalizePath';
 import transformPath from '../process/transformPath';
-import getSVGMatrix from '../process/getSVGMatrix';
 import fixPath from '../process/fixPath';
 
 import pathToAbsolute from '../convert/pathToAbsolute';
@@ -31,6 +30,9 @@ import pathToCurve from '../convert/pathToCurve';
 import pathToString from '../convert/pathToString';
 import Version from './version';
 
+/**
+ * @interface
+ */
 const Util = {
   CSSMatrix,
   parsePathString,
@@ -58,9 +60,8 @@ const Util = {
   reversePath,
   normalizePath,
   transformPath,
-  getSVGMatrix,
   shapeToPath,
-  options: SVGPCO,
+  options: defaultOptions,
   Version,
 };
 

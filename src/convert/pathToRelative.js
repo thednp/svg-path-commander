@@ -6,8 +6,8 @@ import isRelativeArray from '../util/isRelativeArray';
  * Parses a path string value or object and returns an array
  * of segments, all converted to relative values.
  *
- * @param {string | SVGPathCommander.pathArray} pathInput the path string | object
- * @returns {SVGPathCommander.pathArray} the resulted `pathArray` with relative values
+ * @param {SVGPathCommander.pathArray} pathInput the path string | object
+ * @returns {SVGPathCommander.relativeArray} the resulted `pathArray` with relative values
  */
 export default function pathToRelative(pathInput) {
   if (isRelativeArray(pathInput)) {
@@ -15,90 +15,84 @@ export default function pathToRelative(pathInput) {
   }
 
   const path = parsePathString(pathInput);
-  const ii = path.length;
-  /** @type {SVGPathCommander.pathArray} */
-  const resultArray = [];
-  let x = 0;
-  let y = 0;
-  let mx = 0;
-  let my = 0;
-  let start = 0;
+  let x = 0; let y = 0;
+  let mx = 0; let my = 0;
 
-  if (path[0][0] === 'M') {
-    x = +path[0][1];
-    y = +path[0][2];
-    mx = x;
-    my = y;
-    start += 1;
-    resultArray.push(['M', x, y]);
-  }
-
-  for (let i = start; i < ii; i += 1) {
-    const segment = path[i];
+  // @ts-ignore -- this is actually a `relativeArray`
+  return path.map((segment) => {
+    const values = segment.slice(1).map(Number);
     const [pathCommand] = segment;
+    /** @type {SVGPathCommander.relativeCommand} */
+    // @ts-ignore
     const relativeCommand = pathCommand.toLowerCase();
-    /** @type {SVGPathCommander.pathSegment} */
-    // @ts-ignore -- trust me DON'T CHANGE
-    const relativeSegment = [];
-    /** @type {number[]} */
-    let newSeg = [];
 
-    // do not change order
-    // keep this push at this location
-    resultArray.push(relativeSegment);
+    if (pathCommand === 'M') {
+      [x, y] = values;
+      mx = x;
+      my = y;
+      return ['M', x, y];
+    }
+
+    /** @type {SVGPathCommander.relativeSegment} */
+    // @ts-ignore -- trust me DON'T CHANGE
+    let relativeSegment = [];
 
     if (pathCommand !== relativeCommand) {
-      relativeSegment[0] = relativeCommand;
       switch (relativeCommand) {
         case 'a':
-          // newSeg = segment.slice(1, -2).concat([+segment[6] - x, +segment[7] - y]);
-          newSeg = [...segment.slice(1, -2).map(Number), segment[6] - x, segment[7] - y];
-
-          for (let j = 0; j < newSeg.length; j += 1) {
-            relativeSegment.push(newSeg[j]);
-          }
+          relativeSegment = [
+            relativeCommand, values[0], values[1], values[2],
+            values[3], values[4], values[5] - x, values[6] - y];
           break;
         case 'v':
-          relativeSegment[1] = +segment[1] - y;
+          relativeSegment = [relativeCommand, values[0] - y];
           break;
-        default:
-          // for is here to stay for eslint
-          for (let j = 1; j < segment.length; j += 1) {
-            relativeSegment.push(+segment[j] - (j % 2 ? x : y));
-          }
+        case 'h':
+          relativeSegment = [relativeCommand, values[0] - x];
+          break;
+        default: {
+          // use brakets for `eslint: no-case-declaration`
+          // https://stackoverflow.com/a/50753272/803358
+          const relValues = values.map((n, j) => n - (j % 2 ? y : x));
+          // @ts-ignore for M, L, C, S, Q, T
+          relativeSegment = [relativeCommand, ...relValues];
 
           if (relativeCommand === 'm') {
-            mx = +segment[1];
-            my = +segment[2];
+            [x, y] = values;
+            mx = x;
+            my = y;
           }
+        }
       }
     } else {
       if (pathCommand === 'm') {
-        mx = +segment[1] + x;
-        my = +segment[2] + y;
+        mx = values[0] + x;
+        my = values[1] + y;
       }
-      for (let j = 0; j < segment.length; j += 1) {
-        relativeSegment.push(segment[j]);
-      }
+      // @ts-ignore
+      relativeSegment = [relativeCommand, ...values];
     }
 
     const segLength = relativeSegment.length;
-    switch (relativeSegment[0]) {
+    switch (relativeCommand) {
       case 'z':
         x = mx;
         y = my;
         break;
       case 'h':
-        x += +relativeSegment[segLength - 1];
+        // @ts-ignore
+        x += relativeSegment[1];
         break;
       case 'v':
-        y += +relativeSegment[segLength - 1];
+        // @ts-ignore
+        y += relativeSegment[1];
         break;
       default:
-        x += +resultArray[i][segLength - 2];
-        y += +resultArray[i][segLength - 1];
+        // @ts-ignore
+        x += relativeSegment[segLength - 2];
+        // @ts-ignore
+        y += relativeSegment[segLength - 1];
     }
-  }
-
-  return resultArray;
+    return relativeSegment;
+  });
 }

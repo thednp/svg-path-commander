@@ -14,9 +14,8 @@ export default function fixArc(path, allPathCommands, i) {
     while (segment.length) {
       // if created multiple C:s, their original seg is saved
       allPathCommands[i] = 'A';
-      // path.splice(i++, 0, ['C'].concat(segment.splice(0, 6)));
-
-      path.splice(ni += 1, 0, ['C', ...segment.splice(0, 6).map(Number)]);
+      // @ts-ignore
+      path.splice(ni += 1, 0, ['C', ...segment.splice(0, 6)]);
     }
     path.splice(i, 1);
   }

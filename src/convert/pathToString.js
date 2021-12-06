@@ -10,5 +10,5 @@ import roundPath from '../process/roundPath';
  */
 export default function pathToString(path, round) {
   return roundPath(path, round)
-    .map((x) => x[0] + (x.slice(1).join(' '))).join('');
+    .map((x) => x[0] + x.slice(1).join(' ')).join('');
 }

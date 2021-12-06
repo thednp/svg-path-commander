@@ -6,12 +6,12 @@ import shapeToPath from './shapeToPath';
  *
  * If `pathInput` is a valid path string, will create a `<path>` and return it.
  *
- * @deprecated use shapeToPath
+ * @deprecated
  * @see shapeToPath a new and more flexible utility
  *
- * @param {SVGElement | String} pathInput a `<glyph>` element or path string
- * @returns {SVGPathElement} a new `<path>` element
+ * @param {SVGPathCommander.shapeTypes} pathInput a `<glyph>` element or path string
+ * @returns {SVGPathElement | boolean} a new `<path>` element
  */
 export default function createPath(pathInput) {
-  return shapeToPath(pathInput);
+  return shapeToPath(pathInput, true);
 }

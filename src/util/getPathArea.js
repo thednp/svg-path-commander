@@ -32,20 +32,15 @@ function getCubicSegArea(x0, y0, x1, y1, x2, y2, x3, y3) {
  */
 export default function getPathArea(path) {
   let x = 0; let y = 0;
-  let mx = 0; let my = 0;
   let len = 0;
   return pathToCurve(path).map((seg) => {
     switch (seg[0]) {
       case 'M':
-      case 'Z':
-        mx = seg[0] === 'M' ? seg[1] : mx; my = seg[0] === 'M' ? seg[2] : my;
-        x = mx;
-        y = my;
+        [, x, y] = seg;
         return 0;
       default:
-        // len = getCubicSegArea.apply(0, [x, y].concat(seg.slice(1)));
-        // @ts-ignore
-        len = getCubicSegArea(...[x, y, ...seg.slice(1).map(Number)]);
+        // @ts-ignore -- the utility will have proper amount of params
+        len = getCubicSegArea(...[x, y, ...seg.slice(1)]);
 
         [x, y] = seg.slice(-2).map(Number);
         return len;

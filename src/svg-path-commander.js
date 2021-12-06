@@ -1,7 +1,8 @@
-import SVGPCO from './options/options';
+import defaultOptions from './options/options';
 
 import pathToAbsolute from './convert/pathToAbsolute';
 import pathToRelative from './convert/pathToRelative';
+import pathToCurve from './convert/pathToCurve';
 import pathToString from './convert/pathToString';
 
 import parsePathString from './parser/parsePathString';
@@ -17,37 +18,62 @@ import getPathBBox from './util/getPathBBox';
 import Util from './util/util';
 
 /**
- * Creates a new SVGPathCommander instance.
+ * Creates a new SVGPathCommander instance with the following properties:
+ * * segments: `pathArray`
+ * * round: number
+ * * origin: [number, number, number?]
  *
- * @class SVGPathCommander
+ * @class
  * @author thednp <https://github.com/thednp/svg-path-commander>
+ * @returns {SVGPathCommander} a new SVGPathCommander instance
  */
 class SVGPathCommander {
   /**
    * @constructor
    * @param {string} pathValue the path string
-   * @param {SVGPathCommander.options} config instance options
+   * @param {any} config instance options
    */
   constructor(pathValue, config) {
-    const options = config || {};
+    const instanceOptions = config || {};
 
-    let { round } = SVGPCO;
-    const { round: roundOption } = options;
-    if ((roundOption && +roundOption === 0) || roundOption === false) {
-      round = 0;
-    }
-
-    const { decimals } = round ? (options || SVGPCO) : { decimals: false };
+    /**
+     * @type {SVGPathCommander.pathArray}
+     */
+    this.segments = parsePathString(pathValue);
+    const BBox = getPathBBox(this.segments);
+    const { width, height } = BBox;
 
     // set instance options
-    this.round = decimals;
-    // ZERO | FALSE will disable rounding numbers
+    let { round, origin } = defaultOptions;
+    const { round: roundOption, origin: originOption } = instanceOptions;
 
-    /** @type {SVGPathCommander.pathArray} */
-    this.segments = parsePathString(pathValue);
+    if (roundOption === 'auto') {
+      const pathScale = (`${Math.floor(Math.max(width, height))}`).length;
+      round = pathScale >= 4 ? 0 : 4 - pathScale;
+    } else if ((Number.isInteger(roundOption) && roundOption >= 1) || roundOption === false) {
+      round = roundOption;
+    }
 
-    /** * @type {string} */
-    this.pathValue = pathValue;
+    if (Array.isArray(originOption) && [2, 3].includes(originOption.length)
+      && originOption.map((n) => !Number.isNaN(n))) {
+      origin = [...originOption.map(Number)];
+    } else {
+      // determine a transform origin
+      const { cx, cy } = BBox;
+      // an estimted guess
+      const originZ = Math.max(width, height) + Math.min(width, height) / 2;
+      origin = [cx, cy, originZ];
+    }
+
+    /**
+     * @type {number | boolean}
+     * @default 4
+     */
+    this.round = round;
+    /**
+     * @default [0,0]
+     */
+    this.origin = origin;
 
     return this;
   }
@@ -73,6 +99,18 @@ class SVGPathCommander {
   }
 
   /**
+   * Convert path to cubic-bezier values. In addition, un-necessary `Z`
+   * segment is removed if previous segment extends to the `M` segment.
+   *
+   * @public
+   */
+  toCurve() {
+    const { segments } = this;
+    this.segments = pathToCurve(segments);
+    return this;
+  }
+
+  /**
    * Reverse the order of the segments and their values.
    * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
    * @public
@@ -83,18 +121,14 @@ class SVGPathCommander {
     const { segments } = this;
     const split = splitPath(this.toString());
     const subPath = split.length > 1 ? split : 0;
-    /**
-     * @param {import("../types").pathArray} x
-     * @param {number} i
-     */
-    const reverser = (x, i) => {
+
+    // @ts-ignore
+    const absoluteMultiPath = subPath && clonePath(subPath).map((x, i) => {
       if (onlySubpath) {
         return i ? reversePath(x) : parsePathString(x);
       }
       return reversePath(x);
-    };
-
-    const absoluteMultiPath = subPath && clonePath(subPath).map(reverser);
+    });
 
     let path = [];
     if (subPath) {
@@ -137,7 +171,7 @@ class SVGPathCommander {
    * Transform path using values from an `Object` defined as `transformObject`.
    * @see SVGPathCommander.transformObject for a quick refference
    *
-   * @param {Object.<string, (number | number[])>} source a `transformObject`as described above
+   * @param {SVGPathCommander.transformObject} source a `transformObject`as described above
    * @public
    */
   transform(source) {
@@ -147,23 +181,16 @@ class SVGPathCommander {
     /** @type {SVGPathCommander.transformObject} */
     const transform = {};
     Object.keys(source).forEach((fn) => {
-      transform[fn] = Array.isArray(source[fn])
-        // @ts-ignore
-        ? source[fn].map(Number)
-        : Number(source[fn]);
+      // @ts-ignore
+      transform[fn] = Array.isArray(source[fn]) ? [...source[fn]] : Number(source[fn]);
     });
     const { segments } = this;
 
     // if origin is not specified
     // it's important that we have one
     if (!transform.origin) {
-      const BBox = getPathBBox(segments);
-      const {
-        cx, cy, width, height,
-      } = BBox;
-      // an estimted guest
-      const originZ = Math.max(width, height) + Math.min(width, height) / 2;
-      transform.origin = [cx, cy, originZ];
+      // @ts-ignore
+      transform.origin = { ...this.origin };
     }
 
     this.segments = transformPath(segments, transform);

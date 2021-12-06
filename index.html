@@ -64,7 +64,7 @@
       <p><b>Matrix Transformation</b></p>
       <p>
         <button type="button" data-toggle="tooltip" title="Rotate 180deg on X axis, the default transform origin is shape's center, Font-Icon creators love it" onclick="flipX()">FlipX</button>
-        <button type="button" data-toggle="tooltip" title="Rotate 180deg on Y axis, the default transform origin is shape's center, and using {decimals:5} option" onclick="flipY()">FlipY</button>
+        <button type="button" data-toggle="tooltip" title="Rotate 180deg on Y axis, the default transform origin is shape's center, and using {round:5} option" onclick="flipY()">FlipY</button>
         <button type="button" data-toggle="tooltip" title="Rotate 180deg on both X and Y axes, the default transform origin is shape's center" onclick="flipXY()">FlipXY</button>
         <button type="button" data-toggle="tooltip" title="Transform multiple functions in object { translate: 1, skew: 15, rotate:-45, scale: 0.5 }. Transform origin is auto" onclick="transform({ translate: 1, skew: 15, rotate:-45, scale: 0.5 })">Quick transform</button>
       </p>
@@ -108,8 +108,9 @@
 
   <!-- <script src="./dist/svg-path-commander.min.js"></script> -->
   <script src="./dist/svg-path-commander.js"></script>
+  <!-- <script src="./experiments/svg-path-commander-0.1.10.js"></script> -->
   <script>
-    SVGPathCommander.options.decimals = 3;
+    SVGPathCommander.options.round = 3;
 
     var pathToCurve = SVGPathCommander.pathToCurve,
         pathToString = SVGPathCommander.pathToString,
@@ -178,13 +179,13 @@
 
     function toOptimal() { // optimize
       pathValue = inputTextArea.value || pathValue
-      var nm = new SVGPathCommander( pathValue, {decimals: 0} ).optimize();
+      var opt = new SVGPathCommander( pathValue, {round: 'auto'} ).optimize();
 
-      path.setAttribute('d', nm.toString());
+      path.setAttribute('d', opt.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
-      outputTextArea.value = nm.toString();
+      outputTextArea.value = opt.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
 
@@ -218,15 +219,13 @@
     function toCurve() { // To curve coordinates
       pathValue = inputTextArea.value || pathValue
 
-      var cvInit = new SVGPathCommander(pathValue,{round:false}), cvPath;
-      cvInit.segments = pathToCurve( cvInit.segments, 3 );
-      cvPath = cvInit.toString();
+      var cv = new SVGPathCommander(pathValue, {round: false}).toCurve();
 
-      path.setAttribute('d', cvPath);
+      path.setAttribute('d', cv.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = '';
-      outputTextArea.value = cvPath;
+      outputTextArea.value = cv.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
       if (!usedCurve) 
       console.warn(`The "toCurve()" instance example doesn\'t round the path values as configured with 'round: false' option.`);
@@ -236,21 +235,19 @@
     function toRevCurve(onlySubpath) { // To curve coordinates
       pathValue = inputTextArea.value || pathValue
 
-      var revCVinit = new SVGPathCommander(pathValue), revCPath
-      revCVinit.segments = pathToCurve( revCVinit.segments, 3 )
-      revCPath = revCVinit.reverse(onlySubpath).toString()
+      var cv = new SVGPathCommander(pathValue, {round: 'auto'}).toCurve().reverse(onlySubpath);
 
-      path.setAttribute('d', revCPath);
+      path.setAttribute('d', cv.toString());
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
-      outputTextArea.value = revCPath;
+      outputTextArea.value = cv.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
     function toRev(onlySubpath) { // reverse coordinates
       pathValue = inputTextArea.value || pathValue
 
-      var revPath = new SVGPathCommander( pathValue ).reverse(onlySubpath).optimize().toString();
+      var revPath = new SVGPathCommander( pathValue ).reverse(onlySubpath).toString();
       
       path.setAttribute('d', revPath);
       path.setAttribute('fill', randomColor());
@@ -274,8 +271,7 @@
     function flipX() { // transform
       pathValue = inputTextArea.value || pathValue         
       
-      var transformObject = { translate: 0.05, rotate: 90, scale: 0.9 },
-          tfPath = new SVGPathCommander( pathValue ).flipX().optimize().toString();
+      var tfPath = new SVGPathCommander( pathValue ).flipX().optimize().toString();
       
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());
@@ -287,7 +283,7 @@
     function flipY() { // transform
       pathValue = inputTextArea.value || pathValue         
       
-      var tfPath = new SVGPathCommander( pathValue, {decimals:5} ).flipY().optimize().toString();
+      var tfPath = new SVGPathCommander( pathValue, {round:5} ).flipY().optimize().toString();
 
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());
