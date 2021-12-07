@@ -126,7 +126,8 @@
         .replace(/><\/path>/gm, ' />')
         .replace(/<path/gm, '\n  <path')
         .replace(/<\/svg>/, '\n<\/svg>');
-      SVG.remove(); console.log(tempDocument)
+
+      SVG.remove();
     }
 
     convert()
