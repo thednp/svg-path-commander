@@ -1,6 +1,10 @@
 ![image](./assets/SVGPathCommander.svg)
 
-A modern set of ES6+ JavaScript tools for manipulating the `d` (description) attribute for *SVGPathElement* items, and is implementing modern JavaScript API to produce reusable path strings with lossless quality.
+A modern set of ES6+ JavaScript tools for manipulating the `d` (description) attribute for *SVGPathElement* items. The library is implementing modern JavaScript API to produce reusable path strings with lossless quality. In addition, you also have a powerful tool to convert other SVG shapes like `<circle>` or `<rect>` to `<path>`.
+
+[![NPM Version](https://img.shields.io/npm/v/svg-path-commander.svg?style=flat-square)](https://www.npmjs.com/package/svg-path-commander)
+[![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg?style=flat-square)](http://npm-stat.com/charts.html?svg-path-commander)
+[![jsDeliver](https://data.jsdelivr.com/v1/package/npm/svg-path-commander/badge)](https://www.jsdelivr.com/package/npm/svg-path-commander)
 
 While you may find familiar tools inside, this library brings ***new additions***:
 * a tool that can *reverse path draw direction* without altering path commands, even with specific shorthand path commands;
@@ -9,9 +13,10 @@ While you may find familiar tools inside, this library brings ***new additions**
 
 **The key differences with other libraries**:
 * ES6+ sourced with modernized codebase and build tools; all inherited codebase has been modernized as well;
-* you can use this library in both web apps and Node.js, where others are restricted to a single environment;
+* along with the modern codebase, the library also comes with strong TypeScript definitions;
+* you can use this library in both web apps and Node.js, you are not restricted to a single environment;
 * path command transformations are all consistent with the SVG coordinates system, where others compute transform origin only for rotation transformation;
-* as you will see below, our library can create 3D to 2D projections, making your SVGs look like 3D but in the SVG coordinate system.
+* this library can create 3D to 2D projections, making your SVGs look like 3D but in the SVG coordinate system.
 
 **SVGPathCommander** implements the [DOMMatrix API](https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix) for *SVGPathElement* path command transformation and falls back to a modernized [CSSMatrix shim](https://github.com/thednp/DOMMatrix) on older browsers as well as Node.js.
 There are a couple of good reasons for this implementation:
@@ -20,10 +25,6 @@ There are a couple of good reasons for this implementation:
 * when most tools available will be rendered absolete, we are ready for new challenges.
 
 This library is available on [CDN](https://www.jsdelivr.com/package/npm/svg-path-commander) and [npm](https://www.npmjs.com/package/svg-path-commander). 
-
-[![NPM Version](https://img.shields.io/npm/v/svg-path-commander.svg?style=flat-square)](https://www.npmjs.com/package/svg-path-commander)
-[![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg?style=flat-square)](http://npm-stat.com/charts.html?svg-path-commander)
-[![jsDeliver](https://data.jsdelivr.com/v1/package/npm/svg-path-commander/badge)](https://www.jsdelivr.com/package/npm/svg-path-commander)
 
 
 # Install
@@ -44,7 +45,49 @@ import SVGPathCommander from 'svg-path-commander';
 
 const path = 'M0 0 L50 100';
 
-const flippedPath = new SVGPathCommander(path).flipX().toString();
+// flip a path on X axis
+const flippedPathString = new SVGPathCommander(path).flipX().toString();
+
+// apply a 2D transformation
+const transform = {
+  translate: 15, // X axis translation
+  rotate: 15, // Z axis rotation
+  scale: 0.75, // uniform scale on X, Y, Z axis
+  skew: 15, // skew 15deg on the X axis
+  origin: [15, 0] // if not specified, it will calculate a bounding box to determine a proper `transform-origin`
+}
+const transformed2DPathString = new SVGPathCommander(path).transform(transform).toString();
+
+// apply a 3D transformation
+const transform = {
+  translate: [15, 15, 15], // `[15, 15]` would apply a 2D translation, and only `15` for X axis translation
+  rotate: [15, 15, 15], // or only "15" for 2D rotation on Z axis
+  scale: [0.7, 0.75, 0.8], // or only "0.7" for 2D scale on all X, Y, Z axis
+  skew: [15, 15], // or only "15" for the X axis
+  origin: [15, 15, 15] // full `transform-origin` for a typical 3D transformation
+}
+const transformed3DPathString = new SVGPathCommander(path).transform(transform).toString();
+
+// optimize a path string for best outcome by using the `round: 'auto'` option
+// which will determine the amount of decimals based on the shape's bounding box
+const optimizedPathString = new SVGPathCommander(path, {round: 'auto'}).optimize().toString();
+
+// convert a shape to `<path>` and transfer all non-specific attributes
+const circle = document.getElementById('myCircle');
+SVGPathCommander.shapeToPath(circle, true);
+
+// alternatively you can create <path> from specific attributes
+const myRectAttr = {
+  type: 'rect',
+  x: 25,
+  y: 25,
+  width: 50,
+  height: 50,
+  rx: 5
+};
+
+const myRectPath = SVGPathCommander.shapeToPath(myRectAttr);
+document.getElementById('mySVG').append(myRectPath);
 ```
 
 # WIKI
@@ -55,6 +98,7 @@ For developer guidelines, head over to the [wiki pages](https://github.com/thedn
 
 * converting and optimizing *SVGPathElement* for use in third party application; our [KUTE.js](https://github.com/thednp/kute.js) animation engine is using it to process *SVGPathElement* coordinates for [SVG morphing](https://thednp.github.io/kute.js/svgMorph.html) and [SVG cubic morphing](https://thednp.github.io/kute.js/svgCubicMorph.html);
 * animators that work with SVGs and need tools for performing specific path command processing;
+* front-end developers looking to spice up the content by combining, splitting or transforming paths;
 * font-icon creators can use it in both Node.js and web applications to process, optimize and test their creations.
 
 
