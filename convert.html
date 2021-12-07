@@ -45,10 +45,10 @@
       <div class="d-none d-md-block">        
         <p><b>SVG Input</b></p>
         <div contenteditable="true" class="form-input" id="t1" placeholder="Paste your SVG here" spellcheck="false">&lt;svg viewBox="0 0 182 72"&gt;
-  &lt;circle cx="27.5" cy="36.9" r="23.5" fill="orangered"/&gt;
-  &lt;ellipse cx="68.3" cy="37" rx="15.1" ry="23.4" fill="darkorange"/&gt;
-  &lt;polygon points="107.4,13 113.7,28.8 127.9,31.3 117.6,43.5 120.1,60.8 107.4,52.6 94.6,60.8 97.1,43.5 86.8,31.3 101,28.8" fill="yellow"/&gt;
-  &lt;rect x="131" y="13.2" width="47.5" height="47.6" rx="5" fill="yellowgreen"/&gt;
+  &lt;circle id="circle" cx="27.5" cy="36.9" r="23.5" fill="orangered"/&gt;
+  &lt;ellipse id="ellipse" cx="68.3" cy="37" rx="15.1" ry="23.4" fill="darkorange"/&gt;
+  &lt;polygon id="polygon" points="107.4,13 113.7,28.8 127.9,31.3 117.6,43.5 120.1,60.8 107.4,52.6 94.6,60.8 97.1,43.5 86.8,31.3 101,28.8" fill="yellow"/&gt;
+  &lt;rect id="rect" x="131" y="13.2" width="47.5" height="47.6" rx="5" fill="yellowgreen"/&gt;
 &lt;/svg&gt;
         </div>
         <p>
@@ -64,7 +64,7 @@
     <div class="col col-lg">
       <p class="d-none d-md-block"><b>Test</b></p>
       <div class="text-center">
-        <svg id="test-svg" viewBox="0 0 182 72">
+        <svg id="test-svg" viewBox="0 0 0 0">
         </svg>
       </div>
 
@@ -105,31 +105,28 @@
 
       Array.from(svg.querySelectorAll('path')).forEach((shape) => shape.remove());
 
-      const shapes = Array.from(tempDocument.querySelectorAll('circle,rect,ellipse,polygon,polyline,glyph'));
+      const shapes = Array.from(SVG.querySelectorAll('circle,ellipse,rect,polygon,polyline,glyph'));
+      shapes.forEach((shape) => shapeToPath(shape, true));
 
-      shapes.forEach((shape) => svg.append(shape));
-      shapes.forEach((shape) => SVG.append(shapeToPath(shape)));
       Array.from(SVG.children).forEach((shape) => (desc += shape.getAttribute('d')));
-
+    
       if (!hasSVG) {
         const bbox = getPathBBox(desc);
         const {width, height, x, y} = bbox;
         SVG.setAttribute('viewBox', (`0 0 ${width + x} ${height + y}`));
-      }
-
-      if (tempDocument.body.children[0].tagName === 'svg') {
-        svg.setAttribute('viewBox', tempDocument.body.children[0].getAttribute('viewBox'));
+      } else {
+        svg.setAttribute('viewBox', SVG.getAttribute('viewBox'));
       } 
 
-      Array.from(svg.querySelectorAll('circle,rect,ellipse,polygon,polyline,glyph'))
-        .forEach((shape) => shapeToPath(shape, true));
+      Array.from(SVG.children).forEach((shape) => svg.append(document.importNode(shape)));
 
-      outputTextArea.innerText = svg.outerHTML
+      outputTextArea.innerText = SVG.outerHTML
         .replace(/\n/gm, '')
         .replace(/\s*<path/gm, '<path')
         .replace(/><\/path>/gm, ' />')
         .replace(/<path/gm, '\n  <path')
         .replace(/<\/svg>/, '\n<\/svg>');
+      SVG.remove(); console.log(tempDocument)
     }
 
     convert()
