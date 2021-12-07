@@ -526,12 +526,13 @@ declare module "svg-path-commander/src/process/shortenSegment" {
     /**
      * Shorten a single segment of a `pathArray` object.
      *
-     * @param {SVGPathCommander.pathSegment} segment the segment object
+     * @param {SVGPathCommander.absoluteSegment} segment the segment object
+     * @param {SVGPathCommander.normalSegment} normalSegment the segment object
      * @param {any} params the coordinates of the previous segment
      * @param {string} prevCommand the path command of the previous segment
-     * @returns {SVGPathCommander.shortSegment | SVGPathCommander.pathSegment} the shortened segment
+     * @returns {SVGPathCommander.shortSegment | SVGPathCommander.MSegment} the shortened segment
      */
-    export default function shortenSegment(segment: SVGPathCommander.pathSegment, params: any, prevCommand: string): SVGPathCommander.shortSegment | SVGPathCommander.pathSegment;
+    export default function shortenSegment(segment: SVGPathCommander.absoluteSegment, normalSegment: SVGPathCommander.normalSegment, params: any, prevCommand: string): SVGPathCommander.shortSegment | SVGPathCommander.pathSegment;
 }
 declare module "svg-path-commander/src/process/optimizePath" {
     /**

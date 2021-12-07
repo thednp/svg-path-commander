@@ -19,7 +19,8 @@ import normalizePath from './normalizePath';
  * @returns {SVGPathCommander.pathArray} the optimized `pathArray`
  */
 export default function optimizePath(pathInput, round) {
-  const path = normalizePath(pathInput);
+  const path = pathToAbsolute(pathInput);
+  const normalPath = normalizePath(path);
   const params = { ...paramsParser };
   const allPathCommands = [];
   const ii = path.length;
@@ -35,20 +36,21 @@ export default function optimizePath(pathInput, round) {
 
     // Save current path command
     allPathCommands[i] = pathCommand;
-    // Get previous path command
+    // Get previous path command for `shortenSegment`
     if (i) prevCommand = allPathCommands[i - 1];
-    // Previous path command is used in shortenSegment
     // @ts-ignore -- expected when switching `pathSegment` type
-    path[i] = shortenSegment(path[i], params, prevCommand);
+    path[i] = shortenSegment(path[i], normalPath[i], params, prevCommand);
 
     const segment = path[i];
     const seglen = segment.length;
 
+    // update C, S, Q, T specific params
     params.x1 = +segment[seglen - 2];
     params.y1 = +segment[seglen - 1];
     params.x2 = +(segment[seglen - 4]) || params.x1;
     params.y2 = +(segment[seglen - 3]) || params.y1;
 
+    // update x, y params
     switch (pathCommand) {
       case 'Z':
         x = mx;
@@ -74,7 +76,7 @@ export default function optimizePath(pathInput, round) {
     params.y = y;
   }
 
-  const absolutePath = roundPath(pathToAbsolute(path), round);
+  const absolutePath = roundPath(path, round);
   const relativePath = roundPath(pathToRelative(path), round);
 
   // @ts-ignore - it's expected an optimized `pathArray` to contain all kinds of segments

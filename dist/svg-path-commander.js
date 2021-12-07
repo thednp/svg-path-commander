@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.15 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.16 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1333,14 +1333,17 @@
   /**
    * Shorten a single segment of a `pathArray` object.
    *
-   * @param {SVGPathCommander.pathSegment} segment the segment object
+   * @param {SVGPathCommander.absoluteSegment} segment the `absoluteSegment` object
+   * @param {SVGPathCommander.normalSegment} normalSegment the `normalSegment` object
    * @param {any} params the coordinates of the previous segment
    * @param {string} prevCommand the path command of the previous segment
-   * @returns {SVGPathCommander.shortSegment | SVGPathCommander.pathSegment} the shortened segment
+   * @returns {SVGPathCommander.shortSegment | SVGPathCommander.MSegment} the shortened segment
    */
-  function shortenSegment(segment, params, prevCommand) {
+  function shortenSegment(segment, normalSegment, params, prevCommand) {
     var pathCommand = segment[0];
-    var values = segment.slice(1).map(function (n) { return +n; });
+    var round4 = function (/** @type {number} */n) { return Math.round(n * (Math.pow( 10, 4 ))) / Math.pow( 10, 4 ); };
+    var segmentValues = segment.slice(1).map(function (n) { return +n; });
+    var normalValues = normalSegment.slice(1).map(function (n) { return +n; });
     var px1 = params.x1;
     var py1 = params.y1;
     var px2 = params.x2;
@@ -1348,7 +1351,7 @@
     var px = params.x;
     var py = params.y;
     var result = segment;
-    var ref = values.slice(-2);
+    var ref = normalValues.slice(-2);
     var x = ref[0];
     var y = ref[1];
 
@@ -1358,38 +1361,42 @@
       params.qy = null;
     }
 
-    if (pathCommand === 'L') {
-      if (px === x) {
+    if (['V', 'H', 'S', 'T', 'Z'].includes(pathCommand)) {
+      // @ts-ignore -- expected when so many types are included
+      result = [pathCommand ].concat( segmentValues);
+    } else if (pathCommand === 'L') {
+      if (round4(px) === round4(x)) {
         result = ['V', y];
-      } else if (py === y) {
+      } else if (round4(py) === round4(y)) {
         result = ['H', x];
       }
     } else if (pathCommand === 'C') {
-      var x1 = values[0];
-      var y1 = values[1];
+      var x1 = normalValues[0];
+      var y1 = normalValues[1];
 
       if ('CS'.includes(prevCommand)
-        && x1 === px1 * 2 - px2
-        && y1 === py1 * 2 - py2) {
+        && round4(x1) === round4(px1 * 2 - px2)
+        && round4(y1) === round4(py1 * 2 - py2)) {
         // @ts-ignore -- the amount of numbers should suffice
-        result = ['S' ].concat( values.slice(-4));
+        result = ['S' ].concat( normalValues.slice(-4));
       }
       params.x1 = x1;
       params.y1 = y1;
     } else if (pathCommand === 'Q') {
-      var qx = values[0];
-      var qy = values[1];
+      var qx = normalValues[0];
+      var qy = normalValues[1];
       params.qx = qx;
       params.qy = qy;
 
       if ('QT'.includes(prevCommand)
-        && qx === px1 * 2 - px2
-        && qy === py1 * 2 - py2) {
+        && round4(qx) === round4(px1 * 2 - px2)
+        && round4(qy) === round4(py1 * 2 - py2)) {
         // @ts-ignore -- the amount of numbers should suffice
-        result = ['T' ].concat( values.slice(-2));
+        result = ['T' ].concat( normalValues.slice(-2));
       }
     }
 
+    // @ts-ignore -- expected when switching `pathSegment` type
     return result;
   }
 
@@ -1409,7 +1416,8 @@
   function optimizePath(pathInput, round) {
     var assign, assign$1, assign$2, assign$3;
 
-    var path = normalizePath(pathInput);
+    var path = pathToAbsolute(pathInput);
+    var normalPath = normalizePath(path);
     var params = Object.assign({}, paramsParser);
     var allPathCommands = [];
     var ii = path.length;
@@ -1425,20 +1433,21 @@
 
       // Save current path command
       allPathCommands[i] = pathCommand;
-      // Get previous path command
+      // Get previous path command for `shortenSegment`
       if (i) { prevCommand = allPathCommands[i - 1]; }
-      // Previous path command is used in shortenSegment
       // @ts-ignore -- expected when switching `pathSegment` type
-      path[i] = shortenSegment(path[i], params, prevCommand);
+      path[i] = shortenSegment(path[i], normalPath[i], params, prevCommand);
 
       var segment = path[i];
       var seglen = segment.length;
 
+      // update C, S, Q, T specific params
       params.x1 = +segment[seglen - 2];
       params.y1 = +segment[seglen - 1];
       params.x2 = +(segment[seglen - 4]) || params.x1;
       params.y2 = +(segment[seglen - 3]) || params.y1;
 
+      // update x, y params
       switch (pathCommand) {
         case 'Z':
           x = mx;
@@ -1464,7 +1473,7 @@
       params.y = y;
     }
 
-    var absolutePath = roundPath(pathToAbsolute(path), round);
+    var absolutePath = roundPath(path, round);
     var relativePath = roundPath(pathToRelative(path), round);
 
     // @ts-ignore - it's expected an optimized `pathArray` to contain all kinds of segments
@@ -3129,7 +3138,7 @@
     return [['M' ].concat( rotatedCurve[0].slice(0, 2)) ].concat( rotatedCurve.map(function (x) { return ['C' ].concat( x.slice(2)); }));
   }
 
-  var version = "0.1.15";
+  var version = "0.1.16";
 
   // @ts-ignore
 
