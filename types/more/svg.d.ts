@@ -84,14 +84,13 @@ export declare type absoluteSegment = MSegment | LSegment | VSegment | HSegment 
 export declare type relativeSegment = mSegment | lSegment | vSegment | hSegment | cSegment | sSegment | qSegment | tSegment | aSegment | zSegment;
 export declare type normalSegment   = MSegment | LSegment | CSegment | QSegment | ASegment | ZSegment;
 
-export declare type pathArray =       [MSegment, ...pathSegment[]] | [mSegment, ...pathSegment[]];
+export declare type pathArray =       [(MSegment | mSegment), ...pathSegment[]];
 export declare type absoluteArray =   [MSegment, ...absoluteSegment[]];
 export declare type relativeArray =   [MSegment, ...relativeSegment[]];
 export declare type normalArray =     [MSegment, ...normalSegment[]];
-export declare type curveArray =      [MSegment, ...cubicSegment[]];
-
-// export type pathSegment = [string, ...number[]];
-// export type pathArray = pathSegment[];
+export declare type curveArray =      [MSegment, ...CSegment[]];
+export declare type polygonArray =    [MSegment, ...LSegment[], ZSegment];
+export declare type polylineArray =   [MSegment, ...LSegment[]];
 
 export declare interface options {
   /** @default 4 */

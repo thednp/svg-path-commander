@@ -80,6 +80,11 @@ export {default as CSSMatrix} from "dommatrix";
 
 // custom types
 export {
+  MCommand, mCommand, LCommand, lCommand,
+  VCommand, vCommand, HCommand, hCommand,
+  ZCommand, zCommand, CCommand, cCommand,
+  SCommand, sCommand, QCommand, qCommand,
+  TCommand, tCommand, ACommand, aCommand,
   pathCommand, absoluteCommand, relativeCommand,
   MSegment, mSegment, moveSegment,
   LSegment, lSegment, lineSegment,
@@ -92,7 +97,8 @@ export {
   ZSegment, zSegment, closeSegment,
 
   shortSegment, absoluteSegment, relativeSegment, normalSegment, pathSegment,
-  pathArray, absoluteArray, relativeArray, normalArray, curveArray,
+  pathArray, absoluteArray, relativeArray, normalArray,
+  curveArray, polygonArray, polylineArray,
 
   pathTransformList, transformObject,
 

@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.16 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.17 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -3138,7 +3138,7 @@
     return [['M' ].concat( rotatedCurve[0].slice(0, 2)) ].concat( rotatedCurve.map(function (x) { return ['C' ].concat( x.slice(2)); }));
   }
 
-  var version = "0.1.16";
+  var version = "0.1.17";
 
   // @ts-ignore
 

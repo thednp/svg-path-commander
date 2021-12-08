@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.16 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.17 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -3060,7 +3060,7 @@ function reverseCurve(path) {
     ...rotatedCurve.map((x) => ['C', ...x.slice(2)])];
 }
 
-var version = "0.1.16";
+var version = "0.1.17";
 
 // @ts-ignore
 
