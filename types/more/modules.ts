@@ -70,6 +70,6 @@ export { default as isPathArray } from '../../src/util/isPathArray';
 export { default as isRelativeArray } from '../../src/util/isRelativeArray';
 export { default as isValidPath } from '../../src/util/isValidPath';
 export { default as shapeToPath } from '../../src/util/shapeToPath';
-export { default as Version } from '../../src/util/version';
+export { default as Version } from '../../src/version';
 
 export { default as SVGPathCommander } from '../../src/svg-path-commander';

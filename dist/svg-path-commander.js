@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.17 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.19 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1337,7 +1337,7 @@
    * @param {SVGPathCommander.normalSegment} normalSegment the `normalSegment` object
    * @param {any} params the coordinates of the previous segment
    * @param {string} prevCommand the path command of the previous segment
-   * @returns {SVGPathCommander.shortSegment | SVGPathCommander.MSegment} the shortened segment
+   * @returns {SVGPathCommander.shortSegment | SVGPathCommander.pathSegment} the shortened segment
    */
   function shortenSegment(segment, normalSegment, params, prevCommand) {
     var pathCommand = segment[0];
@@ -1396,7 +1396,6 @@
       }
     }
 
-    // @ts-ignore -- expected when switching `pathSegment` type
     return result;
   }
 
@@ -2305,6 +2304,18 @@
     fromString: fromString,
   });
 
+  var version$1 = "0.0.23";
+
+  // @ts-ignore
+
+  /**
+   * A global namespace for library version.
+   * @type {string}
+   */
+  var Version$1 = version$1;
+
+  Object.assign(CSSMatrix, { Version: Version$1 });
+
   /**
    * Returns a transformation matrix to apply to `<path>` elements.
    *
@@ -2739,6 +2750,219 @@
   }
 
   /**
+   * Creates a new SVGPathCommander instance with the following properties:
+   * * segments: `pathArray`
+   * * round: number
+   * * origin: [number, number, number?]
+   *
+   * @class
+   * @author thednp <https://github.com/thednp/svg-path-commander>
+   * @returns {SVGPathCommander} a new SVGPathCommander instance
+   */
+  var SVGPathCommander = function SVGPathCommander(pathValue, config) {
+    var instanceOptions = config || {};
+
+    /**
+     * @type {SVGPathCommander.pathArray}
+     */
+    this.segments = parsePathString(pathValue);
+    var BBox = getPathBBox(this.segments);
+    var width = BBox.width;
+    var height = BBox.height;
+
+    // set instance options
+    var round = defaultOptions.round;
+    var origin = defaultOptions.origin;
+    var roundOption = instanceOptions.round;
+    var originOption = instanceOptions.origin;
+
+    if (roundOption === 'auto') {
+      var pathScale = (("" + (Math.floor(Math.max(width, height))))).length;
+      round = pathScale >= 4 ? 0 : 4 - pathScale;
+    } else if ((Number.isInteger(roundOption) && roundOption >= 1) || roundOption === false) {
+      round = roundOption;
+    }
+
+    if (Array.isArray(originOption) && [2, 3].includes(originOption.length)
+      && originOption.map(function (n) { return !Number.isNaN(n); })) {
+      origin = [].concat( originOption.map(Number) );
+    } else {
+      // determine a transform origin
+      var cx = BBox.cx;
+      var cy = BBox.cy;
+      // an estimted guess
+      var originZ = Math.max(width, height) + Math.min(width, height) / 2;
+      origin = [cx, cy, originZ];
+    }
+
+    /**
+     * @type {number | boolean}
+     * @default 4
+     */
+    this.round = round;
+    /**
+     * @default [0,0]
+     */
+    this.origin = origin;
+
+    return this;
+  };
+
+  /**
+   * Convert path to absolute values
+   * @public
+   */
+  SVGPathCommander.prototype.toAbsolute = function toAbsolute () {
+    var ref = this;
+      var segments = ref.segments;
+    this.segments = pathToAbsolute(segments);
+    return this;
+  };
+
+  /**
+   * Convert path to relative values
+   * @public
+   */
+  SVGPathCommander.prototype.toRelative = function toRelative () {
+    var ref = this;
+      var segments = ref.segments;
+    this.segments = pathToRelative(segments);
+    return this;
+  };
+
+  /**
+   * Convert path to cubic-bezier values. In addition, un-necessary `Z`
+   * segment is removed if previous segment extends to the `M` segment.
+   *
+   * @public
+   */
+  SVGPathCommander.prototype.toCurve = function toCurve () {
+    var ref = this;
+      var segments = ref.segments;
+    this.segments = pathToCurve(segments);
+    return this;
+  };
+
+  /**
+   * Reverse the order of the segments and their values.
+   * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
+   * @public
+   */
+  SVGPathCommander.prototype.reverse = function reverse (onlySubpath) {
+    this.toAbsolute();
+
+    var ref = this;
+      var segments = ref.segments;
+    var split = splitPath(this.toString());
+    var subPath = split.length > 1 ? split : 0;
+
+    // @ts-ignore
+    var absoluteMultiPath = subPath && clonePath(subPath).map(function (x, i) {
+      if (onlySubpath) {
+        return i ? reversePath(x) : parsePathString(x);
+      }
+      return reversePath(x);
+    });
+
+    var path = [];
+    if (subPath) {
+      path = absoluteMultiPath.flat(1);
+    } else {
+      path = onlySubpath ? segments : reversePath(segments);
+    }
+
+    this.segments = clonePath(path);
+    return this;
+  };
+
+  /**
+   * Normalize path in 2 steps:
+   * * convert `pathArray`(s) to absolute values
+   * * convert shorthand notation to standard notation
+   * @public
+   */
+  SVGPathCommander.prototype.normalize = function normalize () {
+    var ref = this;
+      var segments = ref.segments;
+    this.segments = normalizePath(segments);
+    return this;
+  };
+
+  /**
+   * Optimize `pathArray` values:
+   * * convert segments to absolute and/or relative values
+   * * select segments with shortest resulted string
+   * * round values to the specified `decimals` option value
+   * @public
+   */
+  SVGPathCommander.prototype.optimize = function optimize () {
+    var ref = this;
+      var segments = ref.segments;
+
+    this.segments = optimizePath(segments, this.round);
+    return this;
+  };
+
+  /**
+   * Transform path using values from an `Object` defined as `transformObject`.
+   * @see SVGPathCommander.transformObject for a quick refference
+   *
+   * @param {SVGPathCommander.transformObject} source a `transformObject`as described above
+   * @public
+   */
+  SVGPathCommander.prototype.transform = function transform (source) {
+    if (!source || typeof source !== 'object' || (typeof source === 'object'
+      && !['translate', 'rotate', 'skew', 'scale'].some(function (x) { return x in source; }))) { return this; }
+
+    /** @type {SVGPathCommander.transformObject} */
+    var transform = {};
+    Object.keys(source).forEach(function (fn) {
+      // @ts-ignore
+      transform[fn] = Array.isArray(source[fn]) ? [].concat( source[fn] ) : Number(source[fn]);
+    });
+    var ref = this;
+      var segments = ref.segments;
+
+    // if origin is not specified
+    // it's important that we have one
+    if (!transform.origin) {
+      // @ts-ignore
+      transform.origin = Object.assign({}, this.origin);
+    }
+
+    this.segments = transformPath(segments, transform);
+    return this;
+  };
+
+  /**
+   * Rotate path 180deg horizontally
+   * @public
+   */
+  SVGPathCommander.prototype.flipX = function flipX () {
+    this.transform({ rotate: [180, 0, 0] });
+    return this;
+  };
+
+  /**
+   * Rotate path 180deg vertically
+   * @public
+   */
+  SVGPathCommander.prototype.flipY = function flipY () {
+    this.transform({ rotate: [0, 180, 0] });
+    return this;
+  };
+
+  /**
+   * Export the current path to be used
+   * for the `d` (description) attribute.
+   * @public
+   * @return {String} the path string
+   */
+  SVGPathCommander.prototype.toString = function toString () {
+    return pathToString(this.segments, this.round);
+  };
+
+  /**
    * Returns the area of a single segment shape.
    *
    * http://objectmix.com/graphics/133553-area-closed-bezier-curve.html
@@ -3138,16 +3362,6 @@
     return [['M' ].concat( rotatedCurve[0].slice(0, 2)) ].concat( rotatedCurve.map(function (x) { return ['C' ].concat( x.slice(2)); }));
   }
 
-  var version = "0.1.17";
-
-  // @ts-ignore
-
-  /**
-   * A global namespace for library version.
-   * @type {string}
-   */
-  var Version = version;
-
   /**
    * @interface
    */
@@ -3180,224 +3394,20 @@
     transformPath: transformPath,
     shapeToPath: shapeToPath,
     options: defaultOptions,
-    Version: Version,
   };
+
+  var version = "0.1.19";
+
+  // @ts-ignore
 
   /**
-   * Creates a new SVGPathCommander instance with the following properties:
-   * * segments: `pathArray`
-   * * round: number
-   * * origin: [number, number, number?]
-   *
-   * @class
-   * @author thednp <https://github.com/thednp/svg-path-commander>
-   * @returns {SVGPathCommander} a new SVGPathCommander instance
+   * A global namespace for library version.
+   * @type {string}
    */
-  var SVGPathCommander = function SVGPathCommander(pathValue, config) {
-    var instanceOptions = config || {};
+  var Version = version;
 
-    /**
-     * @type {SVGPathCommander.pathArray}
-     */
-    this.segments = parsePathString(pathValue);
-    var BBox = getPathBBox(this.segments);
-    var width = BBox.width;
-    var height = BBox.height;
-
-    // set instance options
-    var round = defaultOptions.round;
-    var origin = defaultOptions.origin;
-    var roundOption = instanceOptions.round;
-    var originOption = instanceOptions.origin;
-
-    if (roundOption === 'auto') {
-      var pathScale = (("" + (Math.floor(Math.max(width, height))))).length;
-      round = pathScale >= 4 ? 0 : 4 - pathScale;
-    } else if ((Number.isInteger(roundOption) && roundOption >= 1) || roundOption === false) {
-      round = roundOption;
-    }
-
-    if (Array.isArray(originOption) && [2, 3].includes(originOption.length)
-      && originOption.map(function (n) { return !Number.isNaN(n); })) {
-      origin = [].concat( originOption.map(Number) );
-    } else {
-      // determine a transform origin
-      var cx = BBox.cx;
-      var cy = BBox.cy;
-      // an estimted guess
-      var originZ = Math.max(width, height) + Math.min(width, height) / 2;
-      origin = [cx, cy, originZ];
-    }
-
-    /**
-     * @type {number | boolean}
-     * @default 4
-     */
-    this.round = round;
-    /**
-     * @default [0,0]
-     */
-    this.origin = origin;
-
-    return this;
-  };
-
-  /**
-   * Convert path to absolute values
-   * @public
-   */
-  SVGPathCommander.prototype.toAbsolute = function toAbsolute () {
-    var ref = this;
-      var segments = ref.segments;
-    this.segments = pathToAbsolute(segments);
-    return this;
-  };
-
-  /**
-   * Convert path to relative values
-   * @public
-   */
-  SVGPathCommander.prototype.toRelative = function toRelative () {
-    var ref = this;
-      var segments = ref.segments;
-    this.segments = pathToRelative(segments);
-    return this;
-  };
-
-  /**
-   * Convert path to cubic-bezier values. In addition, un-necessary `Z`
-   * segment is removed if previous segment extends to the `M` segment.
-   *
-   * @public
-   */
-  SVGPathCommander.prototype.toCurve = function toCurve () {
-    var ref = this;
-      var segments = ref.segments;
-    this.segments = pathToCurve(segments);
-    return this;
-  };
-
-  /**
-   * Reverse the order of the segments and their values.
-   * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
-   * @public
-   */
-  SVGPathCommander.prototype.reverse = function reverse (onlySubpath) {
-    this.toAbsolute();
-
-    var ref = this;
-      var segments = ref.segments;
-    var split = splitPath(this.toString());
-    var subPath = split.length > 1 ? split : 0;
-
-    // @ts-ignore
-    var absoluteMultiPath = subPath && clonePath(subPath).map(function (x, i) {
-      if (onlySubpath) {
-        return i ? reversePath(x) : parsePathString(x);
-      }
-      return reversePath(x);
-    });
-
-    var path = [];
-    if (subPath) {
-      path = absoluteMultiPath.flat(1);
-    } else {
-      path = onlySubpath ? segments : reversePath(segments);
-    }
-
-    this.segments = clonePath(path);
-    return this;
-  };
-
-  /**
-   * Normalize path in 2 steps:
-   * * convert `pathArray`(s) to absolute values
-   * * convert shorthand notation to standard notation
-   * @public
-   */
-  SVGPathCommander.prototype.normalize = function normalize () {
-    var ref = this;
-      var segments = ref.segments;
-    this.segments = normalizePath(segments);
-    return this;
-  };
-
-  /**
-   * Optimize `pathArray` values:
-   * * convert segments to absolute and/or relative values
-   * * select segments with shortest resulted string
-   * * round values to the specified `decimals` option value
-   * @public
-   */
-  SVGPathCommander.prototype.optimize = function optimize () {
-    var ref = this;
-      var segments = ref.segments;
-
-    this.segments = optimizePath(segments, this.round);
-    return this;
-  };
-
-  /**
-   * Transform path using values from an `Object` defined as `transformObject`.
-   * @see SVGPathCommander.transformObject for a quick refference
-   *
-   * @param {SVGPathCommander.transformObject} source a `transformObject`as described above
-   * @public
-   */
-  SVGPathCommander.prototype.transform = function transform (source) {
-    if (!source || typeof source !== 'object' || (typeof source === 'object'
-      && !['translate', 'rotate', 'skew', 'scale'].some(function (x) { return x in source; }))) { return this; }
-
-    /** @type {SVGPathCommander.transformObject} */
-    var transform = {};
-    Object.keys(source).forEach(function (fn) {
-      // @ts-ignore
-      transform[fn] = Array.isArray(source[fn]) ? [].concat( source[fn] ) : Number(source[fn]);
-    });
-    var ref = this;
-      var segments = ref.segments;
-
-    // if origin is not specified
-    // it's important that we have one
-    if (!transform.origin) {
-      // @ts-ignore
-      transform.origin = Object.assign({}, this.origin);
-    }
-
-    this.segments = transformPath(segments, transform);
-    return this;
-  };
-
-  /**
-   * Rotate path 180deg horizontally
-   * @public
-   */
-  SVGPathCommander.prototype.flipX = function flipX () {
-    this.transform({ rotate: [180, 0, 0] });
-    return this;
-  };
-
-  /**
-   * Rotate path 180deg vertically
-   * @public
-   */
-  SVGPathCommander.prototype.flipY = function flipY () {
-    this.transform({ rotate: [0, 180, 0] });
-    return this;
-  };
-
-  /**
-   * Export the current path to be used
-   * for the `d` (description) attribute.
-   * @public
-   * @return {String} the path string
-   */
-  SVGPathCommander.prototype.toString = function toString () {
-    return pathToString(this.segments, this.round);
-  };
-
-  // Export Util to global
-  Object.assign(SVGPathCommander, Util);
+  // Export to global
+  Object.assign(SVGPathCommander, Util, { Version: Version });
 
   return SVGPathCommander;
 

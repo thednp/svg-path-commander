@@ -5,7 +5,7 @@
  * @param {SVGPathCommander.normalSegment} normalSegment the `normalSegment` object
  * @param {any} params the coordinates of the previous segment
  * @param {string} prevCommand the path command of the previous segment
- * @returns {SVGPathCommander.shortSegment | SVGPathCommander.MSegment} the shortened segment
+ * @returns {SVGPathCommander.shortSegment | SVGPathCommander.pathSegment} the shortened segment
  */
 export default function shortenSegment(segment, normalSegment, params, prevCommand) {
   const [pathCommand] = segment;
@@ -57,6 +57,5 @@ export default function shortenSegment(segment, normalSegment, params, prevComma
     }
   }
 
-  // @ts-ignore -- expected when switching `pathSegment` type
   return result;
 }

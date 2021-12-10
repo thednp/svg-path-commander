@@ -306,7 +306,7 @@ declare module "svg-path-commander/src/process/fixPath" {
      * @param {SVGPathCommander.pathArray | string} pathInput the `pathArray` source
      * @return {SVGPathCommander.pathArray} a fixed `pathArray`
      */
-    export default function fixPath(pathInput: string | SVGPathCommander.pathArray): SVGPathCommander.pathArray;
+    export default function fixPath(pathInput: SVGPathCommander.pathArray | string): SVGPathCommander.pathArray;
 }
 declare module "svg-path-commander/src/util/isCurveArray" {
     /**
@@ -526,11 +526,11 @@ declare module "svg-path-commander/src/process/shortenSegment" {
     /**
      * Shorten a single segment of a `pathArray` object.
      *
-     * @param {SVGPathCommander.absoluteSegment} segment the segment object
-     * @param {SVGPathCommander.normalSegment} normalSegment the segment object
+     * @param {SVGPathCommander.absoluteSegment} segment the `absoluteSegment` object
+     * @param {SVGPathCommander.normalSegment} normalSegment the `normalSegment` object
      * @param {any} params the coordinates of the previous segment
      * @param {string} prevCommand the path command of the previous segment
-     * @returns {SVGPathCommander.shortSegment | SVGPathCommander.MSegment} the shortened segment
+     * @returns {SVGPathCommander.shortSegment | SVGPathCommander.pathSegment} the shortened segment
      */
     export default function shortenSegment(segment: SVGPathCommander.absoluteSegment, normalSegment: SVGPathCommander.normalSegment, params: any, prevCommand: string): SVGPathCommander.shortSegment | SVGPathCommander.pathSegment;
 }
@@ -836,76 +836,13 @@ declare module "svg-path-commander/src/util/isValidPath" {
      */
     export default function isValidPath(pathString: string): boolean;
 }
-declare module "svg-path-commander/src/util/version" {
+declare module "svg-path-commander/src/version" {
     export default Version;
     /**
      * A global namespace for library version.
      * @type {string}
      */
     const Version: string;
-}
-declare module "svg-path-commander/src/util/util" {
-    export default Util;
-    namespace Util {
-        export { CSSMatrix };
-        export { parsePathString };
-        export { isPathArray };
-        export { isCurveArray };
-        export { isAbsoluteArray };
-        export { isRelativeArray };
-        export { isNormalizedArray };
-        export { isValidPath };
-        export { pathToAbsolute };
-        export { pathToRelative };
-        export { pathToCurve };
-        export { pathToString };
-        export { getDrawDirection };
-        export { getPathArea };
-        export { getPathBBox };
-        export { getPathLength };
-        export { getPointAtLength };
-        export { clonePath };
-        export { splitPath };
-        export { fixPath };
-        export { roundPath };
-        export { optimizePath };
-        export { reverseCurve };
-        export { reversePath };
-        export { normalizePath };
-        export { transformPath };
-        export { shapeToPath };
-        export { defaultOptions as options };
-        export { Version };
-    }
-    import CSSMatrix from "dommatrix";
-    import parsePathString from "svg-path-commander/src/parser/parsePathString";
-    import isPathArray from "svg-path-commander/src/util/isPathArray";
-    import isCurveArray from "svg-path-commander/src/util/isCurveArray";
-    import isAbsoluteArray from "svg-path-commander/src/util/isAbsoluteArray";
-    import isRelativeArray from "svg-path-commander/src/util/isRelativeArray";
-    import isNormalizedArray from "svg-path-commander/src/util/isNormalizedArray";
-    import isValidPath from "svg-path-commander/src/util/isValidPath";
-    import pathToAbsolute from "svg-path-commander/src/convert/pathToAbsolute";
-    import pathToRelative from "svg-path-commander/src/convert/pathToRelative";
-    import pathToCurve from "svg-path-commander/src/convert/pathToCurve";
-    import pathToString from "svg-path-commander/src/convert/pathToString";
-    import getDrawDirection from "svg-path-commander/src/util/getDrawDirection";
-    import getPathArea from "svg-path-commander/src/util/getPathArea";
-    import getPathBBox from "svg-path-commander/src/util/getPathBBox";
-    import getPathLength from "svg-path-commander/src/util/getPathLength";
-    import getPointAtLength from "svg-path-commander/src/util/getPointAtLength";
-    import clonePath from "svg-path-commander/src/process/clonePath";
-    import splitPath from "svg-path-commander/src/process/splitPath";
-    import fixPath from "svg-path-commander/src/process/fixPath";
-    import roundPath from "svg-path-commander/src/process/roundPath";
-    import optimizePath from "svg-path-commander/src/process/optimizePath";
-    import reverseCurve from "svg-path-commander/src/process/reverseCurve";
-    import reversePath from "svg-path-commander/src/process/reversePath";
-    import normalizePath from "svg-path-commander/src/process/normalizePath";
-    import transformPath from "svg-path-commander/src/process/transformPath";
-    import shapeToPath from "svg-path-commander/src/util/shapeToPath";
-    import defaultOptions from "svg-path-commander/src/options/options";
-    import Version from "svg-path-commander/src/util/version";
 }
 declare module "svg-path-commander/src/svg-path-commander" {
     export default SVGPathCommander;
@@ -1072,6 +1009,6 @@ declare module "svg-path-commander/types/more/modules" {
     export { default as isRelativeArray } from "svg-path-commander/src/util/isRelativeArray";
     export { default as isValidPath } from "svg-path-commander/src/util/isValidPath";
     export { default as shapeToPath } from "svg-path-commander/src/util/shapeToPath";
-    export { default as Version } from "svg-path-commander/src/util/version";
+    export { default as Version } from "svg-path-commander/src/version";
     export { default as SVGPathCommander } from "svg-path-commander/src/svg-path-commander";
 }

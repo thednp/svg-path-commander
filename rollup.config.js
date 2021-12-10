@@ -21,7 +21,7 @@ const banner =
 
 const miniBannerJS = `// SVGPathCommander v${pkg.version} | ${pkg.author} © ${year} | ${pkg.license}-License`;
 
-const INPUTFILE = INPUT ? INPUT : 'index.js';
+const INPUTFILE = INPUT ? INPUT : 'src/index.js';
 const OUTPUTFILE = OUTPUTC ? OUTPUTC : 'dist/svg-path-commander'+(FORMAT!=='umd'?'.'+FORMAT:'')+(MIN?'.min':'')+'.js';
 
 const OUTPUT = {

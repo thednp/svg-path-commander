@@ -15,7 +15,6 @@ import normalizePath from './process/normalizePath';
 import transformPath from './process/transformPath';
 
 import getPathBBox from './util/getPathBBox';
-import Util from './util/util';
 
 /**
  * Creates a new SVGPathCommander instance with the following properties:
@@ -225,8 +224,5 @@ class SVGPathCommander {
     return pathToString(this.segments, this.round);
   }
 }
-
-// Export Util to global
-Object.assign(SVGPathCommander, Util);
 
 export default SVGPathCommander;

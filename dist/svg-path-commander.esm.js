@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.17 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.19 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1301,7 +1301,7 @@ function splitPath(pathInput) {
  * @param {SVGPathCommander.normalSegment} normalSegment the `normalSegment` object
  * @param {any} params the coordinates of the previous segment
  * @param {string} prevCommand the path command of the previous segment
- * @returns {SVGPathCommander.shortSegment | SVGPathCommander.MSegment} the shortened segment
+ * @returns {SVGPathCommander.shortSegment | SVGPathCommander.pathSegment} the shortened segment
  */
 function shortenSegment(segment, normalSegment, params, prevCommand) {
   const [pathCommand] = segment;
@@ -1353,7 +1353,6 @@ function shortenSegment(segment, normalSegment, params, prevCommand) {
     }
   }
 
-  // @ts-ignore -- expected when switching `pathSegment` type
   return result;
 }
 
@@ -2239,6 +2238,18 @@ Object.assign(CSSMatrix, {
   fromString,
 });
 
+var version$1 = "0.0.23";
+
+// @ts-ignore
+
+/**
+ * A global namespace for library version.
+ * @type {string}
+ */
+const Version$1 = version$1;
+
+Object.assign(CSSMatrix, { Version: Version$1 });
+
 /**
  * Returns a transformation matrix to apply to `<path>` elements.
  *
@@ -2663,6 +2674,215 @@ function getPathBBox(path) {
 }
 
 /**
+ * Creates a new SVGPathCommander instance with the following properties:
+ * * segments: `pathArray`
+ * * round: number
+ * * origin: [number, number, number?]
+ *
+ * @class
+ * @author thednp <https://github.com/thednp/svg-path-commander>
+ * @returns {SVGPathCommander} a new SVGPathCommander instance
+ */
+class SVGPathCommander {
+  /**
+   * @constructor
+   * @param {string} pathValue the path string
+   * @param {any} config instance options
+   */
+  constructor(pathValue, config) {
+    const instanceOptions = config || {};
+
+    /**
+     * @type {SVGPathCommander.pathArray}
+     */
+    this.segments = parsePathString(pathValue);
+    const BBox = getPathBBox(this.segments);
+    const { width, height } = BBox;
+
+    // set instance options
+    let { round, origin } = defaultOptions;
+    const { round: roundOption, origin: originOption } = instanceOptions;
+
+    if (roundOption === 'auto') {
+      const pathScale = (`${Math.floor(Math.max(width, height))}`).length;
+      round = pathScale >= 4 ? 0 : 4 - pathScale;
+    } else if ((Number.isInteger(roundOption) && roundOption >= 1) || roundOption === false) {
+      round = roundOption;
+    }
+
+    if (Array.isArray(originOption) && [2, 3].includes(originOption.length)
+      && originOption.map((n) => !Number.isNaN(n))) {
+      origin = [...originOption.map(Number)];
+    } else {
+      // determine a transform origin
+      const { cx, cy } = BBox;
+      // an estimted guess
+      const originZ = Math.max(width, height) + Math.min(width, height) / 2;
+      origin = [cx, cy, originZ];
+    }
+
+    /**
+     * @type {number | boolean}
+     * @default 4
+     */
+    this.round = round;
+    /**
+     * @default [0,0]
+     */
+    this.origin = origin;
+
+    return this;
+  }
+
+  /**
+   * Convert path to absolute values
+   * @public
+   */
+  toAbsolute() {
+    const { segments } = this;
+    this.segments = pathToAbsolute(segments);
+    return this;
+  }
+
+  /**
+   * Convert path to relative values
+   * @public
+   */
+  toRelative() {
+    const { segments } = this;
+    this.segments = pathToRelative(segments);
+    return this;
+  }
+
+  /**
+   * Convert path to cubic-bezier values. In addition, un-necessary `Z`
+   * segment is removed if previous segment extends to the `M` segment.
+   *
+   * @public
+   */
+  toCurve() {
+    const { segments } = this;
+    this.segments = pathToCurve(segments);
+    return this;
+  }
+
+  /**
+   * Reverse the order of the segments and their values.
+   * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
+   * @public
+   */
+  reverse(onlySubpath) {
+    this.toAbsolute();
+
+    const { segments } = this;
+    const split = splitPath(this.toString());
+    const subPath = split.length > 1 ? split : 0;
+
+    // @ts-ignore
+    const absoluteMultiPath = subPath && clonePath(subPath).map((x, i) => {
+      if (onlySubpath) {
+        return i ? reversePath(x) : parsePathString(x);
+      }
+      return reversePath(x);
+    });
+
+    let path = [];
+    if (subPath) {
+      path = absoluteMultiPath.flat(1);
+    } else {
+      path = onlySubpath ? segments : reversePath(segments);
+    }
+
+    this.segments = clonePath(path);
+    return this;
+  }
+
+  /**
+   * Normalize path in 2 steps:
+   * * convert `pathArray`(s) to absolute values
+   * * convert shorthand notation to standard notation
+   * @public
+   */
+  normalize() {
+    const { segments } = this;
+    this.segments = normalizePath(segments);
+    return this;
+  }
+
+  /**
+   * Optimize `pathArray` values:
+   * * convert segments to absolute and/or relative values
+   * * select segments with shortest resulted string
+   * * round values to the specified `decimals` option value
+   * @public
+   */
+  optimize() {
+    const { segments } = this;
+
+    this.segments = optimizePath(segments, this.round);
+    return this;
+  }
+
+  /**
+   * Transform path using values from an `Object` defined as `transformObject`.
+   * @see SVGPathCommander.transformObject for a quick refference
+   *
+   * @param {SVGPathCommander.transformObject} source a `transformObject`as described above
+   * @public
+   */
+  transform(source) {
+    if (!source || typeof source !== 'object' || (typeof source === 'object'
+      && !['translate', 'rotate', 'skew', 'scale'].some((x) => x in source))) return this;
+
+    /** @type {SVGPathCommander.transformObject} */
+    const transform = {};
+    Object.keys(source).forEach((fn) => {
+      // @ts-ignore
+      transform[fn] = Array.isArray(source[fn]) ? [...source[fn]] : Number(source[fn]);
+    });
+    const { segments } = this;
+
+    // if origin is not specified
+    // it's important that we have one
+    if (!transform.origin) {
+      // @ts-ignore
+      transform.origin = { ...this.origin };
+    }
+
+    this.segments = transformPath(segments, transform);
+    return this;
+  }
+
+  /**
+   * Rotate path 180deg horizontally
+   * @public
+   */
+  flipX() {
+    this.transform({ rotate: [180, 0, 0] });
+    return this;
+  }
+
+  /**
+   * Rotate path 180deg vertically
+   * @public
+   */
+  flipY() {
+    this.transform({ rotate: [0, 180, 0] });
+    return this;
+  }
+
+  /**
+   * Export the current path to be used
+   * for the `d` (description) attribute.
+   * @public
+   * @return {String} the path string
+   */
+  toString() {
+    return pathToString(this.segments, this.round);
+  }
+}
+
+/**
  * Returns the area of a single segment shape.
  *
  * http://objectmix.com/graphics/133553-area-closed-bezier-curve.html
@@ -3060,16 +3280,6 @@ function reverseCurve(path) {
     ...rotatedCurve.map((x) => ['C', ...x.slice(2)])];
 }
 
-var version = "0.1.17";
-
-// @ts-ignore
-
-/**
- * A global namespace for library version.
- * @type {string}
- */
-const Version = version;
-
 /**
  * @interface
  */
@@ -3102,219 +3312,19 @@ const Util = {
   transformPath,
   shapeToPath,
   options: defaultOptions,
-  Version,
 };
 
+var version = "0.1.19";
+
+// @ts-ignore
+
 /**
- * Creates a new SVGPathCommander instance with the following properties:
- * * segments: `pathArray`
- * * round: number
- * * origin: [number, number, number?]
- *
- * @class
- * @author thednp <https://github.com/thednp/svg-path-commander>
- * @returns {SVGPathCommander} a new SVGPathCommander instance
+ * A global namespace for library version.
+ * @type {string}
  */
-class SVGPathCommander {
-  /**
-   * @constructor
-   * @param {string} pathValue the path string
-   * @param {any} config instance options
-   */
-  constructor(pathValue, config) {
-    const instanceOptions = config || {};
+const Version = version;
 
-    /**
-     * @type {SVGPathCommander.pathArray}
-     */
-    this.segments = parsePathString(pathValue);
-    const BBox = getPathBBox(this.segments);
-    const { width, height } = BBox;
-
-    // set instance options
-    let { round, origin } = defaultOptions;
-    const { round: roundOption, origin: originOption } = instanceOptions;
-
-    if (roundOption === 'auto') {
-      const pathScale = (`${Math.floor(Math.max(width, height))}`).length;
-      round = pathScale >= 4 ? 0 : 4 - pathScale;
-    } else if ((Number.isInteger(roundOption) && roundOption >= 1) || roundOption === false) {
-      round = roundOption;
-    }
-
-    if (Array.isArray(originOption) && [2, 3].includes(originOption.length)
-      && originOption.map((n) => !Number.isNaN(n))) {
-      origin = [...originOption.map(Number)];
-    } else {
-      // determine a transform origin
-      const { cx, cy } = BBox;
-      // an estimted guess
-      const originZ = Math.max(width, height) + Math.min(width, height) / 2;
-      origin = [cx, cy, originZ];
-    }
-
-    /**
-     * @type {number | boolean}
-     * @default 4
-     */
-    this.round = round;
-    /**
-     * @default [0,0]
-     */
-    this.origin = origin;
-
-    return this;
-  }
-
-  /**
-   * Convert path to absolute values
-   * @public
-   */
-  toAbsolute() {
-    const { segments } = this;
-    this.segments = pathToAbsolute(segments);
-    return this;
-  }
-
-  /**
-   * Convert path to relative values
-   * @public
-   */
-  toRelative() {
-    const { segments } = this;
-    this.segments = pathToRelative(segments);
-    return this;
-  }
-
-  /**
-   * Convert path to cubic-bezier values. In addition, un-necessary `Z`
-   * segment is removed if previous segment extends to the `M` segment.
-   *
-   * @public
-   */
-  toCurve() {
-    const { segments } = this;
-    this.segments = pathToCurve(segments);
-    return this;
-  }
-
-  /**
-   * Reverse the order of the segments and their values.
-   * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
-   * @public
-   */
-  reverse(onlySubpath) {
-    this.toAbsolute();
-
-    const { segments } = this;
-    const split = splitPath(this.toString());
-    const subPath = split.length > 1 ? split : 0;
-
-    // @ts-ignore
-    const absoluteMultiPath = subPath && clonePath(subPath).map((x, i) => {
-      if (onlySubpath) {
-        return i ? reversePath(x) : parsePathString(x);
-      }
-      return reversePath(x);
-    });
-
-    let path = [];
-    if (subPath) {
-      path = absoluteMultiPath.flat(1);
-    } else {
-      path = onlySubpath ? segments : reversePath(segments);
-    }
-
-    this.segments = clonePath(path);
-    return this;
-  }
-
-  /**
-   * Normalize path in 2 steps:
-   * * convert `pathArray`(s) to absolute values
-   * * convert shorthand notation to standard notation
-   * @public
-   */
-  normalize() {
-    const { segments } = this;
-    this.segments = normalizePath(segments);
-    return this;
-  }
-
-  /**
-   * Optimize `pathArray` values:
-   * * convert segments to absolute and/or relative values
-   * * select segments with shortest resulted string
-   * * round values to the specified `decimals` option value
-   * @public
-   */
-  optimize() {
-    const { segments } = this;
-
-    this.segments = optimizePath(segments, this.round);
-    return this;
-  }
-
-  /**
-   * Transform path using values from an `Object` defined as `transformObject`.
-   * @see SVGPathCommander.transformObject for a quick refference
-   *
-   * @param {SVGPathCommander.transformObject} source a `transformObject`as described above
-   * @public
-   */
-  transform(source) {
-    if (!source || typeof source !== 'object' || (typeof source === 'object'
-      && !['translate', 'rotate', 'skew', 'scale'].some((x) => x in source))) return this;
-
-    /** @type {SVGPathCommander.transformObject} */
-    const transform = {};
-    Object.keys(source).forEach((fn) => {
-      // @ts-ignore
-      transform[fn] = Array.isArray(source[fn]) ? [...source[fn]] : Number(source[fn]);
-    });
-    const { segments } = this;
-
-    // if origin is not specified
-    // it's important that we have one
-    if (!transform.origin) {
-      // @ts-ignore
-      transform.origin = { ...this.origin };
-    }
-
-    this.segments = transformPath(segments, transform);
-    return this;
-  }
-
-  /**
-   * Rotate path 180deg horizontally
-   * @public
-   */
-  flipX() {
-    this.transform({ rotate: [180, 0, 0] });
-    return this;
-  }
-
-  /**
-   * Rotate path 180deg vertically
-   * @public
-   */
-  flipY() {
-    this.transform({ rotate: [0, 180, 0] });
-    return this;
-  }
-
-  /**
-   * Export the current path to be used
-   * for the `d` (description) attribute.
-   * @public
-   * @return {String} the path string
-   */
-  toString() {
-    return pathToString(this.segments, this.round);
-  }
-}
-
-// Export Util to global
-Object.assign(SVGPathCommander, Util);
+// Export to global
+Object.assign(SVGPathCommander, Util, { Version });
 
 export { SVGPathCommander as default };
