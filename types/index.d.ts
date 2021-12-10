@@ -74,6 +74,11 @@ export { default as Version } from "svg-path-commander/src/version";
 // main
 import { default as SVGPathCommander } from 'svg-path-commander/src/svg-path-commander';
 
+// alias the ESM module
+declare module "svg-path-commander/dist/svg-path-commander.esm" {
+  export { default as SVGPathCommander } from "svg-path-commander/src/svg-path-commander";
+}
+
 // dependency
 export {default as CSSMatrix} from "dommatrix";
 
