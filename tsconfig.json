@@ -16,8 +16,8 @@
   },
   "files": [
     "types/index.d.ts",
-    "types/svg-path-commander.d.ts", // comment when regenerating, delete file
-    "types/more/svg.d.ts",
+    // "types/svg-path-commander.d.ts", // comment when regenerating, delete file
+    // "types/more/svg.d.ts",
     "types/more/modules.ts",
   ],
   "types": [],

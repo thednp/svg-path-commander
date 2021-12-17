@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.20 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.21 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -2463,11 +2463,13 @@
    * @returns {[number, number]} the projected [x,y] coordinates
    */
   function projection2d(m, point2D, origin) {
+    var px = point2D[0];
+    var py = point2D[1];
     var originX = origin[0];
     var originY = origin[1];
     var originZ = origin[2];
     var point3D = m.transformPoint({
-      x: point2D[0], y: point2D[1], z: 0, w: 1,
+      x: px, y: py, z: 0, w: 1,
     });
 
     var relativePositionX = point3D.x - originX;
@@ -2691,7 +2693,7 @@
   function getPathBBox(path) {
     if (!path) {
       return {
-        x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0, cx: 0, cy: 0,
+        x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0, cx: 0, cy: 0, cz: 0,
       };
     }
     var pathCurve = pathToCurve(path);
@@ -2727,16 +2729,22 @@
     });
 
     // @ts-ignore
-    var xTop = Math.min.apply(0, X);
+    // const xTop = Math.min.apply(0, X);
+    var xTop = Math.min.apply(Math, X);
     // @ts-ignore
-    var yTop = Math.min.apply(0, Y);
+    // const yTop = Math.min.apply(0, Y);
+    var yTop = Math.min.apply(Math, Y);
     // @ts-ignore
-    var xBot = Math.max.apply(0, X);
+    // const xBot = Math.max.apply(0, X);
+    var xBot = Math.max.apply(Math, X);
     // @ts-ignore
-    var yBot = Math.max.apply(0, Y);
+    // const yBot = Math.max.apply(0, Y);
+    var yBot = Math.max.apply(Math, Y);
     var width = xBot - xTop;
     var height = yBot - yTop;
 
+    // an estimted guess
+    var cz = Math.max(width, height) + Math.min(width, height) / 2;
     return {
       width: width,
       height: height,
@@ -2746,6 +2754,7 @@
       y2: yBot,
       cx: xTop + width / 2,
       cy: yTop + height / 2,
+      cz: cz,
     };
   }
 
@@ -2769,8 +2778,11 @@
     var BBox = getPathBBox(this.segments);
     var width = BBox.width;
     var height = BBox.height;
+    var cx = BBox.cx;
+    var cy = BBox.cy;
+    var cz = BBox.cz;
 
-    // set instance options
+    // set instance options.round
     var round = defaultOptions.round;
     var origin = defaultOptions.origin;
     var roundOption = instanceOptions.round;
@@ -2783,16 +2795,18 @@
       round = roundOption;
     }
 
-    if (Array.isArray(originOption) && [2, 3].includes(originOption.length)
-      && originOption.map(function (n) { return !Number.isNaN(n); })) {
-      origin = [].concat( originOption.map(Number) );
+    // set instance options.origin
+    if (Array.isArray(originOption) && originOption.length >= 2) {
+      var ref = originOption.map(Number);
+      var originX = ref[0];
+      var originY = ref[1];
+      var originZ = ref[2];
+      origin = [
+        !Number.isNaN(originX) ? originX : cx,
+        !Number.isNaN(originY) ? originY : cy,
+        originZ || cz ];
     } else {
-      // determine a transform origin
-      var cx = BBox.cx;
-      var cy = BBox.cy;
-      // an estimted guess
-      var originZ = Math.max(width, height) + Math.min(width, height) / 2;
-      origin = [cx, cy, originZ];
+      origin = [cx, cy, cz];
     }
 
     /**
@@ -2800,9 +2814,6 @@
      * @default 4
      */
     this.round = round;
-    /**
-     * @default [0,0]
-     */
     this.origin = origin;
 
     return this;
@@ -2925,7 +2936,21 @@
 
     // if origin is not specified
     // it's important that we have one
-    if (!transform.origin) {
+    var origin = transform.origin;
+    if (origin && origin.length >= 2) {
+      var ref$1 = origin.map(Number);
+        var originX = ref$1[0];
+        var originY = ref$1[1];
+        var originZ = ref$1[2];
+      var ref$2 = this.origin;
+        var cx = ref$2[0];
+        var cy = ref$2[1];
+        var cz = ref$2[2];
+      transform.origin = [
+        !Number.isNaN(originX) ? originX : cx,
+        !Number.isNaN(originY) ? originY : cy,
+        originZ || cz ];
+    } else {
       // @ts-ignore
       transform.origin = Object.assign({}, this.origin);
     }
@@ -3396,7 +3421,7 @@
     options: defaultOptions,
   };
 
-  var version = "0.1.20";
+  var version = "0.1.21";
 
   // @ts-ignore
 

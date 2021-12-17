@@ -166,7 +166,7 @@ export declare interface pathBBox {
   height: number;
   x: number;   y: number;
   x2: number; y2: number;
-  cx: number; cy: number;
+  cx: number; cy: number; cz: number;
 }
 export declare interface segmentLimits {
   min : {x: number; y: number};

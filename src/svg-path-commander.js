@@ -40,9 +40,15 @@ class SVGPathCommander {
      */
     this.segments = parsePathString(pathValue);
     const BBox = getPathBBox(this.segments);
-    const { width, height } = BBox;
+    const {
+      width,
+      height,
+      cx,
+      cy,
+      cz,
+    } = BBox;
 
-    // set instance options
+    // set instance options.round
     let { round, origin } = defaultOptions;
     const { round: roundOption, origin: originOption } = instanceOptions;
 
@@ -53,15 +59,16 @@ class SVGPathCommander {
       round = roundOption;
     }
 
-    if (Array.isArray(originOption) && [2, 3].includes(originOption.length)
-      && originOption.map((n) => !Number.isNaN(n))) {
-      origin = [...originOption.map(Number)];
+    // set instance options.origin
+    if (Array.isArray(originOption) && originOption.length >= 2) {
+      const [originX, originY, originZ] = originOption.map(Number);
+      origin = [
+        !Number.isNaN(originX) ? originX : cx,
+        !Number.isNaN(originY) ? originY : cy,
+        originZ || cz,
+      ];
     } else {
-      // determine a transform origin
-      const { cx, cy } = BBox;
-      // an estimted guess
-      const originZ = Math.max(width, height) + Math.min(width, height) / 2;
-      origin = [cx, cy, originZ];
+      origin = [cx, cy, cz];
     }
 
     /**
@@ -69,9 +76,6 @@ class SVGPathCommander {
      * @default 4
      */
     this.round = round;
-    /**
-     * @default [0,0]
-     */
     this.origin = origin;
 
     return this;
@@ -187,7 +191,16 @@ class SVGPathCommander {
 
     // if origin is not specified
     // it's important that we have one
-    if (!transform.origin) {
+    const { origin } = transform;
+    if (origin && origin.length >= 2) {
+      const [originX, originY, originZ] = origin.map(Number);
+      const [cx, cy, cz] = this.origin;
+      transform.origin = [
+        !Number.isNaN(originX) ? originX : cx,
+        !Number.isNaN(originY) ? originY : cy,
+        originZ || cz,
+      ];
+    } else {
       // @ts-ignore
       transform.origin = { ...this.origin };
     }

@@ -10,7 +10,7 @@ import pathToCurve from '../convert/pathToCurve';
 export default function getPathBBox(path) {
   if (!path) {
     return {
-      x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0, cx: 0, cy: 0,
+      x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0, cx: 0, cy: 0, cz: 0,
     };
   }
   const pathCurve = pathToCurve(path);
@@ -44,16 +44,22 @@ export default function getPathBBox(path) {
   });
 
   // @ts-ignore
-  const xTop = Math.min.apply(0, X);
+  // const xTop = Math.min.apply(0, X);
+  const xTop = Math.min(...X);
   // @ts-ignore
-  const yTop = Math.min.apply(0, Y);
+  // const yTop = Math.min.apply(0, Y);
+  const yTop = Math.min(...Y);
   // @ts-ignore
-  const xBot = Math.max.apply(0, X);
+  // const xBot = Math.max.apply(0, X);
+  const xBot = Math.max(...X);
   // @ts-ignore
-  const yBot = Math.max.apply(0, Y);
+  // const yBot = Math.max.apply(0, Y);
+  const yBot = Math.max(...Y);
   const width = xBot - xTop;
   const height = yBot - yTop;
 
+  // an estimted guess
+  const cz = Math.max(width, height) + Math.min(width, height) / 2;
   return {
     width,
     height,
@@ -63,5 +69,6 @@ export default function getPathBBox(path) {
     y2: yBot,
     cx: xTop + width / 2,
     cy: yTop + height / 2,
+    cz,
   };
 }

@@ -13,9 +13,10 @@
  * @returns {[number, number]} the projected [x,y] coordinates
  */
 export default function projection2d(m, point2D, origin) {
+  const [px, py] = point2D;
   const [originX, originY, originZ] = origin;
   const point3D = m.transformPoint({
-    x: point2D[0], y: point2D[1], z: 0, w: 1,
+    x: px, y: py, z: 0, w: 1,
   });
 
   const relativePositionX = point3D.x - originX;

@@ -2,6 +2,7 @@ export as namespace SVGPathCommander;
 export default SVGPathCommander;
 
 // modules
+import './svg-path-commander';
 export { default as pathToAbsolute } from "svg-path-commander/src/convert/pathToAbsolute";
 export { default as pathToRelative } from "svg-path-commander/src/convert/pathToRelative";
 export { default as pathToCurve } from "svg-path-commander/src/convert/pathToCurve";

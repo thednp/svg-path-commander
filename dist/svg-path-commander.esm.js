@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.20 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.21 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -2397,9 +2397,10 @@ function transformEllipse(m, rx, ry, ax) {
  * @returns {[number, number]} the projected [x,y] coordinates
  */
 function projection2d(m, point2D, origin) {
+  const [px, py] = point2D;
   const [originX, originY, originZ] = origin;
   const point3D = m.transformPoint({
-    x: point2D[0], y: point2D[1], z: 0, w: 1,
+    x: px, y: py, z: 0, w: 1,
   });
 
   const relativePositionX = point3D.x - originX;
@@ -2617,7 +2618,7 @@ function getCubicSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
 function getPathBBox(path) {
   if (!path) {
     return {
-      x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0, cx: 0, cy: 0,
+      x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0, cx: 0, cy: 0, cz: 0,
     };
   }
   const pathCurve = pathToCurve(path);
@@ -2651,16 +2652,22 @@ function getPathBBox(path) {
   });
 
   // @ts-ignore
-  const xTop = Math.min.apply(0, X);
+  // const xTop = Math.min.apply(0, X);
+  const xTop = Math.min(...X);
   // @ts-ignore
-  const yTop = Math.min.apply(0, Y);
+  // const yTop = Math.min.apply(0, Y);
+  const yTop = Math.min(...Y);
   // @ts-ignore
-  const xBot = Math.max.apply(0, X);
+  // const xBot = Math.max.apply(0, X);
+  const xBot = Math.max(...X);
   // @ts-ignore
-  const yBot = Math.max.apply(0, Y);
+  // const yBot = Math.max.apply(0, Y);
+  const yBot = Math.max(...Y);
   const width = xBot - xTop;
   const height = yBot - yTop;
 
+  // an estimted guess
+  const cz = Math.max(width, height) + Math.min(width, height) / 2;
   return {
     width,
     height,
@@ -2670,6 +2677,7 @@ function getPathBBox(path) {
     y2: yBot,
     cx: xTop + width / 2,
     cy: yTop + height / 2,
+    cz,
   };
 }
 
@@ -2697,9 +2705,15 @@ class SVGPathCommander {
      */
     this.segments = parsePathString(pathValue);
     const BBox = getPathBBox(this.segments);
-    const { width, height } = BBox;
+    const {
+      width,
+      height,
+      cx,
+      cy,
+      cz,
+    } = BBox;
 
-    // set instance options
+    // set instance options.round
     let { round, origin } = defaultOptions;
     const { round: roundOption, origin: originOption } = instanceOptions;
 
@@ -2710,15 +2724,16 @@ class SVGPathCommander {
       round = roundOption;
     }
 
-    if (Array.isArray(originOption) && [2, 3].includes(originOption.length)
-      && originOption.map((n) => !Number.isNaN(n))) {
-      origin = [...originOption.map(Number)];
+    // set instance options.origin
+    if (Array.isArray(originOption) && originOption.length >= 2) {
+      const [originX, originY, originZ] = originOption.map(Number);
+      origin = [
+        !Number.isNaN(originX) ? originX : cx,
+        !Number.isNaN(originY) ? originY : cy,
+        originZ || cz,
+      ];
     } else {
-      // determine a transform origin
-      const { cx, cy } = BBox;
-      // an estimted guess
-      const originZ = Math.max(width, height) + Math.min(width, height) / 2;
-      origin = [cx, cy, originZ];
+      origin = [cx, cy, cz];
     }
 
     /**
@@ -2726,9 +2741,6 @@ class SVGPathCommander {
      * @default 4
      */
     this.round = round;
-    /**
-     * @default [0,0]
-     */
     this.origin = origin;
 
     return this;
@@ -2844,7 +2856,16 @@ class SVGPathCommander {
 
     // if origin is not specified
     // it's important that we have one
-    if (!transform.origin) {
+    const { origin } = transform;
+    if (origin && origin.length >= 2) {
+      const [originX, originY, originZ] = origin.map(Number);
+      const [cx, cy, cz] = this.origin;
+      transform.origin = [
+        !Number.isNaN(originX) ? originX : cx,
+        !Number.isNaN(originY) ? originY : cy,
+        originZ || cz,
+      ];
+    } else {
       // @ts-ignore
       transform.origin = { ...this.origin };
     }
@@ -3314,7 +3335,7 @@ const Util = {
   options: defaultOptions,
 };
 
-var version = "0.1.20";
+var version = "0.1.21";
 
 // @ts-ignore
 
