@@ -83,9 +83,24 @@ SVGPathCommander comes with a full range of additional static methods, here's ho
 ```js
 const path = 'M0 0 H50';
 
-const normalizedPathString = SVGPathCommander.normalizePath(path).toString();
+const normalizedPath = SVGPathCommander.normalizePath(path);
+// result => [['M', 0, 0], ['L', 50, 0]]
+```
+
+Reverse a path:
+```js
+const path = 'M0 0 H50';
+
+const reversedPath = SVGPathCommander.reversePath(path);
+// result => [['M', 50, 0], ['H', 0]]
+```
+
+Export to string:
+```js
+const myPathString = SVGPathCommander.pathToString([['M', 0, 0], ['L', 50, 0]]);
 // result => 'M0 0 L50 0'
 ```
+
 
 Check a path string validity:
 ```js
