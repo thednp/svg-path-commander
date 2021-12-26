@@ -39,6 +39,9 @@ export default function pathLengthFactory(pathInput, distance) {
       // remember mx, my for Z
       // @ts-ignore
       [, mx, my] = seg;
+      if (typeof distance === 'number' && distance < 0.001) {
+        return { x: mx, y: my };
+      }
     } else if (pathCommand === 'L') {
       // @ts-ignore
       segLen = segmentLineFactory(...data);

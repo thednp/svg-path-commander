@@ -3287,6 +3287,9 @@
         // remember mx, my for Z
         // @ts-ignore
         (assign$1 = seg, mx = assign$1[1], my = assign$1[2]);
+        if (typeof distance === 'number' && distance < 0.001) {
+          return { x: mx, y: my };
+        }
       } else if (pathCommand === 'L') {
         // @ts-ignore
         segLen = segmentLineFactory.apply(void 0, data);
