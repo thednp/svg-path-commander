@@ -81,8 +81,15 @@ export default function pathLengthFactory(pathInput, distance) {
       }
       totalLength += segLen;
     }
-    // @ts-ignore - these are usually numbers
-    [x, y] = seg.slice(-2);
+
+    // @ts-ignore -- needed for the below
+    [x, y] = pathCommand !== 'Z' ? seg.slice(-2) : [mx, my];
+  }
+
+  // native `getPointAtLength` behavior when the given distance
+  // is higher than total length
+  if (distance && distance >= totalLength) {
+    return { x, y };
   }
 
   return totalLength;

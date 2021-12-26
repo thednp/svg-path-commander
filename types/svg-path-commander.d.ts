@@ -120,7 +120,8 @@ declare module "svg-path-commander/src/parser/pathParser" {
     export default function PathParser(pathString: string): void;
     export default class PathParser {
         /**
-         * The `PathParser` used by the parser.
+         * The `PathParser` is used by the `parsePathString` static method
+         * to generate a `pathArray`.
          *
          * @param {string} pathString
          */
@@ -819,10 +820,10 @@ declare module "svg-path-commander/src/util/pathLengthFactory" {
      * Returns a {x,y} point at a given length of a shape or the shape total length.
      *
      * @param {string | SVGPathCommander.pathArray} pathInput the `pathArray` to look into
-     * @param {number} distance the length of the shape to look at
+     * @param {number=} distance the length of the shape to look at
      * @returns {{x: number, y: number} | number} the total length or point
      */
-    export default function pathLengthFactory(pathInput: string | SVGPathCommander.pathArray, distance: number): number | {
+    export default function pathLengthFactory(pathInput: string | SVGPathCommander.pathArray, distance?: number | undefined): number | {
         x: number;
         y: number;
     };
@@ -876,15 +877,6 @@ declare module "svg-path-commander/src/util/getPropertiesAtLength" {
      */
     export default function getPropertiesAtLength(pathInput: string | SVGPathCommander.pathArray, distance?: number | undefined): SVGPathCommander.segmentProperties | undefined;
 }
-declare module "svg-path-commander/src/util/getSegmentAtLength" {
-    /**
-     * Returns the segment at a given length.
-     * @param {string | SVGPathCommander.pathArray} pathInput the target `pathArray`
-     * @param {number=} distance the distance in path to look at
-     * @returns {SVGPathCommander.pathSegment?} the requested segment
-     */
-    export default function getSegmentAtLength(pathInput: string | SVGPathCommander.pathArray, distance?: number | undefined): SVGPathCommander.pathSegment | null;
-}
 declare module "svg-path-commander/src/util/getPropertiesAtPoint" {
     /**
      * Returns the point in path closest to a given point.
@@ -914,6 +906,15 @@ declare module "svg-path-commander/src/util/getClosestPoint" {
         x: number;
         y: number;
     };
+}
+declare module "svg-path-commander/src/util/getSegmentAtLength" {
+    /**
+     * Returns the segment at a given length.
+     * @param {string | SVGPathCommander.pathArray} pathInput the target `pathArray`
+     * @param {number} distance the distance in path to look at
+     * @returns {SVGPathCommander.pathSegment?} the requested segment
+     */
+    export default function getSegmentAtLength(pathInput: string | SVGPathCommander.pathArray, distance: number): SVGPathCommander.pathSegment | null;
 }
 declare module "svg-path-commander/src/util/getSegmentOfPoint" {
     /**

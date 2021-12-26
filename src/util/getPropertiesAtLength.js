@@ -29,7 +29,9 @@ export default function getPropertiesAtLength(pathInput, distance) {
       // @ts-ignore
       segment, index: 0, length, point, lengthAtSegment,
     };
-  } if (distance >= pathLength) {
+  }
+
+  if (distance >= pathLength) {
     pathTemp = pathArray.slice(0, -1);
     // @ts-ignore
     lengthAtSegment = getTotalLength(pathTemp);
@@ -56,5 +58,5 @@ export default function getPropertiesAtLength(pathInput, distance) {
   }
 
   // @ts-ignore
-  return segments.find(({ lengthAtSegment: l }) => l < distance);
+  return segments.find(({ lengthAtSegment: l }) => l <= distance);
 }

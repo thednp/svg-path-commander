@@ -40,15 +40,25 @@ npm install svg-path-commander
 ```
 
 # Quick Guide
+
+Flip a path on the X axis:
 ```js
 import SVGPathCommander from 'svg-path-commander';
 
 const path = 'M0 0 L50 100';
 
-// flip a path on X axis
 const flippedPathString = new SVGPathCommander(path).flipX().toString();
+// result => 'M0 100L50 0'
+```
 
-// apply a 2D transformation
+Optimize a path string for best outcome by using the `round: 'auto'` option which will determine the amount of decimals based on the shape's bounding box:
+```js
+const optimizedPathString = new SVGPathCommander(path, {round: 'auto'}).optimize().toString();
+```
+
+Or why not apply a **2D transformation** and even a **3D transformation***:
+```js
+// a transform object
 const transform = {
   translate: 15, // X axis translation
   rotate: 15, // Z axis rotation
@@ -67,16 +77,30 @@ const transform = {
   origin: [15, 15, 15] // full `transform-origin` for a typical 3D transformation
 }
 const transformed3DPathString = new SVGPathCommander(path).transform(transform).toString();
+```
 
-// optimize a path string for best outcome by using the `round: 'auto'` option
-// which will determine the amount of decimals based on the shape's bounding box
-const optimizedPathString = new SVGPathCommander(path, {round: 'auto'}).optimize().toString();
+SVGPathCommander comes with a full range of additional static methods, here's how to normalize a path:
+```js
+const path = 'M0 0 H50';
 
-// convert a shape to `<path>` and transfer all non-specific attributes
+const flippedPathString = SVGPathCommander.normalizePath(path);
+// result => 'M0 0 L50 0'
+```
+
+Check a path string validity:
+```js
+SVGPathCommander.isValidPath(path);
+// result => boolean
+```
+
+Convert a shape to `<path>` and transfer all non-specific attributes
+```js
 const circle = document.getElementById('myCircle');
 SVGPathCommander.shapeToPath(circle, true);
+```
 
-// alternatively you can create <path> from specific attributes
+Alternatively you can create <path> from specific attributes:
+```js
 const myRectAttr = {
   type: 'rect',
   x: 25,
@@ -90,8 +114,26 @@ const myRectPath = SVGPathCommander.shapeToPath(myRectAttr);
 document.getElementById('mySVG').append(myRectPath);
 ```
 
+Get the path length:
+```js
+const myPathLength = SVGPathCommander.getTotalLength('M0 0L50 0L25 50z');
+// result => 161.80339887498948
+```
+
+Get a point along the path:
+```js
+const myPoint = SVGPathCommander.getPointAtLength('M0 0L50 0L25 50z', 85);
+// result => {x: 34.34752415750147, y: 31.304951684997057}
+```
+
+Get the path bounding box:
+```js
+const myPoint = SVGPathCommander.getPathBBox('M0 0L50 0L25 50z');
+// result => {width: 50, height: 50, x: 0, y: 0, x2: 50, y2: 50, cx: 25, cy: 25, cz: 75}
+```
+
 # WIKI
-For developer guidelines, head over to the [wiki pages](https://github.com/thednp/svg-path-commander/wiki).
+For developer guidelines, and a complete list of static methods, head over to the [wiki pages](https://github.com/thednp/svg-path-commander/wiki).
 
 
 # What Is It For?

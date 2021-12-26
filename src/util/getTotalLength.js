@@ -10,6 +10,6 @@ import pathLengthFactory from './pathLengthFactory';
  * @returns {number} the shape total length
  */
 export default function getTotalLength(pathInput) {
-  // @ts-ignore
+  // @ts-ignore - it's fine
   return pathLengthFactory(pathInput);
 }

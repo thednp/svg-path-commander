@@ -1,8 +1,9 @@
 import getPointAtLength from './getPointAtLength';
-import getSegmentAtLength from './getSegmentAtLength';
+import getPropertiesAtLength from './getPropertiesAtLength';
 import getTotalLength from './getTotalLength';
 import parsePathString from '../parser/parsePathString';
 import fixPath from '../process/fixPath';
+import normalizePath from '../process/normalizePath';
 
 /**
  * Returns the point in path closest to a given point.
@@ -14,6 +15,7 @@ import fixPath from '../process/fixPath';
  */
 export default function getPropertiesAtPoint(pathInput, point) {
   const path = fixPath(parsePathString(pathInput));
+  const normalPath = normalizePath(path);
   const pathLength = getTotalLength(path);
   /** @param {{x: number, y: number}} p */
   const distanceTo = (p) => {
@@ -23,8 +25,6 @@ export default function getPropertiesAtPoint(pathInput, point) {
   };
   let precision = 8;
   let scan = { x: 0, y: 0 };
-  /** @type {SVGPathCommander.segmentProperties=} */
-  let segment;
   let scanDistance = 0;
   let closest = scan;
   let bestLength = 0;
@@ -32,14 +32,12 @@ export default function getPropertiesAtPoint(pathInput, point) {
 
   // linear scan for coarse approximation
   for (let scanLength = 0; scanLength <= pathLength; scanLength += precision) {
-    scan = getPointAtLength(path, scanLength);
+    scan = getPointAtLength(normalPath, scanLength);
     scanDistance = distanceTo(scan);
     if (scanDistance < bestDistance) {
       closest = scan;
       bestLength = scanLength;
       bestDistance = scanDistance;
-      // @ts-ignore any segment should suffice
-      segment = getSegmentAtLength(path, bestDistance);
     }
   }
 
@@ -54,10 +52,10 @@ export default function getPropertiesAtPoint(pathInput, point) {
 
   while (precision > 0.5) {
     beforeLength = bestLength - precision;
-    before = getPointAtLength(path, beforeLength);
+    before = getPointAtLength(normalPath, beforeLength);
     beforeDistance = distanceTo(before);
     afterLength = bestLength + precision;
-    after = getPointAtLength(path, afterLength);
+    after = getPointAtLength(normalPath, afterLength);
     afterDistance = distanceTo(after);
     if (beforeLength >= 0 && beforeDistance < bestDistance) {
       closest = before;
@@ -70,10 +68,9 @@ export default function getPropertiesAtPoint(pathInput, point) {
     } else {
       precision /= 2;
     }
-    // @ts-ignore any segment should suffice
-    segment = getSegmentAtLength(path, bestDistance);
   }
 
+  const segment = getPropertiesAtLength(path, bestDistance);
   const distance = Math.sqrt(bestDistance);
 
   return { closest, distance, segment };

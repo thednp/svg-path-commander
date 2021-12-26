@@ -3329,8 +3329,15 @@
         }
         totalLength += segLen;
       }
-      // @ts-ignore - these are usually numbers
-      (assign$2 = seg.slice(-2), x = assign$2[0], y = assign$2[1]);
+
+      // @ts-ignore -- needed for the below
+      (assign$2 = pathCommand !== 'Z' ? seg.slice(-2) : [mx, my], x = assign$2[0], y = assign$2[1]);
+    }
+
+    // native `getPointAtLength` behavior when the given distance
+    // is higher than total length
+    if (distance && distance >= totalLength) {
+      return { x: x, y: y };
     }
 
     return totalLength;
@@ -3346,7 +3353,7 @@
    * @returns {number} the shape total length
    */
   function getTotalLength(pathInput) {
-    // @ts-ignore
+    // @ts-ignore - it's fine
     return pathLengthFactory(pathInput);
   }
 
@@ -3447,7 +3454,9 @@
         // @ts-ignore
         segment: segment, index: 0, length: length, point: point, lengthAtSegment: lengthAtSegment,
       };
-    } if (distance >= pathLength) {
+    }
+
+    if (distance >= pathLength) {
       pathTemp = pathArray.slice(0, -1);
       // @ts-ignore
       lengthAtSegment = getTotalLength(pathTemp);
@@ -3477,21 +3486,8 @@
     return segments.find(function (ref) {
       var l = ref.lengthAtSegment;
 
-      return l < distance;
+      return l <= distance;
     });
-  }
-
-  /**
-   * Returns the segment at a given length.
-   * @param {string | SVGPathCommander.pathArray} pathInput the target `pathArray`
-   * @param {number} distance the distance in path to look at
-   * @returns {SVGPathCommander.pathSegment?} the requested segment
-   */
-  function getSegmentAtLength(pathInput, distance) {
-    var props = getPropertiesAtLength(pathInput, distance);
-    var ref = typeof props !== 'undefined' ? props : { segment: null };
-    var segment = ref.segment;
-    return segment;
   }
 
   /**
@@ -3504,6 +3500,7 @@
    */
   function getPropertiesAtPoint(pathInput, point) {
     var path = fixPath(parsePathString(pathInput));
+    var normalPath = normalizePath(path);
     var pathLength = getTotalLength(path);
     /** @param {{x: number, y: number}} p */
     var distanceTo = function (p) {
@@ -3513,8 +3510,6 @@
     };
     var precision = 8;
     var scan = { x: 0, y: 0 };
-    /** @type {SVGPathCommander.segmentProperties=} */
-    var segment;
     var scanDistance = 0;
     var closest = scan;
     var bestLength = 0;
@@ -3522,14 +3517,12 @@
 
     // linear scan for coarse approximation
     for (var scanLength = 0; scanLength <= pathLength; scanLength += precision) {
-      scan = getPointAtLength(path, scanLength);
+      scan = getPointAtLength(normalPath, scanLength);
       scanDistance = distanceTo(scan);
       if (scanDistance < bestDistance) {
         closest = scan;
         bestLength = scanLength;
         bestDistance = scanDistance;
-        // @ts-ignore any segment should suffice
-        segment = getSegmentAtLength(path, bestDistance);
       }
     }
 
@@ -3544,10 +3537,10 @@
 
     while (precision > 0.5) {
       beforeLength = bestLength - precision;
-      before = getPointAtLength(path, beforeLength);
+      before = getPointAtLength(normalPath, beforeLength);
       beforeDistance = distanceTo(before);
       afterLength = bestLength + precision;
-      after = getPointAtLength(path, afterLength);
+      after = getPointAtLength(normalPath, afterLength);
       afterDistance = distanceTo(after);
       if (beforeLength >= 0 && beforeDistance < bestDistance) {
         closest = before;
@@ -3560,10 +3553,9 @@
       } else {
         precision /= 2;
       }
-      // @ts-ignore any segment should suffice
-      segment = getSegmentAtLength(path, bestDistance);
     }
 
+    var segment = getPropertiesAtLength(path, bestDistance);
     var distance = Math.sqrt(bestDistance);
 
     return { closest: closest, distance: distance, segment: segment };
@@ -3591,6 +3583,19 @@
     var props = getPropertiesAtPoint(path, point);
     var segment = props.segment;
     return typeof segment !== 'undefined' ? segment.segment : null;
+  }
+
+  /**
+   * Returns the segment at a given length.
+   * @param {string | SVGPathCommander.pathArray} pathInput the target `pathArray`
+   * @param {number} distance the distance in path to look at
+   * @returns {SVGPathCommander.pathSegment?} the requested segment
+   */
+  function getSegmentAtLength(pathInput, distance) {
+    var props = getPropertiesAtLength(pathInput, distance);
+    var ref = typeof props !== 'undefined' ? props : { segment: null };
+    var segment = ref.segment;
+    return segment;
   }
 
   /**
