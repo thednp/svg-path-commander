@@ -83,7 +83,7 @@ SVGPathCommander comes with a full range of additional static methods, here's ho
 ```js
 const path = 'M0 0 H50';
 
-const flippedPathString = SVGPathCommander.normalizePath(path);
+const normalizedPathString = SVGPathCommander.normalizePath(path).toString();
 // result => 'M0 0 L50 0'
 ```
 
