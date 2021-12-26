@@ -57,12 +57,19 @@ export { default as getDrawDirection } from "svg-path-commander/src/util/getDraw
 export { default as getPathArea } from "svg-path-commander/src/util/getPathArea";
 export { default as getPathBBox } from "svg-path-commander/src/util/getPathBBox";
 export { default as getPathLength } from "svg-path-commander/src/util/getPathLength";
+export { default as getTotalLength } from "svg-path-commander/src/util/getTotalLength";
+export { default as segmentLineFactory } from "svg-path-commander/src/util/segmentLineFactory";
+export { default as segmentArcFactory } from "svg-path-commander/src/util/segmentArcFactory";
+export { default as segmentCubicFactory } from "svg-path-commander/src/util/segmentCubicFactory";
+export { default as segmentQuadFactory } from "svg-path-commander/src/util/segmentQuadFactory";
 export { default as getPointAtLength } from "svg-path-commander/src/util/getPointAtLength";
-export { default as getPointAtSegLength } from "svg-path-commander/src/util/getPointAtSegLength";
-export { default as getSegArcLength } from "svg-path-commander/src/util/getSegArcLength";
-export { default as getSegCubicLength } from "svg-path-commander/src/util/getSegCubicLength";
-export { default as getSegLineLength } from "svg-path-commander/src/util/getSegLineLength";
-export { default as getSegQuadLength } from "svg-path-commander/src/util/getSegQuadLength";
+export { default as getPointAtPathLength } from "svg-path-commander/src/util/getPointAtPathLength";
+export { default as getPropertiesAtPoint } from "svg-path-commander/src/util/getPropertiesAtPoint";
+export { default as getPropertiesAtLength } from "svg-path-commander/src/util/getPropertiesAtLength";
+export { default as getClosestPoint } from "svg-path-commander/src/util/getClosestPoint";
+export { default as getSegmentAtLength } from "svg-path-commander/src/util/getSegmentAtLength";
+export { default as getSegmentOfPoint } from "svg-path-commander/src/util/getSegmentOfPoint";
+export { default as isPointInStroke } from "svg-path-commander/src/util/isPointInStroke";
 export { default as isAbsoluteArray } from "svg-path-commander/src/util/isAbsoluteArray";
 export { default as isCurveArray } from "svg-path-commander/src/util/isCurveArray";
 export { default as isNormalizedArray } from "svg-path-commander/src/util/isNormalizedArray";
@@ -95,6 +102,7 @@ export {
   QSegment, qSegment, quadSegment,
   TSegment, tSegment, shortQuadSegment,
   ZSegment, zSegment, closeSegment,
+  segmentProperties,
 
   shortSegment, absoluteSegment, relativeSegment, normalSegment, pathSegment,
   pathArray, absoluteArray, relativeArray, normalArray,
@@ -111,4 +119,5 @@ export {
 
   options,
   parserParams,
+  pointProperties,
 } from './more/svg';

@@ -1,6 +1,6 @@
 {
   "name": "svg-path-commander",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "ES6+ JavaScript tools for SVG processing and converting path data",
   "main": "dist/svg-path-commander.min.js",
   "module": "dist/svg-path-commander.esm.js",

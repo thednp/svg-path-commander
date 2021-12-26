@@ -33,27 +33,16 @@ export default function getPathBBox(path) {
       // @ts-ignore -- this should be fine
       const dim = getCubicSize(...sizeArgs);
 
-      // X = X.concat(dim.min.x, dim.max.x);
       X = [...X, ...[dim.min.x, dim.max.x]];
-
-      // Y = Y.concat(dim.min.y, dim.max.y);
       Y = [...Y, ...[dim.min.y, dim.max.y]];
       x = s1;
       y = s2;
     }
   });
 
-  // @ts-ignore
-  // const xTop = Math.min.apply(0, X);
   const xTop = Math.min(...X);
-  // @ts-ignore
-  // const yTop = Math.min.apply(0, Y);
   const yTop = Math.min(...Y);
-  // @ts-ignore
-  // const xBot = Math.max.apply(0, X);
   const xBot = Math.max(...X);
-  // @ts-ignore
-  // const yBot = Math.max.apply(0, Y);
   const yBot = Math.max(...Y);
   const width = xBot - xTop;
   const height = yBot - yTop;

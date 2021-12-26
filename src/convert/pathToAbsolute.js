@@ -5,11 +5,12 @@ import isAbsoluteArray from '../util/isAbsoluteArray';
  * Parses a path string value or object and returns an array
  * of segments, all converted to absolute values.
  *
- * @param {SVGPathCommander.pathArray | string} pathInput the path string | object
+ * @param {string | SVGPathCommander.pathArray} pathInput the path string | object
  * @returns {SVGPathCommander.absoluteArray} the resulted `pathArray` with absolute values
  */
 export default function pathToAbsolute(pathInput) {
-  if (Array.isArray(pathInput) && isAbsoluteArray(pathInput)) {
+  if (isAbsoluteArray(pathInput)) {
+    // @ts-ignore -- `isAbsoluteArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 

@@ -6,11 +6,12 @@ import isRelativeArray from '../util/isRelativeArray';
  * Parses a path string value or object and returns an array
  * of segments, all converted to relative values.
  *
- * @param {SVGPathCommander.pathArray} pathInput the path string | object
+ * @param {string | SVGPathCommander.pathArray} pathInput the path string | object
  * @returns {SVGPathCommander.relativeArray} the resulted `pathArray` with relative values
  */
 export default function pathToRelative(pathInput) {
   if (isRelativeArray(pathInput)) {
+    // @ts-ignore -- `isRelativeArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 

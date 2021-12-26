@@ -1,4 +1,4 @@
-import getPointAtSegLength from '../util/getPointAtSegLength';
+import segmentLineFactory from '../util/segmentLineFactory';
 import midPoint from '../math/midPoint';
 
 /**
@@ -21,14 +21,13 @@ export default function lineToCubic(x1, y1, x2, y2) {
   const p4 = midPoint(p2, p3, t);
   const p5 = midPoint(p3, p4, t);
   const p6 = midPoint(p4, p5, t);
-  // const cp1 = getPointAtSegLength.apply(0, p0.concat(p2, p4, p6, t));
   const seg1 = [...p0, ...p2, ...p4, ...p6, t];
   // @ts-ignore
-  const cp1 = getPointAtSegLength(...seg1);
-  // const cp2 = getPointAtSegLength.apply(0, p6.concat(p5, p3, p1, 0));
+  const cp1 = segmentLineFactory(...seg1);
   const seg2 = [...p6, ...p5, ...p3, ...p1, 0];
   // @ts-ignore
-  const cp2 = getPointAtSegLength(...seg2);
+  const cp2 = segmentLineFactory(...seg2);
 
+  // @ts-ignore
   return [cp1.x, cp1.y, cp2.x, cp2.y, x2, y2];
 }

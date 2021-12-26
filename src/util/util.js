@@ -1,10 +1,20 @@
 import CSSMatrix from 'dommatrix';
 import defaultOptions from '../options/options';
+import getPathBBox from './getPathBBox';
 import getPathArea from './getPathArea';
 import getPathLength from './getPathLength';
+import getTotalLength from './getTotalLength';
 import getDrawDirection from './getDrawDirection';
 import getPointAtLength from './getPointAtLength';
-import getPathBBox from './getPathBBox';
+import getPointAtPathLength from './getPointAtPathLength';
+
+import getPropertiesAtLength from './getPropertiesAtLength';
+import getPropertiesAtPoint from './getPropertiesAtPoint';
+import getClosestPoint from './getClosestPoint';
+import getSegmentOfPoint from './getSegmentOfPoint';
+import getSegmentAtLength from './getSegmentAtLength';
+import isPointInStroke from './isPointInStroke';
+
 import isValidPath from './isValidPath';
 import isPathArray from './isPathArray';
 import isAbsoluteArray from './isAbsoluteArray';
@@ -48,8 +58,16 @@ const Util = {
   getDrawDirection,
   getPathArea,
   getPathBBox,
+  getTotalLength,
   getPathLength,
   getPointAtLength,
+  getPointAtPathLength,
+  getClosestPoint,
+  getSegmentOfPoint,
+  getPropertiesAtPoint,
+  getPropertiesAtLength,
+  getSegmentAtLength,
+  isPointInStroke,
   clonePath,
   splitPath,
   fixPath,

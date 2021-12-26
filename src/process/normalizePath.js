@@ -9,14 +9,17 @@ import paramsParser from '../parser/paramsParser';
  * * convert segments to absolute values
  * * convert shorthand path commands to their non-shorthand notation
  *
- * @param {SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
+ * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
  * @returns {SVGPathCommander.normalArray} the normalized `pathArray`
  */
 export default function normalizePath(pathInput) {
   if (isNormalizedArray(pathInput)) {
+    // @ts-ignore -- `isNormalizedArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 
+  /** @type {SVGPathCommander.normalArray} */
+  // @ts-ignore -- `absoluteArray` will become a `normalArray`
   const path = pathToAbsolute(pathInput);
   const params = { ...paramsParser };
   const allPathCommands = [];
@@ -44,6 +47,5 @@ export default function normalizePath(pathInput) {
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
 
-  // @ts-ignore -- a `normalArray` is absolutely an `absoluteArray`
   return path;
 }

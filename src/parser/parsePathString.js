@@ -13,12 +13,13 @@ import isPathArray from '../util/isPathArray';
  * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
  */
 export default function parsePathString(pathInput) {
-  if (Array.isArray(pathInput) && isPathArray(pathInput)) {
+  if (isPathArray(pathInput)) {
+    // @ts-ignore -- isPathArray also checks if it's an `Array`
     return clonePath(pathInput);
   }
 
-  // @ts-ignore
-  const path = new PathParser(pathInput); // TS expects string
+  // @ts-ignore -- pathInput is now string
+  const path = new PathParser(pathInput);
 
   skipSpaces(path);
 

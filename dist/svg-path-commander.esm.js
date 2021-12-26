@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.21 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.22 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -14,6 +14,7 @@ const defaultOptions = {
 
 /**
  * Segment params length
+ * @type {Record<string, number>}
  */
 const paramsCount = {
   a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0,
@@ -272,7 +273,6 @@ function isArcCommand(code) {
 function scanSegment(path) {
   const { max, pathValue, index } = path;
   const cmdCode = pathValue.charCodeAt(index);
-  // @ts-ignore
   const reqParams = paramsCount[pathValue[index].toLowerCase()];
 
   path.segmentStart = index;
@@ -336,7 +336,8 @@ function clonePath(path) {
 }
 
 /**
- * The `PathParser` used by the parser.
+ * The `PathParser` is used by the `parsePathString` static method
+ * to generate a `pathArray`.
  *
  * @param {string} pathString
  */
@@ -381,12 +382,13 @@ function isPathArray(path) {
  * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
  */
 function parsePathString(pathInput) {
-  if (Array.isArray(pathInput) && isPathArray(pathInput)) {
+  if (isPathArray(pathInput)) {
+    // @ts-ignore -- isPathArray also checks if it's an `Array`
     return clonePath(pathInput);
   }
 
-  // @ts-ignore
-  const path = new PathParser(pathInput); // TS expects string
+  // @ts-ignore -- pathInput is now string
+  const path = new PathParser(pathInput);
 
   skipSpaces(path);
 
@@ -414,11 +416,12 @@ function parsePathString(pathInput) {
  * Iterates an array to check if it's a `pathArray`
  * with all absolute values.
  *
- * @param {SVGPathCommander.pathArray} path the `pathArray` to be checked
+ * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
  * @returns {boolean} iteration result
  */
 function isAbsoluteArray(path) {
   return isPathArray(path)
+    // @ts-ignore -- `isPathArray` also checks if it's `Array`
     && path.every((x) => x[0] === x[0].toUpperCase());
 }
 
@@ -426,11 +429,12 @@ function isAbsoluteArray(path) {
  * Parses a path string value or object and returns an array
  * of segments, all converted to absolute values.
  *
- * @param {SVGPathCommander.pathArray | string} pathInput the path string | object
+ * @param {string | SVGPathCommander.pathArray} pathInput the path string | object
  * @returns {SVGPathCommander.absoluteArray} the resulted `pathArray` with absolute values
  */
 function pathToAbsolute(pathInput) {
-  if (Array.isArray(pathInput) && isAbsoluteArray(pathInput)) {
+  if (isAbsoluteArray(pathInput)) {
+    // @ts-ignore -- `isAbsoluteArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 
@@ -515,11 +519,12 @@ function pathToAbsolute(pathInput) {
  * Iterates an array to check if it's a `pathArray`
  * with relative values.
  *
- * @param {SVGPathCommander.pathArray} path the `pathArray` to be checked
+ * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
  * @returns {boolean} iteration result
  */
 function isRelativeArray(path) {
   return isPathArray(path)
+    // @ts-ignore -- `isPathArray` checks if it's `Array`
     && path.slice(1).every((seg) => seg[0] === seg[0].toLowerCase());
 }
 
@@ -527,11 +532,12 @@ function isRelativeArray(path) {
  * Parses a path string value or object and returns an array
  * of segments, all converted to relative values.
  *
- * @param {SVGPathCommander.pathArray} pathInput the path string | object
+ * @param {string | SVGPathCommander.pathArray} pathInput the path string | object
  * @returns {SVGPathCommander.relativeArray} the resulted `pathArray` with relative values
  */
 function pathToRelative(pathInput) {
   if (isRelativeArray(pathInput)) {
+    // @ts-ignore -- `isRelativeArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 
@@ -728,10 +734,11 @@ function normalizeSegment(segment, params, prevCommand) {
  * with all segments are in non-shorthand notation
  * with absolute values.
  *
- * @param {SVGPathCommander.pathArray} path the `pathArray` to be checked
+ * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
  * @returns {boolean} iteration result
  */
 function isNormalizedArray(path) {
+  // @ts-ignore -- `isAbsoluteArray` also checks if it's `Array`
   return isAbsoluteArray(path) && path.every((seg) => 'ACLMQZ'.includes(seg[0]));
 }
 
@@ -747,14 +754,17 @@ const paramsParser = {
  * * convert segments to absolute values
  * * convert shorthand path commands to their non-shorthand notation
  *
- * @param {SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
+ * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
  * @returns {SVGPathCommander.normalArray} the normalized `pathArray`
  */
 function normalizePath(pathInput) {
   if (isNormalizedArray(pathInput)) {
+    // @ts-ignore -- `isNormalizedArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 
+  /** @type {SVGPathCommander.normalArray} */
+  // @ts-ignore -- `absoluteArray` will become a `normalArray`
   const path = pathToAbsolute(pathInput);
   const params = { ...paramsParser };
   const allPathCommands = [];
@@ -782,7 +792,6 @@ function normalizePath(pathInput) {
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
 
-  // @ts-ignore -- a `normalArray` is absolutely an `absoluteArray`
   return path;
 }
 
@@ -809,7 +818,7 @@ function fixPath(pathInput) {
   const [x, y] = normalArray[segBeforeZ].slice(-2);
 
   if (isClosed && mx === x && my === y) {
-    // @ts-ignore -- `pathSegment[]` is a `pathArray`
+    // @ts-ignore -- `pathSegment[]` is quite a `pathArray`
     return pathArray.slice(0, -1);
   }
   return pathArray;
@@ -819,10 +828,11 @@ function fixPath(pathInput) {
  * Iterates an array to check if it's a `pathArray`
  * with all C (cubic bezier) segments.
  *
- * @param {SVGPathCommander.pathArray} path the `Array` to be checked
+ * @param {string | SVGPathCommander.pathArray} path the `Array` to be checked
  * @returns {boolean} iteration result
  */
 function isCurveArray(path) {
+  // @ts-ignore -- `isPathArray` also checks if it's `Array`
   return isPathArray(path) && path.every((seg) => 'MC'.includes(seg[0]));
 }
 
@@ -978,35 +988,6 @@ function quadToCubic(x1, y1, qx, qy, x2, y2) {
 }
 
 /**
- * Returns the {x,y} coordinates of a point at a
- * given length of a cubic-bezier segment.
- *
- * @param {number} p1x the starting point X
- * @param {number} p1y the starting point Y
- * @param {number} c1x the first control point X
- * @param {number} c1y the first control point Y
- * @param {number} c2x the second control point X
- * @param {number} c2y the second control point Y
- * @param {number} p2x the ending point X
- * @param {number} p2y the ending point Y
- * @param {number} t a [0-1] ratio
- * @returns {{x: number, y: number}} the requested {x,y} coordinates
- */
-function getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
-  const t1 = 1 - t;
-  return {
-    x: (t1 ** 3) * p1x
-      + t1 * t1 * 3 * t * c1x
-      + t1 * 3 * t * t * c2x
-      + (t ** 3) * p2x,
-    y: (t1 ** 3) * p1y
-      + t1 * t1 * 3 * t * c1y
-      + t1 * 3 * t * t * c2y
-      + (t ** 3) * p2y,
-  };
-}
-
-/**
  * Returns the coordinates of a specified distance
  * ratio between two points.
  *
@@ -1018,6 +999,41 @@ function getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
 function midPoint(a, b, t) {
   const [ax, ay] = a; const [bx, by] = b;
   return [ax + (bx - ax) * t, ay + (by - ay) * t];
+}
+
+/**
+ * Returns the square root of the distance
+ * between two given points.
+ *
+ * @param {[number, number]} a the first point coordinates
+ * @param {[number, number]} b the second point coordinates
+ * @returns {number} the distance value
+ */
+function distanceSquareRoot(a, b) {
+  return Math.sqrt(
+    (a[0] - b[0]) * (a[0] - b[0])
+    + (a[1] - b[1]) * (a[1] - b[1]),
+  );
+}
+
+/**
+ * Returns the length of a line (L,V,H,Z) segment,
+ * or a point at a given length.
+ *
+ * @param {number} x1 the starting point X
+ * @param {number} y1 the starting point Y
+ * @param {number} x2 the ending point X
+ * @param {number} y2 the ending point Y
+ * @param {number=} distance the distance to point
+ * @returns {{x: number, y: number} | number} the segment length or point
+ */
+function segmentLineFactory(x1, y1, x2, y2, distance) {
+  const length = distanceSquareRoot([x1, y1], [x2, y2]);
+  if (typeof distance === 'number') {
+    const [x, y] = midPoint([x1, y1], [x2, y2], distance / length);
+    return { x, y };
+  }
+  return length;
 }
 
 /**
@@ -1040,15 +1056,14 @@ function lineToCubic(x1, y1, x2, y2) {
   const p4 = midPoint(p2, p3, t);
   const p5 = midPoint(p3, p4, t);
   const p6 = midPoint(p4, p5, t);
-  // const cp1 = getPointAtSegLength.apply(0, p0.concat(p2, p4, p6, t));
   const seg1 = [...p0, ...p2, ...p4, ...p6, t];
   // @ts-ignore
-  const cp1 = getPointAtSegLength(...seg1);
-  // const cp2 = getPointAtSegLength.apply(0, p6.concat(p5, p3, p1, 0));
+  const cp1 = segmentLineFactory(...seg1);
   const seg2 = [...p6, ...p5, ...p3, ...p1, 0];
   // @ts-ignore
-  const cp2 = getPointAtSegLength(...seg2);
+  const cp2 = segmentLineFactory(...seg2);
 
+  // @ts-ignore
   return [cp1.x, cp1.y, cp2.x, cp2.y, x2, y2];
 }
 
@@ -1106,11 +1121,12 @@ function segmentToCubic(segment, params) {
  * In addition, un-necessary `Z` segment is removed if previous segment
  * extends to the `M` segment.
  *
- * @param {SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
+ * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
  * @returns {SVGPathCommander.curveArray} the resulted `pathArray` converted to cubic-bezier
  */
 function pathToCurve(pathInput) {
   if (isCurveArray(pathInput)) {
+    // @ts-ignore -- `isCurveArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 
@@ -2547,65 +2563,136 @@ function transformPath(path, transform) {
 }
 
 /**
- * Returns the cubic-bezier segment length.
+ * Returns a point at a given length of a C (cubic-bezier) segment.
  *
- * @param {number} p1x the starting point X
- * @param {number} p1y the starting point Y
+ * @param {number} x1 the starting point X
+ * @param {number} y1 the starting point Y
  * @param {number} c1x the first control point X
  * @param {number} c1y the first control point Y
  * @param {number} c2x the second control point X
  * @param {number} c2y the second control point Y
- * @param {number} p2x the ending point X
- * @param {number} p2y the ending point Y
+ * @param {number} x2 the ending point X
+ * @param {number} y2 the ending point Y
+ * @param {number} t a [0-1] ratio
+ * @returns {{x: number, y: number}} the cubic-bezier segment length
+ */
+function getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t) {
+  const t1 = 1 - t;
+  return {
+    x: (t1 ** 3) * x1
+      + 3 * (t1 ** 2) * t * c1x
+      + 3 * t1 * (t ** 2) * c2x
+      + (t ** 3) * x2,
+    y: (t1 ** 3) * y1
+      + 3 * (t1 ** 2) * t * c1y
+      + 3 * t1 * (t ** 2) * c2y
+      + (t ** 3) * y2,
+  };
+}
+
+/**
+ * Returns the length of a C (cubic-bezier) segment,
+ * or an {x,y} point at a given length.
+ *
+ * @param {number} x1 the starting point X
+ * @param {number} y1 the starting point Y
+ * @param {number} c1x the first control point X
+ * @param {number} c1y the first control point Y
+ * @param {number} c2x the second control point X
+ * @param {number} c2y the second control point Y
+ * @param {number} x2 the ending point X
+ * @param {number} y2 the ending point Y
+ * @param {number=} distance the point distance
+ * @returns {{x: number, y: number} | number} the segment length or point
+ */
+function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
+  let x = x1; let y = y1;
+  let totalLength = 0;
+  let prev = [x1, y1, totalLength];
+  /** @type {[number, number]} */
+  let cur = [x1, y1];
+  let t = 0;
+
+  const n = 101;
+  for (let j = 0; j <= n; j += 1) {
+    t = j / n;
+
+    ({ x, y } = getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t));
+    totalLength += distanceSquareRoot(cur, [x, y]);
+    cur = [x, y];
+
+    if (typeof distance === 'number' && totalLength >= distance) {
+      const dv = (totalLength - distance) / (totalLength - prev[2]);
+
+      return {
+        x: cur[0] * (1 - dv) + prev[0] * dv,
+        y: cur[1] * (1 - dv) + prev[1] * dv,
+      };
+    }
+    prev = [x, y, totalLength];
+  }
+  return totalLength;
+}
+
+// import getPointAtSegCubicLength from './getPointAtSegCubicLength';
+
+/**
+ * Returns the cubic-bezier segment length.
+ *
+ * @param {number} x1 the starting point X
+ * @param {number} y1 the starting point Y
+ * @param {number} c1x the first control point X
+ * @param {number} c1y the first control point Y
+ * @param {number} c2x the second control point X
+ * @param {number} c2y the second control point Y
+ * @param {number} x2 the ending point X
+ * @param {number} y2 the ending point Y
  * @returns {SVGPathCommander.segmentLimits} the length of the cubic-bezier segment
  */
-function getCubicSize(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
-  let a = (c2x - 2 * c1x + p1x) - (p2x - 2 * c2x + c1x);
-  let b = 2 * (c1x - p1x) - 2 * (c2x - c1x);
-  let c = p1x - c1x;
+function getCubicSize(x1, y1, c1x, c1y, c2x, c2y, x2, y2) {
+  let a = (c2x - 2 * c1x + x1) - (x2 - 2 * c2x + c1x);
+  let b = 2 * (c1x - x1) - 2 * (c2x - c1x);
+  let c = x1 - c1x;
   let t1 = (-b + Math.sqrt(b * b - 4 * a * c)) / 2 / a;
   let t2 = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-  const y = [p1y, p2y];
-  const x = [p1x, p2x];
+  const y = [y1, y2];
+  const x = [x1, x2];
   let dot;
-  // @ts-ignore
-  if (Math.abs(t1) > '1e12') t1 = 0.5;
-  // @ts-ignore
-  if (Math.abs(t2) > '1e12') t2 = 0.5;
+
+  if (Math.abs(t1) > 1e12) t1 = 0.5;
+  if (Math.abs(t2) > 1e12) t2 = 0.5;
 
   if (t1 > 0 && t1 < 1) {
-    dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
-    x.push(dot.x);
-    y.push(dot.y);
+    dot = segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t1);
+    // @ts-ignore
+    x.push(dot.x); y.push(dot.y);
   }
   if (t2 > 0 && t2 < 1) {
-    dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
-    x.push(dot.x);
-    y.push(dot.y);
+    dot = segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t2);
+    // @ts-ignore
+    x.push(dot.x); y.push(dot.y);
   }
-  a = (c2y - 2 * c1y + p1y) - (p2y - 2 * c2y + c1y);
-  b = 2 * (c1y - p1y) - 2 * (c2y - c1y);
-  c = p1y - c1y;
+  a = (c2y - 2 * c1y + y1) - (y2 - 2 * c2y + c1y);
+  b = 2 * (c1y - y1) - 2 * (c2y - c1y);
+  c = y1 - c1y;
   t1 = (-b + Math.sqrt(b * b - 4 * a * c)) / 2 / a;
   t2 = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-  // @ts-ignore
-  if (Math.abs(t1) > '1e12') t1 = 0.5;
-  // @ts-ignore
-  if (Math.abs(t2) > '1e12') t2 = 0.5;
+  if (Math.abs(t1) > 1e12) t1 = 0.5;
+  if (Math.abs(t2) > 1e12) t2 = 0.5;
 
   if (t1 > 0 && t1 < 1) {
-    dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t1);
-    x.push(dot.x);
-    y.push(dot.y);
+    dot = segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t1);
+    // @ts-ignore
+    x.push(dot.x); y.push(dot.y);
   }
   if (t2 > 0 && t2 < 1) {
-    dot = getPointAtSegLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t2);
-    x.push(dot.x);
-    y.push(dot.y);
+    dot = segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t2);
+    // @ts-ignore
+    x.push(dot.x); y.push(dot.y);
   }
   return {
-    min: { x: Math.min.apply(0, x), y: Math.min.apply(0, y) },
-    max: { x: Math.max.apply(0, x), y: Math.max.apply(0, y) },
+    min: { x: Math.min(...x), y: Math.min(...y) },
+    max: { x: Math.max(...x), y: Math.max(...y) },
   };
 }
 
@@ -2641,27 +2728,16 @@ function getPathBBox(path) {
       // @ts-ignore -- this should be fine
       const dim = getCubicSize(...sizeArgs);
 
-      // X = X.concat(dim.min.x, dim.max.x);
       X = [...X, ...[dim.min.x, dim.max.x]];
-
-      // Y = Y.concat(dim.min.y, dim.max.y);
       Y = [...Y, ...[dim.min.y, dim.max.y]];
       x = s1;
       y = s2;
     }
   });
 
-  // @ts-ignore
-  // const xTop = Math.min.apply(0, X);
   const xTop = Math.min(...X);
-  // @ts-ignore
-  // const yTop = Math.min.apply(0, Y);
   const yTop = Math.min(...Y);
-  // @ts-ignore
-  // const xBot = Math.max.apply(0, X);
   const xBot = Math.max(...X);
-  // @ts-ignore
-  // const yBot = Math.max.apply(0, Y);
   const yBot = Math.max(...Y);
   const width = xBot - xTop;
   const height = yBot - yTop;
@@ -2908,34 +2984,34 @@ class SVGPathCommander {
  *
  * http://objectmix.com/graphics/133553-area-closed-bezier-curve.html
  *
- * @param {number} x0 the starting point X
- * @param {number} y0 the starting point Y
- * @param {number} x1 the first control point X
- * @param {number} y1 the first control point Y
- * @param {number} x2 the second control point X
- * @param {number} y2 the second control point Y
- * @param {number} x3 the ending point X
- * @param {number} y3 the ending point Y
+ * @param {number} x1 the starting point X
+ * @param {number} y1 the starting point Y
+ * @param {number} c1x the first control point X
+ * @param {number} c1y the first control point Y
+ * @param {number} c2x the second control point X
+ * @param {number} c2y the second control point Y
+ * @param {number} x2 the ending point X
+ * @param {number} y2 the ending point Y
  * @returns {number} the area of the cubic-bezier segment
  */
-function getCubicSegArea(x0, y0, x1, y1, x2, y2, x3, y3) {
-  return (3 * ((y3 - y0) * (x1 + x2) - (x3 - x0) * (y1 + y2)
-           + (y1 * (x0 - x2)) - (x1 * (y0 - y2))
-           + (y3 * (x2 + x0 / 3)) - (x3 * (y2 + y0 / 3)))) / 20;
+function getCubicSegArea(x1, y1, c1x, c1y, c2x, c2y, x2, y2) {
+  return (3 * ((y2 - y1) * (c1x + c2x) - (x2 - x1) * (c1y + c2y)
+           + (c1y * (x1 - c2x)) - (c1x * (y1 - c2y))
+           + (y2 * (c2x + x1 / 3)) - (x2 * (c2y + y1 / 3)))) / 20;
 }
 
 /**
  * Returns the area of a shape.
  * @author Jürg Lehni & Jonathan Puckey
  *
- * => https://github.com/paperjs/paper.js/blob/develop/src/path/Path.js
+ * @see https://github.com/paperjs/paper.js/blob/develop/src/path/Path.js
  *
  * @param {SVGPathCommander.pathArray} path the shape `pathArray`
  * @returns {number} the length of the cubic-bezier segment
  */
 function getPathArea(path) {
-  let x = 0; let y = 0;
-  let len = 0;
+  let x = 0; let y = 0; let len = 0;
+
   return pathToCurve(path).map((seg) => {
     switch (seg[0]) {
       case 'M':
@@ -2945,82 +3021,235 @@ function getPathArea(path) {
         // @ts-ignore -- the utility will have proper amount of params
         len = getCubicSegArea(...[x, y, ...seg.slice(1)]);
 
-        [x, y] = seg.slice(-2).map(Number);
+        // @ts-ignore -- the segment always has numbers
+        [x, y] = seg.slice(-2);
         return len;
     }
   }).reduce((a, b) => a + b, 0);
 }
 
 /**
- * @param {number} p1
- * @param {number} p2
- * @param {number} p3
- * @param {number} p4
- * @param {number} t a [0-1] ratio
- * @returns {number}
- */
-function base3(p1, p2, p3, p4, t) {
-  const t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4;
-  const t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
-  return t * t2 - 3 * p1 + 3 * p2;
-}
-
-/**
- * Returns the C (cubic-bezier) segment length.
+ * Returns the shape total length, or the equivalent to `shape.getTotalLength()`.
  *
- * @param {number} x1 the starting point X
- * @param {number} y1 the starting point Y
- * @param {number} x2 the first control point X
- * @param {number} y2 the first control point Y
- * @param {number} x3 the second control point X
- * @param {number} y3 the second control point Y
- * @param {number} x4 the ending point X
- * @param {number} y4 the ending point Y
- * @param {number} z a [0-1] ratio
- * @returns {number} the cubic-bezier segment length
- */
-function getSegCubicLength(x1, y1, x2, y2, x3, y3, x4, y4, z) {
-  let Z = z;
-  if (z === null || Number.isNaN(+z)) Z = 1;
-
-  // Z = Z > 1 ? 1 : Z < 0 ? 0 : Z;
-  if (Z > 1) Z = 1;
-  if (Z < 0) Z = 0;
-
-  const z2 = Z / 2; let ct = 0; let xbase = 0; let ybase = 0; let sum = 0;
-  const Tvalues = [-0.1252, 0.1252, -0.3678, 0.3678,
-    -0.5873, 0.5873, -0.7699, 0.7699,
-    -0.9041, 0.9041, -0.9816, 0.9816];
-  const Cvalues = [0.2491, 0.2491, 0.2335, 0.2335,
-    0.2032, 0.2032, 0.1601, 0.1601,
-    0.1069, 0.1069, 0.0472, 0.0472];
-
-  Tvalues.forEach((T, i) => {
-    ct = z2 * T + z2;
-    xbase = base3(x1, x2, x3, x4, ct);
-    ybase = base3(y1, y2, y3, y4, ct);
-    sum += Cvalues[i] * Math.sqrt(xbase * xbase + ybase * ybase);
-  });
-  return z2 * sum;
-}
-
-/**
- * Returns the shape total length,
- * or the equivalent to `shape.getTotalLength()`
- * pathToCurve version
+ * This is the `pathToCurve` version which is faster and more efficient for
+ * paths that are `curveArray`.
  *
- * @param {SVGPathCommander.pathArray} path the target `pathArray`
- * @returns {number} the shape total length
+ * @param {string | SVGPathCommander.curveArray} path the target `pathArray`
+ * @returns {number} the `curveArray` total length
  */
 function getPathLength(path) {
   let totalLength = 0;
   pathToCurve(path).forEach((s, i, curveArray) => {
     const args = s[0] !== 'M' ? [...curveArray[i - 1].slice(-2), ...s.slice(1)] : [];
-    totalLength += s[0] === 'M' ? 0
-      // @ts-ignore
-      : getSegCubicLength(...args);
+    // @ts-ignore
+    totalLength += s[0] === 'M' ? 0 : segmentCubicFactory(...args);
   });
   return totalLength;
+}
+
+/**
+ * Returns the length of a A (arc-to) segment,
+ * or an {x,y} point at a given length.
+ *
+ * @param {number} X1 the starting x position
+ * @param {number} Y1 the starting y position
+ * @param {number} RX x-radius of the arc
+ * @param {number} RY y-radius of the arc
+ * @param {number} angle x-axis-rotation of the arc
+ * @param {number} LAF large-arc-flag of the arc
+ * @param {number} SF sweep-flag of the arc
+ * @param {number} X2 the ending x position
+ * @param {number} Y2 the ending y position
+ * @param {number} distance the point distance
+ * @returns {{x: number, y: number} | number} the segment length or point
+ */
+function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
+  let [x1, y1] = [X1, Y1];
+  const cubicSeg = arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2);
+  let totalLength = 0;
+  let cubicSubseg = [];
+  let argsc = [];
+  let segLen = 0;
+
+  for (let i = 0, ii = cubicSeg.length; i < ii; i += 6) {
+    cubicSubseg = cubicSeg.slice(i, i + 6);
+    argsc = [x1, y1, ...cubicSubseg];
+    // @ts-ignore
+    segLen = segmentCubicFactory(...argsc);
+    if (typeof distance === 'number' && totalLength + segLen >= distance) {
+      // @ts-ignore -- this is a `cubicSegment`
+      return segmentCubicFactory(...argsc, distance - totalLength);
+    }
+    totalLength += segLen;
+    [x1, y1] = cubicSubseg.slice(-2);
+  }
+
+  return totalLength;
+}
+
+/**
+ * Returns the {x,y} coordinates of a point at a
+ * given length of a quad-bezier segment.
+ *
+ * @see https://github.com/substack/point-at-length
+ *
+ * @param {number} x1 the starting point X
+ * @param {number} y1 the starting point Y
+ * @param {number} cx the control point X
+ * @param {number} cy the control point Y
+ * @param {number} x2 the ending point X
+ * @param {number} y2 the ending point Y
+ * @param {number} t a [0-1] ratio
+ * @returns {{x: number, y: number}} the requested {x,y} coordinates
+ */
+function getPointAtQuadSegmentLength(x1, y1, cx, cy, x2, y2, t) {
+  const t1 = 1 - t;
+  return {
+    x: (t1 ** 2) * x1
+      + 2 * t1 * t * cx
+      + (t ** 2) * x2,
+    y: (t1 ** 2) * y1
+      + 2 * t1 * t * cy
+      + (t ** 2) * y2,
+  };
+}
+
+/**
+ * Returns the Q (quadratic-bezier) segment length,
+ * or an {x,y} point at a given length.
+ *
+ * @param {number} x1 the starting point X
+ * @param {number} y1 the starting point Y
+ * @param {number} qx the control point X
+ * @param {number} qy the control point Y
+ * @param {number} x2 the ending point X
+ * @param {number} y2 the ending point Y
+ * @param {number=} distance the distance to point
+ * @returns {{x: number, y: number} | number} the segment length or point
+ */
+function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
+  let x = x1; let y = y1;
+  let totalLength = 0;
+  let prev = [x1, y1, totalLength];
+  /** @type {[number, number]} */
+  let cur = [x1, y1];
+  let t = 0;
+
+  const n = 101;
+  for (let j = 0; j <= n; j += 1) {
+    t = j / n;
+
+    ({ x, y } = getPointAtQuadSegmentLength(x1, y1, qx, qy, x2, y2, t));
+    totalLength += distanceSquareRoot(cur, [x, y]);
+    cur = [x, y];
+
+    if (typeof distance === 'number' && totalLength >= distance) {
+      const dv = (totalLength - distance) / (totalLength - prev[2]);
+
+      return {
+        x: cur[0] * (1 - dv) + prev[0] * dv,
+        y: cur[1] * (1 - dv) + prev[1] * dv,
+      };
+    }
+    prev = [x, y, totalLength];
+  }
+  return totalLength;
+}
+
+/**
+ * Returns a {x,y} point at a given length of a shape or the shape total length.
+ *
+ * @param {string | SVGPathCommander.pathArray} pathInput the `pathArray` to look into
+ * @param {number=} distance the length of the shape to look at
+ * @returns {{x: number, y: number} | number} the total length or point
+ */
+function pathLengthFactory(pathInput, distance) {
+  let totalLength = 0;
+  let isM = true;
+  /** @type {number[]} */
+  let data = [];
+  let pathCommand = 'M';
+  let segLen = 0;
+  let x = 0;
+  let y = 0;
+  let mx = 0;
+  let my = 0;
+  let seg;
+  const path = fixPath(normalizePath(pathInput));
+
+  for (let i = 0, ll = path.length; i < ll; i += 1) {
+    seg = path[i];
+    [pathCommand] = seg;
+    isM = pathCommand === 'M';
+    // @ts-ignore
+    data = !isM ? [x, y, ...seg.slice(1)] : data;
+
+    // this segment is always ZERO
+    if (isM) {
+      // remember mx, my for Z
+      // @ts-ignore
+      [, mx, my] = seg;
+    } else if (pathCommand === 'L') {
+      // @ts-ignore
+      segLen = segmentLineFactory(...data);
+      if (distance && totalLength + segLen >= distance) {
+        // @ts-ignore
+        return segmentLineFactory(...data, distance - totalLength);
+      }
+      totalLength += segLen;
+    } else if (pathCommand === 'A') {
+      // @ts-ignore
+      segLen = segmentArcFactory(...data);
+      if (distance && totalLength + segLen >= distance) {
+        // @ts-ignore
+        return segmentArcFactory(...data, distance - totalLength);
+      }
+      totalLength += segLen;
+    } else if (pathCommand === 'C') {
+      // @ts-ignore
+      segLen = segmentCubicFactory(...data);
+      if (distance && totalLength + segLen >= distance) {
+        // @ts-ignore
+        return segmentCubicFactory(...data, distance - totalLength);
+      }
+      totalLength += segLen;
+    } else if (pathCommand === 'Q') {
+      // @ts-ignore
+      segLen = segmentQuadFactory(...data);
+      if (distance && totalLength + segLen >= distance) {
+        // @ts-ignore
+        return segmentQuadFactory(...data, distance - totalLength);
+      }
+      totalLength += segLen;
+    } else if (pathCommand === 'Z') {
+      data = [x, y, mx, my];
+      // @ts-ignore
+      segLen = segmentLineFactory(...data);
+      if (distance && totalLength + segLen >= distance) {
+        // @ts-ignore
+        return segmentLineFactory(...data, distance - totalLength);
+      }
+      totalLength += segLen;
+    }
+    // @ts-ignore - these are usually numbers
+    [x, y] = seg.slice(-2);
+  }
+
+  return totalLength;
+}
+
+/**
+ * Returns the shape total length, or the equivalent to `shape.getTotalLength()`.
+ *
+ * The `normalizePath` version is lighter, faster, more efficient and more accurate
+ * with paths that are not `curveArray`.
+ *
+ * @param {string | SVGPathCommander.pathArray} pathInput the target `pathArray`
+ * @returns {number} the shape total length
+ */
+function getTotalLength(pathInput) {
+  // @ts-ignore
+  return pathLengthFactory(pathInput);
 }
 
 /**
@@ -3037,34 +3266,236 @@ function getDrawDirection(path) {
 /**
  * Returns [x,y] coordinates of a point at a given length of a shape.
  *
- * @param {string | SVGPathCommander.pathArray} path the `pathArray` to look into
- * @param {number} length the length of the shape to look at
- * @returns {number[]} the requested [x,y] coordinates
+ * @param {string | SVGPathCommander.pathArray} pathInput the `pathArray` to look into
+ * @param {number} distance the length of the shape to look at
+ * @returns {{x: number, y: number}} the requested {x, y} point coordinates
  */
-function getPointAtLength(path, length) {
-  let totalLength = 0;
-  let segLen;
-  let data;
-  let result;
+function getPointAtLength(pathInput, distance) {
   // @ts-ignore
-  return pathToCurve(path).map((seg, i, curveArray) => {
-    data = i ? [...curveArray[i - 1].slice(-2), ...seg.slice(1)] : seg.slice(1);
+  return pathLengthFactory(pathInput, distance);
+}
+
+/**
+ * Returns [x,y] coordinates of a point at a given length of a shape.
+ * `pathToCurve` version.
+ *
+ * @param {string | SVGPathCommander.pathArray} pathInput the `pathArray` to look into
+ * @param {number} length the length of the shape to look at
+ * @returns {{x: number, y: number}} the requested {x, y} point coordinates
+ */
+function getPointAtPathLength(pathInput, length) {
+  let totalLength = 0;
+  let isM = true;
+  let segLen = 0;
+  let data;
+  let result = { x: 0, y: 0 };
+  let x = 0;
+  let y = 0;
+  const path = pathToCurve(pathInput);
+  let seg;
+
+  for (let i = 0, l = path.length; i < l; i += 1) {
+    seg = path[i];
+    isM = seg[0] === 'M';
+    data = !isM ? [x, y, ...seg.slice(1)] : seg.slice(1);
     // @ts-ignore
-    segLen = i ? getSegCubicLength(...data) : 0;
-    totalLength += segLen;
+    segLen = !isM ? segmentCubicFactory(...data) : 0;
 
-    if (i === 0) {
-      result = { x: data[0], y: data[1] };
-    } else if (totalLength > length && length > totalLength - segLen) {
-      const args = [...data, 1 - ((totalLength - length) / segLen)];
-      // @ts-ignore
-      result = getPointAtSegLength(...args);
-    } else {
-      result = null;
+    if (isM) {
+      [, x, y] = seg;
+    } else if (totalLength + segLen > length) {
+      const args = [...data, length - totalLength];
+
+      // @ts-ignore -- `args` values are correct
+      result = segmentCubicFactory(...args);
+      break;
     }
+    totalLength += segLen;
+    // @ts-ignore - these are usually numbers
+    [x, y] = seg.slice(-2);
+  }
+  return result;
+}
 
-    return result;
-  }).filter((x) => x).slice(-1)[0]; // isolate last segment
+/**
+ * Returns the properties at a given length in path.
+ *
+ * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
+ * @param {number=} distance the given length
+ * @returns {SVGPathCommander.segmentProperties=} the requested properties
+ */
+function getPropertiesAtLength(pathInput, distance) {
+  const pathArray = parsePathString(pathInput);
+  const segments = [];
+
+  let pathTemp = [...pathArray];
+  // @ts-ignore
+  let pathLength = getTotalLength(pathTemp);
+  let index = pathTemp.length - 1;
+  let lengthAtSegment = 0;
+  let length = 0;
+  /** @type {SVGPathCommander.pathSegment} */
+  let segment = pathArray[0];
+  const [x, y] = segment.slice(-2);
+  const point = { x, y };
+
+  // If the path is empty, return 0.
+  if (index <= 0 || !distance || !Number.isFinite(distance)) {
+    return {
+      // @ts-ignore
+      segment, index: 0, length, point, lengthAtSegment,
+    };
+  } if (distance >= pathLength) {
+    pathTemp = pathArray.slice(0, -1);
+    // @ts-ignore
+    lengthAtSegment = getTotalLength(pathTemp);
+    // @ts-ignore
+    length = pathLength - lengthAtSegment;
+    return {
+      // @ts-ignore
+      segment: pathArray[index], index, length, lengthAtSegment,
+    };
+  }
+
+  while (index > 0) {
+    segment = pathTemp[index];
+    pathTemp = pathTemp.slice(0, -1);
+    // @ts-ignore -- `pathTemp` === `pathSegment[]` === `pathArray`
+    lengthAtSegment = getTotalLength(pathTemp);
+    // @ts-ignore
+    length = pathLength - lengthAtSegment;
+    pathLength = lengthAtSegment;
+    segments.push({
+      segment, index, length, lengthAtSegment,
+    });
+    index -= 1;
+  }
+
+  // @ts-ignore
+  return segments.find(({ lengthAtSegment: l }) => l < distance);
+}
+
+/**
+ * Returns the segment at a given length.
+ * @param {string | SVGPathCommander.pathArray} pathInput the target `pathArray`
+ * @param {number} distance the distance in path to look at
+ * @returns {SVGPathCommander.pathSegment?} the requested segment
+ */
+function getSegmentAtLength(pathInput, distance) {
+  const props = getPropertiesAtLength(pathInput, distance);
+  const { segment } = typeof props !== 'undefined' ? props : { segment: null };
+  return segment;
+}
+
+/**
+ * Returns the point in path closest to a given point.
+ * @see https://bl.ocks.org/mbostock/8027637
+ *
+ * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
+ * @param {{x: number, y: number}} point the given point
+ * @returns {SVGPathCommander.pointProperties} the requested properties
+ */
+function getPropertiesAtPoint(pathInput, point) {
+  const path = fixPath(parsePathString(pathInput));
+  const pathLength = getTotalLength(path);
+  /** @param {{x: number, y: number}} p */
+  const distanceTo = (p) => {
+    const dx = p.x - point.x;
+    const dy = p.y - point.y;
+    return dx * dx + dy * dy;
+  };
+  let precision = 8;
+  let scan = { x: 0, y: 0 };
+  /** @type {SVGPathCommander.segmentProperties=} */
+  let segment;
+  let scanDistance = 0;
+  let closest = scan;
+  let bestLength = 0;
+  let bestDistance = Infinity;
+
+  // linear scan for coarse approximation
+  for (let scanLength = 0; scanLength <= pathLength; scanLength += precision) {
+    scan = getPointAtLength(path, scanLength);
+    scanDistance = distanceTo(scan);
+    if (scanDistance < bestDistance) {
+      closest = scan;
+      bestLength = scanLength;
+      bestDistance = scanDistance;
+      // @ts-ignore any segment should suffice
+      segment = getSegmentAtLength(path, bestDistance);
+    }
+  }
+
+  // binary search for precise estimate
+  precision /= 2;
+  let before = { x: 0, y: 0 };
+  let after = before;
+  let beforeLength = 0;
+  let afterLength = 0;
+  let beforeDistance = 0;
+  let afterDistance = 0;
+
+  while (precision > 0.5) {
+    beforeLength = bestLength - precision;
+    before = getPointAtLength(path, beforeLength);
+    beforeDistance = distanceTo(before);
+    afterLength = bestLength + precision;
+    after = getPointAtLength(path, afterLength);
+    afterDistance = distanceTo(after);
+    if (beforeLength >= 0 && beforeDistance < bestDistance) {
+      closest = before;
+      bestLength = beforeLength;
+      bestDistance = beforeDistance;
+    } else if (afterLength <= pathLength && afterDistance < bestDistance) {
+      closest = after;
+      bestLength = afterLength;
+      bestDistance = afterDistance;
+    } else {
+      precision /= 2;
+    }
+    // @ts-ignore any segment should suffice
+    segment = getSegmentAtLength(path, bestDistance);
+  }
+
+  const distance = Math.sqrt(bestDistance);
+
+  return { closest, distance, segment };
+}
+
+/**
+ * Returns the point in path closest to a given point.
+ *
+ * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
+ * @param {{x: number, y: number}} point the given point
+ * @returns {{x: number, y: number}} the best match
+ */
+function getClosestPoint(pathInput, point) {
+  return getPropertiesAtPoint(pathInput, point).closest;
+}
+
+/**
+ * Returns the path segment which contains a given point.
+ *
+ * @param {string | SVGPathCommander.pathArray} path the `pathArray` to look into
+ * @param {{x: number, y: number}} point the point of the shape to look for
+ * @returns {SVGPathCommander.pathSegment?} the requested segment
+ */
+function getSegmentOfPoint(path, point) {
+  const props = getPropertiesAtPoint(path, point);
+  const { segment } = props;
+  return typeof segment !== 'undefined' ? segment.segment : null;
+}
+
+/**
+ * Checks if a given point is in the stroke of a path.
+ *
+ * @param {string | SVGPathCommander.pathArray} pathInput target path
+ * @param {{x: number, y: number}} point
+ * @returns {boolean} the query result
+ */
+function isPointInStroke(pathInput, point) {
+  const { distance } = getPropertiesAtPoint(pathInput, point);
+  return Math.abs(distance) < 0.01;
 }
 
 /**
@@ -3320,8 +3751,16 @@ const Util = {
   getDrawDirection,
   getPathArea,
   getPathBBox,
+  getTotalLength,
   getPathLength,
   getPointAtLength,
+  getPointAtPathLength,
+  getClosestPoint,
+  getSegmentOfPoint,
+  getPropertiesAtPoint,
+  getPropertiesAtLength,
+  getSegmentAtLength,
+  isPointInStroke,
   clonePath,
   splitPath,
   fixPath,
@@ -3335,7 +3774,7 @@ const Util = {
   options: defaultOptions,
 };
 
-var version = "0.1.21";
+var version = "0.1.22";
 
 // @ts-ignore
 

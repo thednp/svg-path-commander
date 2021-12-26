@@ -121,6 +121,8 @@ For developer guidelines, head over to the [wiki pages](https://github.com/thedn
 * Andrew Willems for his [awesome guide](https://stackoverflow.com/users/5218951/andrew-willems)
 * Mike 'Pomax' Kamermans for his awesome [svg-path-reverse](https://github.com/Pomax/svg-path-reverse) and [bezierjs](https://github.com/Pomax/bezierjs)
 * Nicolas Debeissat for the inspiration on [svg3d](https://github.com/ndebeiss/svg3d)
+* Mike Bostock for his awesome [closestPoint](https://bl.ocks.org/mbostock/8027637)
+* James Halliday for his excelent [point-at-length](https://github.com/substack/point-at-length)
 
 # License
 **SVGPathCommander** is released under [MIT Licence](https://github.com/thednp/svg-path-commander/blob/master/LICENSE).

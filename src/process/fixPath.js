@@ -24,7 +24,7 @@ export default function fixPath(pathInput) {
   const [x, y] = normalArray[segBeforeZ].slice(-2);
 
   if (isClosed && mx === x && my === y) {
-    // @ts-ignore -- `pathSegment[]` is a `pathArray`
+    // @ts-ignore -- `pathSegment[]` is quite a `pathArray`
     return pathArray.slice(0, -1);
   }
   return pathArray;

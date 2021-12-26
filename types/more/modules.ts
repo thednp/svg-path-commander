@@ -56,13 +56,25 @@ export { default as getCubicSize } from '../../src/util/getCubicSize';
 export { default as getDrawDirection } from '../../src/util/getDrawDirection';
 export { default as getPathArea } from '../../src/util/getPathArea';
 export { default as getPathBBox } from '../../src/util/getPathBBox';
+
 export { default as getPathLength } from '../../src/util/getPathLength';
+export { default as getTotalLength } from '../../src/util/getTotalLength';
+
+export { default as segmentLineFactory } from '../../src/util/segmentLineFactory';
+export { default as segmentArcFactory } from '../../src/util/segmentArcFactory';
+export { default as segmentCubicFactory } from '../../src/util/segmentCubicFactory';
+export { default as segmentQuadFactory } from '../../src/util/segmentQuadFactory';
+
 export { default as getPointAtLength } from '../../src/util/getPointAtLength';
-export { default as getPointAtSegLength } from '../../src/util/getPointAtSegLength';
-export { default as getSegArcLength } from '../../src/util/getSegArcLength';
-export { default as getSegCubicLength } from '../../src/util/getSegCubicLength';
-export { default as getSegLineLength } from '../../src/util/getSegLineLength';
-export { default as getSegQuadLength } from '../../src/util/getSegQuadLength';
+export { default as getPointAtPathLength } from '../../src/util/getPointAtPathLength';
+
+export { default as getPropertiesAtPoint } from '../../src/util/getPropertiesAtPoint';
+export { default as getPropertiesAtLength } from '../../src/util/getPropertiesAtLength';
+export { default as getClosestPoint } from '../../src/util/getClosestPoint';
+export { default as getSegmentAtLength } from '../../src/util/getSegmentAtLength';
+export { default as getSegmentOfPoint } from '../../src/util/getSegmentOfPoint';
+export { default as isPointInStroke } from '../../src/util/isPointInStroke';
+
 export { default as isAbsoluteArray } from '../../src/util/isAbsoluteArray';
 export { default as isCurveArray } from '../../src/util/isCurveArray';
 export { default as isNormalizedArray } from '../../src/util/isNormalizedArray';

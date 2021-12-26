@@ -1,0 +1,80 @@
+import getPointAtLength from './getPointAtLength';
+import getSegmentAtLength from './getSegmentAtLength';
+import getTotalLength from './getTotalLength';
+import parsePathString from '../parser/parsePathString';
+import fixPath from '../process/fixPath';
+
+/**
+ * Returns the point in path closest to a given point.
+ * @see https://bl.ocks.org/mbostock/8027637
+ *
+ * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
+ * @param {{x: number, y: number}} point the given point
+ * @returns {SVGPathCommander.pointProperties} the requested properties
+ */
+export default function getPropertiesAtPoint(pathInput, point) {
+  const path = fixPath(parsePathString(pathInput));
+  const pathLength = getTotalLength(path);
+  /** @param {{x: number, y: number}} p */
+  const distanceTo = (p) => {
+    const dx = p.x - point.x;
+    const dy = p.y - point.y;
+    return dx * dx + dy * dy;
+  };
+  let precision = 8;
+  let scan = { x: 0, y: 0 };
+  /** @type {SVGPathCommander.segmentProperties=} */
+  let segment;
+  let scanDistance = 0;
+  let closest = scan;
+  let bestLength = 0;
+  let bestDistance = Infinity;
+
+  // linear scan for coarse approximation
+  for (let scanLength = 0; scanLength <= pathLength; scanLength += precision) {
+    scan = getPointAtLength(path, scanLength);
+    scanDistance = distanceTo(scan);
+    if (scanDistance < bestDistance) {
+      closest = scan;
+      bestLength = scanLength;
+      bestDistance = scanDistance;
+      // @ts-ignore any segment should suffice
+      segment = getSegmentAtLength(path, bestDistance);
+    }
+  }
+
+  // binary search for precise estimate
+  precision /= 2;
+  let before = { x: 0, y: 0 };
+  let after = before;
+  let beforeLength = 0;
+  let afterLength = 0;
+  let beforeDistance = 0;
+  let afterDistance = 0;
+
+  while (precision > 0.5) {
+    beforeLength = bestLength - precision;
+    before = getPointAtLength(path, beforeLength);
+    beforeDistance = distanceTo(before);
+    afterLength = bestLength + precision;
+    after = getPointAtLength(path, afterLength);
+    afterDistance = distanceTo(after);
+    if (beforeLength >= 0 && beforeDistance < bestDistance) {
+      closest = before;
+      bestLength = beforeLength;
+      bestDistance = beforeDistance;
+    } else if (afterLength <= pathLength && afterDistance < bestDistance) {
+      closest = after;
+      bestLength = afterLength;
+      bestDistance = afterDistance;
+    } else {
+      precision /= 2;
+    }
+    // @ts-ignore any segment should suffice
+    segment = getSegmentAtLength(path, bestDistance);
+  }
+
+  const distance = Math.sqrt(bestDistance);
+
+  return { closest, distance, segment };
+}

@@ -1,5 +1,6 @@
 /**
- * The `PathParser` used by the parser.
+ * The `PathParser` is used by the `parsePathString` static method
+ * to generate a `pathArray`.
  *
  * @param {string} pathString
  */
