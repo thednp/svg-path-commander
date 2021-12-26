@@ -95,8 +95,8 @@ SVGPathCommander.isValidPath(path);
 
 Convert a shape to `<path>` and transfer all non-specific attributes
 ```js
-const circle = document.getElementById('myCircle');
-SVGPathCommander.shapeToPath(circle, true);
+const myCircle = document.getElementById('myCircle');
+SVGPathCommander.shapeToPath(myCircle, true);
 ```
 
 Alternatively you can create `<path>` from specific attributes:
@@ -128,7 +128,7 @@ const myPoint = SVGPathCommander.getPointAtLength('M0 0L50 0L25 50z', 85);
 
 Get the path bounding box:
 ```js
-const myPoint = SVGPathCommander.getPathBBox('M0 0L50 0L25 50z');
+const myPathBBox = SVGPathCommander.getPathBBox('M0 0L50 0L25 50z');
 // result => {width: 50, height: 50, x: 0, y: 0, x2: 50, y2: 50, cx: 25, cy: 25, cz: 75}
 ```
 
