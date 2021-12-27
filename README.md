@@ -177,7 +177,7 @@ For developer guidelines, and a complete list of static methods, head over to th
 * Vitaly Puzrin & Alex Kocharin for their [SvgPath](https://github.com/fontello/svgpath)
 * Jürg Lehni & Jonathan Puckey for their [Paper.js](https://github.com/paperjs/paper.js/)
 * Andrew Willems for his [awesome guide](https://stackoverflow.com/users/5218951/andrew-willems)
-* Mike 'Pomax' Kamermans for his awesome [svg-path-reverse](https://github.com/Pomax/svg-path-reverse) and [bezierjs](https://github.com/Pomax/bezierjs)
+* Mike 'Pomax' Kamermans for his awesome [svg-path-reverse](https://github.com/Pomax/svg-path-reverse), [bezierjs](https://github.com/Pomax/bezierjs) and [bezierinfo](https://pomax.github.io/bezierinfo/)
 * Nicolas Debeissat for the inspiration on [svg3d](https://github.com/ndebeiss/svg3d)
 * Mike Bostock for his awesome [closestPoint](https://bl.ocks.org/mbostock/8027637)
 * James Halliday for his excelent [point-at-length](https://github.com/substack/point-at-length)

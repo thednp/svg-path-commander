@@ -14,7 +14,15 @@ import distanceSquareRoot from '../math/distanceSquareRoot';
  */
 export default function segmentLineFactory(x1, y1, x2, y2, distance) {
   const length = distanceSquareRoot([x1, y1], [x2, y2]);
+  const margin = 0.001;
+
   if (typeof distance === 'number') {
+    if (distance < margin) {
+      return { x: x1, y: y1 };
+    }
+    if (distance > length + margin) {
+      return { x: x2, y: y2 };
+    }
     const [x, y] = midPoint([x1, y1], [x2, y2], distance / length);
     return { x, y };
   }
