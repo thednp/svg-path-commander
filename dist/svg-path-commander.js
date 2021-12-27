@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.22 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.23 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -2694,13 +2694,18 @@
     var assign;
 
     var x = x1; var y = y1;
+    var lengthMargin = 0.001;
     var totalLength = 0;
     var prev = [x1, y1, totalLength];
     /** @type {[number, number]} */
     var cur = [x1, y1];
     var t = 0;
 
-    var n = 101;
+    if (typeof distance === 'number' && distance < lengthMargin) {
+      return { x: x, y: y };
+    }
+
+    var n = 100;
     for (var j = 0; j <= n; j += 1) {
       t = j / n;
 
@@ -2717,6 +2722,10 @@
         };
       }
       prev = [x, y, totalLength];
+    }
+
+    if (typeof distance === 'number' && distance >= totalLength) {
+      return { x: x2, y: y2 };
     }
     return totalLength;
   }
@@ -3169,17 +3178,22 @@
     var assign;
 
     var ref = [X1, Y1];
-    var x1 = ref[0];
-    var y1 = ref[1];
+    var x = ref[0];
+    var y = ref[1];
     var cubicSeg = arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2);
+    var lengthMargin = 0.001;
     var totalLength = 0;
     var cubicSubseg = [];
     var argsc = [];
     var segLen = 0;
 
+    if (typeof distance === 'number' && distance < lengthMargin) {
+      return { x: x, y: y };
+    }
+
     for (var i = 0, ii = cubicSeg.length; i < ii; i += 6) {
       cubicSubseg = cubicSeg.slice(i, i + 6);
-      argsc = [x1, y1 ].concat( cubicSubseg);
+      argsc = [x, y ].concat( cubicSubseg);
       // @ts-ignore
       segLen = segmentCubicFactory.apply(void 0, argsc);
       if (typeof distance === 'number' && totalLength + segLen >= distance) {
@@ -3187,7 +3201,11 @@
         return segmentCubicFactory.apply(void 0, argsc.concat( [distance - totalLength] ));
       }
       totalLength += segLen;
-      (assign = cubicSubseg.slice(-2), x1 = assign[0], y1 = assign[1]);
+      (assign = cubicSubseg.slice(-2), x = assign[0], y = assign[1]);
+    }
+
+    if (typeof distance === 'number' && distance >= totalLength) {
+      return { x: X2, y: Y2 };
     }
 
     return totalLength;
@@ -3237,13 +3255,18 @@
     var assign;
 
     var x = x1; var y = y1;
+    var lengthMargin = 0.001;
     var totalLength = 0;
     var prev = [x1, y1, totalLength];
     /** @type {[number, number]} */
     var cur = [x1, y1];
     var t = 0;
 
-    var n = 101;
+    if (typeof distance === 'number' && distance < lengthMargin) {
+      return { x: x, y: y };
+    }
+
+    var n = 100;
     for (var j = 0; j <= n; j += 1) {
       t = j / n;
 
@@ -3260,6 +3283,9 @@
         };
       }
       prev = [x, y, totalLength];
+    }
+    if (typeof distance === 'number' && distance >= totalLength) {
+      return { x: x2, y: y2 };
     }
     return totalLength;
   }
@@ -3399,44 +3425,14 @@
    * Returns [x,y] coordinates of a point at a given length of a shape.
    * `pathToCurve` version.
    *
+   * @deprecated
+   *
    * @param {string | SVGPathCommander.pathArray} pathInput the `pathArray` to look into
-   * @param {number} length the length of the shape to look at
+   * @param {number} distance the length of the shape to look at
    * @returns {{x: number, y: number}} the requested {x, y} point coordinates
    */
-  function getPointAtPathLength(pathInput, length) {
-    var assign, assign$1;
-
-    var totalLength = 0;
-    var isM = true;
-    var segLen = 0;
-    var data;
-    var result = { x: 0, y: 0 };
-    var x = 0;
-    var y = 0;
-    var path = pathToCurve(pathInput);
-    var seg;
-
-    for (var i = 0, l = path.length; i < l; i += 1) {
-      seg = path[i];
-      isM = seg[0] === 'M';
-      data = !isM ? [x, y ].concat( seg.slice(1)) : seg.slice(1);
-      // @ts-ignore
-      segLen = !isM ? segmentCubicFactory.apply(void 0, data) : 0;
-
-      if (isM) {
-        (assign = seg, x = assign[1], y = assign[2]);
-      } else if (totalLength + segLen > length) {
-        var args = data.concat( [length - totalLength]);
-
-        // @ts-ignore -- `args` values are correct
-        result = segmentCubicFactory.apply(void 0, args);
-        break;
-      }
-      totalLength += segLen;
-      // @ts-ignore - these are usually numbers
-      (assign$1 = seg.slice(-2), x = assign$1[0], y = assign$1[1]);
-    }
-    return result;
+  function getPointAtPathLength(pathInput, distance) {
+    return getPointAtLength(pathInput, distance);
   }
 
   /**
@@ -3902,7 +3898,7 @@
     options: defaultOptions,
   };
 
-  var version = "0.1.22";
+  var version = "0.1.23";
 
   // @ts-ignore
 

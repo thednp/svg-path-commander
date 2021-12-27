@@ -18,16 +18,21 @@ import arcToCubic from '../process/arcToCubic';
  * @returns {{x: number, y: number} | number} the segment length or point
  */
 export default function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
-  let [x1, y1] = [X1, Y1];
+  let [x, y] = [X1, Y1];
   const cubicSeg = arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2);
+  const lengthMargin = 0.001;
   let totalLength = 0;
   let cubicSubseg = [];
   let argsc = [];
   let segLen = 0;
 
+  if (typeof distance === 'number' && distance < lengthMargin) {
+    return { x, y };
+  }
+
   for (let i = 0, ii = cubicSeg.length; i < ii; i += 6) {
     cubicSubseg = cubicSeg.slice(i, i + 6);
-    argsc = [x1, y1, ...cubicSubseg];
+    argsc = [x, y, ...cubicSubseg];
     // @ts-ignore
     segLen = segmentCubicFactory(...argsc);
     if (typeof distance === 'number' && totalLength + segLen >= distance) {
@@ -35,7 +40,11 @@ export default function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2
       return segmentCubicFactory(...argsc, distance - totalLength);
     }
     totalLength += segLen;
-    [x1, y1] = cubicSubseg.slice(-2);
+    [x, y] = cubicSubseg.slice(-2);
+  }
+
+  if (typeof distance === 'number' && distance >= totalLength) {
+    return { x: X2, y: Y2 };
   }
 
   return totalLength;

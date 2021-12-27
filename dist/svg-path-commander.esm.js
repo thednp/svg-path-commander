@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.22 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.23 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -2615,13 +2615,18 @@ function getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t) {
  */
 function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
   let x = x1; let y = y1;
+  const lengthMargin = 0.001;
   let totalLength = 0;
   let prev = [x1, y1, totalLength];
   /** @type {[number, number]} */
   let cur = [x1, y1];
   let t = 0;
 
-  const n = 101;
+  if (typeof distance === 'number' && distance < lengthMargin) {
+    return { x, y };
+  }
+
+  const n = 100;
   for (let j = 0; j <= n; j += 1) {
     t = j / n;
 
@@ -2638,6 +2643,10 @@ function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
       };
     }
     prev = [x, y, totalLength];
+  }
+
+  if (typeof distance === 'number' && distance >= totalLength) {
+    return { x: x2, y: y2 };
   }
   return totalLength;
 }
@@ -3074,16 +3083,21 @@ function getPathLength(path) {
  * @returns {{x: number, y: number} | number} the segment length or point
  */
 function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
-  let [x1, y1] = [X1, Y1];
+  let [x, y] = [X1, Y1];
   const cubicSeg = arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2);
+  const lengthMargin = 0.001;
   let totalLength = 0;
   let cubicSubseg = [];
   let argsc = [];
   let segLen = 0;
 
+  if (typeof distance === 'number' && distance < lengthMargin) {
+    return { x, y };
+  }
+
   for (let i = 0, ii = cubicSeg.length; i < ii; i += 6) {
     cubicSubseg = cubicSeg.slice(i, i + 6);
-    argsc = [x1, y1, ...cubicSubseg];
+    argsc = [x, y, ...cubicSubseg];
     // @ts-ignore
     segLen = segmentCubicFactory(...argsc);
     if (typeof distance === 'number' && totalLength + segLen >= distance) {
@@ -3091,7 +3105,11 @@ function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
       return segmentCubicFactory(...argsc, distance - totalLength);
     }
     totalLength += segLen;
-    [x1, y1] = cubicSubseg.slice(-2);
+    [x, y] = cubicSubseg.slice(-2);
+  }
+
+  if (typeof distance === 'number' && distance >= totalLength) {
+    return { x: X2, y: Y2 };
   }
 
   return totalLength;
@@ -3139,13 +3157,18 @@ function getPointAtQuadSegmentLength(x1, y1, cx, cy, x2, y2, t) {
  */
 function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
   let x = x1; let y = y1;
+  const lengthMargin = 0.001;
   let totalLength = 0;
   let prev = [x1, y1, totalLength];
   /** @type {[number, number]} */
   let cur = [x1, y1];
   let t = 0;
 
-  const n = 101;
+  if (typeof distance === 'number' && distance < lengthMargin) {
+    return { x, y };
+  }
+
+  const n = 100;
   for (let j = 0; j <= n; j += 1) {
     t = j / n;
 
@@ -3162,6 +3185,9 @@ function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
       };
     }
     prev = [x, y, totalLength];
+  }
+  if (typeof distance === 'number' && distance >= totalLength) {
+    return { x: x2, y: y2 };
   }
   return totalLength;
 }
@@ -3299,42 +3325,14 @@ function getPointAtLength(pathInput, distance) {
  * Returns [x,y] coordinates of a point at a given length of a shape.
  * `pathToCurve` version.
  *
+ * @deprecated
+ *
  * @param {string | SVGPathCommander.pathArray} pathInput the `pathArray` to look into
- * @param {number} length the length of the shape to look at
+ * @param {number} distance the length of the shape to look at
  * @returns {{x: number, y: number}} the requested {x, y} point coordinates
  */
-function getPointAtPathLength(pathInput, length) {
-  let totalLength = 0;
-  let isM = true;
-  let segLen = 0;
-  let data;
-  let result = { x: 0, y: 0 };
-  let x = 0;
-  let y = 0;
-  const path = pathToCurve(pathInput);
-  let seg;
-
-  for (let i = 0, l = path.length; i < l; i += 1) {
-    seg = path[i];
-    isM = seg[0] === 'M';
-    data = !isM ? [x, y, ...seg.slice(1)] : seg.slice(1);
-    // @ts-ignore
-    segLen = !isM ? segmentCubicFactory(...data) : 0;
-
-    if (isM) {
-      [, x, y] = seg;
-    } else if (totalLength + segLen > length) {
-      const args = [...data, length - totalLength];
-
-      // @ts-ignore -- `args` values are correct
-      result = segmentCubicFactory(...args);
-      break;
-    }
-    totalLength += segLen;
-    // @ts-ignore - these are usually numbers
-    [x, y] = seg.slice(-2);
-  }
-  return result;
+function getPointAtPathLength(pathInput, distance) {
+  return getPointAtLength(pathInput, distance);
 }
 
 /**
@@ -3792,7 +3790,7 @@ const Util = {
   options: defaultOptions,
 };
 
-var version = "0.1.22";
+var version = "0.1.23";
 
 // @ts-ignore
 

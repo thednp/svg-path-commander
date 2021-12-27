@@ -45,13 +45,18 @@ function getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t) {
  */
 export default function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
   let x = x1; let y = y1;
+  const lengthMargin = 0.001;
   let totalLength = 0;
   let prev = [x1, y1, totalLength];
   /** @type {[number, number]} */
   let cur = [x1, y1];
   let t = 0;
 
-  const n = 101;
+  if (typeof distance === 'number' && distance < lengthMargin) {
+    return { x, y };
+  }
+
+  const n = 100;
   for (let j = 0; j <= n; j += 1) {
     t = j / n;
 
@@ -68,6 +73,10 @@ export default function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, 
       };
     }
     prev = [x, y, totalLength];
+  }
+
+  if (typeof distance === 'number' && distance >= totalLength) {
+    return { x: x2, y: y2 };
   }
   return totalLength;
 }

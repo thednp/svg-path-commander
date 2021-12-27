@@ -483,8 +483,8 @@ declare module "svg-path-commander/src/math/polygonArea" {
      *
      * Returns the area of a polygon.
      *
-     * @param {Number[][]} polygon an array of coordinates
-     * @returns {Number} the polygon area
+     * @param {number[][]} polygon an array of coordinates
+     * @returns {number} the polygon area
      */
     export default function polygonArea(polygon: number[][]): number;
 }
@@ -495,8 +495,8 @@ declare module "svg-path-commander/src/math/polygonLength" {
      *
      * Returns the perimeter of a polygon.
      *
-     * @param {Number[][]} polygon an array of coordinates
-     * @returns {Number} the polygon length
+     * @param {number[][]} polygon an array of coordinates
+     * @returns {number} the polygon length
      */
     export default function polygonLength(polygon: number[][]): number;
 }
@@ -717,7 +717,7 @@ declare module "svg-path-commander/src/util/segmentCubicFactory" {
 }
 declare module "svg-path-commander/src/util/getCubicSize" {
     /**
-     * Returns the cubic-bezier segment length.
+     * Returns the cubic-bezier segment bounding box.
      *
      * @param {number} x1 the starting point X
      * @param {number} y1 the starting point Y
@@ -727,7 +727,7 @@ declare module "svg-path-commander/src/util/getCubicSize" {
      * @param {number} c2y the second control point Y
      * @param {number} x2 the ending point X
      * @param {number} y2 the ending point Y
-     * @returns {SVGPathCommander.segmentLimits} the length of the cubic-bezier segment
+     * @returns {SVGPathCommander.segmentLimits} the bounding box of the cubic-bezier segment
      */
     export default function getCubicSize(x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number): SVGPathCommander.segmentLimits;
 }
@@ -791,10 +791,10 @@ declare module "svg-path-commander/src/util/segmentArcFactory" {
      * @param {number} distance the point distance
      * @returns {{x: number, y: number} | number} the segment length or point
      */
-    export default function segmentArcFactory(X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, distance: number): {
+    export default function segmentArcFactory(X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, distance: number): number | {
         x: number;
         y: number;
-    } | number;
+    };
 }
 declare module "svg-path-commander/src/util/segmentQuadFactory" {
     /**
@@ -858,11 +858,13 @@ declare module "svg-path-commander/src/util/getPointAtPathLength" {
      * Returns [x,y] coordinates of a point at a given length of a shape.
      * `pathToCurve` version.
      *
+     * @deprecated
+     *
      * @param {string | SVGPathCommander.pathArray} pathInput the `pathArray` to look into
-     * @param {number} length the length of the shape to look at
+     * @param {number} distance the length of the shape to look at
      * @returns {{x: number, y: number}} the requested {x, y} point coordinates
      */
-    export default function getPointAtPathLength(pathInput: string | SVGPathCommander.pathArray, length: number): {
+    export default function getPointAtPathLength(pathInput: string | SVGPathCommander.pathArray, distance: number): {
         x: number;
         y: number;
     };
