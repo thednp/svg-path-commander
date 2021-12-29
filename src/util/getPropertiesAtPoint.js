@@ -6,7 +6,8 @@ import fixPath from '../process/fixPath';
 import normalizePath from '../process/normalizePath';
 
 /**
- * Returns the point in path closest to a given point.
+ * Returns the point and segment in path closest to a given point as well as
+ * the distance to the path stroke.
  * @see https://bl.ocks.org/mbostock/8027637
  *
  * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
@@ -70,7 +71,7 @@ export default function getPropertiesAtPoint(pathInput, point) {
     }
   }
 
-  const segment = getPropertiesAtLength(path, bestDistance);
+  const segment = getPropertiesAtLength(path, bestLength);
   const distance = Math.sqrt(bestDistance);
 
   return { closest, distance, segment };

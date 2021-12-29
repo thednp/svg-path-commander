@@ -871,7 +871,8 @@ declare module "svg-path-commander/src/util/getPointAtPathLength" {
 }
 declare module "svg-path-commander/src/util/getPropertiesAtLength" {
     /**
-     * Returns the properties at a given length in path.
+     * Returns the segment, its index and length as well as
+     * the length to that segment at a given length in a path.
      *
      * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
      * @param {number=} distance the given length
@@ -881,7 +882,8 @@ declare module "svg-path-commander/src/util/getPropertiesAtLength" {
 }
 declare module "svg-path-commander/src/util/getPropertiesAtPoint" {
     /**
-     * Returns the point in path closest to a given point.
+     * Returns the point and segment in path closest to a given point as well as
+     * the distance to the path stroke.
      * @see https://bl.ocks.org/mbostock/8027637
      *
      * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`

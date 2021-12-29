@@ -41,15 +41,16 @@ function getPointAtQuadSegmentLength(x1, y1, cx, cy, x2, y2, t) {
  * @returns {{x: number, y: number} | number} the segment length or point
  */
 export default function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
-  let x = x1; let y = y1;
+  const distanceIsNumber = typeof distance === 'number';
   const lengthMargin = 0.001;
+  let x = x1; let y = y1;
   let totalLength = 0;
   let prev = [x1, y1, totalLength];
   /** @type {[number, number]} */
   let cur = [x1, y1];
   let t = 0;
 
-  if (typeof distance === 'number' && distance < lengthMargin) {
+  if (distanceIsNumber && distance < lengthMargin) {
     return { x, y };
   }
 
@@ -61,7 +62,7 @@ export default function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
     totalLength += distanceSquareRoot(cur, [x, y]);
     cur = [x, y];
 
-    if (typeof distance === 'number' && totalLength >= distance) {
+    if (distanceIsNumber && totalLength >= distance) {
       const dv = (totalLength - distance) / (totalLength - prev[2]);
 
       return {
@@ -71,7 +72,7 @@ export default function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
     }
     prev = [x, y, totalLength];
   }
-  if (typeof distance === 'number' && distance >= totalLength) {
+  if (distanceIsNumber && distance >= totalLength) {
     return { x: x2, y: y2 };
   }
   return totalLength;

@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.23 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.24 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1035,7 +1035,7 @@ function segmentLineFactory(x1, y1, x2, y2, distance) {
     if (distance < margin) {
       return { x: x1, y: y1 };
     }
-    if (distance > length + margin) {
+    if (distance > length) {
       return { x: x2, y: y2 };
     }
     const [x, y] = midPoint([x1, y1], [x2, y2], distance / length);
@@ -2614,15 +2614,16 @@ function getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t) {
  * @returns {{x: number, y: number} | number} the segment length or point
  */
 function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
-  let x = x1; let y = y1;
+  const distanceIsNumber = typeof distance === 'number';
   const lengthMargin = 0.001;
+  let x = x1; let y = y1;
   let totalLength = 0;
   let prev = [x1, y1, totalLength];
   /** @type {[number, number]} */
   let cur = [x1, y1];
   let t = 0;
 
-  if (typeof distance === 'number' && distance < lengthMargin) {
+  if (distanceIsNumber && distance < lengthMargin) {
     return { x, y };
   }
 
@@ -2634,7 +2635,7 @@ function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
     totalLength += distanceSquareRoot(cur, [x, y]);
     cur = [x, y];
 
-    if (typeof distance === 'number' && totalLength >= distance) {
+    if (distanceIsNumber && totalLength >= distance) {
       const dv = (totalLength - distance) / (totalLength - prev[2]);
 
       return {
@@ -2645,7 +2646,7 @@ function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
     prev = [x, y, totalLength];
   }
 
-  if (typeof distance === 'number' && distance >= totalLength) {
+  if (distanceIsNumber && distance >= totalLength) {
     return { x: x2, y: y2 };
   }
   return totalLength;
@@ -3083,15 +3084,16 @@ function getPathLength(path) {
  * @returns {{x: number, y: number} | number} the segment length or point
  */
 function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
-  let [x, y] = [X1, Y1];
   const cubicSeg = arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2);
+  const distanceIsNumber = typeof distance === 'number';
+  let [x, y] = [X1, Y1];
   const lengthMargin = 0.001;
   let totalLength = 0;
   let cubicSubseg = [];
   let argsc = [];
   let segLen = 0;
 
-  if (typeof distance === 'number' && distance < lengthMargin) {
+  if (distanceIsNumber && distance < lengthMargin) {
     return { x, y };
   }
 
@@ -3100,7 +3102,7 @@ function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
     argsc = [x, y, ...cubicSubseg];
     // @ts-ignore
     segLen = segmentCubicFactory(...argsc);
-    if (typeof distance === 'number' && totalLength + segLen >= distance) {
+    if (distanceIsNumber && totalLength + segLen >= distance) {
       // @ts-ignore -- this is a `cubicSegment`
       return segmentCubicFactory(...argsc, distance - totalLength);
     }
@@ -3108,7 +3110,7 @@ function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
     [x, y] = cubicSubseg.slice(-2);
   }
 
-  if (typeof distance === 'number' && distance >= totalLength) {
+  if (distanceIsNumber && distance >= totalLength) {
     return { x: X2, y: Y2 };
   }
 
@@ -3156,15 +3158,16 @@ function getPointAtQuadSegmentLength(x1, y1, cx, cy, x2, y2, t) {
  * @returns {{x: number, y: number} | number} the segment length or point
  */
 function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
-  let x = x1; let y = y1;
+  const distanceIsNumber = typeof distance === 'number';
   const lengthMargin = 0.001;
+  let x = x1; let y = y1;
   let totalLength = 0;
   let prev = [x1, y1, totalLength];
   /** @type {[number, number]} */
   let cur = [x1, y1];
   let t = 0;
 
-  if (typeof distance === 'number' && distance < lengthMargin) {
+  if (distanceIsNumber && distance < lengthMargin) {
     return { x, y };
   }
 
@@ -3176,7 +3179,7 @@ function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
     totalLength += distanceSquareRoot(cur, [x, y]);
     cur = [x, y];
 
-    if (typeof distance === 'number' && totalLength >= distance) {
+    if (distanceIsNumber && totalLength >= distance) {
       const dv = (totalLength - distance) / (totalLength - prev[2]);
 
       return {
@@ -3186,7 +3189,7 @@ function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
     }
     prev = [x, y, totalLength];
   }
-  if (typeof distance === 'number' && distance >= totalLength) {
+  if (distanceIsNumber && distance >= totalLength) {
     return { x: x2, y: y2 };
   }
   return totalLength;
@@ -3200,6 +3203,8 @@ function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
  * @returns {{x: number, y: number} | number} the total length or point
  */
 function pathLengthFactory(pathInput, distance) {
+  const path = fixPath(normalizePath(pathInput));
+  const distanceIsNumber = typeof distance === 'number';
   let totalLength = 0;
   let isM = true;
   /** @type {number[]} */
@@ -3211,7 +3216,6 @@ function pathLengthFactory(pathInput, distance) {
   let mx = 0;
   let my = 0;
   let seg;
-  const path = fixPath(normalizePath(pathInput));
 
   for (let i = 0, ll = path.length; i < ll; i += 1) {
     seg = path[i];
@@ -3225,13 +3229,13 @@ function pathLengthFactory(pathInput, distance) {
       // remember mx, my for Z
       // @ts-ignore
       [, mx, my] = seg;
-      if (typeof distance === 'number' && distance < 0.001) {
+      if (distanceIsNumber && distance < 0.001) {
         return { x: mx, y: my };
       }
     } else if (pathCommand === 'L') {
       // @ts-ignore
       segLen = segmentLineFactory(...data);
-      if (distance && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore
         return segmentLineFactory(...data, distance - totalLength);
       }
@@ -3239,7 +3243,7 @@ function pathLengthFactory(pathInput, distance) {
     } else if (pathCommand === 'A') {
       // @ts-ignore
       segLen = segmentArcFactory(...data);
-      if (distance && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore
         return segmentArcFactory(...data, distance - totalLength);
       }
@@ -3247,7 +3251,7 @@ function pathLengthFactory(pathInput, distance) {
     } else if (pathCommand === 'C') {
       // @ts-ignore
       segLen = segmentCubicFactory(...data);
-      if (distance && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore
         return segmentCubicFactory(...data, distance - totalLength);
       }
@@ -3255,7 +3259,7 @@ function pathLengthFactory(pathInput, distance) {
     } else if (pathCommand === 'Q') {
       // @ts-ignore
       segLen = segmentQuadFactory(...data);
-      if (distance && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore
         return segmentQuadFactory(...data, distance - totalLength);
       }
@@ -3264,7 +3268,7 @@ function pathLengthFactory(pathInput, distance) {
       data = [x, y, mx, my];
       // @ts-ignore
       segLen = segmentLineFactory(...data);
-      if (distance && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore
         return segmentLineFactory(...data, distance - totalLength);
       }
@@ -3277,7 +3281,7 @@ function pathLengthFactory(pathInput, distance) {
 
   // native `getPointAtLength` behavior when the given distance
   // is higher than total length
-  if (distance && distance >= totalLength) {
+  if (distanceIsNumber && distance >= totalLength) {
     return { x, y };
   }
 
@@ -3336,7 +3340,8 @@ function getPointAtPathLength(pathInput, distance) {
 }
 
 /**
- * Returns the properties at a given length in path.
+ * Returns the segment, its index and length as well as
+ * the length to that segment at a given length in a path.
  *
  * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
  * @param {number=} distance the given length
@@ -3396,7 +3401,8 @@ function getPropertiesAtLength(pathInput, distance) {
 }
 
 /**
- * Returns the point in path closest to a given point.
+ * Returns the point and segment in path closest to a given point as well as
+ * the distance to the path stroke.
  * @see https://bl.ocks.org/mbostock/8027637
  *
  * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
@@ -3460,7 +3466,7 @@ function getPropertiesAtPoint(pathInput, point) {
     }
   }
 
-  const segment = getPropertiesAtLength(path, bestDistance);
+  const segment = getPropertiesAtLength(path, bestLength);
   const distance = Math.sqrt(bestDistance);
 
   return { closest, distance, segment };
@@ -3790,7 +3796,7 @@ const Util = {
   options: defaultOptions,
 };
 
-var version = "0.1.23";
+var version = "0.1.24";
 
 // @ts-ignore
 

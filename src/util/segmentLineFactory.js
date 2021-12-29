@@ -20,7 +20,7 @@ export default function segmentLineFactory(x1, y1, x2, y2, distance) {
     if (distance < margin) {
       return { x: x1, y: y1 };
     }
-    if (distance > length + margin) {
+    if (distance > length) {
       return { x: x2, y: y2 };
     }
     const [x, y] = midPoint([x1, y1], [x2, y2], distance / length);

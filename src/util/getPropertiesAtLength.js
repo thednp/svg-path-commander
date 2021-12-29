@@ -2,7 +2,8 @@ import parsePathString from '../parser/parsePathString';
 import getTotalLength from './getTotalLength';
 
 /**
- * Returns the properties at a given length in path.
+ * Returns the segment, its index and length as well as
+ * the length to that segment at a given length in a path.
  *
  * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
  * @param {number=} distance the given length

@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.23 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.24 (http://thednp.github.io/svg-path-commander)
 * Copyright 2021 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1065,7 +1065,7 @@
       if (distance < margin) {
         return { x: x1, y: y1 };
       }
-      if (distance > length + margin) {
+      if (distance > length) {
         return { x: x2, y: y2 };
       }
       var ref = midPoint([x1, y1], [x2, y2], distance / length);
@@ -2693,15 +2693,16 @@
   function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
     var assign;
 
-    var x = x1; var y = y1;
+    var distanceIsNumber = typeof distance === 'number';
     var lengthMargin = 0.001;
+    var x = x1; var y = y1;
     var totalLength = 0;
     var prev = [x1, y1, totalLength];
     /** @type {[number, number]} */
     var cur = [x1, y1];
     var t = 0;
 
-    if (typeof distance === 'number' && distance < lengthMargin) {
+    if (distanceIsNumber && distance < lengthMargin) {
       return { x: x, y: y };
     }
 
@@ -2713,7 +2714,7 @@
       totalLength += distanceSquareRoot(cur, [x, y]);
       cur = [x, y];
 
-      if (typeof distance === 'number' && totalLength >= distance) {
+      if (distanceIsNumber && totalLength >= distance) {
         var dv = (totalLength - distance) / (totalLength - prev[2]);
 
         return {
@@ -2724,7 +2725,7 @@
       prev = [x, y, totalLength];
     }
 
-    if (typeof distance === 'number' && distance >= totalLength) {
+    if (distanceIsNumber && distance >= totalLength) {
       return { x: x2, y: y2 };
     }
     return totalLength;
@@ -3177,17 +3178,18 @@
   function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
     var assign;
 
+    var cubicSeg = arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2);
+    var distanceIsNumber = typeof distance === 'number';
     var ref = [X1, Y1];
     var x = ref[0];
     var y = ref[1];
-    var cubicSeg = arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2);
     var lengthMargin = 0.001;
     var totalLength = 0;
     var cubicSubseg = [];
     var argsc = [];
     var segLen = 0;
 
-    if (typeof distance === 'number' && distance < lengthMargin) {
+    if (distanceIsNumber && distance < lengthMargin) {
       return { x: x, y: y };
     }
 
@@ -3196,7 +3198,7 @@
       argsc = [x, y ].concat( cubicSubseg);
       // @ts-ignore
       segLen = segmentCubicFactory.apply(void 0, argsc);
-      if (typeof distance === 'number' && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore -- this is a `cubicSegment`
         return segmentCubicFactory.apply(void 0, argsc.concat( [distance - totalLength] ));
       }
@@ -3204,7 +3206,7 @@
       (assign = cubicSubseg.slice(-2), x = assign[0], y = assign[1]);
     }
 
-    if (typeof distance === 'number' && distance >= totalLength) {
+    if (distanceIsNumber && distance >= totalLength) {
       return { x: X2, y: Y2 };
     }
 
@@ -3254,15 +3256,16 @@
   function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
     var assign;
 
-    var x = x1; var y = y1;
+    var distanceIsNumber = typeof distance === 'number';
     var lengthMargin = 0.001;
+    var x = x1; var y = y1;
     var totalLength = 0;
     var prev = [x1, y1, totalLength];
     /** @type {[number, number]} */
     var cur = [x1, y1];
     var t = 0;
 
-    if (typeof distance === 'number' && distance < lengthMargin) {
+    if (distanceIsNumber && distance < lengthMargin) {
       return { x: x, y: y };
     }
 
@@ -3274,7 +3277,7 @@
       totalLength += distanceSquareRoot(cur, [x, y]);
       cur = [x, y];
 
-      if (typeof distance === 'number' && totalLength >= distance) {
+      if (distanceIsNumber && totalLength >= distance) {
         var dv = (totalLength - distance) / (totalLength - prev[2]);
 
         return {
@@ -3284,7 +3287,7 @@
       }
       prev = [x, y, totalLength];
     }
-    if (typeof distance === 'number' && distance >= totalLength) {
+    if (distanceIsNumber && distance >= totalLength) {
       return { x: x2, y: y2 };
     }
     return totalLength;
@@ -3300,6 +3303,8 @@
   function pathLengthFactory(pathInput, distance) {
     var assign, assign$1, assign$2;
 
+    var path = fixPath(normalizePath(pathInput));
+    var distanceIsNumber = typeof distance === 'number';
     var totalLength = 0;
     var isM = true;
     /** @type {number[]} */
@@ -3311,7 +3316,6 @@
     var mx = 0;
     var my = 0;
     var seg;
-    var path = fixPath(normalizePath(pathInput));
 
     for (var i = 0, ll = path.length; i < ll; i += 1) {
       seg = path[i];
@@ -3325,13 +3329,13 @@
         // remember mx, my for Z
         // @ts-ignore
         (assign$1 = seg, mx = assign$1[1], my = assign$1[2]);
-        if (typeof distance === 'number' && distance < 0.001) {
+        if (distanceIsNumber && distance < 0.001) {
           return { x: mx, y: my };
         }
       } else if (pathCommand === 'L') {
         // @ts-ignore
         segLen = segmentLineFactory.apply(void 0, data);
-        if (distance && totalLength + segLen >= distance) {
+        if (distanceIsNumber && totalLength + segLen >= distance) {
           // @ts-ignore
           return segmentLineFactory.apply(void 0, data.concat( [distance - totalLength] ));
         }
@@ -3339,7 +3343,7 @@
       } else if (pathCommand === 'A') {
         // @ts-ignore
         segLen = segmentArcFactory.apply(void 0, data);
-        if (distance && totalLength + segLen >= distance) {
+        if (distanceIsNumber && totalLength + segLen >= distance) {
           // @ts-ignore
           return segmentArcFactory.apply(void 0, data.concat( [distance - totalLength] ));
         }
@@ -3347,7 +3351,7 @@
       } else if (pathCommand === 'C') {
         // @ts-ignore
         segLen = segmentCubicFactory.apply(void 0, data);
-        if (distance && totalLength + segLen >= distance) {
+        if (distanceIsNumber && totalLength + segLen >= distance) {
           // @ts-ignore
           return segmentCubicFactory.apply(void 0, data.concat( [distance - totalLength] ));
         }
@@ -3355,7 +3359,7 @@
       } else if (pathCommand === 'Q') {
         // @ts-ignore
         segLen = segmentQuadFactory.apply(void 0, data);
-        if (distance && totalLength + segLen >= distance) {
+        if (distanceIsNumber && totalLength + segLen >= distance) {
           // @ts-ignore
           return segmentQuadFactory.apply(void 0, data.concat( [distance - totalLength] ));
         }
@@ -3364,7 +3368,7 @@
         data = [x, y, mx, my];
         // @ts-ignore
         segLen = segmentLineFactory.apply(void 0, data);
-        if (distance && totalLength + segLen >= distance) {
+        if (distanceIsNumber && totalLength + segLen >= distance) {
           // @ts-ignore
           return segmentLineFactory.apply(void 0, data.concat( [distance - totalLength] ));
         }
@@ -3377,7 +3381,7 @@
 
     // native `getPointAtLength` behavior when the given distance
     // is higher than total length
-    if (distance && distance >= totalLength) {
+    if (distanceIsNumber && distance >= totalLength) {
       return { x: x, y: y };
     }
 
@@ -3436,7 +3440,8 @@
   }
 
   /**
-   * Returns the properties at a given length in path.
+   * Returns the segment, its index and length as well as
+   * the length to that segment at a given length in a path.
    *
    * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
    * @param {number=} distance the given length
@@ -3502,7 +3507,8 @@
   }
 
   /**
-   * Returns the point in path closest to a given point.
+   * Returns the point and segment in path closest to a given point as well as
+   * the distance to the path stroke.
    * @see https://bl.ocks.org/mbostock/8027637
    *
    * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
@@ -3566,7 +3572,7 @@
       }
     }
 
-    var segment = getPropertiesAtLength(path, bestDistance);
+    var segment = getPropertiesAtLength(path, bestLength);
     var distance = Math.sqrt(bestDistance);
 
     return { closest: closest, distance: distance, segment: segment };
@@ -3898,7 +3904,7 @@
     options: defaultOptions,
   };
 
-  var version = "0.1.23";
+  var version = "0.1.24";
 
   // @ts-ignore
 

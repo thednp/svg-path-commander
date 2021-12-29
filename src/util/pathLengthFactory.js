@@ -14,6 +14,8 @@ import segmentQuadFactory from './segmentQuadFactory';
  * @returns {{x: number, y: number} | number} the total length or point
  */
 export default function pathLengthFactory(pathInput, distance) {
+  const path = fixPath(normalizePath(pathInput));
+  const distanceIsNumber = typeof distance === 'number';
   let totalLength = 0;
   let isM = true;
   /** @type {number[]} */
@@ -25,7 +27,6 @@ export default function pathLengthFactory(pathInput, distance) {
   let mx = 0;
   let my = 0;
   let seg;
-  const path = fixPath(normalizePath(pathInput));
 
   for (let i = 0, ll = path.length; i < ll; i += 1) {
     seg = path[i];
@@ -39,13 +40,13 @@ export default function pathLengthFactory(pathInput, distance) {
       // remember mx, my for Z
       // @ts-ignore
       [, mx, my] = seg;
-      if (typeof distance === 'number' && distance < 0.001) {
+      if (distanceIsNumber && distance < 0.001) {
         return { x: mx, y: my };
       }
     } else if (pathCommand === 'L') {
       // @ts-ignore
       segLen = segmentLineFactory(...data);
-      if (distance && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore
         return segmentLineFactory(...data, distance - totalLength);
       }
@@ -53,7 +54,7 @@ export default function pathLengthFactory(pathInput, distance) {
     } else if (pathCommand === 'A') {
       // @ts-ignore
       segLen = segmentArcFactory(...data);
-      if (distance && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore
         return segmentArcFactory(...data, distance - totalLength);
       }
@@ -61,7 +62,7 @@ export default function pathLengthFactory(pathInput, distance) {
     } else if (pathCommand === 'C') {
       // @ts-ignore
       segLen = segmentCubicFactory(...data);
-      if (distance && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore
         return segmentCubicFactory(...data, distance - totalLength);
       }
@@ -69,7 +70,7 @@ export default function pathLengthFactory(pathInput, distance) {
     } else if (pathCommand === 'Q') {
       // @ts-ignore
       segLen = segmentQuadFactory(...data);
-      if (distance && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore
         return segmentQuadFactory(...data, distance - totalLength);
       }
@@ -78,7 +79,7 @@ export default function pathLengthFactory(pathInput, distance) {
       data = [x, y, mx, my];
       // @ts-ignore
       segLen = segmentLineFactory(...data);
-      if (distance && totalLength + segLen >= distance) {
+      if (distanceIsNumber && totalLength + segLen >= distance) {
         // @ts-ignore
         return segmentLineFactory(...data, distance - totalLength);
       }
@@ -91,7 +92,7 @@ export default function pathLengthFactory(pathInput, distance) {
 
   // native `getPointAtLength` behavior when the given distance
   // is higher than total length
-  if (distance && distance >= totalLength) {
+  if (distanceIsNumber && distance >= totalLength) {
     return { x, y };
   }
 
