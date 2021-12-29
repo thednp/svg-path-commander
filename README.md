@@ -167,7 +167,7 @@ For developer guidelines, and a complete list of static methods, head over to th
 * all 3d transformations as well as skews will convert `A` (arc) path commands to `C` (cubic bezier) due to the lack of resources;
 * most tools included with **SVGPathCommander** should work in your Node.js apps, but feel free to report any issue;
 * other path commands like `R` (catmulRomBezier), `O`, `U` (ellipse and shorthand ellipse) are not present in the current draft and are not supported;
-* normalization can mean many things to many people and our library is developed to convert path command values to absolute and shorthand to longshorthand commands to provide a solid foundation for the main processing tools of our library;
+* normalization can mean many things to many people and our library is developed to convert path command values to absolute and shorthand to longhand commands to provide a solid foundation for the main processing tools of our library;
 * when compared to the native methods like `SVGPathElement.getTotalLength()` or `SVGPathElement.getPointAtLength()`, the output of our static methods is within a [0.002 - 0.05] margin delta, but from our experience it's proven to be a more consistent outcome.
 
 
