@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.24 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.25 (http://thednp.github.io/svg-path-commander)
 * Copyright 2022 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -3579,7 +3579,7 @@ function getPolyPath(attr) {
   /** @type {SVGPathCommander.pathArray} */
   // @ts-ignore -- it's an empty `pathArray`
   const pathArray = [];
-  const points = attr.points.split(/[\s|,]/).map(Number);
+  const points = attr.points.trim().split(/[\s|,]/).map(Number);
 
   let index = 0;
   while (index < points.length) {
@@ -3796,7 +3796,7 @@ const Util = {
   options: defaultOptions,
 };
 
-var version = "0.1.24";
+var version = "0.1.25";
 
 // @ts-ignore
 

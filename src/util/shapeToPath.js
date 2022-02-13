@@ -37,7 +37,7 @@ export function getPolyPath(attr) {
   /** @type {SVGPathCommander.pathArray} */
   // @ts-ignore -- it's an empty `pathArray`
   const pathArray = [];
-  const points = attr.points.split(/[\s|,]/).map(Number);
+  const points = attr.points.trim().split(/[\s|,]/).map(Number);
 
   let index = 0;
   while (index < points.length) {
