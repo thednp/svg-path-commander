@@ -45,10 +45,10 @@ Flip a path on the X axis:
 ```js
 import SVGPathCommander from 'svg-path-commander';
 
-const path = 'M0 0 L50 100';
+const path = 'M0 0L100 0L50 100';
 
 const flippedPathString = new SVGPathCommander(path).flipX().toString();
-// result => 'M0 100L50 0'
+// result => 'M0 100h100L50 0'
 ```
 
 Optimize a path string for best outcome by using the `round: 'auto'` option which will determine the amount of decimals based on the shape's bounding box:
