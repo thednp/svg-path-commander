@@ -29,7 +29,7 @@ function getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t) {
 }
 
 /**
- * Returns the length of a C (cubic-bezier) segment,
+ * Returns the length of a C (cubic-bezier) segment
  * or an {x,y} point at a given length.
  *
  * @param {number} x1 the starting point X

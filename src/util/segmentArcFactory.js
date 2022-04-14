@@ -2,7 +2,7 @@ import segmentCubicFactory from './segmentCubicFactory';
 import arcToCubic from '../process/arcToCubic';
 
 /**
- * Returns the length of a A (arc-to) segment,
+ * Returns the length of an A (arc-to) segment
  * or an {x,y} point at a given length.
  *
  * @param {number} X1 the starting x position

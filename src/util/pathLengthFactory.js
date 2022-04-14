@@ -7,7 +7,8 @@ import segmentCubicFactory from './segmentCubicFactory';
 import segmentQuadFactory from './segmentQuadFactory';
 
 /**
- * Returns a {x,y} point at a given length of a shape or the shape total length.
+ * Returns a {x,y} point at a given length
+ * of a shape or the shape total length.
  *
  * @param {string | SVGPathCommander.pathArray} pathInput the `pathArray` to look into
  * @param {number=} distance the length of the shape to look at

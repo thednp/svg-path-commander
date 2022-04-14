@@ -2,8 +2,7 @@ import pathToAbsolute from '../convert/pathToAbsolute';
 import normalizePath from './normalizePath';
 
 /**
- * Reverses all segments and their values of a `pathArray`
- * and returns a new instance.
+ * Reverses all segments of a `pathArray` and returns a new `pathArray` instance.
  *
  * @param {SVGPathCommander.pathArray} pathInput the source `pathArray`
  * @returns {SVGPathCommander.pathArray} the reversed `pathArray`

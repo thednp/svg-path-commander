@@ -1,5 +1,5 @@
 /**
- * Reverses all segments and their values from a `pathArray`
+ * Reverses all segments of a `pathArray`
  * which consists of only C (cubic-bezier) path commands.
  *
  * @param {SVGPathCommander.curveArray} path the source `pathArray`

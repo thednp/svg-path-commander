@@ -28,7 +28,7 @@ function getPointAtQuadSegmentLength(x1, y1, cx, cy, x2, y2, t) {
 }
 
 /**
- * Returns the Q (quadratic-bezier) segment length,
+ * Returns the Q (quadratic-bezier) segment length
  * or an {x,y} point at a given length.
  *
  * @param {number} x1 the starting point X
