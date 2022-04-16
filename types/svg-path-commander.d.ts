@@ -387,7 +387,7 @@ declare module "svg-path-commander/src/math/distanceSquareRoot" {
 }
 declare module "svg-path-commander/src/util/segmentLineFactory" {
     /**
-     * Returns the length of a line (L,V,H,Z) segment,
+     * Returns the length of a line (L,V,H,Z) segment
      * or a point at a given length.
      *
      * @param {number} x1 the starting point X
@@ -559,7 +559,7 @@ declare module "svg-path-commander/src/process/projection2d" {
 }
 declare module "svg-path-commander/src/process/reverseCurve" {
     /**
-     * Reverses all segments and their values from a `pathArray`
+     * Reverses all segments of a `pathArray`
      * which consists of only C (cubic-bezier) path commands.
      *
      * @param {SVGPathCommander.curveArray} path the source `pathArray`
@@ -569,8 +569,7 @@ declare module "svg-path-commander/src/process/reverseCurve" {
 }
 declare module "svg-path-commander/src/process/reversePath" {
     /**
-     * Reverses all segments and their values of a `pathArray`
-     * and returns a new instance.
+     * Reverses all segments of a `pathArray` and returns a new `pathArray` instance.
      *
      * @param {SVGPathCommander.pathArray} pathInput the source `pathArray`
      * @returns {SVGPathCommander.pathArray} the reversed `pathArray`
@@ -696,7 +695,7 @@ declare module "svg-path-commander/src/util/createPath" {
 }
 declare module "svg-path-commander/src/util/segmentCubicFactory" {
     /**
-     * Returns the length of a C (cubic-bezier) segment,
+     * Returns the length of a C (cubic-bezier) segment
      * or an {x,y} point at a given length.
      *
      * @param {number} x1 the starting point X
@@ -776,7 +775,7 @@ declare module "svg-path-commander/src/util/getPathLength" {
 }
 declare module "svg-path-commander/src/util/segmentArcFactory" {
     /**
-     * Returns the length of a A (arc-to) segment,
+     * Returns the length of an A (arc-to) segment
      * or an {x,y} point at a given length.
      *
      * @param {number} X1 the starting x position
@@ -798,7 +797,7 @@ declare module "svg-path-commander/src/util/segmentArcFactory" {
 }
 declare module "svg-path-commander/src/util/segmentQuadFactory" {
     /**
-     * Returns the Q (quadratic-bezier) segment length,
+     * Returns the Q (quadratic-bezier) segment length
      * or an {x,y} point at a given length.
      *
      * @param {number} x1 the starting point X
@@ -817,7 +816,8 @@ declare module "svg-path-commander/src/util/segmentQuadFactory" {
 }
 declare module "svg-path-commander/src/util/pathLengthFactory" {
     /**
-     * Returns a {x,y} point at a given length of a shape or the shape total length.
+     * Returns a {x,y} point at a given length
+     * of a shape or the shape total length.
      *
      * @param {string | SVGPathCommander.pathArray} pathInput the `pathArray` to look into
      * @param {number=} distance the length of the shape to look at

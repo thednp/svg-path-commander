@@ -1,4 +1,4 @@
-![image](./assets/SVGPathCommander.svg)
+![image](./docs/assets/SVGPathCommander.svg)
 
 A modern set of ES6+ JavaScript tools for manipulating the `d` (description) attribute for *SVGPathElement* items. The library is implementing modern JavaScript API to produce reusable path strings with lossless quality. In addition, you also have a powerful tool to convert other SVG shapes like `<circle>` or `<rect>` to `<path>`.
 

@@ -201,8 +201,7 @@ class SVGPathCommander {
         originZ || cz,
       ];
     } else {
-      // @ts-ignore
-      transform.origin = [ ...this.origin ];
+      transform.origin = [...this.origin];
     }
 
     this.segments = transformPath(segments, transform);

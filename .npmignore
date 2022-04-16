@@ -1,5 +1,6 @@
 node_modules/
 experiments/
+docs/
 assets/
 index.html
 .gitignore

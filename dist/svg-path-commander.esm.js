@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v0.1.25 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v0.1.26 (http://thednp.github.io/svg-path-commander)
 * Copyright 2022 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1017,7 +1017,7 @@ function distanceSquareRoot(a, b) {
 }
 
 /**
- * Returns the length of a line (L,V,H,Z) segment,
+ * Returns the length of a line (L,V,H,Z) segment
  * or a point at a given length.
  *
  * @param {number} x1 the starting point X
@@ -1204,8 +1204,7 @@ function pathToString(path, round) {
 }
 
 /**
- * Reverses all segments and their values of a `pathArray`
- * and returns a new instance.
+ * Reverses all segments of a `pathArray` and returns a new `pathArray` instance.
  *
  * @param {SVGPathCommander.pathArray} pathInput the source `pathArray`
  * @returns {SVGPathCommander.pathArray} the reversed `pathArray`
@@ -2599,7 +2598,7 @@ function getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t) {
 }
 
 /**
- * Returns the length of a C (cubic-bezier) segment,
+ * Returns the length of a C (cubic-bezier) segment
  * or an {x,y} point at a given length.
  *
  * @param {number} x1 the starting point X
@@ -2963,8 +2962,7 @@ class SVGPathCommander {
         originZ || cz,
       ];
     } else {
-      // @ts-ignore
-      transform.origin = { ...this.origin };
+      transform.origin = [...this.origin];
     }
 
     this.segments = transformPath(segments, transform);
@@ -3068,7 +3066,7 @@ function getPathLength(path) {
 }
 
 /**
- * Returns the length of a A (arc-to) segment,
+ * Returns the length of an A (arc-to) segment
  * or an {x,y} point at a given length.
  *
  * @param {number} X1 the starting x position
@@ -3145,7 +3143,7 @@ function getPointAtQuadSegmentLength(x1, y1, cx, cy, x2, y2, t) {
 }
 
 /**
- * Returns the Q (quadratic-bezier) segment length,
+ * Returns the Q (quadratic-bezier) segment length
  * or an {x,y} point at a given length.
  *
  * @param {number} x1 the starting point X
@@ -3196,7 +3194,8 @@ function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
 }
 
 /**
- * Returns a {x,y} point at a given length of a shape or the shape total length.
+ * Returns a {x,y} point at a given length
+ * of a shape or the shape total length.
  *
  * @param {string | SVGPathCommander.pathArray} pathInput the `pathArray` to look into
  * @param {number=} distance the length of the shape to look at
@@ -3735,7 +3734,7 @@ function shapeToPath(element, replace) {
 }
 
 /**
- * Reverses all segments and their values from a `pathArray`
+ * Reverses all segments of a `pathArray`
  * which consists of only C (cubic-bezier) path commands.
  *
  * @param {SVGPathCommander.curveArray} path the source `pathArray`
@@ -3796,7 +3795,7 @@ const Util = {
   options: defaultOptions,
 };
 
-var version = "0.1.25";
+var version = "0.1.26";
 
 // @ts-ignore
 
