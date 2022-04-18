@@ -147,6 +147,10 @@ const myPathBBox = SVGPathCommander.getPathBBox('M0 0L50 0L25 50z');
 // result => {width: 50, height: 50, x: 0, y: 0, x2: 50, y2: 50, cx: 25, cy: 25, cz: 75}
 ```
 
+# Error Fix
+A module cannot have multiple default exports
+open svg-path-commander/types/svg-path-commander.d.ts find 'declare module "svg-path-commander/src/parser/pathParser"' and comment 'export default function PathParser(pathString: string): void;'
+
 # WIKI
 For developer guidelines, and a complete list of static methods, head over to the [wiki pages](https://github.com/thednp/svg-path-commander/wiki).
 
