@@ -10,13 +10,14 @@
     "strict": true,
     "allowJs": true,
     "checkJs": true,
-    "outFile": "types/svg-path-commander.d.ts", // UN-comment to generate delete file
+    // "outFile": "types/svg-path-commander.d.ts", // UN-comment to generate delete file
     "rootDir": "../",
     "outDir": "types",
   },
   "files": [
     "types/index.d.ts",
     "types/more/modules.ts",
+    "types/svg-path-commander.d.ts" // comment to regen
   ],
   "types": [],
 }
