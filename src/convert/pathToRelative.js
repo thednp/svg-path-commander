@@ -6,8 +6,8 @@ import isRelativeArray from '../util/isRelativeArray';
  * Parses a path string value or object and returns an array
  * of segments, all converted to relative values.
  *
- * @param {string | SVGPathCommander.pathArray} pathInput the path string | object
- * @returns {SVGPathCommander.relativeArray} the resulted `pathArray` with relative values
+ * @param {string | SVGPath.pathArray} pathInput the path string | object
+ * @returns {SVGPath.relativeArray} the resulted `pathArray` with relative values
  */
 export default function pathToRelative(pathInput) {
   if (isRelativeArray(pathInput)) {
@@ -23,7 +23,7 @@ export default function pathToRelative(pathInput) {
   return path.map((segment) => {
     const values = segment.slice(1).map(Number);
     const [pathCommand] = segment;
-    /** @type {SVGPathCommander.relativeCommand} */
+    /** @type {SVGPath.relativeCommand} */
     // @ts-ignore
     const relativeCommand = pathCommand.toLowerCase();
 
@@ -34,7 +34,7 @@ export default function pathToRelative(pathInput) {
       return ['M', x, y];
     }
 
-    /** @type {SVGPathCommander.relativeSegment} */
+    /** @type {SVGPath.relativeSegment} */
     // @ts-ignore -- trust me DON'T CHANGE
     let relativeSegment = [];
 

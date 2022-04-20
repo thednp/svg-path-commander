@@ -9,6 +9,7 @@ const MIN = process.env.MIN === 'true' || false; // true/false|unset
 const FORMAT = process.env.FORMAT; // JS umd|iife|esm
 const INPUT = process.env.INPUTFILE;
 const OUTPUTC = process.env.OUTPUTFILE;
+const ES = process.env.ES;
 
 const year = (new Date).getFullYear();
 
@@ -22,7 +23,7 @@ const banner =
 const miniBannerJS = `// SVGPathCommander v${pkg.version} | ${pkg.author} © ${year} | ${pkg.license}-License`;
 
 const INPUTFILE = INPUT ? INPUT : 'src/index.js';
-const OUTPUTFILE = OUTPUTC ? OUTPUTC : 'dist/svg-path-commander'+(FORMAT!=='umd'?'.'+FORMAT:'')+(MIN?'.min':'')+'.js';
+const OUTPUTFILE = OUTPUTC ? OUTPUTC : 'dist/svg-path-commander'+(FORMAT!=='umd'?'.'+FORMAT:'')+(ES==='es5'?'.es5':'')+(MIN?'.min':'')+'.js';
 
 const OUTPUT = {
   file: OUTPUTFILE,
@@ -34,7 +35,7 @@ const PLUGINS = [
   json()
 ];
 
-if (FORMAT!=='esm'){
+if (ES === 'es5'){
   PLUGINS.push(buble({objectAssign: 'Object.assign'}));
 }
 

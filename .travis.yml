@@ -1,0 +1,6 @@
+language: node_js
+node_js:
+  - "12"
+  - "14"
+  - "16"
+after_success: npm run coverage:badge

@@ -5,8 +5,8 @@ import isAbsoluteArray from '../util/isAbsoluteArray';
  * Parses a path string value or object and returns an array
  * of segments, all converted to absolute values.
  *
- * @param {string | SVGPathCommander.pathArray} pathInput the path string | object
- * @returns {SVGPathCommander.absoluteArray} the resulted `pathArray` with absolute values
+ * @param {string | SVGPath.pathArray} pathInput the path string | object
+ * @returns {SVGPath.absoluteArray} the resulted `pathArray` with absolute values
  */
 export default function pathToAbsolute(pathInput) {
   if (isAbsoluteArray(pathInput)) {
@@ -22,7 +22,7 @@ export default function pathToAbsolute(pathInput) {
   return path.map((segment) => {
     const values = segment.slice(1).map(Number);
     const [pathCommand] = segment;
-    /** @type {SVGPathCommander.absoluteCommand} */
+    /** @type {SVGPath.absoluteCommand} */
     // @ts-ignore
     const absCommand = pathCommand.toUpperCase();
 
@@ -32,7 +32,7 @@ export default function pathToAbsolute(pathInput) {
       my = y;
       return ['M', x, y];
     }
-    /** @type {SVGPathCommander.absoluteSegment} */
+    /** @type {SVGPath.absoluteSegment} */
     // @ts-ignore
     let absoluteSegment = [];
 

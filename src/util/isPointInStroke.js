@@ -3,8 +3,8 @@ import getPropertiesAtPoint from './getPropertiesAtPoint';
 /**
  * Checks if a given point is in the stroke of a path.
  *
- * @param {string | SVGPathCommander.pathArray} pathInput target path
- * @param {{x: number, y: number}} point
+ * @param {string | SVGPath.pathArray} pathInput target path
+ * @param {{x: number, y: number}} point the given `{x,y}` point
  * @returns {boolean} the query result
  */
 export default function isPointInStroke(pathInput, point) {

@@ -7,12 +7,13 @@ import isPathCommand from './isPathCommand';
 import isDigitStart from './isDigitStart';
 import isArcCommand from './isArcCommand';
 import invalidPathValue from './invalidPathValue';
+import error from './error';
 
 /**
  * Scans every character in the path string to determine
  * where a segment starts and where it ends.
  *
- * @param {SVGPathCommander.PathParser} path the `PathParser` instance
+ * @param {SVGPath.PathParser} path the `PathParser` instance
  */
 export default function scanSegment(path) {
   const { max, pathValue, index } = path;
@@ -22,7 +23,7 @@ export default function scanSegment(path) {
   path.segmentStart = index;
 
   if (!isPathCommand(cmdCode)) {
-    path.err = `${invalidPathValue}: ${pathValue[index]} not a path command`;
+    path.err = `${error}: ${invalidPathValue} "${pathValue[index]}" is not a path command`;
     return;
   }
 

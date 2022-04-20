@@ -14,7 +14,11 @@ import optimizePath from './process/optimizePath';
 import normalizePath from './process/normalizePath';
 import transformPath from './process/transformPath';
 
+import error from './parser/error';
+
 import getPathBBox from './util/getPathBBox';
+import getTotalLength from './util/getTotalLength';
+import getPointAtLength from './util/getPointAtLength';
 
 /**
  * Creates a new SVGPathCommander instance with the following properties:
@@ -35,18 +39,25 @@ class SVGPathCommander {
   constructor(pathValue, config) {
     const instanceOptions = config || {};
 
+    const undefPath = typeof pathValue === 'undefined';
+
+    if (undefPath || !pathValue.length) {
+      throw TypeError(`${error}: "pathValue" is ${undefPath ? 'undefined' : 'empty'}`);
+    }
+
+    const segments = parsePathString(pathValue);
+    if (typeof segments === 'string') {
+      throw TypeError(segments);
+    }
+
     /**
-     * @type {SVGPathCommander.pathArray}
+     * @type {SVGPath.pathArray}
      */
-    this.segments = parsePathString(pathValue);
-    const BBox = getPathBBox(this.segments);
+    this.segments = segments;
+
     const {
-      width,
-      height,
-      cx,
-      cy,
-      cz,
-    } = BBox;
+      width, height, cx, cy, cz,
+    } = this.getBBox();
 
     // set instance options.round
     let { round, origin } = defaultOptions;
@@ -55,7 +66,7 @@ class SVGPathCommander {
     if (roundOption === 'auto') {
       const pathScale = (`${Math.floor(Math.max(width, height))}`).length;
       round = pathScale >= 4 ? 0 : 4 - pathScale;
-    } else if ((Number.isInteger(roundOption) && roundOption >= 1) || roundOption === false) {
+    } else if (Number.isInteger(roundOption) || roundOption === false) {
       round = roundOption;
     }
 
@@ -65,20 +76,49 @@ class SVGPathCommander {
       origin = [
         !Number.isNaN(originX) ? originX : cx,
         !Number.isNaN(originY) ? originY : cy,
-        originZ || cz,
+        !Number.isNaN(originZ) ? originZ : cz,
       ];
     } else {
       origin = [cx, cy, cz];
     }
 
     /**
-     * @type {number | boolean}
-     * @default 4
+     * @type {number | false}
      */
     this.round = round;
     this.origin = origin;
 
     return this;
+  }
+
+  /**
+   * Returns the path bounding box, equivalent to native `path.getBBox()`.
+   * @public
+   * @returns {SVGPath.pathBBox}
+   */
+  getBBox() {
+    return getPathBBox(this.segments);
+  }
+
+  /**
+   * Returns the total path length, equivalent to native `path.getTotalLength()`.
+   * @public
+   * @returns {number}
+   */
+  getTotalLength() {
+    return getTotalLength(this.segments);
+  }
+
+  /**
+   * Returns an `{x,y}` point in the path stroke at a given length,
+   * equivalent to the native `path.getPointAtLength()`.
+   *
+   * @public
+   * @param {number} length the length
+   * @returns {{x: number, y:number}} the requested point
+   */
+  getPointAtLength(length) {
+    return getPointAtLength(this.segments, length);
   }
 
   /**
@@ -172,16 +212,16 @@ class SVGPathCommander {
 
   /**
    * Transform path using values from an `Object` defined as `transformObject`.
-   * @see SVGPathCommander.transformObject for a quick refference
+   * @see SVGPath.transformObject for a quick refference
    *
-   * @param {SVGPathCommander.transformObject} source a `transformObject`as described above
+   * @param {SVGPath.transformObject} source a `transformObject`as described above
    * @public
    */
   transform(source) {
     if (!source || typeof source !== 'object' || (typeof source === 'object'
       && !['translate', 'rotate', 'skew', 'scale'].some((x) => x in source))) return this;
 
-    /** @type {SVGPathCommander.transformObject} */
+    /** @type {SVGPath.transformObject} */
     const transform = {};
     Object.keys(source).forEach((fn) => {
       // @ts-ignore
@@ -191,17 +231,18 @@ class SVGPathCommander {
 
     // if origin is not specified
     // it's important that we have one
+    const [cx, cy, cz] = this.origin;
     const { origin } = transform;
-    if (origin && origin.length >= 2) {
+
+    if (Array.isArray(origin) && origin.length >= 2) {
       const [originX, originY, originZ] = origin.map(Number);
-      const [cx, cy, cz] = this.origin;
       transform.origin = [
         !Number.isNaN(originX) ? originX : cx,
         !Number.isNaN(originY) ? originY : cy,
         originZ || cz,
       ];
     } else {
-      transform.origin = [...this.origin];
+      transform.origin = [cx, cy, cz];
     }
 
     this.segments = transformPath(segments, transform);

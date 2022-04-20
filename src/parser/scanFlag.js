@@ -1,10 +1,10 @@
-import invalidPathValue from './invalidPathValue';
+import error from './error';
 
 /**
  * Validates an A (arc-to) specific path command value.
  * Usually a `large-arc-flag` or `sweep-flag`.
  *
- * @param {SVGPathCommander.PathParser} path the `PathParser` instance
+ * @param {SVGPath.PathParser} path the `PathParser` instance
  */
 export default function scanFlag(path) {
   const { index } = path;
@@ -22,5 +22,5 @@ export default function scanFlag(path) {
     return;
   }
 
-  path.err = `${invalidPathValue}: invalid Arc flag "${ch}", expecting 0 or 1 at index ${index}`;
+  path.err = `${error}: invalid Arc flag "${ch}", expecting 0 or 1 at index ${index}`;
 }

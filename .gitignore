@@ -1,4 +1,5 @@
-node_modules/
-experiments/
+node_modules
+experiments
+coverage
 .npmignore
-package-lock.json
+.nyc_output

@@ -3,14 +3,15 @@ import CSSMatrix from 'dommatrix';
 /**
  * Returns a transformation matrix to apply to `<path>` elements.
  *
- * @see SVGPathCommander.transformObject
+ * @see SVGPath.transformObject
  *
- * @param {SVGPathCommander.transformObject} transform the `transformObject`
+ * @param {SVGPath.transformObject} transform the `transformObject`
  * @returns {CSSMatrix} a new transformation matrix
  */
 export default function getSVGMatrix(transform) {
   let matrix = new CSSMatrix();
   const { origin } = transform;
+  // @ts-ignore -- at this point the origin is surely defined
   const [originX, originY] = origin;
   const { translate } = transform;
   const { rotate } = transform;

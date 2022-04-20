@@ -5,7 +5,7 @@
  * @param {string} pathString
  */
 export default function PathParser(pathString) {
-  /** @type {SVGPathCommander.pathArray} */
+  /** @type {SVGPath.pathArray} */
   // @ts-ignore
   this.segments = [];
   /** @type {string} */

@@ -4,8 +4,8 @@ import normalizePath from './normalizePath';
 /**
  * Reverses all segments of a `pathArray` and returns a new `pathArray` instance.
  *
- * @param {SVGPathCommander.pathArray} pathInput the source `pathArray`
- * @returns {SVGPathCommander.pathArray} the reversed `pathArray`
+ * @param {SVGPath.pathArray} pathInput the source `pathArray`
+ * @returns {SVGPath.pathArray} the reversed `pathArray`
  */
 export default function reversePath(pathInput) {
   const absolutePath = pathToAbsolute(pathInput);
@@ -30,7 +30,7 @@ export default function reversePath(pathInput) {
     /** @type {number} */
     const x = i ? path[i - 1].x : path[pLen - 1].x;
     const y = i ? path[i - 1].y : path[pLen - 1].y;
-    /** @type {SVGPathCommander.pathSegment} */
+    /** @type {SVGPath.pathSegment} */
     // @ts-ignore
     let result = [];
 

@@ -2,8 +2,8 @@
  * Reverses all segments of a `pathArray`
  * which consists of only C (cubic-bezier) path commands.
  *
- * @param {SVGPathCommander.curveArray} path the source `pathArray`
- * @returns {SVGPathCommander.curveArray} the reversed `pathArray`
+ * @param {SVGPath.curveArray} path the source `pathArray`
+ * @returns {SVGPath.curveArray} the reversed `pathArray`
  */
 export default function reverseCurve(path) {
   const rotatedCurve = path.slice(1)

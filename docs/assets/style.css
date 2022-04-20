@@ -32,6 +32,7 @@ h1 small,h2 small,h3 small,h4 small,h5 small {
   padding-right: 1rem;
   padding-left: 1rem;
 }
+
 .form-input { 
   background: #333; border: 1px solid #555; color: #eee; 
   width: calc(100% - 1.5rem) !important; padding: 0.5rem 0.75rem;
@@ -69,6 +70,12 @@ a.active { color: cyan;}
 
 .p-0 {padding: 0 !important}
 .m-0 {margin: 0 !important}
+
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
 
 svg { max-height: 50%; overflow: visible}
 path {transition: fill 0.5s ease}
@@ -112,6 +119,9 @@ path {transition: fill 0.5s ease}
     padding-right: 3rem;
     padding-left: 3rem;
   }
+  .col-md-3 { width: 25%;  max-width: 25%; }
+  .col-md-4 { width: 33%;  max-width: 33%; }
+
   .text-center { text-align: center;}
 }
 /* BS Tooltip */

@@ -4,10 +4,10 @@ import shorthandToCubic from './shorthandToCubic';
 /**
  * Normalizes a single segment of a `pathArray` object.
  *
- * @param {SVGPathCommander.pathSegment} segment the segment object
+ * @param {SVGPath.pathSegment} segment the segment object
  * @param {any} params the coordinates of the previous segment
  * @param {string} prevCommand the path command of the previous segment
- * @returns {SVGPathCommander.normalSegment} the normalized segment
+ * @returns {SVGPath.normalSegment} the normalized segment
  */
 export default function normalizeSegment(segment, params, prevCommand) {
   const [pathCommand] = segment;

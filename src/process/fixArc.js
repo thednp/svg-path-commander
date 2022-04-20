@@ -1,7 +1,7 @@
 /**
  * Splits an extended A (arc-to) segment into two cubic-bezier segments.
  *
- * @param {SVGPathCommander.pathArray} path the `pathArray` this segment belongs to
+ * @param {SVGPath.pathArray} path the `pathArray` this segment belongs to
  * @param {string[]} allPathCommands all previous path commands
  * @param {number} i the segment index
  */

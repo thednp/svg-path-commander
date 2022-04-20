@@ -17,8 +17,8 @@ const shapeParams = {
 /**
  * Returns a new `pathArray` from line attributes.
  *
- * @param {SVGPathCommander.lineAttr} attr shape configuration
- * @returns {SVGPathCommander.pathArray} a new line `pathArray`
+ * @param {SVGPath.lineAttr} attr shape configuration
+ * @returns {SVGPath.pathArray} a new line `pathArray`
  */
 export function getLinePath(attr) {
   const {
@@ -30,11 +30,11 @@ export function getLinePath(attr) {
 /**
  * Returns a new `pathArray` like from polyline/polygon attributes.
  *
- * @param {SVGPathCommander.polyAttr} attr shape configuration
- * @return {SVGPathCommander.pathArray} a new polygon/polyline `pathArray`
+ * @param {SVGPath.polyAttr} attr shape configuration
+ * @return {SVGPath.pathArray} a new polygon/polyline `pathArray`
  */
 export function getPolyPath(attr) {
-  /** @type {SVGPathCommander.pathArray} */
+  /** @type {SVGPath.pathArray} */
   // @ts-ignore -- it's an empty `pathArray`
   const pathArray = [];
   const points = attr.points.trim().split(/[\s|,]/).map(Number);
@@ -51,8 +51,8 @@ export function getPolyPath(attr) {
 /**
  * Returns a new `pathArray` from circle attributes.
  *
- * @param {SVGPathCommander.circleAttr} attr shape configuration
- * @return {SVGPathCommander.pathArray} a circle `pathArray`
+ * @param {SVGPath.circleAttr} attr shape configuration
+ * @return {SVGPath.pathArray} a circle `pathArray`
  */
 export function getCirclePath(attr) {
   const {
@@ -69,8 +69,8 @@ export function getCirclePath(attr) {
 /**
  * Returns a new `pathArray` from ellipse attributes.
  *
- * @param {SVGPathCommander.ellipseAttr} attr shape configuration
- * @return {SVGPathCommander.pathArray} an ellipse `pathArray`
+ * @param {SVGPath.ellipseAttr} attr shape configuration
+ * @return {SVGPath.pathArray} an ellipse `pathArray`
  */
 export function getEllipsePath(attr) {
   const {
@@ -87,8 +87,8 @@ export function getEllipsePath(attr) {
 /**
  * Returns a new `pathArray` like from rect attributes.
  *
- * @param {SVGPathCommander.rectAttr} attr object with properties above
- * @return {SVGPathCommander.pathArray} a new `pathArray` from `<rect>` attributes
+ * @param {SVGPath.rectAttr} attr object with properties above
+ * @return {SVGPath.pathArray} a new `pathArray` from `<rect>` attributes
  */
 export function getRectanglePath(attr) {
   const x = +attr.x || 0;
@@ -134,12 +134,12 @@ export function getRectanglePath(attr) {
  * is `true`, it will replace the target.
  *
  * It can also work with an options object,
- * @see SVGPathCommander.shapeOps
+ * @see SVGPath.shapeOps
  *
  * The newly created `<path>` element keeps all non-specific
  * attributes like `class`, `fill`, etc.
  *
- * @param {SVGPathCommander.shapeTypes | SVGPathCommander.shapeOps} element target shape
+ * @param {SVGPath.shapeTypes | SVGPath.shapeOps} element target shape
  * @param {boolean=} replace option to replace target
  * @return {SVGPathElement | boolean} the newly created `<path>` element
  */

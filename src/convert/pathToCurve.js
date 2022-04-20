@@ -13,8 +13,8 @@ import paramsParser from '../parser/paramsParser';
  * In addition, un-necessary `Z` segment is removed if previous segment
  * extends to the `M` segment.
  *
- * @param {string | SVGPathCommander.pathArray} pathInput the string to be parsed or 'pathArray'
- * @returns {SVGPathCommander.curveArray} the resulted `pathArray` converted to cubic-bezier
+ * @param {string | SVGPath.pathArray} pathInput the string to be parsed or 'pathArray'
+ * @returns {SVGPath.curveArray} the resulted `pathArray` converted to cubic-bezier
  */
 export default function pathToCurve(pathInput) {
   if (isCurveArray(pathInput)) {

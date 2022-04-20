@@ -6,7 +6,6 @@ import getPathLength from './getPathLength';
 import getTotalLength from './getTotalLength';
 import getDrawDirection from './getDrawDirection';
 import getPointAtLength from './getPointAtLength';
-import getPointAtPathLength from './getPointAtPathLength';
 
 import getPropertiesAtLength from './getPropertiesAtLength';
 import getPropertiesAtPoint from './getPropertiesAtPoint';
@@ -61,7 +60,6 @@ const Util = {
   getTotalLength,
   getPathLength,
   getPointAtLength,
-  getPointAtPathLength,
   getClosestPoint,
   getSegmentOfPoint,
   getPropertiesAtPoint,

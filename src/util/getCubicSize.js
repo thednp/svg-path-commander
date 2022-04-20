@@ -11,7 +11,7 @@ import segmentCubicFactory from './segmentCubicFactory';
  * @param {number} c2y the second control point Y
  * @param {number} x2 the ending point X
  * @param {number} y2 the ending point Y
- * @returns {SVGPathCommander.segmentLimits} the bounding box of the cubic-bezier segment
+ * @returns {SVGPath.segmentLimits} the bounding box of the cubic-bezier segment
  */
 export default function getCubicSize(x1, y1, c1x, c1y, c2x, c2y, x2, y2) {
   let a = (c2x - 2 * c1x + x1) - (x2 - 2 * c2x + c1x);

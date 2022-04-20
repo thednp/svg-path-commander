@@ -3,7 +3,7 @@ import paramsCount from '../parser/paramsCount';
 /**
  * Iterates an array to check if it's an actual `pathArray`.
  *
- * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
+ * @param {string | SVGPath.pathArray} path the `pathArray` to be checked
  * @returns {boolean} iteration result
  */
 export default function isPathArray(path) {

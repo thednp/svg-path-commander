@@ -10,8 +10,8 @@ import normalizePath from './normalizePath';
  * use `splitPath` first and apply this utility on each
  * sub-path separately.
  *
- * @param {SVGPathCommander.pathArray | string} pathInput the `pathArray` source
- * @return {SVGPathCommander.pathArray} a fixed `pathArray`
+ * @param {SVGPath.pathArray | string} pathInput the `pathArray` source
+ * @return {SVGPath.pathArray} a fixed `pathArray`
  */
 export default function fixPath(pathInput) {
   const pathArray = parsePathString(pathInput);

@@ -1,11 +1,11 @@
 /**
  * Shorten a single segment of a `pathArray` object.
  *
- * @param {SVGPathCommander.absoluteSegment} segment the `absoluteSegment` object
- * @param {SVGPathCommander.normalSegment} normalSegment the `normalSegment` object
+ * @param {SVGPath.absoluteSegment} segment the `absoluteSegment` object
+ * @param {SVGPath.normalSegment} normalSegment the `normalSegment` object
  * @param {any} params the coordinates of the previous segment
  * @param {string} prevCommand the path command of the previous segment
- * @returns {SVGPathCommander.shortSegment | SVGPathCommander.pathSegment} the shortened segment
+ * @returns {SVGPath.shortSegment | SVGPath.pathSegment} the shortened segment
  */
 export default function shortenSegment(segment, normalSegment, params, prevCommand) {
   const [pathCommand] = segment;

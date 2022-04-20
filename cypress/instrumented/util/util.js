@@ -1,0 +1,124 @@
+function cov_20uv6cq8mz() {
+  var path = "D:\\! At Work\\5OpenSource\\svg-path-commander\\src\\util\\util.js";
+  var hash = "319ed6dd3bb105a35ebd1d0de97e98639ffa9f8f";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "D:\\! At Work\\5OpenSource\\svg-path-commander\\src\\util\\util.js",
+    statementMap: {
+      "0": {
+        start: {
+          line: 44,
+          column: 13
+        },
+        end: {
+          line: 80,
+          column: 1
+        }
+      }
+    },
+    fnMap: {},
+    branchMap: {},
+    s: {
+      "0": 0
+    },
+    f: {},
+    b: {},
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "319ed6dd3bb105a35ebd1d0de97e98639ffa9f8f"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_20uv6cq8mz = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+
+cov_20uv6cq8mz();
+import CSSMatrix from 'dommatrix';
+import defaultOptions from '../options/options';
+import getPathBBox from './getPathBBox';
+import getPathArea from './getPathArea';
+import getPathLength from './getPathLength';
+import getTotalLength from './getTotalLength';
+import getDrawDirection from './getDrawDirection';
+import getPointAtLength from './getPointAtLength';
+import getPropertiesAtLength from './getPropertiesAtLength';
+import getPropertiesAtPoint from './getPropertiesAtPoint';
+import getClosestPoint from './getClosestPoint';
+import getSegmentOfPoint from './getSegmentOfPoint';
+import getSegmentAtLength from './getSegmentAtLength';
+import isPointInStroke from './isPointInStroke';
+import isValidPath from './isValidPath';
+import isPathArray from './isPathArray';
+import isAbsoluteArray from './isAbsoluteArray';
+import isRelativeArray from './isRelativeArray';
+import isCurveArray from './isCurveArray';
+import isNormalizedArray from './isNormalizedArray';
+import shapeToPath from './shapeToPath';
+import parsePathString from '../parser/parsePathString';
+import clonePath from '../process/clonePath';
+import roundPath from '../process/roundPath';
+import splitPath from '../process/splitPath';
+import optimizePath from '../process/optimizePath';
+import reverseCurve from '../process/reverseCurve';
+import reversePath from '../process/reversePath';
+import normalizePath from '../process/normalizePath';
+import transformPath from '../process/transformPath';
+import fixPath from '../process/fixPath';
+import pathToAbsolute from '../convert/pathToAbsolute';
+import pathToRelative from '../convert/pathToRelative';
+import pathToCurve from '../convert/pathToCurve';
+import pathToString from '../convert/pathToString';
+/**
+ * @interface
+ */
+
+const Util = (cov_20uv6cq8mz().s[0]++, {
+  CSSMatrix,
+  parsePathString,
+  isPathArray,
+  isCurveArray,
+  isAbsoluteArray,
+  isRelativeArray,
+  isNormalizedArray,
+  isValidPath,
+  pathToAbsolute,
+  pathToRelative,
+  pathToCurve,
+  pathToString,
+  getDrawDirection,
+  getPathArea,
+  getPathBBox,
+  getTotalLength,
+  getPathLength,
+  getPointAtLength,
+  getClosestPoint,
+  getSegmentOfPoint,
+  getPropertiesAtPoint,
+  getPropertiesAtLength,
+  getSegmentAtLength,
+  isPointInStroke,
+  clonePath,
+  splitPath,
+  fixPath,
+  roundPath,
+  optimizePath,
+  reverseCurve,
+  reversePath,
+  normalizePath,
+  transformPath,
+  shapeToPath,
+  options: defaultOptions
+});
+export default Util;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInV0aWwuanMiXSwibmFtZXMiOlsiQ1NTTWF0cml4IiwiZGVmYXVsdE9wdGlvbnMiLCJnZXRQYXRoQkJveCIsImdldFBhdGhBcmVhIiwiZ2V0UGF0aExlbmd0aCIsImdldFRvdGFsTGVuZ3RoIiwiZ2V0RHJhd0RpcmVjdGlvbiIsImdldFBvaW50QXRMZW5ndGgiLCJnZXRQcm9wZXJ0aWVzQXRMZW5ndGgiLCJnZXRQcm9wZXJ0aWVzQXRQb2ludCIsImdldENsb3Nlc3RQb2ludCIsImdldFNlZ21lbnRPZlBvaW50IiwiZ2V0U2VnbWVudEF0TGVuZ3RoIiwiaXNQb2ludEluU3Ryb2tlIiwiaXNWYWxpZFBhdGgiLCJpc1BhdGhBcnJheSIsImlzQWJzb2x1dGVBcnJheSIsImlzUmVsYXRpdmVBcnJheSIsImlzQ3VydmVBcnJheSIsImlzTm9ybWFsaXplZEFycmF5Iiwic2hhcGVUb1BhdGgiLCJwYXJzZVBhdGhTdHJpbmciLCJjbG9uZVBhdGgiLCJyb3VuZFBhdGgiLCJzcGxpdFBhdGgiLCJvcHRpbWl6ZVBhdGgiLCJyZXZlcnNlQ3VydmUiLCJyZXZlcnNlUGF0aCIsIm5vcm1hbGl6ZVBhdGgiLCJ0cmFuc2Zvcm1QYXRoIiwiZml4UGF0aCIsInBhdGhUb0Fic29sdXRlIiwicGF0aFRvUmVsYXRpdmUiLCJwYXRoVG9DdXJ2ZSIsInBhdGhUb1N0cmluZyIsIlV0aWwiLCJvcHRpb25zIl0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBZVk7Ozs7Ozs7OztBQWZaLE9BQU9BLFNBQVAsTUFBc0IsV0FBdEI7QUFDQSxPQUFPQyxjQUFQLE1BQTJCLG9CQUEzQjtBQUNBLE9BQU9DLFdBQVAsTUFBd0IsZUFBeEI7QUFDQSxPQUFPQyxXQUFQLE1BQXdCLGVBQXhCO0FBQ0EsT0FBT0MsYUFBUCxNQUEwQixpQkFBMUI7QUFDQSxPQUFPQyxjQUFQLE1BQTJCLGtCQUEzQjtBQUNBLE9BQU9DLGdCQUFQLE1BQTZCLG9CQUE3QjtBQUNBLE9BQU9DLGdCQUFQLE1BQTZCLG9CQUE3QjtBQUVBLE9BQU9DLHFCQUFQLE1BQWtDLHlCQUFsQztBQUNBLE9BQU9DLG9CQUFQLE1BQWlDLHdCQUFqQztBQUNBLE9BQU9DLGVBQVAsTUFBNEIsbUJBQTVCO0FBQ0EsT0FBT0MsaUJBQVAsTUFBOEIscUJBQTlCO0FBQ0EsT0FBT0Msa0JBQVAsTUFBK0Isc0JBQS9CO0FBQ0EsT0FBT0MsZUFBUCxNQUE0QixtQkFBNUI7QUFFQSxPQUFPQyxXQUFQLE1BQXdCLGVBQXhCO0FBQ0EsT0FBT0MsV0FBUCxNQUF3QixlQUF4QjtBQUNBLE9BQU9DLGVBQVAsTUFBNEIsbUJBQTVCO0FBQ0EsT0FBT0MsZUFBUCxNQUE0QixtQkFBNUI7QUFDQSxPQUFPQyxZQUFQLE1BQXlCLGdCQUF6QjtBQUNBLE9BQU9DLGlCQUFQLE1BQThCLHFCQUE5QjtBQUNBLE9BQU9DLFdBQVAsTUFBd0IsZUFBeEI7QUFFQSxPQUFPQyxlQUFQLE1BQTRCLDJCQUE1QjtBQUNBLE9BQU9DLFNBQVAsTUFBc0Isc0JBQXRCO0FBQ0EsT0FBT0MsU0FBUCxNQUFzQixzQkFBdEI7QUFDQSxPQUFPQyxTQUFQLE1BQXNCLHNCQUF0QjtBQUNBLE9BQU9DLFlBQVAsTUFBeUIseUJBQXpCO0FBQ0EsT0FBT0MsWUFBUCxNQUF5Qix5QkFBekI7QUFDQSxPQUFPQyxXQUFQLE1BQXdCLHdCQUF4QjtBQUNBLE9BQU9DLGFBQVAsTUFBMEIsMEJBQTFCO0FBQ0EsT0FBT0MsYUFBUCxNQUEwQiwwQkFBMUI7QUFDQSxPQUFPQyxPQUFQLE1BQW9CLG9CQUFwQjtBQUVBLE9BQU9DLGNBQVAsTUFBMkIsMkJBQTNCO0FBQ0EsT0FBT0MsY0FBUCxNQUEyQiwyQkFBM0I7QUFDQSxPQUFPQyxXQUFQLE1BQXdCLHdCQUF4QjtBQUNBLE9BQU9DLFlBQVAsTUFBeUIseUJBQXpCO0FBRUE7QUFDQTtBQUNBOztBQUNBLE1BQU1DLElBQUksNkJBQUc7QUFDWG5DLEVBQUFBLFNBRFc7QUFFWHFCLEVBQUFBLGVBRlc7QUFHWE4sRUFBQUEsV0FIVztBQUlYRyxFQUFBQSxZQUpXO0FBS1hGLEVBQUFBLGVBTFc7QUFNWEMsRUFBQUEsZUFOVztBQU9YRSxFQUFBQSxpQkFQVztBQVFYTCxFQUFBQSxXQVJXO0FBU1hpQixFQUFBQSxjQVRXO0FBVVhDLEVBQUFBLGNBVlc7QUFXWEMsRUFBQUEsV0FYVztBQVlYQyxFQUFBQSxZQVpXO0FBYVg1QixFQUFBQSxnQkFiVztBQWNYSCxFQUFBQSxXQWRXO0FBZVhELEVBQUFBLFdBZlc7QUFnQlhHLEVBQUFBLGNBaEJXO0FBaUJYRCxFQUFBQSxhQWpCVztBQWtCWEcsRUFBQUEsZ0JBbEJXO0FBbUJYRyxFQUFBQSxlQW5CVztBQW9CWEMsRUFBQUEsaUJBcEJXO0FBcUJYRixFQUFBQSxvQkFyQlc7QUFzQlhELEVBQUFBLHFCQXRCVztBQXVCWEksRUFBQUEsa0JBdkJXO0FBd0JYQyxFQUFBQSxlQXhCVztBQXlCWFMsRUFBQUEsU0F6Qlc7QUEwQlhFLEVBQUFBLFNBMUJXO0FBMkJYTSxFQUFBQSxPQTNCVztBQTRCWFAsRUFBQUEsU0E1Qlc7QUE2QlhFLEVBQUFBLFlBN0JXO0FBOEJYQyxFQUFBQSxZQTlCVztBQStCWEMsRUFBQUEsV0EvQlc7QUFnQ1hDLEVBQUFBLGFBaENXO0FBaUNYQyxFQUFBQSxhQWpDVztBQWtDWFQsRUFBQUEsV0FsQ1c7QUFtQ1hnQixFQUFBQSxPQUFPLEVBQUVuQztBQW5DRSxDQUFILENBQVY7QUFzQ0EsZUFBZWtDLElBQWYiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgQ1NTTWF0cml4IGZyb20gJ2RvbW1hdHJpeCc7XG5pbXBvcnQgZGVmYXVsdE9wdGlvbnMgZnJvbSAnLi4vb3B0aW9ucy9vcHRpb25zJztcbmltcG9ydCBnZXRQYXRoQkJveCBmcm9tICcuL2dldFBhdGhCQm94JztcbmltcG9ydCBnZXRQYXRoQXJlYSBmcm9tICcuL2dldFBhdGhBcmVhJztcbmltcG9ydCBnZXRQYXRoTGVuZ3RoIGZyb20gJy4vZ2V0UGF0aExlbmd0aCc7XG5pbXBvcnQgZ2V0VG90YWxMZW5ndGggZnJvbSAnLi9nZXRUb3RhbExlbmd0aCc7XG5pbXBvcnQgZ2V0RHJhd0RpcmVjdGlvbiBmcm9tICcuL2dldERyYXdEaXJlY3Rpb24nO1xuaW1wb3J0IGdldFBvaW50QXRMZW5ndGggZnJvbSAnLi9nZXRQb2ludEF0TGVuZ3RoJztcblxuaW1wb3J0IGdldFByb3BlcnRpZXNBdExlbmd0aCBmcm9tICcuL2dldFByb3BlcnRpZXNBdExlbmd0aCc7XG5pbXBvcnQgZ2V0UHJvcGVydGllc0F0UG9pbnQgZnJvbSAnLi9nZXRQcm9wZXJ0aWVzQXRQb2ludCc7XG5pbXBvcnQgZ2V0Q2xvc2VzdFBvaW50IGZyb20gJy4vZ2V0Q2xvc2VzdFBvaW50JztcbmltcG9ydCBnZXRTZWdtZW50T2ZQb2ludCBmcm9tICcuL2dldFNlZ21lbnRPZlBvaW50JztcbmltcG9ydCBnZXRTZWdtZW50QXRMZW5ndGggZnJvbSAnLi9nZXRTZWdtZW50QXRMZW5ndGgnO1xuaW1wb3J0IGlzUG9pbnRJblN0cm9rZSBmcm9tICcuL2lzUG9pbnRJblN0cm9rZSc7XG5cbmltcG9ydCBpc1ZhbGlkUGF0aCBmcm9tICcuL2lzVmFsaWRQYXRoJztcbmltcG9ydCBpc1BhdGhBcnJheSBmcm9tICcuL2lzUGF0aEFycmF5JztcbmltcG9ydCBpc0Fic29sdXRlQXJyYXkgZnJvbSAnLi9pc0Fic29sdXRlQXJyYXknO1xuaW1wb3J0IGlzUmVsYXRpdmVBcnJheSBmcm9tICcuL2lzUmVsYXRpdmVBcnJheSc7XG5pbXBvcnQgaXNDdXJ2ZUFycmF5IGZyb20gJy4vaXNDdXJ2ZUFycmF5JztcbmltcG9ydCBpc05vcm1hbGl6ZWRBcnJheSBmcm9tICcuL2lzTm9ybWFsaXplZEFycmF5JztcbmltcG9ydCBzaGFwZVRvUGF0aCBmcm9tICcuL3NoYXBlVG9QYXRoJztcblxuaW1wb3J0IHBhcnNlUGF0aFN0cmluZyBmcm9tICcuLi9wYXJzZXIvcGFyc2VQYXRoU3RyaW5nJztcbmltcG9ydCBjbG9uZVBhdGggZnJvbSAnLi4vcHJvY2Vzcy9jbG9uZVBhdGgnO1xuaW1wb3J0IHJvdW5kUGF0aCBmcm9tICcuLi9wcm9jZXNzL3JvdW5kUGF0aCc7XG5pbXBvcnQgc3BsaXRQYXRoIGZyb20gJy4uL3Byb2Nlc3Mvc3BsaXRQYXRoJztcbmltcG9ydCBvcHRpbWl6ZVBhdGggZnJvbSAnLi4vcHJvY2Vzcy9vcHRpbWl6ZVBhdGgnO1xuaW1wb3J0IHJldmVyc2VDdXJ2ZSBmcm9tICcuLi9wcm9jZXNzL3JldmVyc2VDdXJ2ZSc7XG5pbXBvcnQgcmV2ZXJzZVBhdGggZnJvbSAnLi4vcHJvY2Vzcy9yZXZlcnNlUGF0aCc7XG5pbXBvcnQgbm9ybWFsaXplUGF0aCBmcm9tICcuLi9wcm9jZXNzL25vcm1hbGl6ZVBhdGgnO1xuaW1wb3J0IHRyYW5zZm9ybVBhdGggZnJvbSAnLi4vcHJvY2Vzcy90cmFuc2Zvcm1QYXRoJztcbmltcG9ydCBmaXhQYXRoIGZyb20gJy4uL3Byb2Nlc3MvZml4UGF0aCc7XG5cbmltcG9ydCBwYXRoVG9BYnNvbHV0ZSBmcm9tICcuLi9jb252ZXJ0L3BhdGhUb0Fic29sdXRlJztcbmltcG9ydCBwYXRoVG9SZWxhdGl2ZSBmcm9tICcuLi9jb252ZXJ0L3BhdGhUb1JlbGF0aXZlJztcbmltcG9ydCBwYXRoVG9DdXJ2ZSBmcm9tICcuLi9jb252ZXJ0L3BhdGhUb0N1cnZlJztcbmltcG9ydCBwYXRoVG9TdHJpbmcgZnJvbSAnLi4vY29udmVydC9wYXRoVG9TdHJpbmcnO1xuXG4vKipcbiAqIEBpbnRlcmZhY2VcbiAqL1xuY29uc3QgVXRpbCA9IHtcbiAgQ1NTTWF0cml4LFxuICBwYXJzZVBhdGhTdHJpbmcsXG4gIGlzUGF0aEFycmF5LFxuICBpc0N1cnZlQXJyYXksXG4gIGlzQWJzb2x1dGVBcnJheSxcbiAgaXNSZWxhdGl2ZUFycmF5LFxuICBpc05vcm1hbGl6ZWRBcnJheSxcbiAgaXNWYWxpZFBhdGgsXG4gIHBhdGhUb0Fic29sdXRlLFxuICBwYXRoVG9SZWxhdGl2ZSxcbiAgcGF0aFRvQ3VydmUsXG4gIHBhdGhUb1N0cmluZyxcbiAgZ2V0RHJhd0RpcmVjdGlvbixcbiAgZ2V0UGF0aEFyZWEsXG4gIGdldFBhdGhCQm94LFxuICBnZXRUb3RhbExlbmd0aCxcbiAgZ2V0UGF0aExlbmd0aCxcbiAgZ2V0UG9pbnRBdExlbmd0aCxcbiAgZ2V0Q2xvc2VzdFBvaW50LFxuICBnZXRTZWdtZW50T2ZQb2ludCxcbiAgZ2V0UHJvcGVydGllc0F0UG9pbnQsXG4gIGdldFByb3BlcnRpZXNBdExlbmd0aCxcbiAgZ2V0U2VnbWVudEF0TGVuZ3RoLFxuICBpc1BvaW50SW5TdHJva2UsXG4gIGNsb25lUGF0aCxcbiAgc3BsaXRQYXRoLFxuICBmaXhQYXRoLFxuICByb3VuZFBhdGgsXG4gIG9wdGltaXplUGF0aCxcbiAgcmV2ZXJzZUN1cnZlLFxuICByZXZlcnNlUGF0aCxcbiAgbm9ybWFsaXplUGF0aCxcbiAgdHJhbnNmb3JtUGF0aCxcbiAgc2hhcGVUb1BhdGgsXG4gIG9wdGlvbnM6IGRlZmF1bHRPcHRpb25zLFxufTtcblxuZXhwb3J0IGRlZmF1bHQgVXRpbDtcbiJdfQ==

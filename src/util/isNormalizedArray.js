@@ -5,7 +5,7 @@ import isAbsoluteArray from './isAbsoluteArray';
  * with all segments are in non-shorthand notation
  * with absolute values.
  *
- * @param {string | SVGPathCommander.pathArray} path the `pathArray` to be checked
+ * @param {string | SVGPath.pathArray} path the `pathArray` to be checked
  * @returns {boolean} iteration result
  */
 export default function isNormalizedArray(path) {

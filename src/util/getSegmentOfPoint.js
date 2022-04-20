@@ -3,9 +3,9 @@ import getPropertiesAtPoint from './getPropertiesAtPoint';
 /**
  * Returns the path segment which contains a given point.
  *
- * @param {string | SVGPathCommander.pathArray} path the `pathArray` to look into
+ * @param {string | SVGPath.pathArray} path the `pathArray` to look into
  * @param {{x: number, y: number}} point the point of the shape to look for
- * @returns {SVGPathCommander.pathSegment?} the requested segment
+ * @returns {SVGPath.pathSegment?} the requested segment
  */
 export default function getSegmentOfPoint(path, point) {
   const props = getPropertiesAtPoint(path, point);

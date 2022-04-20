@@ -1,6 +1,6 @@
 /**
  * SVGPathCommander default options
- * @type {SVGPathCommander.options}
+ * @type {SVGPath.options}
  */
 const defaultOptions = {
   origin: [0, 0, 0],

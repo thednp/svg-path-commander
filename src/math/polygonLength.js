@@ -6,13 +6,12 @@ import distanceSquareRoot from './distanceSquareRoot';
  *
  * Returns the perimeter of a polygon.
  *
- * @param {number[][]} polygon an array of coordinates
+ * @param {[number,number][]} polygon an array of coordinates
  * @returns {number} the polygon length
  */
 export default function polygonLength(polygon) {
   return polygon.reduce((length, point, i) => {
     if (i) {
-      // @ts-ignore
       return length + distanceSquareRoot(polygon[i - 1], point);
     }
     return 0;

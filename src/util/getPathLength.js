@@ -7,7 +7,7 @@ import pathToCurve from '../convert/pathToCurve';
  * This is the `pathToCurve` version which is faster and more efficient for
  * paths that are `curveArray`.
  *
- * @param {string | SVGPathCommander.curveArray} path the target `pathArray`
+ * @param {string | SVGPath.curveArray} path the target `pathArray`
  * @returns {number} the `curveArray` total length
  */
 export default function getPathLength(path) {

@@ -106,7 +106,7 @@ export type polylineArray =   [MSegment, ...LSegment[]];
 
 export interface options {
   /** @default 4 */
-  round: boolean | number;
+  round: false | number;
   /** @default [0,0,0] */
   origin: number[];
 }
@@ -123,15 +123,16 @@ export interface pathTransformList {
 }
 
 export interface transformObject {
-  // translate?: number | [number, number, number];
-  // rotate?: number | [number, number, number];
-  // scale?: number | [number, number, number];
-  // skew?: number | [number, number];
-  translate?: number | number[];
-  rotate?: number | number[];
-  scale?: number | number[];
-  skew?: number | number[];
-  origin: number[];
+  translate?: number | [number, number, number];
+  rotate?: number | [number, number, number];
+  scale?: number | [number, number, number];
+  skew?: number | [number, number];
+  origin?: [number, number, number?];
+  // translate?: number | number[];
+  // rotate?: number | number[];
+  // scale?: number | number[];
+  // skew?: number | number[];
+  // origin?: number[];
 }
 
 export type shapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;

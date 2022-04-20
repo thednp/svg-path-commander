@@ -10,9 +10,9 @@ import normalizePath from '../process/normalizePath';
  * the distance to the path stroke.
  * @see https://bl.ocks.org/mbostock/8027637
  *
- * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
+ * @param {string | SVGPath.pathArray} pathInput target `pathArray`
  * @param {{x: number, y: number}} point the given point
- * @returns {SVGPathCommander.pointProperties} the requested properties
+ * @returns {SVGPath.pointProperties} the requested properties
  */
 export default function getPropertiesAtPoint(pathInput, point) {
   const path = fixPath(parsePathString(pathInput));

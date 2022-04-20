@@ -51,7 +51,6 @@ export { default as splitPath } from '../../src/process/splitPath';
 export { default as transformEllipse } from '../../src/process/transformEllipse';
 export { default as transformPath } from '../../src/process/transformPath';
 
-export { default as createPath } from '../../src/util/createPath';
 export { default as getCubicSize } from '../../src/util/getCubicSize';
 export { default as getDrawDirection } from '../../src/util/getDrawDirection';
 export { default as getPathArea } from '../../src/util/getPathArea';
@@ -66,8 +65,6 @@ export { default as segmentCubicFactory } from '../../src/util/segmentCubicFacto
 export { default as segmentQuadFactory } from '../../src/util/segmentQuadFactory';
 
 export { default as getPointAtLength } from '../../src/util/getPointAtLength';
-export { default as getPointAtPathLength } from '../../src/util/getPointAtPathLength';
-
 export { default as getPropertiesAtPoint } from '../../src/util/getPropertiesAtPoint';
 export { default as getPropertiesAtLength } from '../../src/util/getPropertiesAtLength';
 export { default as getClosestPoint } from '../../src/util/getClosestPoint';

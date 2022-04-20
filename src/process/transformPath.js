@@ -14,9 +14,9 @@ import paramsParser from '../parser/paramsParser';
  * Since *SVGElement* doesn't support 3D transformation, this function
  * creates a 2D projection of the <path> element.
  *
- * @param {SVGPathCommander.pathArray} path the `pathArray` to apply transformation
- * @param {SVGPathCommander.transformObject} transform the transform functions `Object`
- * @returns {SVGPathCommander.pathArray} the resulted `pathArray`
+ * @param {SVGPath.pathArray} path the `pathArray` to apply transformation
+ * @param {SVGPath.transformObject} transform the transform functions `Object`
+ * @returns {SVGPath.pathArray} the resulted `pathArray`
  */
 export default function transformPath(path, transform) {
   let x = 0; let y = 0; let i; let j; let ii; let jj; let lx; let ly; let te;
@@ -31,12 +31,12 @@ export default function transformPath(path, transform) {
   const matrix2d = [a, b, c, d, e, f];
   const params = { ...paramsParser };
   /** @ts-ignore */
-  /** @type {SVGPathCommander.pathSegment} */
+  /** @type {SVGPath.pathSegment} */
   // @ts-ignore
   let segment = [];
   let seglen = 0;
   let pathCommand = '';
-  /** @type {SVGPathCommander.pathTransformList[]} */
+  /** @type {SVGPath.pathTransformList[]} */
   let transformedPath = [];
   const allPathCommands = []; // needed for arc to curve transformation
 
@@ -75,7 +75,7 @@ export default function transformPath(path, transform) {
       params.x2 = +(segment[seglen - 4]) || params.x1;
       params.y2 = +(segment[seglen - 3]) || params.y1;
 
-      /** @type {SVGPathCommander.pathTransformList} */
+      /** @type {SVGPath.pathTransformList} */
       const result = {
         s: absolutePath[i], c: absolutePath[i][0], x: params.x1, y: params.y1,
       };
@@ -112,6 +112,7 @@ export default function transformPath(path, transform) {
         case 'L':
         case 'H':
         case 'V':
+          // @ts-ignore
           [lx, ly] = projection2d(matrixInstance, [seg.x, seg.y], origin);
 
           if (x !== lx && y !== ly) {
@@ -128,7 +129,7 @@ export default function transformPath(path, transform) {
         default:
 
           for (j = 1, jj = segment.length; j < jj; j += 2) {
-            // compute line coordinates without altering previous coordinates
+            // @ts-ignore compute line coordinates without altering previous coordinates
             [x, y] = projection2d(matrixInstance, [+segment[j], +segment[j + 1]], origin);
             segment[j] = x;
             segment[j + 1] = y;

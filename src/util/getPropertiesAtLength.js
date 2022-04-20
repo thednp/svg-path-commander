@@ -5,9 +5,9 @@ import getTotalLength from './getTotalLength';
  * Returns the segment, its index and length as well as
  * the length to that segment at a given length in a path.
  *
- * @param {string | SVGPathCommander.pathArray} pathInput target `pathArray`
+ * @param {string | SVGPath.pathArray} pathInput target `pathArray`
  * @param {number=} distance the given length
- * @returns {SVGPathCommander.segmentProperties=} the requested properties
+ * @returns {SVGPath.segmentProperties=} the requested properties
  */
 export default function getPropertiesAtLength(pathInput, distance) {
   const pathArray = parsePathString(pathInput);
@@ -19,7 +19,7 @@ export default function getPropertiesAtLength(pathInput, distance) {
   let index = pathTemp.length - 1;
   let lengthAtSegment = 0;
   let length = 0;
-  /** @type {SVGPathCommander.pathSegment} */
+  /** @type {SVGPath.pathSegment} */
   let segment = pathArray[0];
   const [x, y] = segment.slice(-2);
   const point = { x, y };

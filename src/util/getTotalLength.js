@@ -6,7 +6,7 @@ import pathLengthFactory from './pathLengthFactory';
  * The `normalizePath` version is lighter, faster, more efficient and more accurate
  * with paths that are not `curveArray`.
  *
- * @param {string | SVGPathCommander.pathArray} pathInput the target `pathArray`
+ * @param {string | SVGPath.pathArray} pathInput the target `pathArray`
  * @returns {number} the shape total length
  */
 export default function getTotalLength(pathInput) {

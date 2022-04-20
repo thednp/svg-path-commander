@@ -1,4 +1,4 @@
-export as namespace SVGPathCommander;
+export as namespace SVGPath;
 export default SVGPathCommander;
 
 // modules
@@ -51,7 +51,6 @@ export { default as splitCubic } from "svg-path-commander/src/process/splitCubic
 export { default as splitPath } from "svg-path-commander/src/process/splitPath";
 export { default as transformEllipse } from "svg-path-commander/src/process/transformEllipse";
 export { default as transformPath } from "svg-path-commander/src/process/transformPath";
-export { default as createPath } from "svg-path-commander/src/util/createPath";
 export { default as getCubicSize } from "svg-path-commander/src/util/getCubicSize";
 export { default as getDrawDirection } from "svg-path-commander/src/util/getDrawDirection";
 export { default as getPathArea } from "svg-path-commander/src/util/getPathArea";
@@ -63,7 +62,6 @@ export { default as segmentArcFactory } from "svg-path-commander/src/util/segmen
 export { default as segmentCubicFactory } from "svg-path-commander/src/util/segmentCubicFactory";
 export { default as segmentQuadFactory } from "svg-path-commander/src/util/segmentQuadFactory";
 export { default as getPointAtLength } from "svg-path-commander/src/util/getPointAtLength";
-export { default as getPointAtPathLength } from "svg-path-commander/src/util/getPointAtPathLength";
 export { default as getPropertiesAtPoint } from "svg-path-commander/src/util/getPropertiesAtPoint";
 export { default as getPropertiesAtLength } from "svg-path-commander/src/util/getPropertiesAtLength";
 export { default as getClosestPoint } from "svg-path-commander/src/util/getClosestPoint";

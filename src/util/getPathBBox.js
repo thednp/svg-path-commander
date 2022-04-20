@@ -4,8 +4,8 @@ import pathToCurve from '../convert/pathToCurve';
 /**
  * Returns the bounding box of a shape.
  *
- * @param {SVGPathCommander.pathArray} path the shape `pathArray`
- * @returns {SVGPathCommander.pathBBox} the length of the cubic-bezier segment
+ * @param {SVGPath.pathArray} path the shape `pathArray`
+ * @returns {SVGPath.pathBBox} the length of the cubic-bezier segment
  */
 export default function getPathBBox(path) {
   if (!path) {

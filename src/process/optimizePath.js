@@ -14,9 +14,9 @@ import normalizePath from './normalizePath';
  * * implement `auto` for rounding values based on pathBBox
  * * also revers path check if it's smaller string, maybe?
  *
- * @param {SVGPathCommander.pathArray} pathInput a string or `pathArray`
+ * @param {SVGPath.pathArray} pathInput a string or `pathArray`
  * @param {number | boolean} round the amount of decimals to round values to
- * @returns {SVGPathCommander.pathArray} the optimized `pathArray`
+ * @returns {SVGPath.pathArray} the optimized `pathArray`
  */
 export default function optimizePath(pathInput, round) {
   const path = pathToAbsolute(pathInput);
