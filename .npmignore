@@ -1,7 +1,11 @@
+.nyc_output
+.gitignore
+.github
 node_modules
 experiments
 docs
 coverage
-.nyc_output
-.gitignore
-.github
+cypress/videos
+cypress/screenshots
+cypress/coverage
+cypress/instrumented

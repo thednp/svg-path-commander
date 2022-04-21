@@ -1,6 +1,6 @@
 {
   "name": "svg-path-commander",
-  "version": "0.2.0alpha2",
+  "version": "0.2.0alpha3",
   "description": "ES6+ JavaScript tools for SVG processing and converting path data",
   "main": "dist/svg-path-commander.min.js",
   "module": "dist/svg-path-commander.esm.js",
@@ -12,9 +12,8 @@
     "src"
   ],
   "scripts": {
-    "instrument": "npx nyc instrument --compact=false src cypress/instrumented",
-    "test": "npm run instrument && npx cypress run",
-    "cypress": "npm run instrument && npx cypress open",
+    "test": "npx cypress run",
+    "cypress": "npx cypress open",
     "coverage:report": "npx nyc report --include=src/*.js --reporter=lcov --reporter=json --reporter=text --reporter=json-summary",
     "coverage:badge": "npx --check-coverage update-badge",
     "build": "npm run lint:js && npm-run-all --parallel build-*",
@@ -35,14 +34,18 @@
     "url": "git+https://github.com/thednp/svg-path-commander.git"
   },
   "keywords": [
-    "svg-path-commander",
-    "svg path convert",
-    "svg path reverse",
-    "svg path data",
-    "svg path parse",
-    "svg path transform",
-    "svg shape to path",
-    "svg path",
+    "svg",
+    "path",
+    "commander",
+    "parse",
+    "normalize",
+    "optimize",
+    "data",
+    "convert",
+    "absolute",
+    "relative",
+    "curve",
+    "transform3d",
     "svg",
     "javascript"
   ],

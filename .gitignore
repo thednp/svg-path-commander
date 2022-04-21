@@ -1,5 +1,9 @@
+.npmignore
+.nyc_output
 node_modules
 experiments
 coverage
-.npmignore
-.nyc_output
+cypress/videos
+cypress/screenshots
+cypress/coverage
+cypress/instrumented
