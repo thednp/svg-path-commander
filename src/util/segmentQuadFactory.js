@@ -2,7 +2,7 @@ import distanceSquareRoot from '../math/distanceSquareRoot';
 
 /**
  * Returns the {x,y} coordinates of a point at a
- * given length of a quad-bezier segment.
+ * given length of a quadratic-bezier segment.
  *
  * @see https://github.com/substack/point-at-length
  *
@@ -28,8 +28,8 @@ function getPointAtQuadSegmentLength(x1, y1, cx, cy, x2, y2, t) {
 }
 
 /**
- * Returns the Q (quadratic-bezier) segment length
- * or an {x,y} point at a given length.
+ * Returns a {x,y} point at a given length, the total length and
+ * the minimum and maximum {x,y} coordinates of a Q (quadratic-bezier) segment.
  *
  * @param {number} x1 the starting point X
  * @param {number} y1 the starting point Y

@@ -1060,8 +1060,8 @@
   }
 
   /**
-   * Returns the length of a line (L,V,H,Z) segment
-   * or a point at a given length.
+   * Returns a {x,y} point at a given length, the total length and
+   * the minimum and maximum {x,y} coordinates of a line (L,V,H,Z) segment.
    *
    * @param {number} x1 the starting point X
    * @param {number} y1 the starting point Y
@@ -2714,7 +2714,8 @@
   }
 
   /**
-   * Returns a point at a given length of a C (cubic-bezier) segment.
+   * Returns a {x,y} point at a given length, the total length and
+   * the minimum and maximum {x,y} coordinates of a C (cubic-bezier) segment.
    *
    * @param {number} x1 the starting point X
    * @param {number} y1 the starting point Y
@@ -2813,8 +2814,8 @@
   }
 
   /**
-   * Returns the length of an A (arc-to) segment
-   * or an {x,y} point at a given length.
+   * Returns a {x,y} point at a given length, the total length and
+   * the shape minimum and maximum {x,y} coordinates of an A (arc-to) segment.
    *
    * @param {number} X1 the starting x position
    * @param {number} Y1 the starting y position
@@ -2888,7 +2889,7 @@
 
   /**
    * Returns the {x,y} coordinates of a point at a
-   * given length of a quad-bezier segment.
+   * given length of a quadratic-bezier segment.
    *
    * @see https://github.com/substack/point-at-length
    *
@@ -2914,8 +2915,8 @@
   }
 
   /**
-   * Returns the Q (quadratic-bezier) segment length
-   * or an {x,y} point at a given length.
+   * Returns a {x,y} point at a given length, the total length and
+   * the minimum and maximum {x,y} coordinates of a Q (quadratic-bezier) segment.
    *
    * @param {number} x1 the starting point X
    * @param {number} y1 the starting point Y
@@ -2983,7 +2984,8 @@
 
   /**
    * Returns a {x,y} point at a given length
-   * of a shape or the shape total length.
+   * of a shape, the shape total length and
+   * the shape minimum and maximum {x,y} coordinates.
    *
    * @param {string | SVGPath.pathArray} pathInput the `pathArray` to look into
    * @param {number=} distance the length of the shape to look at
@@ -3018,13 +3020,11 @@
       seg = path[i];
       (assign = seg, pathCommand = assign[0]);
       isM = pathCommand === 'M';
-      // @ts-ignore
       data = !isM ? [x, y ].concat( seg.slice(1)) : data;
 
       // this segment is always ZERO
       if (isM) {
         // remember mx, my for Z
-        // @ts-ignore `isM`
         (assign$1 = seg, mx = assign$1[1], my = assign$1[2]);
         min = { x: mx, y: my };
         max = min;
@@ -3053,7 +3053,6 @@
       MIN = MIN.concat( [min]);
       LENGTH += length;
 
-      // @ts-ignore -- needed for the below
       (assign$7 = pathCommand !== 'Z' ? seg.slice(-2) : [mx, my], x = assign$7[0], y = assign$7[1]);
     }
 

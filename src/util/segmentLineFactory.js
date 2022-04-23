@@ -2,8 +2,8 @@ import midPoint from '../math/midPoint';
 import distanceSquareRoot from '../math/distanceSquareRoot';
 
 /**
- * Returns the length of a line (L,V,H,Z) segment
- * or a point at a given length.
+ * Returns a {x,y} point at a given length, the total length and
+ * the minimum and maximum {x,y} coordinates of a line (L,V,H,Z) segment.
  *
  * @param {number} x1 the starting point X
  * @param {number} y1 the starting point Y

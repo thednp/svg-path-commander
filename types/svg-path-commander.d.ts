@@ -391,8 +391,8 @@ declare module "svg-path-commander/src/math/distanceSquareRoot" {
 }
 declare module "svg-path-commander/src/util/segmentLineFactory" {
     /**
-     * Returns the length of a line (L,V,H,Z) segment
-     * or a point at a given length.
+     * Returns a {x,y} point at a given length, the total length and
+     * the minimum and maximum {x,y} coordinates of a line (L,V,H,Z) segment.
      *
      * @param {number} x1 the starting point X
      * @param {number} y1 the starting point Y
@@ -551,13 +551,12 @@ declare module "svg-path-commander/src/process/projection2d" {
      * Details =>
      * https://stackoverflow.com/questions/23792505/predicted-rendering-of-css-3d-transformed-pixel
      *
-     * @param {CSSMatrix} m the transformation matrix
+     * @param {SVGPath.CSSMatrix} m the transformation matrix
      * @param {[number, number]} point2D the initial [x,y] coordinates
      * @param {number[]} origin the [x,y,z] transform origin
      * @returns {[number, number]} the projected [x,y] coordinates
      */
-    export default function projection2d(m: CSSMatrix, point2D: [number, number], origin: number[]): [number, number];
-    import CSSMatrix from "dommatrix";
+    export default function projection2d(m: SVGPath.CSSMatrix, point2D: [number, number], origin: number[]): [number, number];
 }
 declare module "svg-path-commander/src/process/reverseCurve" {
     /**
@@ -594,10 +593,10 @@ declare module "svg-path-commander/src/process/splitPath" {
      * In the process, values are converted to absolute
      * for visual consistency.
      *
-     * @param {SVGPath.pathArray | string} pathInput the source `pathArray`
-     * @return {string[]} an array with all sub-path strings
+     * @param {SVGPath.pathArray} pathInput the source `pathArray`
+     * @return {SVGPath.pathArray[]} an array with all sub-path strings
      */
-    export default function splitPath(pathInput: SVGPath.pathArray | string): string[];
+    export default function splitPath(pathInput: SVGPath.pathArray): SVGPath.pathArray[];
 }
 declare module "svg-path-commander/src/process/transformEllipse" {
     /**
@@ -669,8 +668,8 @@ declare module "svg-path-commander/src/util/segmentCubicFactory" {
 }
 declare module "svg-path-commander/src/util/segmentArcFactory" {
     /**
-     * Returns the length of an A (arc-to) segment
-     * or an {x,y} point at a given length.
+     * Returns a {x,y} point at a given length, the total length and
+     * the shape minimum and maximum {x,y} coordinates of an A (arc-to) segment.
      *
      * @param {number} X1 the starting x position
      * @param {number} Y1 the starting y position
@@ -688,8 +687,8 @@ declare module "svg-path-commander/src/util/segmentArcFactory" {
 }
 declare module "svg-path-commander/src/util/segmentQuadFactory" {
     /**
-     * Returns the Q (quadratic-bezier) segment length
-     * or an {x,y} point at a given length.
+     * Returns a {x,y} point at a given length, the total length and
+     * the minimum and maximum {x,y} coordinates of a Q (quadratic-bezier) segment.
      *
      * @param {number} x1 the starting point X
      * @param {number} y1 the starting point Y
@@ -705,7 +704,8 @@ declare module "svg-path-commander/src/util/segmentQuadFactory" {
 declare module "svg-path-commander/src/util/pathLengthFactory" {
     /**
      * Returns a {x,y} point at a given length
-     * of a shape or the shape total length.
+     * of a shape, the shape total length and
+     * the shape minimum and maximum {x,y} coordinates.
      *
      * @param {string | SVGPath.pathArray} pathInput the `pathArray` to look into
      * @param {number=} distance the length of the shape to look at

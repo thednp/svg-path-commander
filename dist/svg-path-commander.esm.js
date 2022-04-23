@@ -1014,8 +1014,8 @@ function distanceSquareRoot(a, b) {
 }
 
 /**
- * Returns the length of a line (L,V,H,Z) segment
- * or a point at a given length.
+ * Returns a {x,y} point at a given length, the total length and
+ * the minimum and maximum {x,y} coordinates of a line (L,V,H,Z) segment.
  *
  * @param {number} x1 the starting point X
  * @param {number} y1 the starting point Y
@@ -2619,7 +2619,8 @@ function transformPath(path, transform) {
 }
 
 /**
- * Returns a point at a given length of a C (cubic-bezier) segment.
+ * Returns a {x,y} point at a given length, the total length and
+ * the minimum and maximum {x,y} coordinates of a C (cubic-bezier) segment.
  *
  * @param {number} x1 the starting point X
  * @param {number} y1 the starting point Y
@@ -2716,8 +2717,8 @@ function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
 }
 
 /**
- * Returns the length of an A (arc-to) segment
- * or an {x,y} point at a given length.
+ * Returns a {x,y} point at a given length, the total length and
+ * the shape minimum and maximum {x,y} coordinates of an A (arc-to) segment.
  *
  * @param {number} X1 the starting x position
  * @param {number} Y1 the starting y position
@@ -2758,7 +2759,6 @@ function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
     argsc = [x, y, ...cubicSubseg];
     ({
       length, min, max, point,
-      // @ts-ignore
     } = segmentCubicFactory(...argsc, (distance || 0) - LENGTH));
     if (distanceIsNumber && LENGTH < distance && LENGTH + length >= distance) {
       POINT = point;
@@ -2790,7 +2790,7 @@ function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
 
 /**
  * Returns the {x,y} coordinates of a point at a
- * given length of a quad-bezier segment.
+ * given length of a quadratic-bezier segment.
  *
  * @see https://github.com/substack/point-at-length
  *
@@ -2816,8 +2816,8 @@ function getPointAtQuadSegmentLength(x1, y1, cx, cy, x2, y2, t) {
 }
 
 /**
- * Returns the Q (quadratic-bezier) segment length
- * or an {x,y} point at a given length.
+ * Returns a {x,y} point at a given length, the total length and
+ * the minimum and maximum {x,y} coordinates of a Q (quadratic-bezier) segment.
  *
  * @param {number} x1 the starting point X
  * @param {number} y1 the starting point Y
@@ -2883,7 +2883,8 @@ function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
 
 /**
  * Returns a {x,y} point at a given length
- * of a shape or the shape total length.
+ * of a shape, the shape total length and
+ * the shape minimum and maximum {x,y} coordinates.
  *
  * @param {string | SVGPath.pathArray} pathInput the `pathArray` to look into
  * @param {number=} distance the length of the shape to look at
@@ -2916,13 +2917,11 @@ function pathLengthFactory(pathInput, distance) {
     seg = path[i];
     [pathCommand] = seg;
     isM = pathCommand === 'M';
-    // @ts-ignore
     data = !isM ? [x, y, ...seg.slice(1)] : data;
 
     // this segment is always ZERO
     if (isM) {
       // remember mx, my for Z
-      // @ts-ignore `isM`
       [, mx, my] = seg;
       min = { x: mx, y: my };
       max = min;
@@ -2933,28 +2932,23 @@ function pathLengthFactory(pathInput, distance) {
     } else if (pathCommand === 'L') {
       ({
         length, min, max, point,
-        // @ts-ignore
       } = segmentLineFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'A') {
       ({
         length, min, max, point,
-        // @ts-ignore
       } = segmentArcFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'C') {
       ({
         length, min, max, point,
-        // @ts-ignore
       } = segmentCubicFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'Q') {
       ({
         length, min, max, point,
-        // @ts-ignore
       } = segmentQuadFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'Z') {
       data = [x, y, mx, my];
       ({
         length, min, max, point,
-        // @ts-ignore
       } = segmentLineFactory(...data, (distance || 0) - LENGTH));
     }
 
@@ -2966,7 +2960,6 @@ function pathLengthFactory(pathInput, distance) {
     MIN = [...MIN, min];
     LENGTH += length;
 
-    // @ts-ignore -- needed for the below
     [x, y] = pathCommand !== 'Z' ? seg.slice(-2) : [mx, my];
   }
 

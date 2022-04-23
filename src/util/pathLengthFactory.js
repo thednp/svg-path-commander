@@ -8,7 +8,8 @@ import segmentQuadFactory from './segmentQuadFactory';
 
 /**
  * Returns a {x,y} point at a given length
- * of a shape or the shape total length.
+ * of a shape, the shape total length and
+ * the shape minimum and maximum {x,y} coordinates.
  *
  * @param {string | SVGPath.pathArray} pathInput the `pathArray` to look into
  * @param {number=} distance the length of the shape to look at
@@ -41,13 +42,11 @@ export default function pathLengthFactory(pathInput, distance) {
     seg = path[i];
     [pathCommand] = seg;
     isM = pathCommand === 'M';
-    // @ts-ignore
     data = !isM ? [x, y, ...seg.slice(1)] : data;
 
     // this segment is always ZERO
     if (isM) {
       // remember mx, my for Z
-      // @ts-ignore `isM`
       [, mx, my] = seg;
       min = { x: mx, y: my };
       max = min;
@@ -58,28 +57,23 @@ export default function pathLengthFactory(pathInput, distance) {
     } else if (pathCommand === 'L') {
       ({
         length, min, max, point,
-        // @ts-ignore
       } = segmentLineFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'A') {
       ({
         length, min, max, point,
-        // @ts-ignore
       } = segmentArcFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'C') {
       ({
         length, min, max, point,
-        // @ts-ignore
       } = segmentCubicFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'Q') {
       ({
         length, min, max, point,
-        // @ts-ignore
       } = segmentQuadFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'Z') {
       data = [x, y, mx, my];
       ({
         length, min, max, point,
-        // @ts-ignore
       } = segmentLineFactory(...data, (distance || 0) - LENGTH));
     }
 
@@ -91,7 +85,6 @@ export default function pathLengthFactory(pathInput, distance) {
     MIN = [...MIN, min];
     LENGTH += length;
 
-    // @ts-ignore -- needed for the below
     [x, y] = pathCommand !== 'Z' ? seg.slice(-2) : [mx, my];
   }
 

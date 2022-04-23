@@ -2,8 +2,8 @@ import segmentCubicFactory from './segmentCubicFactory';
 import arcToCubic from '../process/arcToCubic';
 
 /**
- * Returns the length of an A (arc-to) segment
- * or an {x,y} point at a given length.
+ * Returns a {x,y} point at a given length, the total length and
+ * the shape minimum and maximum {x,y} coordinates of an A (arc-to) segment.
  *
  * @param {number} X1 the starting x position
  * @param {number} Y1 the starting y position
@@ -44,7 +44,6 @@ export default function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2
     argsc = [x, y, ...cubicSubseg];
     ({
       length, min, max, point,
-      // @ts-ignore
     } = segmentCubicFactory(...argsc, (distance || 0) - LENGTH));
     if (distanceIsNumber && LENGTH < distance && LENGTH + length >= distance) {
       POINT = point;

@@ -1,7 +1,8 @@
 import distanceSquareRoot from '../math/distanceSquareRoot';
 
 /**
- * Returns a point at a given length of a C (cubic-bezier) segment.
+ * Returns a {x,y} point at a given length, the total length and
+ * the minimum and maximum {x,y} coordinates of a C (cubic-bezier) segment.
  *
  * @param {number} x1 the starting point X
  * @param {number} y1 the starting point Y
