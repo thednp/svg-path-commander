@@ -4,4 +4,3 @@ node_js:
   - "14"
   - "16"
 script: "npm run test"
-after_success: "npm run coverage:badge"
