@@ -41,43 +41,58 @@ function getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t) {
  * @param {number} x2 the ending point X
  * @param {number} y2 the ending point Y
  * @param {number=} distance the point distance
- * @returns {{x: number, y: number} | number} the segment length or point
+ * @returns {SVGPath.lengthFactory} the segment length, point, min & max
  */
 export default function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
   const distanceIsNumber = typeof distance === 'number';
   const lengthMargin = 0.001;
   let x = x1; let y = y1;
-  let totalLength = 0;
-  let prev = [x1, y1, totalLength];
+  let LENGTH = 0;
+  let prev = [x1, y1, LENGTH];
   /** @type {[number, number]} */
   let cur = [x1, y1];
   let t = 0;
+  let POINT = { x: 0, y: 0 };
+  let POINTS = [{ x, y }];
 
   if (distanceIsNumber && distance < lengthMargin) {
-    return { x, y };
+    POINT = { x, y };
   }
 
-  const n = 100;
-  for (let j = 0; j <= n; j += 1) {
-    t = j / n;
+  const sampleSize = 100;
+  for (let j = 0; j <= sampleSize; j += 1) {
+    t = j / sampleSize;
 
     ({ x, y } = getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t));
-    totalLength += distanceSquareRoot(cur, [x, y]);
+    POINTS = [...POINTS, { x, y }];
+    LENGTH += distanceSquareRoot(cur, [x, y]);
     cur = [x, y];
 
-    if (distanceIsNumber && totalLength >= distance) {
-      const dv = (totalLength - distance) / (totalLength - prev[2]);
+    if (distanceIsNumber && LENGTH >= distance) {
+      const dv = (LENGTH - distance) / (LENGTH - prev[2]);
 
-      return {
+      POINT = {
         x: cur[0] * (1 - dv) + prev[0] * dv,
         y: cur[1] * (1 - dv) + prev[1] * dv,
       };
     }
-    prev = [x, y, totalLength];
+    prev = [x, y, LENGTH];
   }
 
-  if (distanceIsNumber && distance >= totalLength) {
-    return { x: x2, y: y2 };
+  if (distanceIsNumber && distance >= LENGTH) {
+    POINT = { x: x2, y: y2 };
   }
-  return totalLength;
+
+  return {
+    length: LENGTH,
+    point: POINT,
+    min: {
+      x: Math.min(...POINTS.map((n) => n.x)),
+      y: Math.min(...POINTS.map((n) => n.y)),
+    },
+    max: {
+      x: Math.max(...POINTS.map((n) => n.x)),
+      y: Math.max(...POINTS.map((n) => n.y)),
+    },
+  };
 }

@@ -1,3 +1,26 @@
+import { Translate } from 'dommatrix/src/dommatrix';
+
+/**
+ * Transforms a specified point using a matrix, returning a new
+ * Tuple *Object* comprising of the transformed point.
+ * Neither the matrix nor the original point are altered.
+ *
+ * @copyright thednp © 2021
+ *
+ * @param {SVGPath.CSSMatrix} M CSSMatrix instance
+ * @param {[number, number, number, number]} v Tuple or DOMPoint
+ * @return {*} the resulting Tuple
+ */
+function translatePoint(M, v) {
+  // @ts-ignore
+  let m = Translate(...v);
+
+  m.m44 = v[3] || 1;
+  m = M.multiply(m);
+
+  return [m.m41, m.m42, m.m43, m.m44];
+}
+
 /**
  * Returns the [x,y] projected coordinates for a given an [x,y] point
  * and an [x,y,z] perspective origin point.
@@ -13,15 +36,12 @@
  * @returns {[number, number]} the projected [x,y] coordinates
  */
 export default function projection2d(m, point2D, origin) {
-  const [px, py] = point2D;
   const [originX, originY, originZ] = origin;
-  const point3D = m.transformPoint({
-    x: px, y: py, z: 0, w: 1,
-  });
+  const [x, y, z] = translatePoint(m, [...point2D, 0, 1]);
 
-  const relativePositionX = point3D.x - originX;
-  const relativePositionY = point3D.y - originY;
-  const relativePositionZ = point3D.z - originZ;
+  const relativePositionX = x - originX;
+  const relativePositionY = y - originY;
+  const relativePositionZ = z - originZ;
 
   return [
     relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ)) + originX,

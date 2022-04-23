@@ -23,10 +23,10 @@ export default function lineToCubic(x1, y1, x2, y2) {
   const p6 = midPoint(p4, p5, t);
   const seg1 = [...p0, ...p2, ...p4, ...p6, t];
   // @ts-ignore
-  const cp1 = segmentLineFactory(...seg1);
+  const cp1 = segmentLineFactory(...seg1).point;
   const seg2 = [...p6, ...p5, ...p3, ...p1, 0];
   // @ts-ignore
-  const cp2 = segmentLineFactory(...seg2);
+  const cp2 = segmentLineFactory(...seg2).point;
 
   // @ts-ignore
   return [cp1.x, cp1.y, cp2.x, cp2.y, x2, y2];

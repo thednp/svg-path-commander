@@ -5,7 +5,7 @@ import roundPath from '../process/roundPath';
  * by rounding values and concatenating the `pathArray` segments.
  *
  * @param {SVGPath.pathArray} path the `pathArray` object
- * @param {number | false} round amount of decimals to round values to
+ * @param {number | 'off'} round amount of decimals to round values to
  * @returns {string} the concatenated path string
  */
 export default function pathToString(path, round) {

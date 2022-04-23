@@ -5,18 +5,18 @@ import clonePath from './clonePath';
  * a specified amount of decimals and returns it.
  *
  * @param {SVGPath.pathArray} path the source `pathArray`
- * @param {number | false} roundOption the amount of decimals to round numbers to
+ * @param {number | 'off'} roundOption the amount of decimals to round numbers to
  * @returns {SVGPath.pathArray} the resulted `pathArray` with rounded values
  */
 export default function roundPath(path, roundOption) {
   let { round } = defaultOptions;
-  if (roundOption === false || round === false) return clonePath(path);
+  if (roundOption === 'off' || round === 'off') return clonePath(path);
   // round = roundOption >= 1 ? roundOption : round;
   // allow for ZERO decimals
   round = roundOption >= 0 ? roundOption : round;
   // to round values to the power
   // the `round` value must be integer
-  const pow = round >= 1 ? (10 ** round) : 1;
+  const pow = typeof round === 'number' && round >= 1 ? (10 ** round) : 1;
 
   // @ts-ignore -- `pathSegment[]` is `pathArray`
   return path.map((pi) => {

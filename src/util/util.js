@@ -2,10 +2,10 @@ import CSSMatrix from 'dommatrix';
 import defaultOptions from '../options/options';
 import getPathBBox from './getPathBBox';
 import getPathArea from './getPathArea';
-import getPathLength from './getPathLength';
 import getTotalLength from './getTotalLength';
 import getDrawDirection from './getDrawDirection';
 import getPointAtLength from './getPointAtLength';
+import pathLengthFactory from './pathLengthFactory';
 
 import getPropertiesAtLength from './getPropertiesAtLength';
 import getPropertiesAtPoint from './getPropertiesAtPoint';
@@ -57,8 +57,8 @@ const Util = {
   getDrawDirection,
   getPathArea,
   getPathBBox,
+  pathLengthFactory,
   getTotalLength,
-  getPathLength,
   getPointAtLength,
   getClosestPoint,
   getSegmentOfPoint,

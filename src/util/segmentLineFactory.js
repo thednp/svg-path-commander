@@ -10,21 +10,33 @@ import distanceSquareRoot from '../math/distanceSquareRoot';
  * @param {number} x2 the ending point X
  * @param {number} y2 the ending point Y
  * @param {number=} distance the distance to point
- * @returns {{x: number, y: number} | number} the segment length or point
+ * @returns {SVGPath.lengthFactory} the segment length, point, min & max
  */
 export default function segmentLineFactory(x1, y1, x2, y2, distance) {
   const length = distanceSquareRoot([x1, y1], [x2, y2]);
-  const margin = 0.001;
+  let point = { x: 0, y: 0 };
 
   if (typeof distance === 'number') {
-    if (distance < margin) {
-      return { x: x1, y: y1 };
+    if (distance < 0.001) {
+      point = { x: x1, y: y1 };
+    } else if (distance >= length) {
+      point = { x: x2, y: y2 };
+    } else {
+      const [x, y] = midPoint([x1, y1], [x2, y2], distance / length);
+      point = { x, y };
     }
-    if (distance > length) {
-      return { x: x2, y: y2 };
-    }
-    const [x, y] = midPoint([x1, y1], [x2, y2], distance / length);
-    return { x, y };
   }
-  return length;
+
+  return {
+    length,
+    point,
+    min: {
+      x: Math.min(x1, x2),
+      y: Math.min(y1, y2),
+    },
+    max: {
+      x: Math.max(x1, x2),
+      y: Math.max(y1, y2),
+    },
+  };
 }

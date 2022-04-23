@@ -13,6 +13,10 @@ export default function getPropertiesAtLength(pathInput, distance) {
   const pathArray = parsePathString(pathInput);
   const segments = [];
 
+  if (typeof pathArray === 'string') {
+    throw TypeError(pathArray);
+  }
+
   let pathTemp = [...pathArray];
   // @ts-ignore
   let pathLength = getTotalLength(pathTemp);

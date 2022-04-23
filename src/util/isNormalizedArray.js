@@ -10,5 +10,5 @@ import isAbsoluteArray from './isAbsoluteArray';
  */
 export default function isNormalizedArray(path) {
   // @ts-ignore -- `isAbsoluteArray` also checks if it's `Array`
-  return isAbsoluteArray(path) && path.every((seg) => 'ACLMQZ'.includes(seg[0]));
+  return isAbsoluteArray(path) && path.every(([pc]) => 'ACLMQZ'.includes(pc));
 }

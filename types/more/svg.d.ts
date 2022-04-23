@@ -106,7 +106,7 @@ export type polylineArray =   [MSegment, ...LSegment[]];
 
 export interface options {
   /** @default 4 */
-  round: false | number;
+  round: 'off' | number;
   /** @default [0,0,0] */
   origin: number[];
 }
@@ -201,4 +201,11 @@ export interface pointProperties {
   }
   distance: number,
   segment?: segmentProperties,
+}
+
+export interface lengthFactory {
+  length: number;
+  point: { x: number, y: number };
+  min: { x: number, y: number };
+  max: { x: number, y: number };
 }

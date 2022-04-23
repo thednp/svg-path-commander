@@ -51,11 +51,10 @@ export { default as splitCubic } from "svg-path-commander/src/process/splitCubic
 export { default as splitPath } from "svg-path-commander/src/process/splitPath";
 export { default as transformEllipse } from "svg-path-commander/src/process/transformEllipse";
 export { default as transformPath } from "svg-path-commander/src/process/transformPath";
-export { default as getCubicSize } from "svg-path-commander/src/util/getCubicSize";
 export { default as getDrawDirection } from "svg-path-commander/src/util/getDrawDirection";
 export { default as getPathArea } from "svg-path-commander/src/util/getPathArea";
 export { default as getPathBBox } from "svg-path-commander/src/util/getPathBBox";
-export { default as getPathLength } from "svg-path-commander/src/util/getPathLength";
+export { default as pathLengthFactory } from "svg-path-commander/src/util/pathLengthFactory";
 export { default as getTotalLength } from "svg-path-commander/src/util/getTotalLength";
 export { default as segmentLineFactory } from "svg-path-commander/src/util/segmentLineFactory";
 export { default as segmentArcFactory } from "svg-path-commander/src/util/segmentArcFactory";
@@ -118,4 +117,5 @@ export {
   options,
   parserParams,
   pointProperties,
+  lengthFactory
 } from './more/svg';

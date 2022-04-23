@@ -66,7 +66,7 @@ class SVGPathCommander {
     if (roundOption === 'auto') {
       const pathScale = (`${Math.floor(Math.max(width, height))}`).length;
       round = pathScale >= 4 ? 0 : 4 - pathScale;
-    } else if (Number.isInteger(roundOption) || roundOption === false) {
+    } else if (Number.isInteger(roundOption) || roundOption === 'off') {
       round = roundOption;
     }
 
@@ -83,7 +83,7 @@ class SVGPathCommander {
     }
 
     /**
-     * @type {number | false}
+     * @type {number | 'off'}
      */
     this.round = round;
     this.origin = origin;
@@ -155,14 +155,14 @@ class SVGPathCommander {
 
   /**
    * Reverse the order of the segments and their values.
-   * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
+   * @param {boolean} onlySubpath option to reverse all sub-paths except first
    * @public
    */
   reverse(onlySubpath) {
     this.toAbsolute();
 
     const { segments } = this;
-    const split = splitPath(this.toString());
+    const split = splitPath(segments);
     const subPath = split.length > 1 ? split : 0;
 
     // @ts-ignore

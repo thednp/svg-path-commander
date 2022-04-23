@@ -11,7 +11,7 @@ import lineToCubic from './lineToCubic';
  */
 export default function segmentToCubic(segment, params) {
   const [pathCommand] = segment;
-  const values = segment.slice(1).map((n) => +n);
+  const values = segment.slice(1).map(Number);
   const [x, y] = values;
   let args;
   const {

@@ -12,22 +12,30 @@ import segmentQuadFactory from './segmentQuadFactory';
  *
  * @param {string | SVGPath.pathArray} pathInput the `pathArray` to look into
  * @param {number=} distance the length of the shape to look at
- * @returns {{x: number, y: number} | number} the total length or point
+ * @returns {SVGPath.lengthFactory} the path length, point, min & max
  */
 export default function pathLengthFactory(pathInput, distance) {
   const path = fixPath(normalizePath(pathInput));
   const distanceIsNumber = typeof distance === 'number';
-  let totalLength = 0;
   let isM = true;
   /** @type {number[]} */
   let data = [];
   let pathCommand = 'M';
-  let segLen = 0;
   let x = 0;
   let y = 0;
   let mx = 0;
   let my = 0;
   let seg;
+  /** @type {{x: number, y: number}[]} */
+  let MIN = [];
+  /** @type {{x: number, y: number}[]} */
+  let MAX = [];
+  let length = 0;
+  let min = { x: 0, y: 0 };
+  let max = min;
+  let point = min;
+  let POINT = min;
+  let LENGTH = 0;
 
   for (let i = 0, ll = path.length; i < ll; i += 1) {
     seg = path[i];
@@ -39,53 +47,49 @@ export default function pathLengthFactory(pathInput, distance) {
     // this segment is always ZERO
     if (isM) {
       // remember mx, my for Z
-      // @ts-ignore
+      // @ts-ignore `isM`
       [, mx, my] = seg;
+      min = { x: mx, y: my };
+      max = min;
+
       if (distanceIsNumber && distance < 0.001) {
-        return { x: mx, y: my };
+        POINT = min;
       }
     } else if (pathCommand === 'L') {
-      // @ts-ignore
-      segLen = segmentLineFactory(...data);
-      if (distanceIsNumber && totalLength + segLen >= distance) {
+      ({
+        length, min, max, point,
         // @ts-ignore
-        return segmentLineFactory(...data, distance - totalLength);
-      }
-      totalLength += segLen;
+      } = segmentLineFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'A') {
-      // @ts-ignore
-      segLen = segmentArcFactory(...data);
-      if (distanceIsNumber && totalLength + segLen >= distance) {
+      ({
+        length, min, max, point,
         // @ts-ignore
-        return segmentArcFactory(...data, distance - totalLength);
-      }
-      totalLength += segLen;
+      } = segmentArcFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'C') {
-      // @ts-ignore
-      segLen = segmentCubicFactory(...data);
-      if (distanceIsNumber && totalLength + segLen >= distance) {
+      ({
+        length, min, max, point,
         // @ts-ignore
-        return segmentCubicFactory(...data, distance - totalLength);
-      }
-      totalLength += segLen;
+      } = segmentCubicFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'Q') {
-      // @ts-ignore
-      segLen = segmentQuadFactory(...data);
-      if (distanceIsNumber && totalLength + segLen >= distance) {
+      ({
+        length, min, max, point,
         // @ts-ignore
-        return segmentQuadFactory(...data, distance - totalLength);
-      }
-      totalLength += segLen;
+      } = segmentQuadFactory(...data, (distance || 0) - LENGTH));
     } else if (pathCommand === 'Z') {
       data = [x, y, mx, my];
-      // @ts-ignore
-      segLen = segmentLineFactory(...data);
-      if (distanceIsNumber && totalLength + segLen >= distance) {
+      ({
+        length, min, max, point,
         // @ts-ignore
-        return segmentLineFactory(...data, distance - totalLength);
-      }
-      totalLength += segLen;
+      } = segmentLineFactory(...data, (distance || 0) - LENGTH));
     }
+
+    if (distanceIsNumber && LENGTH < distance && LENGTH + length >= distance) {
+      POINT = point;
+    }
+
+    MAX = [...MAX, max];
+    MIN = [...MIN, min];
+    LENGTH += length;
 
     // @ts-ignore -- needed for the below
     [x, y] = pathCommand !== 'Z' ? seg.slice(-2) : [mx, my];
@@ -93,9 +97,20 @@ export default function pathLengthFactory(pathInput, distance) {
 
   // native `getPointAtLength` behavior when the given distance
   // is higher than total length
-  if (distanceIsNumber && distance >= totalLength) {
-    return { x, y };
+  if (distanceIsNumber && distance >= LENGTH) {
+    POINT = { x, y };
   }
 
-  return totalLength;
+  return {
+    length: LENGTH,
+    point: POINT,
+    min: {
+      x: Math.min(...MIN.map((n) => n.x)),
+      y: Math.min(...MIN.map((n) => n.y)),
+    },
+    max: {
+      x: Math.max(...MAX.map((n) => n.x)),
+      y: Math.max(...MAX.map((n) => n.y)),
+    },
+  };
 }

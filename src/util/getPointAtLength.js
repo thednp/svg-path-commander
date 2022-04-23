@@ -8,6 +8,5 @@ import pathLengthFactory from './pathLengthFactory';
  * @returns {{x: number, y: number}} the requested {x, y} point coordinates
  */
 export default function getPointAtLength(pathInput, distance) {
-  // @ts-ignore
-  return pathLengthFactory(pathInput, distance);
+  return pathLengthFactory(pathInput, distance).point;
 }

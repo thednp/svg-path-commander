@@ -1,4 +1,4 @@
-import isPathArray from './isPathArray';
+import isNormalizedArray from './isNormalizedArray';
 
 /**
  * Iterates an array to check if it's a `pathArray`
@@ -9,5 +9,5 @@ import isPathArray from './isPathArray';
  */
 export default function isCurveArray(path) {
   // @ts-ignore -- `isPathArray` also checks if it's `Array`
-  return isPathArray(path) && path.every((seg) => 'MC'.includes(seg[0]));
+  return isNormalizedArray(path) && path.every(([pc]) => 'MC'.includes(pc));
 }

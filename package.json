@@ -23,7 +23,7 @@
     "build:ts": "tsc -d",
     "build-js": "rollup --environment FORMAT:umd,MIN:false -c",
     "build-js-es5": "rollup --environment FORMAT:umd,MIN:false,ES:es5 -c",
-    "build-copy": "rollup --environment FORMAT:umd,MIN:false,OUTPUTFILE:docs/svg-path-commander.js -c",
+    "build-docs": "rollup --environment FORMAT:umd,MIN:false,OUTPUTFILE:docs/svg-path-commander.js -c",
     "build-js-min": "rollup --environment FORMAT:umd,MIN:true -c",
     "build-js-es5-min": "rollup --environment FORMAT:umd,MIN:true,ES:es5 -c",
     "build-esm": "rollup --environment FORMAT:esm,MIN:false -c",
@@ -76,6 +76,6 @@
     "typescript": "^4.5.2"
   },
   "dependencies": {
-    "dommatrix": "^0.0.24"
+    "dommatrix": "^0.1.0"
   }
 }

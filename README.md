@@ -9,6 +9,7 @@ A modern set of ES6+ JavaScript tools for manipulating the `d` (description) att
 [![jsDeliver](https://data.jsdelivr.com/v1/package/npm/svg-path-commander/badge)](https://www.jsdelivr.com/package/npm/svg-path-commander)
 
 While you may find familiar tools inside, this library brings ***new additions***:
+* the build in `getBBox`, `getPointAtLength` and `getTotalLength` are more reliable and much more accurate than the native methods, not to mention their world class performance ratings;
 * a tool that can *reverse path draw direction* without altering path commands, even with specific shorthand path commands;
 * a unique tool that can *reverse path draw direction* for path strings with only 'C' path commands;
 * a new and unique tool to *apply transform functions to path commands* via the modern *DOMMatrix* API.
@@ -16,11 +17,11 @@ While you may find familiar tools inside, this library brings ***new additions**
 **The key differences with other libraries**:
 * ES6+ sourced with modernized codebase and build tools; all inherited codebase has been modernized as well;
 * along with the modern codebase, the library also comes with strong TypeScript definitions;
+* this library can create 3D to 2D projections, making your SVGs look like 3D but in the SVG coordinate system;
 * you can use this library in both web apps and Node.js, you are not restricted to a single environment;
-* path command transformations are all consistent with the SVG coordinates system, where others compute transform origin only for rotation transformation;
-* this library can create 3D to 2D projections, making your SVGs look like 3D but in the SVG coordinate system.
+* path command transformations are all consistent with the SVG coordinates system, where others compute transform origin only for rotation transformation.
 
-**SVGPathCommander** implements the [DOMMatrix API](https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix) for *SVGPathElement* path command transformation and falls back to a modernized [CSSMatrix shim](https://github.com/thednp/DOMMatrix) on older browsers as well as Node.js.
+**SVGPathCommander** can use the [DOMMatrix API](https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix) for *SVGPathElement* path command transformation and implements a very fast and modernized [DOMMatrix shim](https://github.com/thednp/dommatrix).
 There are a couple of good reasons for this implementation:
 * *WebKitCSSMatrix* and *SVGMatrix* APIs are slowly pushed away by DOMMatrix, the green light for new and modern implementations;
 * we can actually apply a [3D transformation](https://github.com/ndebeiss/svg3d) matrix to SVG path commands, by calculating a 2D projection of the actual shape in 3D coordinates;

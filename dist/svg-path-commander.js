@@ -425,7 +425,7 @@
   function isAbsoluteArray(path) {
     return isPathArray(path)
       // @ts-ignore -- `isPathArray` also checks if it's `Array`
-      && path.every((x) => x[0] === x[0].toUpperCase());
+      && path.every(([x]) => x === x.toUpperCase());
   }
 
   /**
@@ -528,7 +528,7 @@
   function isRelativeArray(path) {
     return isPathArray(path)
       // @ts-ignore -- `isPathArray` checks if it's `Array`
-      && path.slice(1).every((seg) => seg[0] === seg[0].toLowerCase());
+      && path.slice(1).every(([pc]) => pc === pc.toLowerCase());
   }
 
   /**
@@ -742,7 +742,7 @@
    */
   function isNormalizedArray(path) {
     // @ts-ignore -- `isAbsoluteArray` also checks if it's `Array`
-    return isAbsoluteArray(path) && path.every((seg) => 'ACLMQZ'.includes(seg[0]));
+    return isAbsoluteArray(path) && path.every(([pc]) => 'ACLMQZ'.includes(pc));
   }
 
   /**
@@ -836,7 +836,7 @@
    */
   function isCurveArray(path) {
     // @ts-ignore -- `isPathArray` also checks if it's `Array`
-    return isPathArray(path) && path.every((seg) => 'MC'.includes(seg[0]));
+    return isNormalizedArray(path) && path.every(([pc]) => 'MC'.includes(pc));
   }
 
   /**
@@ -1028,23 +1028,35 @@
    * @param {number} x2 the ending point X
    * @param {number} y2 the ending point Y
    * @param {number=} distance the distance to point
-   * @returns {{x: number, y: number} | number} the segment length or point
+   * @returns {SVGPath.lengthFactory} the segment length, point, min & max
    */
   function segmentLineFactory(x1, y1, x2, y2, distance) {
     const length = distanceSquareRoot([x1, y1], [x2, y2]);
-    const margin = 0.001;
+    let point = { x: 0, y: 0 };
 
     if (typeof distance === 'number') {
-      if (distance < margin) {
-        return { x: x1, y: y1 };
+      if (distance < 0.001) {
+        point = { x: x1, y: y1 };
+      } else if (distance >= length) {
+        point = { x: x2, y: y2 };
+      } else {
+        const [x, y] = midPoint([x1, y1], [x2, y2], distance / length);
+        point = { x, y };
       }
-      if (distance > length) {
-        return { x: x2, y: y2 };
-      }
-      const [x, y] = midPoint([x1, y1], [x2, y2], distance / length);
-      return { x, y };
     }
-    return length;
+
+    return {
+      length,
+      point,
+      min: {
+        x: Math.min(x1, x2),
+        y: Math.min(y1, y2),
+      },
+      max: {
+        x: Math.max(x1, x2),
+        y: Math.max(y1, y2),
+      },
+    };
   }
 
   /**
@@ -1069,10 +1081,10 @@
     const p6 = midPoint(p4, p5, t);
     const seg1 = [...p0, ...p2, ...p4, ...p6, t];
     // @ts-ignore
-    const cp1 = segmentLineFactory(...seg1);
+    const cp1 = segmentLineFactory(...seg1).point;
     const seg2 = [...p6, ...p5, ...p3, ...p1, 0];
     // @ts-ignore
-    const cp2 = segmentLineFactory(...seg2);
+    const cp2 = segmentLineFactory(...seg2).point;
 
     // @ts-ignore
     return [cp1.x, cp1.y, cp2.x, cp2.y, x2, y2];
@@ -1087,7 +1099,7 @@
    */
   function segmentToCubic(segment, params) {
     const [pathCommand] = segment;
-    const values = segment.slice(1).map((n) => +n);
+    const values = segment.slice(1).map(Number);
     const [x, y] = values;
     let args;
     const {
@@ -1173,18 +1185,18 @@
    * a specified amount of decimals and returns it.
    *
    * @param {SVGPath.pathArray} path the source `pathArray`
-   * @param {number | false} roundOption the amount of decimals to round numbers to
+   * @param {number | 'off'} roundOption the amount of decimals to round numbers to
    * @returns {SVGPath.pathArray} the resulted `pathArray` with rounded values
    */
   function roundPath(path, roundOption) {
     let { round } = defaultOptions;
-    if (roundOption === false || round === false) return clonePath(path);
+    if (roundOption === 'off' || round === 'off') return clonePath(path);
     // round = roundOption >= 1 ? roundOption : round;
     // allow for ZERO decimals
     round = roundOption >= 0 ? roundOption : round;
     // to round values to the power
     // the `round` value must be integer
-    const pow = round >= 1 ? (10 ** round) : 1;
+    const pow = typeof round === 'number' && round >= 1 ? (10 ** round) : 1;
 
     // @ts-ignore -- `pathSegment[]` is `pathArray`
     return path.map((pi) => {
@@ -1199,7 +1211,7 @@
    * by rounding values and concatenating the `pathArray` segments.
    *
    * @param {SVGPath.pathArray} path the `pathArray` object
-   * @param {number | false} round amount of decimals to round values to
+   * @param {number | 'off'} round amount of decimals to round values to
    * @returns {string} the concatenated path string
    */
   function pathToString(path, round) {
@@ -1310,15 +1322,27 @@
    * In the process, values are converted to absolute
    * for visual consistency.
    *
-   * @param {SVGPath.pathArray | string} pathInput the source `pathArray`
-   * @return {string[]} an array with all sub-path strings
+   * @param {SVGPath.pathArray} pathInput the source `pathArray`
+   * @return {SVGPath.pathArray[]} an array with all sub-path strings
    */
   function splitPath(pathInput) {
-    return pathToString(pathToAbsolute(pathInput), 0)
-      .replace(/(m|M)/g, '|$1')
-      .split('|')
-      .map((s) => s.trim())
-      .filter((s) => s);
+    /** @type {SVGPath.pathArray[]} */
+    const composite = [];
+    /** @type {SVGPath.pathArray} */
+    let path;
+    let pi = -1;
+
+    pathInput.forEach((seg) => {
+      if (seg[0] === 'M') {
+        path = [seg];
+        pi += 1;
+      } else {
+        path = [...path, seg];
+      }
+      composite[pi] = path;
+    });
+
+    return composite;
   }
 
   /**
@@ -1393,7 +1417,7 @@
    * * also revers path check if it's smaller string, maybe?
    *
    * @param {SVGPath.pathArray} pathInput a string or `pathArray`
-   * @param {number | boolean} round the amount of decimals to round values to
+   * @param {number | 'off'} round the amount of decimals to round values to
    * @returns {SVGPath.pathArray} the optimized `pathArray`
    */
   function optimizePath(pathInput, round) {
@@ -1475,7 +1499,6 @@
   const epsilon = 1e-9;
 
   // DOMMatrix Static methods
-  // * `fromFloat64Array` and `fromFloat32Array are not implemented;
   // * `fromArray` is a more simple implementation, should also accept Float[32/64]Array;
   // * `fromMatrix` load values from another CSSMatrix/DOMMatrix instance or JSON object;
   // * `fromString` parses and loads values from any valid CSS transform string (TransformList).
@@ -1487,7 +1510,7 @@
    * If the array has six values, the result is a 2D matrix; if the array has 16 values,
    * the result is a 3D matrix. Otherwise, a TypeError exception is thrown.
    *
-   * @param {number[]} array an `Array` to feed values from.
+   * @param {CSSM.matrix | CSSM.matrix3d} array an `Array` to feed values from.
    * @return {CSSMatrix} the resulted matrix.
    */
   function fromArray(array) {
@@ -1563,7 +1586,7 @@
    * Creates a new mutable `CSSMatrix` instance given an existing matrix or a
    * `DOMMatrix` instance which provides the values for its properties.
    *
-   * @param {CSSMatrix | DOMMatrix | CSSMatrix.JSONMatrix} m the source matrix to feed values from.
+   * @param {CSSMatrix | DOMMatrix | CSSM.JSONMatrix} m the source matrix to feed values from.
    * @return {CSSMatrix} the resulted matrix.
    */
   function fromMatrix(m) {
@@ -1576,7 +1599,7 @@
           m.m41, m.m42, m.m43, m.m44],
       );
     }
-    throw TypeError(`CSSMatrix: "${m}" is not a DOMMatrix / CSSMatrix / JSON compatible object.`);
+    throw TypeError(`CSSMatrix: "${JSON.stringify(m)}" is not a DOMMatrix / CSSMatrix / JSON compatible object.`);
   }
 
   /**
@@ -1626,6 +1649,7 @@
       } else if (prop.includes('matrix') && [6, 16].includes(components.length)
         && components.every((n) => !Number.isNaN(+n))) {
         const values = components.map((n) => (Math.abs(n) < 1e-6 ? 0 : n));
+        // @ts-ignore -- conditions should suffice
         m = m.multiply(fromArray(values));
       // 3 values expected
       } else if (prop === 'translate3d' && xyz.every((n) => !Number.isNaN(+n))) {
@@ -1639,7 +1663,7 @@
       // single value expected
       } else if (prop === 'rotate' && x && [y, z].every((n) => n === undefined)) {
         m = m.rotate(0, 0, x);
-      // 4 values expected
+      // 3 values expected
       } else if (prop === 'scale3d' && xyz.every((n) => !Number.isNaN(+n)) && xyz.some((n) => n !== 1)) {
         m = m.scale(x, y, z);
       // single value expected
@@ -1648,9 +1672,8 @@
         const sy = nosy ? x : y;
         m = m.scale(x, sy, 1);
       // single/double value expected
-      } else if (prop === 'skew' && x && z === undefined) {
-        m = m.skewX(x);
-        m = y ? m.skewY(y) : m;
+      } else if (prop === 'skew' && (x || (!Number.isNaN(x) && y)) && z === undefined) {
+        m = m.skew(x, y || 0);
       } else if (/[XYZ]/.test(prop) && x && [y, z].every((n) => n === undefined) // a single value expected
         && ['translate', 'rotate', 'scale', 'skew'].some((p) => prop.includes(p))) {
         if (['skewX', 'skewY'].includes(prop)) {
@@ -1660,10 +1683,11 @@
           const fn = prop.replace(/[XYZ]/, '');
           const axis = prop.replace(fn, '');
           const idx = ['X', 'Y', 'Z'].indexOf(axis);
+          const def = fn === 'scale' ? 1 : 0;
           const axeValues = [
-            idx === 0 ? x : 0,
-            idx === 1 ? x : 0,
-            idx === 2 ? x : 0];
+            idx === 0 ? x : def,
+            idx === 1 ? x : def,
+            idx === 2 ? x : def];
           // @ts-ignore unfortunately
           m = m[fn](...axeValues);
         }
@@ -1673,6 +1697,25 @@
     });
 
     return m;
+  }
+
+  /**
+   * Returns an *Array* containing elements which comprise the matrix.
+   * The method can return either the 16 elements or the 6 elements
+   * depending on the value of the `is2D` parameter.
+   *
+   * @param {CSSMatrix | DOMMatrix | CSSM.JSONMatrix} m the source matrix to feed values from.
+   * @param {boolean=} is2D *Array* representation of the matrix
+   * @return {CSSM.matrix | CSSM.matrix3d} an *Array* representation of the matrix
+   */
+  function toArray(m, is2D) {
+    if (is2D) {
+      return [m.a, m.b, m.c, m.d, m.e, m.f];
+    }
+    return [m.m11, m.m12, m.m13, m.m14,
+      m.m21, m.m22, m.m23, m.m24,
+      m.m31, m.m32, m.m33, m.m34,
+      m.m41, m.m42, m.m43, m.m44];
   }
 
   // Transform Functions
@@ -1766,26 +1809,21 @@
    */
   function RotateAxisAngle(x, y, z, alpha) {
     const m = new CSSMatrix();
+    const length = Math.sqrt(x * x + y * y + z * z);
+
+    if (length === 0) {
+      // bad vector length, return identity
+      return m;
+    }
+
+    const X = x / length;
+    const Y = y / length;
+    const Z = z / length;
+
     const angle = alpha * (Math.PI / 360);
     const sinA = Math.sin(angle);
     const cosA = Math.cos(angle);
     const sinA2 = sinA * sinA;
-    const length = Math.sqrt(x * x + y * y + z * z);
-    let X = x;
-    let Y = y;
-    let Z = z;
-
-    if (length === 0) {
-      // bad vector length, use something reasonable
-      X = 0;
-      Y = 0;
-      Z = 1;
-    } else {
-      X /= length;
-      Y /= length;
-      Z /= length;
-    }
-
     const x2 = X * X;
     const y2 = Y * Y;
     const z2 = Z * Z;
@@ -1841,6 +1879,33 @@
   }
 
   /**
+   * Creates a new `CSSMatrix` for the shear of both the `x-axis` and`y-axis`
+   * matrix and returns it. This method is equivalent to the CSS `skew()` function.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/skew
+   *
+   * @param {number} angleX the X-angle in degrees.
+   * @param {number} angleY the Y-angle in degrees.
+   * @return {CSSMatrix} the resulted matrix.
+   */
+  function Skew(angleX, angleY) {
+    const m = new CSSMatrix();
+    if (angleX) {
+      const radX = (angleX * Math.PI) / 180;
+      const tX = Math.tan(radX);
+      m.m21 = tX;
+      m.c = tX;
+    }
+    if (angleY) {
+      const radY = (angleY * Math.PI) / 180;
+      const tY = Math.tan(radY);
+      m.m12 = tY;
+      m.b = tY;
+    }
+    return m;
+  }
+
+  /**
    * Creates a new `CSSMatrix` for the shear of the `x-axis` rotation matrix and
    * returns it. This method is equivalent to the CSS `skewX()` function.
    *
@@ -1850,12 +1915,7 @@
    * @return {CSSMatrix} the resulted matrix.
    */
   function SkewX(angle) {
-    const m = new CSSMatrix();
-    const radA = (angle * Math.PI) / 180;
-    const t = Math.tan(radA);
-    m.m21 = t;
-    m.c = t;
-    return m;
+    return Skew(angle, 0);
   }
 
   /**
@@ -1868,20 +1928,15 @@
    * @return {CSSMatrix} the resulted matrix.
    */
   function SkewY(angle) {
-    const m = new CSSMatrix();
-    const radA = (angle * Math.PI) / 180;
-    const t = Math.tan(radA);
-    m.m12 = t;
-    m.b = t;
-    return m;
+    return Skew(0, angle);
   }
 
   /**
    * Creates a new `CSSMatrix` resulted from the multiplication of two matrixes
    * and returns it. Both matrixes are not changed.
    *
-   * @param {CSSMatrix} m1 the first matrix.
-   * @param {CSSMatrix} m2 the second matrix.
+   * @param {CSSMatrix | DOMMatrix | CSSM.JSONMatrix} m1 the first matrix.
+   * @param {CSSMatrix | DOMMatrix | CSSM.JSONMatrix} m2 the second matrix.
    * @return {CSSMatrix} the resulted matrix.
    */
   function Multiply(m1, m2) {
@@ -1951,15 +2006,6 @@
     }
 
     /**
-     * Sets a new `Boolean` flag value for `this.isIdentity` matrix property.
-     *
-     * @param {boolean} value sets a new flag for this property
-     */
-    set isIdentity(value) {
-      this.isIdentity = value;
-    }
-
-    /**
      * A `Boolean` whose value is `true` if the matrix is the identity matrix. The identity
      * matrix is one in which every value is 0 except those on the main diagonal from top-left
      * to bottom-right corner (in other words, where the offsets in each direction are equal).
@@ -1986,15 +2032,6 @@
     }
 
     /**
-     * Sets a new `Boolean` flag value for `this.is2D` matrix property.
-     *
-     * @param {boolean} value sets a new flag for this property
-     */
-    set is2D(value) {
-      this.is2D = value;
-    }
-
-    /**
      * The `setMatrixValue` method replaces the existing matrix with one computed
      * in the browser. EG: `matrix(1,0.25,-0.25,1,0,0)`
      *
@@ -2005,50 +2042,52 @@
      * This method expects valid *matrix()* / *matrix3d()* string values, as well
      * as other transform functions like *translateX(10px)*.
      *
-     * @param {string | number[] | CSSMatrix | DOMMatrix} source
+     * @param {string | CSSM.matrix | CSSM.matrix3d | CSSMatrix | DOMMatrix | CSSM.JSONMatrix} source
      * @return {CSSMatrix} the matrix instance
      */
     setMatrixValue(source) {
       const m = this;
 
-      // [Arguments list | Array] come here
-      if ([Array, Float64Array, Float32Array].some((a) => source instanceof a)) {
-        return fromArray(source);
-      }
-      // CSS transform string source - TransformList
+      // CSS transform string source - TransformList first
       if (typeof source === 'string' && source.length && source !== 'none') {
         return fromString(source);
       }
-      // new CSSMatrix(CSSMatrix | DOMMatrix | JSON)
-      if (typeof source === 'object') {
+      // [Arguments list | Array] come second
+      if ([Array, Float64Array, Float32Array].some((a) => source instanceof a)) {
+        // @ts-ignore
+        return fromArray(source);
+      }
+      // new CSSMatrix(CSSMatrix | DOMMatrix | JSON) last
+      if ([CSSMatrix, DOMMatrix, Object].some((a) => source instanceof a)) {
+        // @ts-ignore
         return fromMatrix(source);
       }
+
       return m;
     }
 
     /**
-     * Returns an *Array* containing elements which comprise the matrix.
+     * Returns a *Float32Array* containing elements which comprise the matrix.
      * The method can return either the 16 elements or the 6 elements
-     * depending on the value of the `is2D` property.
+     * depending on the value of the `is2D` parameter.
      *
-     * @return {number[]} an *Array* representation of the matrix
+     * @param {boolean=} is2D *Array* representation of the matrix
+     * @return {Float32Array} an *Array* representation of the matrix
      */
-    toArray() {
-      const m = this;
-      const pow = (10 ** 6);
-      let result;
+    toFloat32Array(is2D) {
+      return Float32Array.from(toArray(this, is2D));
+    }
 
-      if (m.is2D) {
-        result = [m.a, m.b, m.c, m.d, m.e, m.f];
-      } else {
-        result = [m.m11, m.m12, m.m13, m.m14,
-          m.m21, m.m22, m.m23, m.m24,
-          m.m31, m.m32, m.m33, m.m34,
-          m.m41, m.m42, m.m43, m.m44];
-      }
-      // clean up the numbers
-      // eslint-disable-next-line -- no-bitwise
-      return result.map((n) => (Math.abs(n) < 1e-6 ? 0 : ((n * pow) >> 0) / pow));
+    /**
+     * Returns a *Float64Array* containing elements which comprise the matrix.
+     * The method can return either the 16 elements or the 6 elements
+     * depending on the value of the `is2D` parameter.
+     *
+     * @param {boolean=} is2D *Array* representation of the matrix
+     * @return {Float64Array} an *Array* representation of the matrix
+     */
+    toFloat64Array(is2D) {
+      return Float64Array.from(toArray(this, is2D));
     }
 
     /**
@@ -2062,8 +2101,9 @@
      */
     toString() {
       const m = this;
-      const values = m.toArray();
-      const type = m.is2D ? 'matrix' : 'matrix3d';
+      const { is2D } = m;
+      const values = m.toFloat64Array(is2D).join(', ');
+      const type = is2D ? 'matrix' : 'matrix3d';
       return `${type}(${values})`;
     }
 
@@ -2075,7 +2115,7 @@
      * The result can also be used as a second parameter for the `fromMatrix` static method
      * to load values into another matrix instance.
      *
-     * @return {CSSMatrix.JSONMatrix} an *Object* with all matrix values.
+     * @return {CSSM.JSONMatrix} an *Object* with all matrix values.
      */
     toJSON() {
       const m = this;
@@ -2088,7 +2128,7 @@
      * matrix multiplied by the passed matrix, with the passed matrix to the right.
      * This matrix is not modified.
      *
-     * @param {CSSMatrix | DOMMatrix | CSSMatrix.JSONMatrix} m2 CSSMatrix
+     * @param {CSSMatrix | DOMMatrix | CSSM.JSONMatrix} m2 CSSMatrix
      * @return {CSSMatrix} The resulted matrix.
      */
     multiply(m2) {
@@ -2110,8 +2150,8 @@
       const X = x;
       let Y = y;
       let Z = z;
-      if (Z === undefined) Z = 0;
       if (Y === undefined) Y = 0;
+      if (Z === undefined) Z = 0;
       return Multiply(this, Translate(X, Y, Z));
     }
 
@@ -2150,10 +2190,13 @@
      */
     rotate(rx, ry, rz) {
       let RX = rx;
-      let RY = ry;
-      let RZ = rz;
-      if (RY === undefined) RY = 0;
-      if (RZ === undefined) { RZ = RX; RX = 0; }
+      let RY = ry || 0;
+      let RZ = rz || 0;
+
+      if (typeof rx === 'number' && ry === undefined && rz === undefined) {
+        RZ = RX; RX = 0; RY = 0;
+      }
+
       return Multiply(this, Rotate(RX, RY, RZ));
     }
 
@@ -2170,7 +2213,7 @@
      * @return {CSSMatrix} The resulted matrix
      */
     rotateAxisAngle(x, y, z, angle) {
-      if ([x, y, z, angle].some((n) => Number.isNaN(n))) {
+      if ([x, y, z, angle].some((n) => Number.isNaN(+n))) {
         throw new TypeError('CSSMatrix: expecting 4 values');
       }
       return Multiply(this, RotateAxisAngle(x, y, z, angle));
@@ -2199,31 +2242,15 @@
     }
 
     /**
-     * Transforms a specified point using the matrix, returning a new
-     * Tuple *Object* comprising of the transformed point.
-     * Neither the matrix nor the original point are altered.
+     * Specifies a skew transformation along both the `x-axis` and `y-axis`.
+     * This matrix is not modified.
      *
-     * The method is equivalent with `transformPoint()` method
-     * of the `DOMMatrix` constructor.
-     *
-     * @copyright thednp © 2021
-     *
-     * @param {CSSMatrix.PointTuple | DOMPoint} v Tuple or DOMPoint
-     * @return {CSSMatrix.PointTuple} the resulting Tuple
+     * @param {number} angleX The X-angle amount in degrees to skew.
+     * @param {number} angleY The angle amount in degrees to skew.
+     * @return {CSSMatrix} The resulted matrix
      */
-    transformPoint(v) {
-      const M = this;
-      let m = Translate(v.x, v.y, v.z);
-
-      m.m44 = v.w || 1;
-      m = M.multiply(m);
-
-      return {
-        x: m.m41,
-        y: m.m42,
-        z: m.m43,
-        w: m.m44,
-      };
+    skew(angleX, angleY) {
+      return Multiply(this, Skew(angleX, angleY));
     }
 
     /**
@@ -2231,22 +2258,25 @@
      * {x,y,z,w} Tuple *Object* comprising the transformed vector.
      * Neither the matrix nor the original vector are altered.
      *
-     * @param {CSSMatrix.PointTuple} t Tuple with `{x,y,z,w}` components
-     * @return {CSSMatrix.PointTuple} the resulting Tuple
+     * The method is equivalent with `transformPoint()` method
+     * of the `DOMMatrix` constructor.
+     *
+     * @param {CSSM.PointTuple | DOMPoint} t Tuple with `{x,y,z,w}` components
+     * @return {CSSM.PointTuple | DOMPoint} the resulting Tuple
      */
-    transform(t) {
+    transformPoint(t) {
       const m = this;
-      const x = m.m11 * t.x + m.m12 * t.y + m.m13 * t.z + m.m14 * t.w;
-      const y = m.m21 * t.x + m.m22 * t.y + m.m23 * t.z + m.m24 * t.w;
-      const z = m.m31 * t.x + m.m32 * t.y + m.m33 * t.z + m.m34 * t.w;
-      const w = m.m41 * t.x + m.m42 * t.y + m.m43 * t.z + m.m44 * t.w;
 
-      return {
-        x: x / w,
-        y: y / w,
-        z: z / w,
-        w,
-      };
+      const x = m.m11 * t.x + m.m21 * t.y + m.m31 * t.z + m.m41 * t.w;
+      const y = m.m12 * t.x + m.m22 * t.y + m.m32 * t.z + m.m42 * t.w;
+      const z = m.m13 * t.x + m.m23 * t.y + m.m33 * t.z + m.m43 * t.w;
+      const w = m.m14 * t.x + m.m24 * t.y + m.m34 * t.z + m.m44 * t.w;
+
+      return t instanceof DOMPoint
+        ? new DOMPoint(x, y, z, w)
+        : {
+          x, y, z, w,
+        };
     }
   }
 
@@ -2259,13 +2289,15 @@
     Scale,
     SkewX,
     SkewY,
+    Skew,
     Multiply,
     fromArray,
     fromMatrix,
     fromString,
+    toArray,
   });
 
-  var version$1 = "0.0.24";
+  var version$1 = "0.1.0";
 
   // @ts-ignore
 
@@ -2411,6 +2443,27 @@
   }
 
   /**
+   * Transforms a specified point using a matrix, returning a new
+   * Tuple *Object* comprising of the transformed point.
+   * Neither the matrix nor the original point are altered.
+   *
+   * @copyright thednp © 2021
+   *
+   * @param {SVGPath.CSSMatrix} M CSSMatrix instance
+   * @param {[number, number, number, number]} v Tuple or DOMPoint
+   * @return {*} the resulting Tuple
+   */
+  function translatePoint(M, v) {
+    // @ts-ignore
+    let m = Translate(...v);
+
+    m.m44 = v[3] || 1;
+    m = M.multiply(m);
+
+    return [m.m41, m.m42, m.m43, m.m44];
+  }
+
+  /**
    * Returns the [x,y] projected coordinates for a given an [x,y] point
    * and an [x,y,z] perspective origin point.
    *
@@ -2425,15 +2478,12 @@
    * @returns {[number, number]} the projected [x,y] coordinates
    */
   function projection2d(m, point2D, origin) {
-    const [px, py] = point2D;
     const [originX, originY, originZ] = origin;
-    const point3D = m.transformPoint({
-      x: px, y: py, z: 0, w: 1,
-    });
+    const [x, y, z] = translatePoint(m, [...point2D, 0, 1]);
 
-    const relativePositionX = point3D.x - originX;
-    const relativePositionY = point3D.y - originY;
-    const relativePositionZ = point3D.z - originZ;
+    const relativePositionX = x - originX;
+    const relativePositionY = y - originY;
+    const relativePositionZ = z - originZ;
 
     return [
       relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ)) + originX,
@@ -2463,7 +2513,6 @@
     } = matrixInstance;
     const matrix2d = [a, b, c, d, e, f];
     const params = { ...paramsParser };
-    /** @ts-ignore */
     /** @type {SVGPath.pathSegment} */
     // @ts-ignore
     let segment = [];
@@ -2616,170 +2665,59 @@
    * @param {number} x2 the ending point X
    * @param {number} y2 the ending point Y
    * @param {number=} distance the point distance
-   * @returns {{x: number, y: number} | number} the segment length or point
+   * @returns {SVGPath.lengthFactory} the segment length, point, min & max
    */
   function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
     const distanceIsNumber = typeof distance === 'number';
     const lengthMargin = 0.001;
     let x = x1; let y = y1;
-    let totalLength = 0;
-    let prev = [x1, y1, totalLength];
+    let LENGTH = 0;
+    let prev = [x1, y1, LENGTH];
     /** @type {[number, number]} */
     let cur = [x1, y1];
     let t = 0;
+    let POINT = { x: 0, y: 0 };
+    let POINTS = [{ x, y }];
 
     if (distanceIsNumber && distance < lengthMargin) {
-      return { x, y };
+      POINT = { x, y };
     }
 
-    const n = 100;
-    for (let j = 0; j <= n; j += 1) {
-      t = j / n;
+    const sampleSize = 100;
+    for (let j = 0; j <= sampleSize; j += 1) {
+      t = j / sampleSize;
 
       ({ x, y } = getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t));
-      totalLength += distanceSquareRoot(cur, [x, y]);
+      POINTS = [...POINTS, { x, y }];
+      LENGTH += distanceSquareRoot(cur, [x, y]);
       cur = [x, y];
 
-      if (distanceIsNumber && totalLength >= distance) {
-        const dv = (totalLength - distance) / (totalLength - prev[2]);
+      if (distanceIsNumber && LENGTH >= distance) {
+        const dv = (LENGTH - distance) / (LENGTH - prev[2]);
 
-        return {
+        POINT = {
           x: cur[0] * (1 - dv) + prev[0] * dv,
           y: cur[1] * (1 - dv) + prev[1] * dv,
         };
       }
-      prev = [x, y, totalLength];
+      prev = [x, y, LENGTH];
     }
 
-    if (distanceIsNumber && distance >= totalLength) {
-      return { x: x2, y: y2 };
+    if (distanceIsNumber && distance >= LENGTH) {
+      POINT = { x: x2, y: y2 };
     }
-    return totalLength;
-  }
 
-  /**
-   * Returns the cubic-bezier segment bounding box.
-   *
-   * @param {number} x1 the starting point X
-   * @param {number} y1 the starting point Y
-   * @param {number} c1x the first control point X
-   * @param {number} c1y the first control point Y
-   * @param {number} c2x the second control point X
-   * @param {number} c2y the second control point Y
-   * @param {number} x2 the ending point X
-   * @param {number} y2 the ending point Y
-   * @returns {SVGPath.segmentLimits} the bounding box of the cubic-bezier segment
-   */
-  function getCubicSize(x1, y1, c1x, c1y, c2x, c2y, x2, y2) {
-    let a = (c2x - 2 * c1x + x1) - (x2 - 2 * c2x + c1x);
-    let b = 2 * (c1x - x1) - 2 * (c2x - c1x);
-    let c = x1 - c1x;
-    let t1 = (-b + Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-    let t2 = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-    const X = [x1, x2];
-    const Y = [y1, y2];
-    let x = 0;
-    let y = 0;
-
-    if (Math.abs(t1) > 1e12) t1 = 0.5;
-    if (Math.abs(t2) > 1e12) t2 = 0.5;
-
-    if (t1 > 0 && t1 < 1) {
-      // @ts-ignore
-      ({ x, y } = segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t1));
-      X.push(x);
-      Y.push(y);
-    }
-    if (t2 > 0 && t2 < 1) {
-      // @ts-ignore
-      ({ x, y } = segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t2));
-      X.push(x);
-      Y.push(y);
-    }
-    a = (c2y - 2 * c1y + y1) - (y2 - 2 * c2y + c1y);
-    b = 2 * (c1y - y1) - 2 * (c2y - c1y);
-    c = y1 - c1y;
-    t1 = (-b + Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-    t2 = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-    if (Math.abs(t1) > 1e12) t1 = 0.5;
-    if (Math.abs(t2) > 1e12) t2 = 0.5;
-
-    if (t1 > 0 && t1 < 1) {
-      // @ts-ignore
-      ({ x, y } = segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t1));
-      X.push(x);
-      Y.push(y);
-    }
-    if (t2 > 0 && t2 < 1) {
-      // @ts-ignore
-      ({ x, y } = segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t2));
-      X.push(x);
-      Y.push(y);
-    }
     return {
-      min: { x: Math.min(...X), y: Math.min(...Y) },
-      max: { x: Math.max(...X), y: Math.max(...Y) },
-    };
-  }
-
-  /**
-   * Returns the bounding box of a shape.
-   *
-   * @param {SVGPath.pathArray} path the shape `pathArray`
-   * @returns {SVGPath.pathBBox} the length of the cubic-bezier segment
-   */
-  function getPathBBox(path) {
-    if (!path) {
-      return {
-        x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0, cx: 0, cy: 0, cz: 0,
-      };
-    }
-    const pathCurve = pathToCurve(path);
-
-    let x = 0; let y = 0;
-    /** @type {number[]} */
-    let X = [];
-    /** @type {number[]} */
-    let Y = [];
-
-    pathCurve.forEach((segment) => {
-      const [s1, s2] = segment.slice(-2).map(Number);
-      if (segment[0] === 'M') {
-        x = s1;
-        y = s2;
-        X.push(s1);
-        Y.push(s2);
-      } else {
-        const sizeArgs = [x, y, ...segment.slice(1)];
-        // @ts-ignore -- this should be fine
-        const dim = getCubicSize(...sizeArgs);
-
-        X = [...X, ...[dim.min.x, dim.max.x]];
-        Y = [...Y, ...[dim.min.y, dim.max.y]];
-        x = s1;
-        y = s2;
-      }
-    });
-
-    const xTop = Math.min(...X);
-    const yTop = Math.min(...Y);
-    const xBot = Math.max(...X);
-    const yBot = Math.max(...Y);
-    const width = xBot - xTop;
-    const height = yBot - yTop;
-
-    // an estimted guess
-    const cz = Math.max(width, height) + Math.min(width, height) / 2;
-    return {
-      width,
-      height,
-      x: xTop,
-      y: yTop,
-      x2: xBot,
-      y2: yBot,
-      cx: xTop + width / 2,
-      cy: yTop + height / 2,
-      cz,
+      length: LENGTH,
+      point: POINT,
+      min: {
+        x: Math.min(...POINTS.map((n) => n.x)),
+        y: Math.min(...POINTS.map((n) => n.y)),
+      },
+      max: {
+        x: Math.max(...POINTS.map((n) => n.x)),
+        y: Math.max(...POINTS.map((n) => n.y)),
+      },
     };
   }
 
@@ -2797,40 +2735,63 @@
    * @param {number} X2 the ending x position
    * @param {number} Y2 the ending y position
    * @param {number} distance the point distance
-   * @returns {{x: number, y: number} | number} the segment length or point
+   * @returns {SVGPath.lengthFactory} the segment length, point, min & max
    */
   function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
     const cubicSeg = arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2);
     const distanceIsNumber = typeof distance === 'number';
     let [x, y] = [X1, Y1];
     const lengthMargin = 0.001;
-    let totalLength = 0;
     let cubicSubseg = [];
     let argsc = [];
-    let segLen = 0;
+    /** @type {{x: number, y: number}[]} */
+    let MIN = [];
+    /** @type {{x: number, y: number}[]} */
+    let MAX = [];
+    let length = 0;
+    let min = { x: 0, y: 0 };
+    let max = min;
+    let point = min;
+    let POINT = min;
+    let LENGTH = 0;
 
     if (distanceIsNumber && distance < lengthMargin) {
-      return { x, y };
+      POINT = { x, y };
     }
 
     for (let i = 0, ii = cubicSeg.length; i < ii; i += 6) {
       cubicSubseg = cubicSeg.slice(i, i + 6);
       argsc = [x, y, ...cubicSubseg];
-      // @ts-ignore
-      segLen = segmentCubicFactory(...argsc);
-      if (distanceIsNumber && totalLength + segLen >= distance) {
-        // @ts-ignore -- this is a `cubicSegment`
-        return segmentCubicFactory(...argsc, distance - totalLength);
+      ({
+        length, min, max, point,
+        // @ts-ignore
+      } = segmentCubicFactory(...argsc, (distance || 0) - LENGTH));
+      if (distanceIsNumber && LENGTH < distance && LENGTH + length >= distance) {
+        POINT = point;
       }
-      totalLength += segLen;
+      LENGTH += length;
+      MAX = [...MAX, max];
+      MIN = [...MIN, min];
+
       [x, y] = cubicSubseg.slice(-2);
     }
 
-    if (distanceIsNumber && distance >= totalLength) {
-      return { x: X2, y: Y2 };
+    if (distanceIsNumber && distance >= LENGTH) {
+      POINT = { x: X2, y: Y2 };
     }
 
-    return totalLength;
+    return {
+      length: LENGTH,
+      point: POINT,
+      min: {
+        x: Math.min(...MIN.map((n) => n.x)),
+        y: Math.min(...MIN.map((n) => n.y)),
+      },
+      max: {
+        x: Math.max(...MAX.map((n) => n.x)),
+        y: Math.max(...MAX.map((n) => n.y)),
+      },
+    };
   }
 
   /**
@@ -2871,44 +2832,59 @@
    * @param {number} x2 the ending point X
    * @param {number} y2 the ending point Y
    * @param {number=} distance the distance to point
-   * @returns {{x: number, y: number} | number} the segment length or point
+   * @returns {SVGPath.lengthFactory} the segment length, point, min & max
    */
   function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
     const distanceIsNumber = typeof distance === 'number';
     const lengthMargin = 0.001;
     let x = x1; let y = y1;
-    let totalLength = 0;
-    let prev = [x1, y1, totalLength];
+    let LENGTH = 0;
+    let prev = [x1, y1, LENGTH];
     /** @type {[number, number]} */
     let cur = [x1, y1];
     let t = 0;
+    let POINT = { x: 0, y: 0 };
+    let POINTS = [{ x, y }];
 
     if (distanceIsNumber && distance < lengthMargin) {
-      return { x, y };
+      POINT = { x, y };
     }
 
-    const n = 100;
-    for (let j = 0; j <= n; j += 1) {
-      t = j / n;
+    const sampleSize = 100;
+    for (let j = 0; j <= sampleSize; j += 1) {
+      t = j / sampleSize;
 
       ({ x, y } = getPointAtQuadSegmentLength(x1, y1, qx, qy, x2, y2, t));
-      totalLength += distanceSquareRoot(cur, [x, y]);
+      POINTS = [...POINTS, { x, y }];
+      LENGTH += distanceSquareRoot(cur, [x, y]);
       cur = [x, y];
 
-      if (distanceIsNumber && totalLength >= distance) {
-        const dv = (totalLength - distance) / (totalLength - prev[2]);
+      if (distanceIsNumber && LENGTH >= distance) {
+        const dv = (LENGTH - distance) / (LENGTH - prev[2]);
 
-        return {
+        POINT = {
           x: cur[0] * (1 - dv) + prev[0] * dv,
           y: cur[1] * (1 - dv) + prev[1] * dv,
         };
       }
-      prev = [x, y, totalLength];
+      prev = [x, y, LENGTH];
     }
-    if (distanceIsNumber && distance >= totalLength) {
-      return { x: x2, y: y2 };
+    if (distanceIsNumber && distance >= LENGTH) {
+      POINT = { x: x2, y: y2 };
     }
-    return totalLength;
+
+    return {
+      length: LENGTH,
+      point: POINT,
+      min: {
+        x: Math.min(...POINTS.map((n) => n.x)),
+        y: Math.min(...POINTS.map((n) => n.y)),
+      },
+      max: {
+        x: Math.max(...POINTS.map((n) => n.x)),
+        y: Math.max(...POINTS.map((n) => n.y)),
+      },
+    };
   }
 
   /**
@@ -2917,22 +2893,30 @@
    *
    * @param {string | SVGPath.pathArray} pathInput the `pathArray` to look into
    * @param {number=} distance the length of the shape to look at
-   * @returns {{x: number, y: number} | number} the total length or point
+   * @returns {SVGPath.lengthFactory} the path length, point, min & max
    */
   function pathLengthFactory(pathInput, distance) {
     const path = fixPath(normalizePath(pathInput));
     const distanceIsNumber = typeof distance === 'number';
-    let totalLength = 0;
     let isM = true;
     /** @type {number[]} */
     let data = [];
     let pathCommand = 'M';
-    let segLen = 0;
     let x = 0;
     let y = 0;
     let mx = 0;
     let my = 0;
     let seg;
+    /** @type {{x: number, y: number}[]} */
+    let MIN = [];
+    /** @type {{x: number, y: number}[]} */
+    let MAX = [];
+    let length = 0;
+    let min = { x: 0, y: 0 };
+    let max = min;
+    let point = min;
+    let POINT = min;
+    let LENGTH = 0;
 
     for (let i = 0, ll = path.length; i < ll; i += 1) {
       seg = path[i];
@@ -2944,53 +2928,49 @@
       // this segment is always ZERO
       if (isM) {
         // remember mx, my for Z
-        // @ts-ignore
+        // @ts-ignore `isM`
         [, mx, my] = seg;
+        min = { x: mx, y: my };
+        max = min;
+
         if (distanceIsNumber && distance < 0.001) {
-          return { x: mx, y: my };
+          POINT = min;
         }
       } else if (pathCommand === 'L') {
-        // @ts-ignore
-        segLen = segmentLineFactory(...data);
-        if (distanceIsNumber && totalLength + segLen >= distance) {
+        ({
+          length, min, max, point,
           // @ts-ignore
-          return segmentLineFactory(...data, distance - totalLength);
-        }
-        totalLength += segLen;
+        } = segmentLineFactory(...data, (distance || 0) - LENGTH));
       } else if (pathCommand === 'A') {
-        // @ts-ignore
-        segLen = segmentArcFactory(...data);
-        if (distanceIsNumber && totalLength + segLen >= distance) {
+        ({
+          length, min, max, point,
           // @ts-ignore
-          return segmentArcFactory(...data, distance - totalLength);
-        }
-        totalLength += segLen;
+        } = segmentArcFactory(...data, (distance || 0) - LENGTH));
       } else if (pathCommand === 'C') {
-        // @ts-ignore
-        segLen = segmentCubicFactory(...data);
-        if (distanceIsNumber && totalLength + segLen >= distance) {
+        ({
+          length, min, max, point,
           // @ts-ignore
-          return segmentCubicFactory(...data, distance - totalLength);
-        }
-        totalLength += segLen;
+        } = segmentCubicFactory(...data, (distance || 0) - LENGTH));
       } else if (pathCommand === 'Q') {
-        // @ts-ignore
-        segLen = segmentQuadFactory(...data);
-        if (distanceIsNumber && totalLength + segLen >= distance) {
+        ({
+          length, min, max, point,
           // @ts-ignore
-          return segmentQuadFactory(...data, distance - totalLength);
-        }
-        totalLength += segLen;
+        } = segmentQuadFactory(...data, (distance || 0) - LENGTH));
       } else if (pathCommand === 'Z') {
         data = [x, y, mx, my];
-        // @ts-ignore
-        segLen = segmentLineFactory(...data);
-        if (distanceIsNumber && totalLength + segLen >= distance) {
+        ({
+          length, min, max, point,
           // @ts-ignore
-          return segmentLineFactory(...data, distance - totalLength);
-        }
-        totalLength += segLen;
+        } = segmentLineFactory(...data, (distance || 0) - LENGTH));
       }
+
+      if (distanceIsNumber && LENGTH < distance && LENGTH + length >= distance) {
+        POINT = point;
+      }
+
+      MAX = [...MAX, max];
+      MIN = [...MIN, min];
+      LENGTH += length;
 
       // @ts-ignore -- needed for the below
       [x, y] = pathCommand !== 'Z' ? seg.slice(-2) : [mx, my];
@@ -2998,11 +2978,57 @@
 
     // native `getPointAtLength` behavior when the given distance
     // is higher than total length
-    if (distanceIsNumber && distance >= totalLength) {
-      return { x, y };
+    if (distanceIsNumber && distance >= LENGTH) {
+      POINT = { x, y };
     }
 
-    return totalLength;
+    return {
+      length: LENGTH,
+      point: POINT,
+      min: {
+        x: Math.min(...MIN.map((n) => n.x)),
+        y: Math.min(...MIN.map((n) => n.y)),
+      },
+      max: {
+        x: Math.max(...MAX.map((n) => n.x)),
+        y: Math.max(...MAX.map((n) => n.y)),
+      },
+    };
+  }
+
+  /**
+   * Returns the bounding box of a shape.
+   *
+   * @param {SVGPath.pathArray=} path the shape `pathArray`
+   * @returns {SVGPath.pathBBox} the length of the cubic-bezier segment
+   */
+  function getPathBBox(path) {
+    if (!path) {
+      return {
+        x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0, cx: 0, cy: 0, cz: 0,
+      };
+    }
+
+    const {
+      min: { x: xMin, y: yMin },
+      max: { x: xMax, y: yMax },
+    } = pathLengthFactory(path);
+
+    const width = xMax - xMin;
+    const height = yMax - yMin;
+
+    return {
+      width,
+      height,
+      x: xMin,
+      y: yMin,
+      x2: xMax,
+      y2: yMax,
+      cx: xMin + width / 2,
+      cy: yMin + height / 2,
+      // an estimted guess
+      cz: Math.max(width, height) + Math.min(width, height) / 2,
+    };
   }
 
   /**
@@ -3015,8 +3041,7 @@
    * @returns {number} the shape total length
    */
   function getTotalLength(pathInput) {
-    // @ts-ignore - it's fine
-    return pathLengthFactory(pathInput);
+    return pathLengthFactory(pathInput).length;
   }
 
   /**
@@ -3027,8 +3052,7 @@
    * @returns {{x: number, y: number}} the requested {x, y} point coordinates
    */
   function getPointAtLength(pathInput, distance) {
-    // @ts-ignore
-    return pathLengthFactory(pathInput, distance);
+    return pathLengthFactory(pathInput, distance).point;
   }
 
   /**
@@ -3077,7 +3101,7 @@
       if (roundOption === 'auto') {
         const pathScale = (`${Math.floor(Math.max(width, height))}`).length;
         round = pathScale >= 4 ? 0 : 4 - pathScale;
-      } else if (Number.isInteger(roundOption) || roundOption === false) {
+      } else if (Number.isInteger(roundOption) || roundOption === 'off') {
         round = roundOption;
       }
 
@@ -3094,7 +3118,7 @@
       }
 
       /**
-       * @type {number | false}
+       * @type {number | 'off'}
        */
       this.round = round;
       this.origin = origin;
@@ -3166,14 +3190,14 @@
 
     /**
      * Reverse the order of the segments and their values.
-     * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
+     * @param {boolean} onlySubpath option to reverse all sub-paths except first
      * @public
      */
     reverse(onlySubpath) {
       this.toAbsolute();
 
       const { segments } = this;
-      const split = splitPath(this.toString());
+      const split = splitPath(segments);
       const subPath = split.length > 1 ? split : 0;
 
       // @ts-ignore
@@ -3338,25 +3362,6 @@
   }
 
   /**
-   * Returns the shape total length, or the equivalent to `shape.getTotalLength()`.
-   *
-   * This is the `pathToCurve` version which is faster and more efficient for
-   * paths that are `curveArray`.
-   *
-   * @param {string | SVGPath.curveArray} path the target `pathArray`
-   * @returns {number} the `curveArray` total length
-   */
-  function getPathLength(path) {
-    let totalLength = 0;
-    pathToCurve(path).forEach((s, i, curveArray) => {
-      const args = s[0] !== 'M' ? [...curveArray[i - 1].slice(-2), ...s.slice(1)] : [];
-      // @ts-ignore
-      totalLength += s[0] === 'M' ? 0 : segmentCubicFactory(...args);
-    });
-    return totalLength;
-  }
-
-  /**
    * Check if a path is drawn clockwise and returns true if so,
    * false otherwise.
    *
@@ -3378,6 +3383,10 @@
   function getPropertiesAtLength(pathInput, distance) {
     const pathArray = parsePathString(pathInput);
     const segments = [];
+
+    if (typeof pathArray === 'string') {
+      throw TypeError(pathArray);
+    }
 
     let pathTemp = [...pathArray];
     // @ts-ignore
@@ -3545,7 +3554,7 @@
    */
   function isPointInStroke(pathInput, point) {
     const { distance } = getPropertiesAtPoint(pathInput, point);
-    return Math.abs(distance) < 0.01;
+    return Math.abs(distance) < 0.001; // 0.01 might be more permissive
   }
 
   /**
@@ -3801,8 +3810,8 @@
     getDrawDirection,
     getPathArea,
     getPathBBox,
+    pathLengthFactory,
     getTotalLength,
-    getPathLength,
     getPointAtLength,
     getClosestPoint,
     getSegmentOfPoint,

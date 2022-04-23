@@ -9,5 +9,5 @@ import getPropertiesAtPoint from './getPropertiesAtPoint';
  */
 export default function isPointInStroke(pathInput, point) {
   const { distance } = getPropertiesAtPoint(pathInput, point);
-  return Math.abs(distance) < 0.01;
+  return Math.abs(distance) < 0.001; // 0.01 might be more permissive
 }

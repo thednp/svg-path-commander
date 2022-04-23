@@ -51,12 +51,10 @@ export { default as splitPath } from '../../src/process/splitPath';
 export { default as transformEllipse } from '../../src/process/transformEllipse';
 export { default as transformPath } from '../../src/process/transformPath';
 
-export { default as getCubicSize } from '../../src/util/getCubicSize';
 export { default as getDrawDirection } from '../../src/util/getDrawDirection';
 export { default as getPathArea } from '../../src/util/getPathArea';
 export { default as getPathBBox } from '../../src/util/getPathBBox';
-
-export { default as getPathLength } from '../../src/util/getPathLength';
+export { default as pathLengthFactory } from '../../src/util/pathLengthFactory';
 export { default as getTotalLength } from '../../src/util/getTotalLength';
 
 export { default as segmentLineFactory } from '../../src/util/segmentLineFactory';

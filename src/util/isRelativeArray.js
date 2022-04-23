@@ -10,5 +10,5 @@ import isPathArray from './isPathArray';
 export default function isRelativeArray(path) {
   return isPathArray(path)
     // @ts-ignore -- `isPathArray` checks if it's `Array`
-    && path.slice(1).every((seg) => seg[0] === seg[0].toLowerCase());
+    && path.slice(1).every(([pc]) => pc === pc.toLowerCase());
 }

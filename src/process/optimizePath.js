@@ -15,7 +15,7 @@ import normalizePath from './normalizePath';
  * * also revers path check if it's smaller string, maybe?
  *
  * @param {SVGPath.pathArray} pathInput a string or `pathArray`
- * @param {number | boolean} round the amount of decimals to round values to
+ * @param {number | 'off'} round the amount of decimals to round values to
  * @returns {SVGPath.pathArray} the optimized `pathArray`
  */
 export default function optimizePath(pathInput, round) {

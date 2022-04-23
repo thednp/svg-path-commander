@@ -30,7 +30,6 @@ export default function transformPath(path, transform) {
   } = matrixInstance;
   const matrix2d = [a, b, c, d, e, f];
   const params = { ...paramsParser };
-  /** @ts-ignore */
   /** @type {SVGPath.pathSegment} */
   // @ts-ignore
   let segment = [];

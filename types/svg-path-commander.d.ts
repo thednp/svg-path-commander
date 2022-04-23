@@ -14,9 +14,9 @@ declare module "svg-path-commander/src/parser/finalizeSegment" {
      */
     export default function finalizeSegment(path: SVGPath.PathParser): void;
 }
-declare module "svg-path-commander/src/parser/invalidPathValue" {
-    export default invalidPathValue;
-    const invalidPathValue: "Invalid path value";
+declare module "svg-path-commander/src/parser/error" {
+    export default error;
+    const error: "SVGPathCommander error";
 }
 declare module "svg-path-commander/src/parser/scanFlag" {
     /**
@@ -35,6 +35,10 @@ declare module "svg-path-commander/src/parser/isDigit" {
      * @returns {boolean} check result
      */
     export default function isDigit(code: number): boolean;
+}
+declare module "svg-path-commander/src/parser/invalidPathValue" {
+    export default invalidPathValue;
+    const invalidPathValue: "Invalid path value";
 }
 declare module "svg-path-commander/src/parser/scanParam" {
     /**
@@ -159,9 +163,9 @@ declare module "svg-path-commander/src/parser/parsePathString" {
      * of segments we like to call `pathArray`.
      *
      * @param {SVGPath.pathArray | string} pathInput the string to be parsed
-     * @returns {SVGPath.pathArray} the resulted `pathArray`
+     * @returns {SVGPath.pathArray | string} the resulted `pathArray`
      */
-    export default function parsePathString(pathInput: SVGPath.pathArray | string): SVGPath.pathArray;
+    export default function parsePathString(pathInput: SVGPath.pathArray | string): SVGPath.pathArray | string;
 }
 declare module "svg-path-commander/src/util/isAbsoluteArray" {
     /**
@@ -395,12 +399,9 @@ declare module "svg-path-commander/src/util/segmentLineFactory" {
      * @param {number} x2 the ending point X
      * @param {number} y2 the ending point Y
      * @param {number=} distance the distance to point
-     * @returns {{x: number, y: number} | number} the segment length or point
+     * @returns {SVGPath.lengthFactory} the segment length, point, min & max
      */
-    export default function segmentLineFactory(x1: number, y1: number, x2: number, y2: number, distance?: number | undefined): {
-        x: number;
-        y: number;
-    } | number;
+    export default function segmentLineFactory(x1: number, y1: number, x2: number, y2: number, distance?: number | undefined): SVGPath.lengthFactory;
 }
 declare module "svg-path-commander/src/process/lineToCubic" {
     /**
@@ -451,10 +452,10 @@ declare module "svg-path-commander/src/process/roundPath" {
      * a specified amount of decimals and returns it.
      *
      * @param {SVGPath.pathArray} path the source `pathArray`
-     * @param {number | boolean} roundOption the amount of decimals to round numbers to
+     * @param {number | 'off'} roundOption the amount of decimals to round numbers to
      * @returns {SVGPath.pathArray} the resulted `pathArray` with rounded values
      */
-    export default function roundPath(path: SVGPath.pathArray, roundOption: number | boolean): SVGPath.pathArray;
+    export default function roundPath(path: SVGPath.pathArray, roundOption: number | 'off'): SVGPath.pathArray;
 }
 declare module "svg-path-commander/src/convert/pathToString" {
     /**
@@ -462,10 +463,10 @@ declare module "svg-path-commander/src/convert/pathToString" {
      * by rounding values and concatenating the `pathArray` segments.
      *
      * @param {SVGPath.pathArray} path the `pathArray` object
-     * @param {any} round amount of decimals to round values to
+     * @param {number | 'off'} round amount of decimals to round values to
      * @returns {string} the concatenated path string
      */
-    export default function pathToString(path: SVGPath.pathArray, round: any): string;
+    export default function pathToString(path: SVGPath.pathArray, round: number | 'off'): string;
 }
 declare module "svg-path-commander/src/math/epsilon" {
     export default epsilon;
@@ -535,10 +536,10 @@ declare module "svg-path-commander/src/process/optimizePath" {
      * * also revers path check if it's smaller string, maybe?
      *
      * @param {SVGPath.pathArray} pathInput a string or `pathArray`
-     * @param {number | boolean} round the amount of decimals to round values to
+     * @param {number | 'off'} round the amount of decimals to round values to
      * @returns {SVGPath.pathArray} the optimized `pathArray`
      */
-    export default function optimizePath(pathInput: SVGPath.pathArray, round: number | boolean): SVGPath.pathArray;
+    export default function optimizePath(pathInput: SVGPath.pathArray, round: number | 'off'): SVGPath.pathArray;
 }
 declare module "svg-path-commander/src/process/projection2d" {
     /**
@@ -550,12 +551,13 @@ declare module "svg-path-commander/src/process/projection2d" {
      * Details =>
      * https://stackoverflow.com/questions/23792505/predicted-rendering-of-css-3d-transformed-pixel
      *
-     * @param {SVGPath.CSSMatrix} m the transformation matrix
+     * @param {CSSMatrix} m the transformation matrix
      * @param {[number, number]} point2D the initial [x,y] coordinates
      * @param {number[]} origin the [x,y,z] transform origin
      * @returns {[number, number]} the projected [x,y] coordinates
      */
-    export default function projection2d(m: SVGPath.CSSMatrix, point2D: [number, number], origin: number[]): [number, number];
+    export default function projection2d(m: CSSMatrix, point2D: [number, number], origin: number[]): [number, number];
+    import CSSMatrix from "dommatrix";
 }
 declare module "svg-path-commander/src/process/reverseCurve" {
     /**
@@ -625,43 +627,6 @@ declare module "svg-path-commander/src/process/transformPath" {
      */
     export default function transformPath(path: SVGPath.pathArray, transform: SVGPath.transformObject): SVGPath.pathArray;
 }
-declare module "svg-path-commander/src/util/segmentCubicFactory" {
-    /**
-     * Returns the length of a C (cubic-bezier) segment
-     * or an {x,y} point at a given length.
-     *
-     * @param {number} x1 the starting point X
-     * @param {number} y1 the starting point Y
-     * @param {number} c1x the first control point X
-     * @param {number} c1y the first control point Y
-     * @param {number} c2x the second control point X
-     * @param {number} c2y the second control point Y
-     * @param {number} x2 the ending point X
-     * @param {number} y2 the ending point Y
-     * @param {number=} distance the point distance
-     * @returns {{x: number, y: number} | number} the segment length or point
-     */
-    export default function segmentCubicFactory(x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number, distance?: number | undefined): number | {
-        x: number;
-        y: number;
-    };
-}
-declare module "svg-path-commander/src/util/getCubicSize" {
-    /**
-     * Returns the cubic-bezier segment bounding box.
-     *
-     * @param {number} x1 the starting point X
-     * @param {number} y1 the starting point Y
-     * @param {number} c1x the first control point X
-     * @param {number} c1y the first control point Y
-     * @param {number} c2x the second control point X
-     * @param {number} c2y the second control point Y
-     * @param {number} x2 the ending point X
-     * @param {number} y2 the ending point Y
-     * @returns {SVGPath.segmentLimits} the bounding box of the cubic-bezier segment
-     */
-    export default function getCubicSize(x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number): SVGPath.segmentLimits;
-}
 declare module "svg-path-commander/src/util/getPathArea" {
     /**
      * Returns the area of a shape.
@@ -684,26 +649,23 @@ declare module "svg-path-commander/src/util/getDrawDirection" {
      */
     export default function getDrawDirection(path: SVGPath.pathArray): boolean;
 }
-declare module "svg-path-commander/src/util/getPathBBox" {
+declare module "svg-path-commander/src/util/segmentCubicFactory" {
     /**
-     * Returns the bounding box of a shape.
+     * Returns the length of a C (cubic-bezier) segment
+     * or an {x,y} point at a given length.
      *
-     * @param {SVGPath.pathArray} path the shape `pathArray`
-     * @returns {SVGPath.pathBBox} the length of the cubic-bezier segment
+     * @param {number} x1 the starting point X
+     * @param {number} y1 the starting point Y
+     * @param {number} c1x the first control point X
+     * @param {number} c1y the first control point Y
+     * @param {number} c2x the second control point X
+     * @param {number} c2y the second control point Y
+     * @param {number} x2 the ending point X
+     * @param {number} y2 the ending point Y
+     * @param {number=} distance the point distance
+     * @returns {SVGPath.lengthFactory} the segment length, point, min & max
      */
-    export default function getPathBBox(path: SVGPath.pathArray): SVGPath.pathBBox;
-}
-declare module "svg-path-commander/src/util/getPathLength" {
-    /**
-     * Returns the shape total length, or the equivalent to `shape.getTotalLength()`.
-     *
-     * This is the `pathToCurve` version which is faster and more efficient for
-     * paths that are `curveArray`.
-     *
-     * @param {string | SVGPath.curveArray} path the target `pathArray`
-     * @returns {number} the `curveArray` total length
-     */
-    export default function getPathLength(path: string | SVGPath.curveArray): number;
+    export default function segmentCubicFactory(x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number, distance?: number | undefined): SVGPath.lengthFactory;
 }
 declare module "svg-path-commander/src/util/segmentArcFactory" {
     /**
@@ -720,12 +682,9 @@ declare module "svg-path-commander/src/util/segmentArcFactory" {
      * @param {number} X2 the ending x position
      * @param {number} Y2 the ending y position
      * @param {number} distance the point distance
-     * @returns {{x: number, y: number} | number} the segment length or point
+     * @returns {SVGPath.lengthFactory} the segment length, point, min & max
      */
-    export default function segmentArcFactory(X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, distance: number): number | {
-        x: number;
-        y: number;
-    };
+    export default function segmentArcFactory(X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, distance: number): SVGPath.lengthFactory;
 }
 declare module "svg-path-commander/src/util/segmentQuadFactory" {
     /**
@@ -739,12 +698,9 @@ declare module "svg-path-commander/src/util/segmentQuadFactory" {
      * @param {number} x2 the ending point X
      * @param {number} y2 the ending point Y
      * @param {number=} distance the distance to point
-     * @returns {{x: number, y: number} | number} the segment length or point
+     * @returns {SVGPath.lengthFactory} the segment length, point, min & max
      */
-    export default function segmentQuadFactory(x1: number, y1: number, qx: number, qy: number, x2: number, y2: number, distance?: number | undefined): number | {
-        x: number;
-        y: number;
-    };
+    export default function segmentQuadFactory(x1: number, y1: number, qx: number, qy: number, x2: number, y2: number, distance?: number | undefined): SVGPath.lengthFactory;
 }
 declare module "svg-path-commander/src/util/pathLengthFactory" {
     /**
@@ -753,12 +709,18 @@ declare module "svg-path-commander/src/util/pathLengthFactory" {
      *
      * @param {string | SVGPath.pathArray} pathInput the `pathArray` to look into
      * @param {number=} distance the length of the shape to look at
-     * @returns {{x: number, y: number} | number} the total length or point
+     * @returns {SVGPath.lengthFactory} the path length, point, min & max
      */
-    export default function pathLengthFactory(pathInput: string | SVGPath.pathArray, distance?: number | undefined): number | {
-        x: number;
-        y: number;
-    };
+    export default function pathLengthFactory(pathInput: string | SVGPath.pathArray, distance?: number | undefined): SVGPath.lengthFactory;
+}
+declare module "svg-path-commander/src/util/getPathBBox" {
+    /**
+     * Returns the bounding box of a shape.
+     *
+     * @param {SVGPath.pathArray=} path the shape `pathArray`
+     * @returns {SVGPath.pathBBox} the length of the cubic-bezier segment
+     */
+    export default function getPathBBox(path?: SVGPath.pathArray | undefined): SVGPath.pathBBox;
 }
 declare module "svg-path-commander/src/util/getTotalLength" {
     /**
@@ -957,18 +919,16 @@ declare module "svg-path-commander/src/svg-path-commander" {
          */
         segments: SVGPath.pathArray;
         /**
-         * @type {number | boolean}
-         * @default 4
+         * @type {number | 'off'}
          */
-        round: number | false;
-        origin: [number, number, number];
-
+        round: number | 'off';
+        origin: number[];
         /**
          * Returns the path bounding box, equivalent to native `path.getBBox()`.
          * @public
          * @returns {SVGPath.pathBBox}
          */
-        public getBBox():  SVGPath.pathBBox;
+        public getBBox(): SVGPath.pathBBox;
         /**
          * Returns the total path length, equivalent to native `path.getTotalLength()`.
          * @public
@@ -978,11 +938,15 @@ declare module "svg-path-commander/src/svg-path-commander" {
         /**
          * Returns an `{x,y}` point in the path stroke at a given length,
          * equivalent to the native `path.getPointAtLength()`.
+         *
          * @public
          * @param {number} length the length
          * @returns {{x: number, y:number}} the requested point
          */
-        public getPointAtLength(length: number): {x: number, y:number};
+        public getPointAtLength(length: number): {
+            x: number;
+            y: number;
+        };
         /**
          * Convert path to absolute values
          * @public
@@ -1002,10 +966,10 @@ declare module "svg-path-commander/src/svg-path-commander" {
         public toCurve(): SVGPathCommander;
         /**
          * Reverse the order of the segments and their values.
-         * @param {boolean | number} onlySubpath option to reverse all sub-paths except first
+         * @param {boolean} onlySubpath option to reverse all sub-paths except first
          * @public
          */
-        public reverse(onlySubpath: boolean | number): SVGPathCommander;
+        public reverse(onlySubpath: boolean): SVGPathCommander;
         /**
          * Normalize path in 2 steps:
          * * convert `pathArray`(s) to absolute values
@@ -1097,11 +1061,10 @@ declare module "svg-path-commander/types/more/modules" {
     export { default as splitPath } from "svg-path-commander/src/process/splitPath";
     export { default as transformEllipse } from "svg-path-commander/src/process/transformEllipse";
     export { default as transformPath } from "svg-path-commander/src/process/transformPath";
-    export { default as getCubicSize } from "svg-path-commander/src/util/getCubicSize";
     export { default as getDrawDirection } from "svg-path-commander/src/util/getDrawDirection";
     export { default as getPathArea } from "svg-path-commander/src/util/getPathArea";
     export { default as getPathBBox } from "svg-path-commander/src/util/getPathBBox";
-    export { default as getPathLength } from "svg-path-commander/src/util/getPathLength";
+    export { default as pathLengthFactory } from "svg-path-commander/src/util/pathLengthFactory";
     export { default as getTotalLength } from "svg-path-commander/src/util/getTotalLength";
     export { default as segmentLineFactory } from "svg-path-commander/src/util/segmentLineFactory";
     export { default as segmentArcFactory } from "svg-path-commander/src/util/segmentArcFactory";
