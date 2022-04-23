@@ -1,4 +1,4 @@
-# SVGPathCommander ![check-code-coverage](https://img.shields.io/badge/code--coverage-100%25-brightgreen) ![cypress version](https://img.shields.io/badge/cypress-9.5.4-brightgreen) ![esbuild version](https://img.shields.io/badge/esbuild-0.14.30-brightgreen) ![dommatrix version](https://img.shields.io/badge/dommatrix-0.1.0-brightgreen)
+# SVGPathCommander ![check-code-coverage](https://img.shields.io/badge/code--coverage-100%25-brightgreen) ![cypress version](https://img.shields.io/badge/cypress-9.5.4-brightgreen) ![dommatrix version](https://img.shields.io/badge/dommatrix-0.1.0-brightgreen) [![ci](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml/badge.svg)](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml)
 
 ![image](./docs/assets/SVGPathCommander.svg)
 
