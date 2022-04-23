@@ -15,6 +15,5 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - uses: bahmutov/npm-install@v1
-      - run: npm run lint:js
       - run: npm run build
       - run: npm run test
