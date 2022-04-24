@@ -9,11 +9,6 @@ module.exports = (on, config) => {
 
   // https://esbuild.github.io/api/
   const esBuildOptions = {
-    define: {
-      // replaces every instance of "process.env.NODE_ENV" string
-      // in the spec with the string "development"
-      'process.env.NODE_ENV': '"development"'
-    },
     plugins: [require('./esbuild-istanbul')()]
   }
   
