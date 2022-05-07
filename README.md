@@ -1,4 +1,4 @@
-# SVGPathCommander [![Coverage Status](https://coveralls.io/repos/github/thednp/svg-path-commander/badge.svg?branch=master)](https://coveralls.io/github/thednp/svg-path-commander?branch=master) ![cypress version](https://img.shields.io/badge/cypress-9.5.4-brightgreen) ![dommatrix version](https://img.shields.io/badge/dommatrix-0.1.0-brightgreen) [![ci](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml/badge.svg)](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml)
+# SVGPathCommander [![Coverage Status](https://coveralls.io/repos/github/thednp/svg-path-commander/badge.svg?branch=master)](https://coveralls.io/github/thednp/svg-path-commander?branch=master) ![cypress version](https://img.shields.io/badge/cypress-9.6.0-brightgreen) ![dommatrix version](https://img.shields.io/badge/dommatrix-1.0.1-brightgreen) [![ci](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml/badge.svg)](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml) ![typescript version](https://img.shields.io/badge/typescript-4.5.2-brightgreen)
 
 ![image](./docs/assets/SVGPathCommander.svg)
 
