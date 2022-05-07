@@ -39,9 +39,7 @@ export default function getPathArea(path) {
         [, x, y] = seg;
         return 0;
       default:
-        // @ts-ignore -- the utility will have proper amount of params
         len = getCubicSegArea(x, y, ...seg.slice(1));
-        // @ts-ignore -- the segment always has numbers
         [x, y] = seg.slice(-2);
         return len;
     }

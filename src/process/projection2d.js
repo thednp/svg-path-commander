@@ -8,14 +8,13 @@ import { Translate } from 'dommatrix/src/dommatrix';
  * @copyright thednp © 2021
  *
  * @param {SVGPath.CSSMatrix} M CSSMatrix instance
- * @param {[number, number, number, number]} v Tuple or DOMPoint
- * @return {*} the resulting Tuple
+ * @param {[number, number, number, number]} v Tuple
+ * @return {[number, number, number, number]} the resulting Tuple
  */
 function translatePoint(M, v) {
-  // @ts-ignore
   let m = Translate(...v);
 
-  m.m44 = v[3] || 1;
+  [,,, m.m44] = v;
   m = M.multiply(m);
 
   return [m.m41, m.m42, m.m43, m.m44];
@@ -44,7 +43,8 @@ export default function projection2d(m, point2D, origin) {
   const relativePositionZ = z - originZ;
 
   return [
-    relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ)) + originX,
-    relativePositionY * (Math.abs(originZ) / Math.abs(relativePositionZ)) + originY,
+    // protect against division by ZERO
+    relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originX,
+    relativePositionY * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originY,
   ];
 }

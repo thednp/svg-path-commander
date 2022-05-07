@@ -7,20 +7,20 @@ import error from './error';
  * @param {SVGPath.PathParser} path the `PathParser` instance
  */
 export default function scanFlag(path) {
-  const { index } = path;
-  const ch = path.pathValue.charCodeAt(index);
+  const { index, pathValue } = path;
+  const code = pathValue.charCodeAt(index);
 
-  if (ch === 0x30/* 0 */) {
+  if (code === 0x30/* 0 */) {
     path.param = 0;
     path.index += 1;
     return;
   }
 
-  if (ch === 0x31/* 1 */) {
+  if (code === 0x31/* 1 */) {
     path.param = 1;
     path.index += 1;
     return;
   }
 
-  path.err = `${error}: invalid Arc flag "${ch}", expecting 0 or 1 at index ${index}`;
+  path.err = `${error}: invalid Arc flag "${pathValue[index]}", expecting 0 or 1 at index ${index}`;
 }

@@ -38,7 +38,6 @@ export default function optimizePath(pathInput, round) {
     allPathCommands[i] = pathCommand;
     // Get previous path command for `shortenSegment`
     if (i) prevCommand = allPathCommands[i - 1];
-    // @ts-ignore -- expected when switching `pathSegment` type
     path[i] = shortenSegment(path[i], normalPath[i], params, prevCommand);
 
     const segment = path[i];
@@ -57,11 +56,9 @@ export default function optimizePath(pathInput, round) {
         y = my;
         break;
       case 'H':
-        // @ts-ignore
         [, x] = segment;
         break;
       case 'V':
-        // @ts-ignore
         [, y] = segment;
         break;
       default:
@@ -79,7 +76,6 @@ export default function optimizePath(pathInput, round) {
   const absolutePath = roundPath(path, round);
   const relativePath = roundPath(pathToRelative(path), round);
 
-  // @ts-ignore - it's expected an optimized `pathArray` to contain all kinds of segments
   return absolutePath.map((a, i) => {
     if (i) {
       return a.join('').length < relativePath[i].join('').length

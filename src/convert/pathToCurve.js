@@ -17,6 +17,7 @@ import paramsParser from '../parser/paramsParser';
  * @returns {SVGPath.curveArray} the resulted `pathArray` converted to cubic-bezier
  */
 export default function pathToCurve(pathInput) {
+  /* istanbul ignore else */
   if (isCurveArray(pathInput)) {
     // @ts-ignore -- `isCurveArray` checks if it's `pathArray`
     return clonePath(pathInput);

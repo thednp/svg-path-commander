@@ -1,5 +1,4 @@
 import normalizePath from '../process/normalizePath';
-import fixPath from '../process/fixPath';
 
 import segmentLineFactory from './segmentLineFactory';
 import segmentArcFactory from './segmentArcFactory';
@@ -16,7 +15,7 @@ import segmentQuadFactory from './segmentQuadFactory';
  * @returns {SVGPath.lengthFactory} the path length, point, min & max
  */
 export default function pathLengthFactory(pathInput, distance) {
-  const path = fixPath(normalizePath(pathInput));
+  const path = normalizePath(pathInput);
   const distanceIsNumber = typeof distance === 'number';
   let isM = true;
   /** @type {number[]} */
@@ -27,9 +26,7 @@ export default function pathLengthFactory(pathInput, distance) {
   let mx = 0;
   let my = 0;
   let seg;
-  /** @type {{x: number, y: number}[]} */
   let MIN = [];
-  /** @type {{x: number, y: number}[]} */
   let MAX = [];
   let length = 0;
   let min = { x: 0, y: 0 };
@@ -45,11 +42,13 @@ export default function pathLengthFactory(pathInput, distance) {
     data = !isM ? [x, y, ...seg.slice(1)] : data;
 
     // this segment is always ZERO
+    /* istanbul ignore else */
     if (isM) {
       // remember mx, my for Z
       [, mx, my] = seg;
       min = { x: mx, y: my };
       max = min;
+      length = 0;
 
       if (distanceIsNumber && distance < 0.001) {
         POINT = min;

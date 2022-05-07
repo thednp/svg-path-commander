@@ -2,7 +2,7 @@ import getPointAtLength from './getPointAtLength';
 import getPropertiesAtLength from './getPropertiesAtLength';
 import getTotalLength from './getTotalLength';
 import parsePathString from '../parser/parsePathString';
-import fixPath from '../process/fixPath';
+// import fixPath from '../process/fixPath';
 import normalizePath from '../process/normalizePath';
 
 /**
@@ -15,7 +15,8 @@ import normalizePath from '../process/normalizePath';
  * @returns {SVGPath.pointProperties} the requested properties
  */
 export default function getPropertiesAtPoint(pathInput, point) {
-  const path = fixPath(parsePathString(pathInput));
+  // const path = fixPath(parsePathString(pathInput));
+  const path = (parsePathString(pathInput));
   const normalPath = normalizePath(path);
   const pathLength = getTotalLength(path);
   /** @param {{x: number, y: number}} p */

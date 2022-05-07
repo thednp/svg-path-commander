@@ -42,21 +42,19 @@ function getPointAtQuadSegmentLength(x1, y1, cx, cy, x2, y2, t) {
  */
 export default function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
   const distanceIsNumber = typeof distance === 'number';
-  const lengthMargin = 0.001;
   let x = x1; let y = y1;
   let LENGTH = 0;
-  let prev = [x1, y1, LENGTH];
-  /** @type {[number, number]} */
-  let cur = [x1, y1];
+  let prev = [x, y, LENGTH];
+  let cur = [x, y];
   let t = 0;
   let POINT = { x: 0, y: 0 };
   let POINTS = [{ x, y }];
 
-  if (distanceIsNumber && distance < lengthMargin) {
+  if (distanceIsNumber && distance === 0) {
     POINT = { x, y };
   }
 
-  const sampleSize = 100;
+  const sampleSize = 300;
   for (let j = 0; j <= sampleSize; j += 1) {
     t = j / sampleSize;
 
@@ -65,7 +63,7 @@ export default function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
     LENGTH += distanceSquareRoot(cur, [x, y]);
     cur = [x, y];
 
-    if (distanceIsNumber && LENGTH >= distance) {
+    if (distanceIsNumber && LENGTH > distance && distance > prev[2]) {
       const dv = (LENGTH - distance) / (LENGTH - prev[2]);
 
       POINT = {
@@ -75,6 +73,8 @@ export default function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
     }
     prev = [x, y, LENGTH];
   }
+
+  /* istanbul ignore else */
   if (distanceIsNumber && distance >= LENGTH) {
     POINT = { x: x2, y: y2 };
   }

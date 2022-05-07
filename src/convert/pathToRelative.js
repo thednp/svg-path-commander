@@ -10,6 +10,7 @@ import isRelativeArray from '../util/isRelativeArray';
  * @returns {SVGPath.relativeArray} the resulted `pathArray` with relative values
  */
 export default function pathToRelative(pathInput) {
+  /* istanbul ignore else */
   if (isRelativeArray(pathInput)) {
     // @ts-ignore -- `isRelativeArray` checks if it's `pathArray`
     return clonePath(pathInput);
@@ -58,11 +59,12 @@ export default function pathToRelative(pathInput) {
           // @ts-ignore for M, L, C, S, Q, T
           relativeSegment = [relativeCommand, ...relValues];
 
-          if (relativeCommand === 'm') {
-            [x, y] = values;
-            mx = x;
-            my = y;
-          }
+          // this branch makes no sense anymore
+          // if (relativeCommand === 'm') {
+          //   [x, y] = values;
+          //   mx = x;
+          //   my = y;
+          // }
         }
       }
     } else {

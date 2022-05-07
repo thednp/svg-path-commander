@@ -80,7 +80,7 @@ export { default as Version } from "svg-path-commander/src/version";
 import { default as SVGPathCommander } from 'svg-path-commander/src/svg-path-commander';
 
 // dependency
-export {default as CSSMatrix} from "dommatrix";
+export { default as CSSMatrix } from "dommatrix";
 
 // custom types
 export {

@@ -1,4 +1,4 @@
-# SVGPathCommander ![check-code-coverage](https://img.shields.io/badge/code--coverage-100%25-brightgreen) ![cypress version](https://img.shields.io/badge/cypress-9.5.4-brightgreen) ![dommatrix version](https://img.shields.io/badge/dommatrix-0.1.0-brightgreen) [![ci](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml/badge.svg)](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml)
+# SVGPathCommander [![Coverage Status](https://coveralls.io/repos/github/thednp/svg-path-commander/badge.svg?branch=master)](https://coveralls.io/github/thednp/svg-path-commander?branch=master) ![cypress version](https://img.shields.io/badge/cypress-9.5.4-brightgreen) ![dommatrix version](https://img.shields.io/badge/dommatrix-0.1.0-brightgreen) [![ci](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml/badge.svg)](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml)
 
 ![image](./docs/assets/SVGPathCommander.svg)
 
@@ -184,6 +184,8 @@ For developer guidelines, and a complete list of static methods, head over to th
 * Nicolas Debeissat for the inspiration on [svg3d](https://github.com/ndebeiss/svg3d)
 * Mike Bostock for his awesome [closestPoint](https://bl.ocks.org/mbostock/8027637)
 * James Halliday for his excelent [point-at-length](https://github.com/substack/point-at-length)
+* Eric Eastwood for his excelent [svg-curve-lib](https://github.com/MadLittleMods/svg-curve-lib)
+* PhET Interactive Simulations for their [kite](https://github.com/phetsims/kite)
 
 # License
 **SVGPathCommander** is released under [MIT Licence](https://github.com/thednp/svg-path-commander/blob/master/LICENSE).

@@ -1,17 +1,20 @@
 import pathToString from '../convert/pathToString';
 import defaultOptions from '../options/options';
+import error from '../parser/error';
+import isValidPath from './isValidPath';
 
 /**
  * Supported shapes and their specific parameters.
  * @type {Object.<string, string[]>}
  */
 const shapeParams = {
+  line: ['x1', 'y1', 'x2', 'y2'],
   circle: ['cx', 'cy', 'r'],
   ellipse: ['cx', 'cy', 'rx', 'ry'],
   rect: ['width', 'height', 'x', 'y', 'rx', 'ry'],
   polygon: ['points'],
   polyline: ['points'],
-  glyph: [],
+  glyph: ['d'],
 };
 
 /**
@@ -35,16 +38,15 @@ export function getLinePath(attr) {
  */
 export function getPolyPath(attr) {
   /** @type {SVGPath.pathArray} */
-  // @ts-ignore -- it's an empty `pathArray`
   const pathArray = [];
-  const points = attr.points.trim().split(/[\s|,]/).map(Number);
+  const points = (attr.points || '').trim().split(/[\s|,]/).map(Number);
 
   let index = 0;
   while (index < points.length) {
     pathArray.push([(index ? 'L' : 'M'), (points[index]), (points[index + 1])]);
     index += 2;
   }
-  // @ts-ignore -- it's a `pathArray`
+
   return attr.type === 'polygon' ? [...pathArray, ['z']] : pathArray;
 }
 
@@ -103,7 +105,9 @@ export function getRectanglePath(attr) {
     rx = !rx ? ry : rx;
     ry = !ry ? rx : ry;
 
+    /* istanbul ignore else */
     if (rx * 2 > w) rx -= (rx * 2 - w) / 2;
+    /* istanbul ignore else */
     if (ry * 2 > h) ry -= (ry * 2 - h) / 2;
 
     return [
@@ -145,21 +149,21 @@ export function getRectanglePath(attr) {
  */
 export default function shapeToPath(element, replace) {
   const supportedShapes = Object.keys(shapeParams);
-  const isElement = element instanceof Element;
+  const { tagName } = element;
 
-  if (isElement && !supportedShapes.some((s) => element.tagName === s)) {
-    throw TypeError(`shapeToPath: "${element}" is not SVGElement`);
+  if (tagName && !supportedShapes.some((s) => tagName === s)) {
+    throw TypeError(`${error}: "${tagName}" is not SVGElement`);
   }
 
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   /** @type {string} */
-  const type = isElement ? element.tagName : element.type;
+  const type = tagName || element.type;
   /** @type {any} disables TS checking for something that's specific to shape */
   const config = {};
   config.type = type;
+  const shapeAttrs = shapeParams[type];
 
-  if (isElement) {
-    const shapeAttrs = shapeParams[type];
+  if (tagName) {
     shapeAttrs.forEach((p) => { config[p] = element.getAttribute(p); });
     // set no-specific shape attributes: fill, stroke, etc
     Object.values(element.attributes).forEach(({ name, value }) => {
@@ -167,23 +171,30 @@ export default function shapeToPath(element, replace) {
     });
   } else {
     Object.assign(config, element);
+    // set no-specific shape attributes: fill, stroke, etc
+    Object.keys(config).forEach((k) => {
+      if (!shapeAttrs.includes(k) && k !== 'type') {
+        path.setAttribute(k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`), config[k]);
+      }
+    });
   }
 
   // set d
   let description;
   const { round } = defaultOptions;
 
+  /* istanbul ignore else */
   if (type === 'circle') description = pathToString(getCirclePath(config), round);
   else if (type === 'ellipse') description = pathToString(getEllipsePath(config), round);
   else if (['polyline', 'polygon'].includes(type)) description = pathToString(getPolyPath(config), round);
   else if (type === 'rect') description = pathToString(getRectanglePath(config), round);
   else if (type === 'line') description = pathToString(getLinePath(config), round);
-  else if (type === 'glyph') description = isElement ? element.getAttribute('d') : element.type;
+  else if (type === 'glyph') description = tagName ? element.getAttribute('d') : element.d;
 
   // replace target element
-  if (description) {
+  if (isValidPath(description)) {
     path.setAttribute('d', description);
-    if (replace && isElement) {
+    if (replace && tagName) {
       element.before(path, element);
       element.remove();
     }

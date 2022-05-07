@@ -19,5 +19,4 @@
     // "types/more/modules.ts", // UN-comment to generate
     "types/svg-path-commander.d.ts" // comment to regen
   ],
-  "types": [],
 }

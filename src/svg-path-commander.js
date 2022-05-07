@@ -224,7 +224,6 @@ class SVGPathCommander {
     /** @type {SVGPath.transformObject} */
     const transform = {};
     Object.keys(source).forEach((fn) => {
-      // @ts-ignore
       transform[fn] = Array.isArray(source[fn]) ? [...source[fn]] : Number(source[fn]);
     });
     const { segments } = this;
@@ -250,20 +249,20 @@ class SVGPathCommander {
   }
 
   /**
-   * Rotate path 180deg horizontally
+   * Rotate path 180deg vertically
    * @public
    */
   flipX() {
-    this.transform({ rotate: [180, 0, 0] });
+    this.transform({ rotate: [0, 180, 0] });
     return this;
   }
 
   /**
-   * Rotate path 180deg vertically
+   * Rotate path 180deg horizontally
    * @public
    */
   flipY() {
-    this.transform({ rotate: [0, 180, 0] });
+    this.transform({ rotate: [180, 0, 0] });
     return this;
   }
 

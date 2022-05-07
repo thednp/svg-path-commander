@@ -13,7 +13,6 @@ export default function reverseCurve(path) {
     .map((x) => x.map((_, i) => x[x.length - i - 2 * (1 - (i % 2))]))
     .reverse();
 
-  // @ts-ignore -- expected on reverse operations
   return [['M', ...rotatedCurve[0].slice(0, 2)],
     ...rotatedCurve.map((x) => ['C', ...x.slice(2)])];
 }

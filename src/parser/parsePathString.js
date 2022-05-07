@@ -1,6 +1,6 @@
 import scanSegment from './scanSegment';
 import skipSpaces from './skipSpaces';
-import error from './error';
+// import error from './error';
 import clonePath from '../process/clonePath';
 import PathParser from './pathParser';
 import isPathArray from '../util/isPathArray';
@@ -27,13 +27,13 @@ export default function parsePathString(pathInput) {
     scanSegment(path);
   }
 
-  if (!path.err.length) {
-    if (!'mM'.includes(path.segments[0][0])) {
-      path.err = `${error}: missing M/m`;
-    } else {
-      path.segments[0][0] = 'M';
-    }
-  }
+  // if (!path.err.length) {
+  //   if (!'mM'.includes(path.segments[0][0])) {
+  //     path.err = `${error}: missing M/m`;
+  //   } else {
+  //     path.segments[0][0] = 'M';
+  //   }
+  // }
 
   return path.err ? path.err : path.segments;
 }

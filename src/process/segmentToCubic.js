@@ -30,22 +30,17 @@ export default function segmentToCubic(segment, params) {
       return segment;
     case 'A':
       args = [px1, py1, ...values];
-      // @ts-ignore -- relax, the utility will return 6 numbers
       return ['C', ...arcToCubic(...args)];
     case 'Q':
       params.qx = x;
       params.qy = y;
       args = [px1, py1, ...values];
-      // @ts-ignore -- also returning 6 numbers
       return ['C', ...quadToCubic(...args)];
     case 'L':
-      // @ts-ignore -- also returning 6 numbers
       return ['C', ...lineToCubic(px1, py1, x, y)];
     case 'Z':
-      // @ts-ignore -- also returning 6 numbers
       return ['C', ...lineToCubic(px1, py1, px, py)];
     default:
   }
-  // @ts-ignore -- we're switching `pathSegment` type
   return segment;
 }

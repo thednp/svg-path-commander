@@ -3,53 +3,32 @@
 
 const { readFileSync } = require('fs');
 const { createInstrumenter } = require('istanbul-lib-instrument');
+const debug = require('debug')('istanbul-lib-instrument');
 
-/**
- * @typedef {import('istanbul-lib-instrument').InstrumenterOptions} InstrumenterOptions
- */
+// import Cypress settings
+let { env: { sourceFolder } } = require('../../cypress.json');
+sourceFolder = sourceFolder || 'src';
+const [name] = process.cwd().split(/[\\|\/]/).slice(-1);
+const sourcePath = sourceFolder.replace(/\\/,'\/');
 
-/**
- * @typedef {import('source-map').RawSourceMap} RawSourceMap
- */
-
+const sourceFilter = `${name}/${sourcePath}`;
 const instrumenter = createInstrumenter({
   compact: false,
   esModules: true,
 });
 
-/**
- * @param {string} source
- * @param {string} path
- * @param {RawSourceMap} [inputSourceMap]
- * @return {Promise<string>}
- */
-const instrument = (source, path, inputSourceMap) =>
-  new Promise((resolve, reject) => {
-    instrumenter.instrument(
-      source,
-      path,
-      (error, code) => {
-        if (error == null) {
-          resolve(code);
-        } else {
-          reject(error);
-        }
-      },
-      inputSourceMap
-    );
-  });
-
-/**
- * @return {import('esbuild').Plugin}
- */
 const esbuildPluginIstanbul = () => ({
   name: 'istanbul',
   setup(build) {
-    build.onLoad({ filter: /\\svg-path-commander\\src\\/ },
+    build.onLoad({filter: /\.(js|jsx|ts|tsx)$/ },
       async ({ path }) => {
-        const contents = String(readFileSync(path));
+        const contents = String(readFileSync(path, 'utf8'));
 
-        const instrumented = await instrument(contents, path);
+        if (!sourceFilter.split(/\\|\//).every((word) => path.includes(word))) {
+          return { contents };
+        }
+        debug('instrumenting %s for output coverage', path);
+        const instrumented = instrumenter.instrumentSync(contents, path);
 
         return { contents: instrumented };
       }

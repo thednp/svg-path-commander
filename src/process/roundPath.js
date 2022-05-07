@@ -18,7 +18,6 @@ export default function roundPath(path, roundOption) {
   // the `round` value must be integer
   const pow = typeof round === 'number' && round >= 1 ? (10 ** round) : 1;
 
-  // @ts-ignore -- `pathSegment[]` is `pathArray`
   return path.map((pi) => {
     const values = pi.slice(1).map(Number)
       .map((n) => (round ? (Math.round(n * pow) / pow) : Math.round(n)));

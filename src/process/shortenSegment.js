@@ -25,7 +25,6 @@ export default function shortenSegment(segment, normalSegment, params, prevComma
   }
 
   if (['V', 'H', 'S', 'T', 'Z'].includes(pathCommand)) {
-    // @ts-ignore -- expected when so many types are included
     result = [pathCommand, ...segmentValues];
   } else if (pathCommand === 'L') {
     if (round4(px) === round4(x)) {
@@ -37,9 +36,8 @@ export default function shortenSegment(segment, normalSegment, params, prevComma
     const [x1, y1] = normalValues;
 
     if ('CS'.includes(prevCommand)
-      && round4(x1) === round4(px1 * 2 - px2)
-      && round4(y1) === round4(py1 * 2 - py2)) {
-      // @ts-ignore -- the amount of numbers should suffice
+      && ((round4(x1) === round4(px1 * 2 - px2) && round4(y1) === round4(py1 * 2 - py2))
+      || (round4(px1) === round4(px2 * 2 - px) && round4(py1) === round4(py2 * 2 - py)))) {
       result = ['S', ...normalValues.slice(-4)];
     }
     params.x1 = x1;
@@ -50,9 +48,8 @@ export default function shortenSegment(segment, normalSegment, params, prevComma
     params.qy = qy;
 
     if ('QT'.includes(prevCommand)
-      && round4(qx) === round4(px1 * 2 - px2)
-      && round4(qy) === round4(py1 * 2 - py2)) {
-      // @ts-ignore -- the amount of numbers should suffice
+      && ((round4(qx) === round4(px1 * 2 - px2) && round4(qy) === round4(py1 * 2 - py2))
+      || (round4(px1) === round4(px2 * 2 - px) && round4(py1) === round4(py2 * 2 - py)))) {
       result = ['T', ...normalValues.slice(-2)];
     }
   }

@@ -11,19 +11,16 @@ import getTotalLength from './getTotalLength';
  */
 export default function getPropertiesAtLength(pathInput, distance) {
   const pathArray = parsePathString(pathInput);
-  const segments = [];
 
   if (typeof pathArray === 'string') {
     throw TypeError(pathArray);
   }
 
   let pathTemp = [...pathArray];
-  // @ts-ignore
   let pathLength = getTotalLength(pathTemp);
   let index = pathTemp.length - 1;
   let lengthAtSegment = 0;
   let length = 0;
-  /** @type {SVGPath.pathSegment} */
   let segment = pathArray[0];
   const [x, y] = segment.slice(-2);
   const point = { x, y };
@@ -31,29 +28,24 @@ export default function getPropertiesAtLength(pathInput, distance) {
   // If the path is empty, return 0.
   if (index <= 0 || !distance || !Number.isFinite(distance)) {
     return {
-      // @ts-ignore
       segment, index: 0, length, point, lengthAtSegment,
     };
   }
 
   if (distance >= pathLength) {
     pathTemp = pathArray.slice(0, -1);
-    // @ts-ignore
     lengthAtSegment = getTotalLength(pathTemp);
-    // @ts-ignore
     length = pathLength - lengthAtSegment;
     return {
-      // @ts-ignore
       segment: pathArray[index], index, length, lengthAtSegment,
     };
   }
 
+  const segments = [];
   while (index > 0) {
     segment = pathTemp[index];
     pathTemp = pathTemp.slice(0, -1);
-    // @ts-ignore -- `pathTemp` === `pathSegment[]` === `pathArray`
     lengthAtSegment = getTotalLength(pathTemp);
-    // @ts-ignore
     length = pathLength - lengthAtSegment;
     pathLength = lengthAtSegment;
     segments.push({
@@ -62,6 +54,5 @@ export default function getPropertiesAtLength(pathInput, distance) {
     index -= 1;
   }
 
-  // @ts-ignore
   return segments.find(({ lengthAtSegment: l }) => l <= distance);
 }

@@ -9,6 +9,7 @@ import isAbsoluteArray from '../util/isAbsoluteArray';
  * @returns {SVGPath.absoluteArray} the resulted `pathArray` with absolute values
  */
 export default function pathToAbsolute(pathInput) {
+  /* istanbul ignore else */
   if (isAbsoluteArray(pathInput)) {
     // @ts-ignore -- `isAbsoluteArray` checks if it's `pathArray`
     return clonePath(pathInput);

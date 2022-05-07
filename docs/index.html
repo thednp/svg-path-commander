@@ -88,7 +88,7 @@
         <input class="form-input d-inline" data-bs-toggle="tooltip" data-title="Scale" type="number" name="scale" id="scale" placeholder="Scale" value="1" min="0" max="10" step="0.1">
         <button 
         type="button" data-bs-toggle="tooltip" title="Transform multiple functions in the form" 
-          onclick="transform({translate: [translateX.value||0,translateY.value||0,translateZ.value||0], rotate:[rotateX.value||0,rotateY.value||0,rotateZ.value||0], skew:[skewX.value||0,skewY.value||0], scale:[scale.value||1,scale.value||1,scale.value||1]})">
+          onclick="transform({translate: [translateX.value||0,translateY.value||0,translateZ.value||0], rotate:[rotateX.value||0,rotateY.value||0,rotateZ.value||0], skew:[skewX.value||0,skewY.value||0], scale:scale.value||1})">
           Transform
         </button>
       </p>
@@ -122,6 +122,7 @@
     </div>
   </div>
   <script src="./svg-path-commander.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/svg-path-properties@1.0.11/dist/svg-path-properties.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js" integrity="sha512-tBzZQxySO5q5lqwLWfu8Q+o4VkTcRGOeQGVQ0ueJga4A1RKuzmAu5HXDOXLEjpbKyV7ow9ympVoa6wZLEzRzDg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
     const { pathToCurve, pathToString, roundPath, splitPath, reverseCurve, optimizePath } = SVGPathCommander;
@@ -272,7 +273,10 @@
     function flipX() { // transform
       pathValue = inputTextArea.value || pathValue         
       
-      var tfPath = new SVGPathCommander( pathValue ).flipX().optimize().toString();
+      var tfPath = new SVGPathCommander( pathValue )
+      .flipX()
+      .optimize()
+      .toString();
       
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());
@@ -284,7 +288,10 @@
     function flipY() { // transform
       pathValue = inputTextArea.value || pathValue         
       
-      var tfPath = new SVGPathCommander( pathValue, {round:5} ).flipY().optimize().toString();
+      var tfPath = new SVGPathCommander( pathValue, {round:5} )
+      .flipY()
+      .optimize()
+      .toString();
 
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());
@@ -296,7 +303,10 @@
     function flipXY() { // transform
       pathValue = inputTextArea.value || pathValue         
       
-      var tfPath = new SVGPathCommander( pathValue ).flipY().flipX().optimize().toString();
+      var tfPath = new SVGPathCommander( pathValue )
+      .flipY().flipX()
+      // .optimize()
+      .toString();
       
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());

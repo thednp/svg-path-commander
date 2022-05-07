@@ -14,29 +14,22 @@ import paramsParser from '../parser/paramsParser';
  */
 export default function normalizePath(pathInput) {
   if (isNormalizedArray(pathInput)) {
-    // @ts-ignore -- `isNormalizedArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 
   /** @type {SVGPath.normalArray} */
-  // @ts-ignore -- `absoluteArray` will become a `normalArray`
   const path = pathToAbsolute(pathInput);
   const params = { ...paramsParser };
   const allPathCommands = [];
   const ii = path.length;
   let pathCommand = '';
-  let prevCommand = '';
 
   for (let i = 0; i < ii; i += 1) {
     [pathCommand] = path[i];
 
     // Save current path command
     allPathCommands[i] = pathCommand;
-    // Get previous path command
-    if (i) prevCommand = allPathCommands[i - 1];
-    // Previous path command is used to normalizeSegment
-    // @ts-ignore -- expected on normalization
-    path[i] = normalizeSegment(path[i], params, prevCommand);
+    path[i] = normalizeSegment(path[i], params);
 
     const segment = path[i];
     const seglen = segment.length;

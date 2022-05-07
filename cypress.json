@@ -1,4 +1,7 @@
 {
   "video": false,
-  "screenshot": false
+  "screenshot": false,
+  "env": {
+    "sourceFolder": "src"
+  }  
 }

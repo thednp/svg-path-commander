@@ -26,7 +26,8 @@ export default function scanParam(path) {
 
   if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
     index += 1;
-    ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+    // ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+    ch = pathValue.charCodeAt(index);
   }
 
   // This logic is shamelessly borrowed from Esprima
@@ -41,7 +42,7 @@ export default function scanParam(path) {
     zeroFirst = (ch === 0x30/* 0 */);
     index += 1;
 
-    ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+    ch = pathValue.charCodeAt(index);
 
     if (zeroFirst && index < max) {
       // decimal number starts with '0' such as '09' is illegal.
@@ -57,7 +58,8 @@ export default function scanParam(path) {
       index += 1;
       hasCeiling = true;
     }
-    ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+
+    ch = pathValue.charCodeAt(index);
   }
 
   if (ch === 0x2E/* . */) {
@@ -67,7 +69,8 @@ export default function scanParam(path) {
       index += 1;
       hasDecimal = true;
     }
-    ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+
+    ch = pathValue.charCodeAt(index);
   }
 
   if (ch === 0x65/* e */ || ch === 0x45/* E */) {
@@ -78,7 +81,8 @@ export default function scanParam(path) {
 
     index += 1;
 
-    ch = (index < max) ? pathValue.charCodeAt(index) : 0;
+    ch = pathValue.charCodeAt(index);
+
     if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
       index += 1;
     }
@@ -87,8 +91,7 @@ export default function scanParam(path) {
         index += 1;
       }
     } else {
-      // path.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
-      path.err = `${error}: ${invalidPathValue} at index ${index}: "${pathValue[index]}" invalid float exponent`;
+      path.err = `${error}: ${invalidPathValue} at index ${index}, "${pathValue[index]}" invalid integer exponent`;
       return;
     }
   }
