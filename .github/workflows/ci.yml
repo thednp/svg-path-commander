@@ -17,8 +17,7 @@ jobs:
           node-version: ${{ matrix.node }}
       - uses: bahmutov/npm-install@v1
       - run: npm run build
-      - run: npm run test
-      - run: npm run cover
+      - run: npm run test && npm run cover
       - uses: coverallsapp/github-action@v1.1.3
           if: matrix.node == 16
           with:
