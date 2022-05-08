@@ -12,7 +12,6 @@ import isRelativeArray from '../util/isRelativeArray';
 export default function pathToRelative(pathInput) {
   /* istanbul ignore else */
   if (isRelativeArray(pathInput)) {
-    // @ts-ignore -- `isRelativeArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 
@@ -20,12 +19,10 @@ export default function pathToRelative(pathInput) {
   let x = 0; let y = 0;
   let mx = 0; let my = 0;
 
-  // @ts-ignore -- this is actually a `relativeArray`
   return path.map((segment) => {
     const values = segment.slice(1).map(Number);
     const [pathCommand] = segment;
     /** @type {SVGPath.relativeCommand} */
-    // @ts-ignore
     const relativeCommand = pathCommand.toLowerCase();
 
     if (pathCommand === 'M') {
@@ -36,7 +33,6 @@ export default function pathToRelative(pathInput) {
     }
 
     /** @type {SVGPath.relativeSegment} */
-    // @ts-ignore -- trust me DON'T CHANGE
     let relativeSegment = [];
 
     if (pathCommand !== relativeCommand) {
@@ -56,15 +52,7 @@ export default function pathToRelative(pathInput) {
           // use brakets for `eslint: no-case-declaration`
           // https://stackoverflow.com/a/50753272/803358
           const relValues = values.map((n, j) => n - (j % 2 ? y : x));
-          // @ts-ignore for M, L, C, S, Q, T
           relativeSegment = [relativeCommand, ...relValues];
-
-          // this branch makes no sense anymore
-          // if (relativeCommand === 'm') {
-          //   [x, y] = values;
-          //   mx = x;
-          //   my = y;
-          // }
         }
       }
     } else {
@@ -72,7 +60,6 @@ export default function pathToRelative(pathInput) {
         mx = values[0] + x;
         my = values[1] + y;
       }
-      // @ts-ignore
       relativeSegment = [relativeCommand, ...values];
     }
 
@@ -83,17 +70,13 @@ export default function pathToRelative(pathInput) {
         y = my;
         break;
       case 'h':
-        // @ts-ignore
         x += relativeSegment[1];
         break;
       case 'v':
-        // @ts-ignore
         y += relativeSegment[1];
         break;
       default:
-        // @ts-ignore
         x += relativeSegment[segLength - 2];
-        // @ts-ignore
         y += relativeSegment[segLength - 1];
     }
     return relativeSegment;

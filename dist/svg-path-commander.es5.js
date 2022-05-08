@@ -388,11 +388,9 @@
    */
   function parsePathString(pathInput) {
     if (isPathArray(pathInput)) {
-      // @ts-ignore -- isPathArray also checks if it's an `Array`
       return clonePath(pathInput);
     }
 
-    // @ts-ignore -- pathInput is now string
     var path = new PathParser(pathInput);
 
     skipSpaces(path);
@@ -400,14 +398,6 @@
     while (path.index < path.max && !path.err.length) {
       scanSegment(path);
     }
-
-    // if (!path.err.length) {
-    //   if (!'mM'.includes(path.segments[0][0])) {
-    //     path.err = `${error}: missing M/m`;
-    //   } else {
-    //     path.segments[0][0] = 'M';
-    //   }
-    // }
 
     return path.err ? path.err : path.segments;
   }
@@ -549,7 +539,6 @@
   function pathToRelative(pathInput) {
     /* istanbul ignore else */
     if (isRelativeArray(pathInput)) {
-      // @ts-ignore -- `isRelativeArray` checks if it's `pathArray`
       return clonePath(pathInput);
     }
 
@@ -557,14 +546,12 @@
     var x = 0; var y = 0;
     var mx = 0; var my = 0;
 
-    // @ts-ignore -- this is actually a `relativeArray`
     return path.map(function (segment) {
       var assign;
 
       var values = segment.slice(1).map(Number);
       var pathCommand = segment[0];
       /** @type {SVGPath.relativeCommand} */
-      // @ts-ignore
       var relativeCommand = pathCommand.toLowerCase();
 
       if (pathCommand === 'M') {
@@ -575,7 +562,6 @@
       }
 
       /** @type {SVGPath.relativeSegment} */
-      // @ts-ignore -- trust me DON'T CHANGE
       var relativeSegment = [];
 
       if (pathCommand !== relativeCommand) {
@@ -595,15 +581,7 @@
             // use brakets for `eslint: no-case-declaration`
             // https://stackoverflow.com/a/50753272/803358
             var relValues = values.map(function (n, j) { return n - (j % 2 ? y : x); });
-            // @ts-ignore for M, L, C, S, Q, T
             relativeSegment = [relativeCommand ].concat( relValues);
-
-            // this branch makes no sense anymore
-            // if (relativeCommand === 'm') {
-            //   [x, y] = values;
-            //   mx = x;
-            //   my = y;
-            // }
           }
         }
       } else {
@@ -611,7 +589,6 @@
           mx = values[0] + x;
           my = values[1] + y;
         }
-        // @ts-ignore
         relativeSegment = [relativeCommand ].concat( values);
       }
 
@@ -622,17 +599,13 @@
           y = my;
           break;
         case 'h':
-          // @ts-ignore
           x += relativeSegment[1];
           break;
         case 'v':
-          // @ts-ignore
           y += relativeSegment[1];
           break;
         default:
-          // @ts-ignore
           x += relativeSegment[segLength - 2];
-          // @ts-ignore
           y += relativeSegment[segLength - 1];
       }
       return relativeSegment;
@@ -3495,7 +3468,6 @@
    * @returns {SVGPath.pointProperties} the requested properties
    */
   function getPropertiesAtPoint(pathInput, point) {
-    // const path = fixPath(parsePathString(pathInput));
     var path = (parsePathString(pathInput));
     var normalPath = normalizePath(path);
     var pathLength = getTotalLength(path);
@@ -3577,9 +3549,6 @@
    * @returns {SVGPath.pathSegment?} the requested segment
    */
   function getSegmentOfPoint(path, point) {
-    // const props = getPropertiesAtPoint(path, point);
-    // const { segment } = props;
-    // return typeof segment !== 'undefined' ? segment.segment : null;
     return getPropertiesAtPoint(path, point).segment;
   }
 
@@ -3590,9 +3559,6 @@
    * @returns {SVGPath.pathSegment?} the requested segment
    */
   function getSegmentAtLength(pathInput, distance) {
-    // const props = getPropertiesAtLength(pathInput, distance);
-    // const { segment } = typeof props !== 'undefined' ? props : { segment: null };
-    // return segment;
     return getPropertiesAtLength(pathInput, distance).segment;
   }
 

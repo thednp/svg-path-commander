@@ -15,7 +15,6 @@
     "test": "npx cypress run",
     "cypress": "npx cypress open",
     "coverage:report": "nyc report --reporter=lcov --reporter=json --reporter=text --reporter=json-summary",
-    "cover": "nyc report",
     "build": "npm run lint:js && npm-run-all --parallel build-*",
     "custom-build": "rollup -c --environment",
     "fix:js": "eslint src --config .eslintrc --fix",

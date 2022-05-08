@@ -8,8 +8,5 @@ import getPropertiesAtPoint from './getPropertiesAtPoint';
  * @returns {SVGPath.pathSegment?} the requested segment
  */
 export default function getSegmentOfPoint(path, point) {
-  // const props = getPropertiesAtPoint(path, point);
-  // const { segment } = props;
-  // return typeof segment !== 'undefined' ? segment.segment : null;
   return getPropertiesAtPoint(path, point).segment;
 }
