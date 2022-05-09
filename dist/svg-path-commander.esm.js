@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v1.0.1 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v1.0.2 (http://thednp.github.io/svg-path-commander)
 * Copyright 2022 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -2187,7 +2187,7 @@ Object.assign(CSSMatrix, {
   toArray,
 });
 
-var version$1 = "1.0.1";
+var version$1 = "1.0.2";
 
 // @ts-ignore
 
@@ -3746,7 +3746,7 @@ const Util = {
   options: defaultOptions,
 };
 
-var version = "1.0.1";
+var version = "1.0.2";
 
 /**
  * A global namespace for library version.
