@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v1.0.2 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v1.0.3 (http://thednp.github.io/svg-path-commander)
 * Copyright 2022 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1964,7 +1964,7 @@
     m.m31 = 0; m.m32 = 0; m.m33 = 1; m.m34 = 0;
     m.m41 = 0; m.m42 = 0; m.m43 = 0; m.m44 = 1;
 
-    if (args && args.length) {
+    if (args.length) {
       var ARGS = [16, 6].some(function (l) { return l === args.length; }) ? args : args[0];
 
       return m.setMatrixValue(ARGS);
@@ -2268,15 +2268,15 @@
     toArray: toArray,
   });
 
-  var version$1 = "1.0.2";
-
-  // @ts-ignore
+  var version$1 = "1.0.3";
 
   /**
    * A global namespace for library version.
    * @type {string}
    */
   var Version$1 = version$1;
+
+  /** @typedef {import('../types/index')} */
 
   Object.assign(CSSMatrix, { Version: Version$1 });
 
@@ -3861,7 +3861,7 @@
     options: defaultOptions,
   };
 
-  var version = "1.0.2";
+  var version = "1.0.3";
 
   /**
    * A global namespace for library version.

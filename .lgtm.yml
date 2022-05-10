@@ -1,0 +1,8 @@
+
+extraction:
+  javascript:
+    index:
+      exclude:
+        - node_modules
+        - coverage
+        - docs
