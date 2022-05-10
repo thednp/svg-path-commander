@@ -17,10 +17,9 @@ import segmentQuadFactory from './segmentQuadFactory';
 export default function pathLengthFactory(pathInput, distance) {
   const path = normalizePath(pathInput);
   const distanceIsNumber = typeof distance === 'number';
-  let isM = true;
-  /** @type {number[]} */
+  let isM;
   let data = [];
-  let pathCommand = 'M';
+  let pathCommand;
   let x = 0;
   let y = 0;
   let mx = 0;

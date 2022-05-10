@@ -60,17 +60,21 @@ class SVGPathCommander {
     } = this.getBBox();
 
     // set instance options.round
-    let { round, origin } = defaultOptions;
     const { round: roundOption, origin: originOption } = instanceOptions;
+    let round;
 
     if (roundOption === 'auto') {
       const pathScale = (`${Math.floor(Math.max(width, height))}`).length;
       round = pathScale >= 4 ? 0 : 4 - pathScale;
     } else if (Number.isInteger(roundOption) || roundOption === 'off') {
       round = roundOption;
+    } else {
+      ({ round } = defaultOptions);
     }
 
     // set instance options.origin
+    // the SVGPathCommander class will always override the default origin
+    let origin;
     if (Array.isArray(originOption) && originOption.length >= 2) {
       const [originX, originY, originZ] = originOption.map(Number);
       origin = [
@@ -82,10 +86,9 @@ class SVGPathCommander {
       origin = [cx, cy, cz];
     }
 
-    /**
-     * @type {number | 'off'}
-     */
+    /** @type {number | 'off'} */
     this.round = round;
+    /** @type {[number, number, number=]} */
     this.origin = origin;
 
     return this;

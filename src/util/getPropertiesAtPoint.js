@@ -44,7 +44,7 @@ export default function getPropertiesAtPoint(pathInput, point) {
   // binary search for precise estimate
   precision /= 2;
   let before = { x: 0, y: 0 };
-  let after = before;
+  let after;
   let beforeLength = 0;
   let afterLength = 0;
   let beforeDistance = 0;

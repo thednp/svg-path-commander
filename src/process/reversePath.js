@@ -24,7 +24,7 @@ export default function reversePath(pathInput) {
     const segment = seg.seg;
     const data = seg.n;
     const prevSeg = i && path[i - 1];
-    const nextSeg = path[i + 1] && path[i + 1];
+    const nextSeg = path[i + 1];
     const pathCommand = seg.c;
     const pLen = path.length;
     /** @type {number} */
@@ -48,7 +48,7 @@ export default function reversePath(pathInput) {
         }
         break;
       case 'S':
-        if ((prevSeg && 'CS'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'S'))) {
+        if ((prevSeg && 'CS'.includes(prevSeg.c)) && (!nextSeg || nextSeg.c !== 'S')) {
           result = ['C', data[3], data[4], data[1], data[2], x, y];
         } else {
           result = [pathCommand, data[1], data[2], x, y];
@@ -62,7 +62,7 @@ export default function reversePath(pathInput) {
         }
         break;
       case 'T':
-        if ((prevSeg && 'QT'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'T'))) {
+        if ((prevSeg && 'QT'.includes(prevSeg.c)) && (!nextSeg || nextSeg.c !== 'T')) {
           result = ['Q', data[1], data[2], x, y];
         } else {
           result = [pathCommand, x, y];

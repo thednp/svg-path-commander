@@ -1162,7 +1162,7 @@
       const segment = seg.seg;
       const data = seg.n;
       const prevSeg = i && path[i - 1];
-      const nextSeg = path[i + 1] && path[i + 1];
+      const nextSeg = path[i + 1];
       const pathCommand = seg.c;
       const pLen = path.length;
       /** @type {number} */
@@ -1186,7 +1186,7 @@
           }
           break;
         case 'S':
-          if ((prevSeg && 'CS'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'S'))) {
+          if ((prevSeg && 'CS'.includes(prevSeg.c)) && (!nextSeg || nextSeg.c !== 'S')) {
             result = ['C', data[3], data[4], data[1], data[2], x, y];
           } else {
             result = [pathCommand, data[1], data[2], x, y];
@@ -1200,7 +1200,7 @@
           }
           break;
         case 'T':
-          if ((prevSeg && 'QT'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'T'))) {
+          if ((prevSeg && 'QT'.includes(prevSeg.c)) && (!nextSeg || nextSeg.c !== 'T')) {
             result = ['Q', data[1], data[2], x, y];
           } else {
             result = [pathCommand, x, y];
@@ -2828,10 +2828,9 @@
   function pathLengthFactory(pathInput, distance) {
     const path = normalizePath(pathInput);
     const distanceIsNumber = typeof distance === 'number';
-    let isM = true;
-    /** @type {number[]} */
+    let isM;
     let data = [];
-    let pathCommand = 'M';
+    let pathCommand;
     let x = 0;
     let y = 0;
     let mx = 0;
@@ -3017,17 +3016,21 @@
       } = this.getBBox();
 
       // set instance options.round
-      let { round, origin } = defaultOptions;
       const { round: roundOption, origin: originOption } = instanceOptions;
+      let round;
 
       if (roundOption === 'auto') {
         const pathScale = (`${Math.floor(Math.max(width, height))}`).length;
         round = pathScale >= 4 ? 0 : 4 - pathScale;
       } else if (Number.isInteger(roundOption) || roundOption === 'off') {
         round = roundOption;
+      } else {
+        ({ round } = defaultOptions);
       }
 
       // set instance options.origin
+      // the SVGPathCommander class will always override the default origin
+      let origin;
       if (Array.isArray(originOption) && originOption.length >= 2) {
         const [originX, originY, originZ] = originOption.map(Number);
         origin = [
@@ -3039,10 +3042,9 @@
         origin = [cx, cy, cz];
       }
 
-      /**
-       * @type {number | 'off'}
-       */
+      /** @type {number | 'off'} */
       this.round = round;
+      /** @type {[number, number, number=]} */
       this.origin = origin;
 
       return this;
@@ -3387,7 +3389,7 @@
     // binary search for precise estimate
     precision /= 2;
     let before = { x: 0, y: 0 };
-    let after = before;
+    let after;
     let beforeLength = 0;
     let afterLength = 0;
     let beforeDistance = 0;
@@ -3706,12 +3708,6 @@
   }
 
   /**
-   * Must have at least one import of the main namespace.
-   * @typedef {import('../../types/index')}
-   * @typedef {import('../types/index')}
-   */
-
-  /**
    * @interface
    */
   const Util = {
@@ -3759,6 +3755,8 @@
    * @type {string}
    */
   const Version = version;
+
+  /** @typedef {import('../types/index')} */
 
   // Export to global
   Object.assign(SVGPathCommander, Util, { Version });

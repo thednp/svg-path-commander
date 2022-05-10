@@ -1,9 +1,3 @@
-/**
- * Must have at least one import of the main namespace.
- * @typedef {import('../../types/index')}
- * @typedef {import('../types/index')}
- */
-
 import CSSMatrix from 'dommatrix';
 import defaultOptions from '../options/options';
 import getPathBBox from './getPathBBox';

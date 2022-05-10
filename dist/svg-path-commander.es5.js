@@ -1207,7 +1207,7 @@
       var segment = seg.seg;
       var data = seg.n;
       var prevSeg = i && path[i - 1];
-      var nextSeg = path[i + 1] && path[i + 1];
+      var nextSeg = path[i + 1];
       var pathCommand = seg.c;
       var pLen = path.length;
       /** @type {number} */
@@ -1231,7 +1231,7 @@
           }
           break;
         case 'S':
-          if ((prevSeg && 'CS'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'S'))) {
+          if ((prevSeg && 'CS'.includes(prevSeg.c)) && (!nextSeg || nextSeg.c !== 'S')) {
             result = ['C', data[3], data[4], data[1], data[2], x, y];
           } else {
             result = [pathCommand, data[1], data[2], x, y];
@@ -1245,7 +1245,7 @@
           }
           break;
         case 'T':
-          if ((prevSeg && 'QT'.includes(prevSeg.c)) && (!nextSeg || (nextSeg && nextSeg.c !== 'T'))) {
+          if ((prevSeg && 'QT'.includes(prevSeg.c)) && (!nextSeg || nextSeg.c !== 'T')) {
             result = ['Q', data[1], data[2], x, y];
           } else {
             result = [pathCommand, x, y];
@@ -2926,10 +2926,9 @@
 
     var path = normalizePath(pathInput);
     var distanceIsNumber = typeof distance === 'number';
-    var isM = true;
-    /** @type {number[]} */
+    var isM;
     var data = [];
-    var pathCommand = 'M';
+    var pathCommand;
     var x = 0;
     var y = 0;
     var mx = 0;
@@ -3079,6 +3078,8 @@
    * @returns {SVGPathCommander} a new SVGPathCommander instance
    */
   var SVGPathCommander = function SVGPathCommander(pathValue, config) {
+    var assign;
+
     var instanceOptions = config || {};
 
     var undefPath = typeof pathValue === 'undefined';
@@ -3105,19 +3106,22 @@
     var cz = ref.cz;
 
     // set instance options.round
-    var round = defaultOptions.round;
-    var origin = defaultOptions.origin;
     var roundOption = instanceOptions.round;
     var originOption = instanceOptions.origin;
+    var round;
 
     if (roundOption === 'auto') {
       var pathScale = (("" + (Math.floor(Math.max(width, height))))).length;
       round = pathScale >= 4 ? 0 : 4 - pathScale;
     } else if (Number.isInteger(roundOption) || roundOption === 'off') {
       round = roundOption;
+    } else {
+      ((assign = defaultOptions, round = assign.round));
     }
 
     // set instance options.origin
+    // the SVGPathCommander class will always override the default origin
+    var origin;
     if (Array.isArray(originOption) && originOption.length >= 2) {
       var ref$1 = originOption.map(Number);
       var originX = ref$1[0];
@@ -3131,10 +3135,9 @@
       origin = [cx, cy, cz];
     }
 
-    /**
-     * @type {number | 'off'}
-     */
+    /** @type {number | 'off'} */
     this.round = round;
+    /** @type {[number, number, number=]} */
     this.origin = origin;
 
     return this;
@@ -3498,7 +3501,7 @@
     // binary search for precise estimate
     precision /= 2;
     var before = { x: 0, y: 0 };
-    var after = before;
+    var after;
     var beforeLength = 0;
     var afterLength = 0;
     var beforeDistance = 0;
@@ -3818,12 +3821,6 @@
   }
 
   /**
-   * Must have at least one import of the main namespace.
-   * @typedef {import('../../types/index')}
-   * @typedef {import('../types/index')}
-   */
-
-  /**
    * @interface
    */
   var Util = {
@@ -3871,6 +3868,8 @@
    * @type {string}
    */
   var Version = version;
+
+  /** @typedef {import('../types/index')} */
 
   // Export to global
   Object.assign(SVGPathCommander, Util, { Version: Version });

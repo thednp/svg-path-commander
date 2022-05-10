@@ -1,3 +1,5 @@
+/** @typedef {import('../types/index')} */
+
 import SVGPathCommander from './svg-path-commander';
 import Util from './util/util';
 import Version from './version';
