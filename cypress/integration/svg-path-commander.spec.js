@@ -13,11 +13,12 @@ import shapeObjects from '../fixtures/shapeObjects';
 describe('SVGPathCommander Class Test', () => {
 
   beforeEach(() => {
-    cy.visit('cypress/test.html')
+    cy.intercept('cypress/test.html').as('pageload')
+      .visit('cypress/test.html')
       .get('#test-svg path').then((svg) => {
         cy.wrap(svg[0]).as('svgpath');
       })
-      .wait(200);
+      .wait('@pageload');
   });
 
   it('Test init with no parameter / empty throws error', () => {
@@ -125,6 +126,31 @@ describe('SVGPathCommander Class Test', () => {
       })
   });
 
+  it('Test overloaded moveTo', () => {
+    const star = new SVGPathCommander(
+      `M12.774 14.5111 8.0167 12.292 3.4918 14.9529 4.1321 9.7428 0.2031 6.2615 5.3562 5.2604 7.4528 0.4479 9.9972 5.0393 15.222 5.5463 11.6414 9.3851Z`,
+      {round: 2}
+    );
+    const star1 = new SVGPathCommander(
+      `m12.774 14.5111 -4.7573 -2.2191 -4.5249 2.6609 0.6403 -5.2101 -3.929 -3.4813 5.1531 -1.0011 2.0966 -4.8125 2.5444 4.5914 5.2248 0.507 -3.5806 3.8388z`,
+      {round: 2}
+    );
+
+    cy.wrap(star).as('path')
+      .wrap(star1).as('path1')
+      .get('@path').its('segments').should('have.length', 11)
+      .get('@path1').its('segments').should('have.length', 11)
+      .get('@svgpath').then((svg) => {
+        svg[0].setAttribute('d', star.toString());
+        expect(svg[0].getAttribute('d')).to.equal(star.toString())
+      })
+      .wait(100)
+      .get('@svgpath').then((svg) => {
+        svg[0].setAttribute('d', star1.toString());
+        expect(svg[0].getAttribute('d')).to.equal(star1.toString())
+      })
+  });
+
   it('Test rounding `auto`, `off`, and [0-5]', () => {
     cy.log('**round**: auto').then(() => {
       const rect = new SVGPathCommander('M2 0C0.8954304997175604 -8.780183295920349e-10 -1.3527075029566811e-16 0.8954304997175604 0 2C0 2 0 9.875 0 14C1.3527075029566811e-16 15.10456950028244 0.8954304997175604 16.000000000878018 2 16C8 16 10.25 16 14 16C15.104569499040734 15.999999999121982 16 15.104569499040734 16 14C16 8 16 5.75 16 2C16 0.8954305009592662 15.104569499040734 8.780185991465076e-10 14 0C8 0 5.75 0 2 0', {round: 'auto'});
@@ -195,7 +221,6 @@ describe('SVGPathCommander Class Test', () => {
     })
     cy.log('Using the static method').then(() => {
       expect(SVGPathCommander.getPathBBox('')).to.deep.equal({cx: 0, cy: 0, cz: 0, height: 0, width: 0, x: 0, x2: 0, y: 0, y2: 0});
-
     })
   });
 

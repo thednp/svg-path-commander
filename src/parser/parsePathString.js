@@ -9,7 +9,7 @@ import isPathArray from '../util/isPathArray';
  * of segments we like to call `pathArray`.
  *
  * @param {SVGPath.pathArray | string} pathInput the string to be parsed
- * @returns {SVGPath.pathArray | string} the resulted `pathArray`
+ * @returns {SVGPath.pathArray | string} the resulted `pathArray` or error string
  */
 export default function parsePathString(pathInput) {
   if (isPathArray(pathInput)) {

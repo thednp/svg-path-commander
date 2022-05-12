@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v1.0.3 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v1.0.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2022 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -32,12 +32,21 @@
    * @param {SVGPath.PathParser} path the `PathParser` instance
    */
   function finalizeSegment(path) {
-    const pathCommand = path.pathValue[path.segmentStart];
-    const LK = pathCommand.toLowerCase();
+    let pathCommand = path.pathValue[path.segmentStart];
+    let LK = pathCommand.toLowerCase();
     const { data } = path;
 
     while (data.length >= paramsCount[LK]) {
-      path.segments.push([pathCommand, ...data.splice(0, paramsCount[LK])]);
+      // overloaded `moveTo`
+      // https://github.com/rveciana/svg-path-properties/blob/master/src/parse.ts
+      if (LK === 'm' && data.length > 2) {
+        path.segments.push([pathCommand, ...data.splice(0, 2)]);
+        LK = 'l';
+        pathCommand = pathCommand === 'm' ? 'l' : 'L';
+      } else {
+        path.segments.push([pathCommand, ...data.splice(0, paramsCount[LK])]);
+      }
+
       if (!paramsCount[LK]) {
         break;
       }
@@ -378,7 +387,7 @@
    * of segments we like to call `pathArray`.
    *
    * @param {SVGPath.pathArray | string} pathInput the string to be parsed
-   * @returns {SVGPath.pathArray | string} the resulted `pathArray`
+   * @returns {SVGPath.pathArray | string} the resulted `pathArray` or error string
    */
   function parsePathString(pathInput) {
     if (isPathArray(pathInput)) {
@@ -3748,7 +3757,7 @@
     options: defaultOptions,
   };
 
-  var version = "1.0.3";
+  var version = "1.0.4";
 
   /**
    * A global namespace for library version.

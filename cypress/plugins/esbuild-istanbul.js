@@ -3,7 +3,7 @@
 
 const { readFileSync } = require('fs');
 const { createInstrumenter } = require('istanbul-lib-instrument');
-const debug = require('debug')('istanbul-lib-instrument');
+const debug = require('debug');
 
 // import Cypress settings
 let { env: { sourceFolder } } = require('../../cypress.json');
