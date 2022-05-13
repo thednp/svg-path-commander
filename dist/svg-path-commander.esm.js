@@ -3372,9 +3372,9 @@ function getPropertiesAtPoint(pathInput, point) {
     return dx * dx + dy * dy;
   };
   let precision = 8;
-  let scan = { x: 0, y: 0 };
+  let scan;
   let scanDistance = 0;
-  let closest = scan;
+  let closest;
   let bestLength = 0;
   let bestDistance = Infinity;
 
@@ -3391,7 +3391,7 @@ function getPropertiesAtPoint(pathInput, point) {
 
   // binary search for precise estimate
   precision /= 2;
-  let before = { x: 0, y: 0 };
+  let before;
   let after;
   let beforeLength = 0;
   let afterLength = 0;

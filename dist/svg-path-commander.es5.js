@@ -3490,9 +3490,9 @@
       return dx * dx + dy * dy;
     };
     var precision = 8;
-    var scan = { x: 0, y: 0 };
+    var scan;
     var scanDistance = 0;
-    var closest = scan;
+    var closest;
     var bestLength = 0;
     var bestDistance = Infinity;
 
@@ -3509,7 +3509,7 @@
 
     // binary search for precise estimate
     precision /= 2;
-    var before = { x: 0, y: 0 };
+    var before;
     var after;
     var beforeLength = 0;
     var afterLength = 0;
