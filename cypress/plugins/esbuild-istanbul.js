@@ -11,7 +11,7 @@ sourceFolder = sourceFolder || 'src';
 const [name] = process.cwd().split(/[\\|\/]/).slice(-1);
 const sourcePath = sourceFolder.replace(/\\/g,'\/');
 
-const sourceFilter = `${name}/${sourcePath}`;
+const sourceFilter = `${name}\\${sourcePath}`;
 const instrumenter = createInstrumenter({
   compact: false,
   esModules: true,
@@ -24,7 +24,7 @@ const esbuildPluginIstanbul = () => ({
       async ({ path }) => {
         const contents = String(readFileSync(path, 'utf8'));
 
-        if (!sourceFilter.split(/\\|\//).every((word) => path.includes(word))) {
+        if (!path.includes(sourceFilter)) {
           return { contents };
         }
         debug('instrumenting %s for output coverage', path);
