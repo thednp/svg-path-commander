@@ -9,6 +9,6 @@ import isPathArray from './isPathArray';
  */
 export default function isAbsoluteArray(path) {
   return isPathArray(path)
-    // @ts-ignore -- `isPathArray` also checks if it's `Array`
+    // `isPathArray` also checks if it's `Array`
     && path.every(([x]) => x === x.toUpperCase());
 }

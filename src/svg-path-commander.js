@@ -168,7 +168,6 @@ class SVGPathCommander {
     const split = splitPath(segments);
     const subPath = split.length > 1 ? split : 0;
 
-    // @ts-ignore
     const absoluteMultiPath = subPath && clonePath(subPath).map((x, i) => {
       if (onlySubpath) {
         return i ? reversePath(x) : parsePathString(x);

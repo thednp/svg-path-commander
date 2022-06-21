@@ -9,6 +9,6 @@ import isAbsoluteArray from './isAbsoluteArray';
  * @returns {boolean} iteration result
  */
 export default function isNormalizedArray(path) {
-  // @ts-ignore -- `isAbsoluteArray` also checks if it's `Array`
+  // `isAbsoluteArray` also checks if it's `Array`
   return isAbsoluteArray(path) && path.every(([pc]) => 'ACLMQZ'.includes(pc));
 }

@@ -1,5 +1,5 @@
 import fixArc from '../process/fixArc';
-import fixPath from '../process/fixPath';
+// import fixPath from '../process/fixPath';
 import isCurveArray from '../util/isCurveArray';
 import clonePath from '../process/clonePath';
 import normalizePath from '../process/normalizePath';
@@ -19,11 +19,12 @@ import paramsParser from '../parser/paramsParser';
 export default function pathToCurve(pathInput) {
   /* istanbul ignore else */
   if (isCurveArray(pathInput)) {
-    // @ts-ignore -- `isCurveArray` checks if it's `pathArray`
+    // `isCurveArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 
-  const path = fixPath(normalizePath(pathInput));
+  // const path = fixPath(normalizePath(pathInput));
+  const path = normalizePath(pathInput);
   const params = { ...paramsParser };
   const allPathCommands = [];
   let pathCommand = ''; // ts-lint
@@ -46,6 +47,5 @@ export default function pathToCurve(pathInput) {
     params.y2 = +(segment[seglen - 3]) || params.y1;
   }
 
-  // @ts-ignore
   return path;
 }

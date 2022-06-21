@@ -11,7 +11,7 @@ import isAbsoluteArray from '../util/isAbsoluteArray';
 export default function pathToAbsolute(pathInput) {
   /* istanbul ignore else */
   if (isAbsoluteArray(pathInput)) {
-    // @ts-ignore -- `isAbsoluteArray` checks if it's `pathArray`
+    // `isAbsoluteArray` checks if it's `pathArray`
     return clonePath(pathInput);
   }
 
@@ -19,12 +19,11 @@ export default function pathToAbsolute(pathInput) {
   let x = 0; let y = 0;
   let mx = 0; let my = 0;
 
-  // @ts-ignore -- the `absoluteSegment[]` is for sure an `absolutePath`
+  // the `absoluteSegment[]` is for sure an `absolutePath`
   return path.map((segment) => {
     const values = segment.slice(1).map(Number);
     const [pathCommand] = segment;
     /** @type {SVGPath.absoluteCommand} */
-    // @ts-ignore
     const absCommand = pathCommand.toUpperCase();
 
     if (pathCommand === 'M') {
@@ -34,7 +33,6 @@ export default function pathToAbsolute(pathInput) {
       return ['M', x, y];
     }
     /** @type {SVGPath.absoluteSegment} */
-    // @ts-ignore
     let absoluteSegment = [];
 
     if (pathCommand !== absCommand) {
@@ -54,12 +52,11 @@ export default function pathToAbsolute(pathInput) {
           // use brakets for `eslint: no-case-declaration`
           // https://stackoverflow.com/a/50753272/803358
           const absValues = values.map((n, j) => n + (j % 2 ? y : x));
-          // @ts-ignore for n, l, c, s, q, t
+          // for n, l, c, s, q, t
           absoluteSegment = [absCommand, ...absValues];
         }
       }
     } else {
-      // @ts-ignore
       absoluteSegment = [absCommand, ...values];
     }
 
@@ -70,17 +67,13 @@ export default function pathToAbsolute(pathInput) {
         y = my;
         break;
       case 'H':
-        // @ts-ignore
         [, x] = absoluteSegment;
         break;
       case 'V':
-        // @ts-ignore
         [, y] = absoluteSegment;
         break;
       default:
-        // @ts-ignore
         x = absoluteSegment[segLength - 2];
-        // @ts-ignore
         y = absoluteSegment[segLength - 1];
 
         if (absCommand === 'M') {

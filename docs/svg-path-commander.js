@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v1.0.4 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v1.0.5 (http://thednp.github.io/svg-path-commander)
 * Copyright 2022 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -351,7 +351,6 @@
    */
   function PathParser(pathString) {
     /** @type {SVGPath.pathArray} */
-    // @ts-ignore
     this.segments = [];
     /** @type {string} */
     this.pathValue = pathString;
@@ -414,7 +413,7 @@
    */
   function isAbsoluteArray(path) {
     return isPathArray(path)
-      // @ts-ignore -- `isPathArray` also checks if it's `Array`
+      // `isPathArray` also checks if it's `Array`
       && path.every(([x]) => x === x.toUpperCase());
   }
 
@@ -428,7 +427,7 @@
   function pathToAbsolute(pathInput) {
     /* istanbul ignore else */
     if (isAbsoluteArray(pathInput)) {
-      // @ts-ignore -- `isAbsoluteArray` checks if it's `pathArray`
+      // `isAbsoluteArray` checks if it's `pathArray`
       return clonePath(pathInput);
     }
 
@@ -436,12 +435,11 @@
     let x = 0; let y = 0;
     let mx = 0; let my = 0;
 
-    // @ts-ignore -- the `absoluteSegment[]` is for sure an `absolutePath`
+    // the `absoluteSegment[]` is for sure an `absolutePath`
     return path.map((segment) => {
       const values = segment.slice(1).map(Number);
       const [pathCommand] = segment;
       /** @type {SVGPath.absoluteCommand} */
-      // @ts-ignore
       const absCommand = pathCommand.toUpperCase();
 
       if (pathCommand === 'M') {
@@ -451,7 +449,6 @@
         return ['M', x, y];
       }
       /** @type {SVGPath.absoluteSegment} */
-      // @ts-ignore
       let absoluteSegment = [];
 
       if (pathCommand !== absCommand) {
@@ -471,12 +468,11 @@
             // use brakets for `eslint: no-case-declaration`
             // https://stackoverflow.com/a/50753272/803358
             const absValues = values.map((n, j) => n + (j % 2 ? y : x));
-            // @ts-ignore for n, l, c, s, q, t
+            // for n, l, c, s, q, t
             absoluteSegment = [absCommand, ...absValues];
           }
         }
       } else {
-        // @ts-ignore
         absoluteSegment = [absCommand, ...values];
       }
 
@@ -487,17 +483,13 @@
           y = my;
           break;
         case 'H':
-          // @ts-ignore
           [, x] = absoluteSegment;
           break;
         case 'V':
-          // @ts-ignore
           [, y] = absoluteSegment;
           break;
         default:
-          // @ts-ignore
           x = absoluteSegment[segLength - 2];
-          // @ts-ignore
           y = absoluteSegment[segLength - 1];
 
           if (absCommand === 'M') {
@@ -518,7 +510,7 @@
    */
   function isRelativeArray(path) {
     return isPathArray(path)
-      // @ts-ignore -- `isPathArray` checks if it's `Array`
+      // `isPathArray` checks if it's `Array`
       && path.slice(1).every(([pc]) => pc === pc.toLowerCase());
   }
 
@@ -619,11 +611,35 @@
       while (segment.length) {
         // if created multiple C:s, their original seg is saved
         allPathCommands[i] = 'A';
-        // @ts-ignore
         path.splice(ni += 1, 0, ['C', ...segment.splice(0, 6)]);
       }
       path.splice(i, 1);
     }
+  }
+
+  /**
+   * Iterates an array to check if it's a `pathArray`
+   * with all segments are in non-shorthand notation
+   * with absolute values.
+   *
+   * @param {string | SVGPath.pathArray} path the `pathArray` to be checked
+   * @returns {boolean} iteration result
+   */
+  function isNormalizedArray(path) {
+    // `isAbsoluteArray` also checks if it's `Array`
+    return isAbsoluteArray(path) && path.every(([pc]) => 'ACLMQZ'.includes(pc));
+  }
+
+  /**
+   * Iterates an array to check if it's a `pathArray`
+   * with all C (cubic bezier) segments.
+   *
+   * @param {string | SVGPath.pathArray} path the `Array` to be checked
+   * @returns {boolean} iteration result
+   */
+  function isCurveArray(path) {
+    // `isPathArray` also checks if it's `Array`
+    return isNormalizedArray(path) && path.every(([pc]) => 'MC'.includes(pc));
   }
 
   /**
@@ -673,19 +689,6 @@
   }
 
   /**
-   * Iterates an array to check if it's a `pathArray`
-   * with all segments are in non-shorthand notation
-   * with absolute values.
-   *
-   * @param {string | SVGPath.pathArray} path the `pathArray` to be checked
-   * @returns {boolean} iteration result
-   */
-  function isNormalizedArray(path) {
-    // @ts-ignore -- `isAbsoluteArray` also checks if it's `Array`
-    return isAbsoluteArray(path) && path.every(([pc]) => 'ACLMQZ'.includes(pc));
-  }
-
-  /**
    * @type {SVGPath.parserParams}
    */
   const paramsParser = {
@@ -729,47 +732,6 @@
     }
 
     return path;
-  }
-
-  /**
-   * Checks a `pathArray` for an unnecessary `Z` segment
-   * and returns a new `pathArray` without it.
-   *
-   * The `pathInput` must be a single path, without
-   * sub-paths. For multi-path `<path>` elements,
-   * use `splitPath` first and apply this utility on each
-   * sub-path separately.
-   *
-   * @param {SVGPath.pathArray | string} pathInput the `pathArray` source
-   * @return {SVGPath.pathArray} a fixed `pathArray`
-   */
-  function fixPath(pathInput) {
-    const pathArray = parsePathString(pathInput);
-    const normalArray = normalizePath(pathArray);
-    const { length } = pathArray;
-    const isClosed = normalArray.slice(-1)[0][0] === 'Z';
-    const segBeforeZ = isClosed ? length - 2 : length - 1;
-
-    const [mx, my] = normalArray[0].slice(1);
-    const [x, y] = normalArray[segBeforeZ].slice(-2);
-
-    /* istanbul ignore else */
-    if (isClosed && mx === x && my === y) {
-      return pathArray.slice(0, -1);
-    }
-    return pathArray;
-  }
-
-  /**
-   * Iterates an array to check if it's a `pathArray`
-   * with all C (cubic bezier) segments.
-   *
-   * @param {string | SVGPath.pathArray} path the `Array` to be checked
-   * @returns {boolean} iteration result
-   */
-  function isCurveArray(path) {
-    // @ts-ignore -- `isPathArray` also checks if it's `Array`
-    return isNormalizedArray(path) && path.every(([pc]) => 'MC'.includes(pc));
   }
 
   /**
@@ -969,7 +931,7 @@
 
     /* istanbul ignore else */
     if (typeof distance === 'number') {
-      if (distance === 0) {
+      if (distance <= 0) {
         point = { x: x1, y: y1 };
       } else if (distance >= length) {
         point = { x: x2, y: y2 };
@@ -1014,13 +976,10 @@
     const p5 = midPoint(p3, p4, t);
     const p6 = midPoint(p4, p5, t);
     const seg1 = [...p0, ...p2, ...p4, ...p6, t];
-    // @ts-ignore
     const cp1 = segmentLineFactory(...seg1).point;
     const seg2 = [...p6, ...p5, ...p3, ...p1, 0];
-    // @ts-ignore
     const cp2 = segmentLineFactory(...seg2).point;
 
-    // @ts-ignore
     return [cp1.x, cp1.y, cp2.x, cp2.y, x2, y2];
   }
 
@@ -1079,11 +1038,12 @@
   function pathToCurve(pathInput) {
     /* istanbul ignore else */
     if (isCurveArray(pathInput)) {
-      // @ts-ignore -- `isCurveArray` checks if it's `pathArray`
+      // `isCurveArray` checks if it's `pathArray`
       return clonePath(pathInput);
     }
 
-    const path = fixPath(normalizePath(pathInput));
+    // const path = fixPath(normalizePath(pathInput));
+    const path = normalizePath(pathInput);
     const params = { ...paramsParser };
     const allPathCommands = [];
     let pathCommand = ''; // ts-lint
@@ -1106,7 +1066,6 @@
       params.y2 = +(segment[seglen - 3]) || params.y1;
     }
 
-    // @ts-ignore
     return path;
   }
 
@@ -3133,7 +3092,6 @@
       const split = splitPath(segments);
       const subPath = split.length > 1 ? split : 0;
 
-      // @ts-ignore
       const absoluteMultiPath = subPath && clonePath(subPath).map((x, i) => {
         if (onlySubpath) {
           return i ? reversePath(x) : parsePathString(x);
@@ -3717,6 +3675,35 @@
   }
 
   /**
+   * Checks a `pathArray` for an unnecessary `Z` segment
+   * and returns a new `pathArray` without it.
+   *
+   * The `pathInput` must be a single path, without
+   * sub-paths. For multi-path `<path>` elements,
+   * use `splitPath` first and apply this utility on each
+   * sub-path separately.
+   *
+   * @param {SVGPath.pathArray | string} pathInput the `pathArray` source
+   * @return {SVGPath.pathArray} a fixed `pathArray`
+   */
+  function fixPath(pathInput) {
+    const pathArray = parsePathString(pathInput);
+    const normalArray = normalizePath(pathArray);
+    const { length } = pathArray;
+    const isClosed = normalArray.slice(-1)[0][0] === 'Z';
+    const segBeforeZ = isClosed ? length - 2 : length - 1;
+
+    const [mx, my] = normalArray[0].slice(1);
+    const [x, y] = normalArray[segBeforeZ].slice(-2);
+
+    /* istanbul ignore else */
+    if (isClosed && mx === x && my === y) {
+      return pathArray.slice(0, -1);
+    }
+    return pathArray;
+  }
+
+  /**
    * @interface
    */
   const Util = {
@@ -3757,7 +3744,7 @@
     options: defaultOptions,
   };
 
-  var version = "1.0.4";
+  var version = "1.0.5";
 
   /**
    * A global namespace for library version.

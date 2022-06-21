@@ -8,6 +8,6 @@ import isNormalizedArray from './isNormalizedArray';
  * @returns {boolean} iteration result
  */
 export default function isCurveArray(path) {
-  // @ts-ignore -- `isPathArray` also checks if it's `Array`
+  // `isPathArray` also checks if it's `Array`
   return isNormalizedArray(path) && path.every(([pc]) => 'MC'.includes(pc));
 }
