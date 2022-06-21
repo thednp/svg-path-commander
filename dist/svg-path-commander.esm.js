@@ -802,9 +802,9 @@ function arcToCubic(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, recursive) {
     cx = ((k * rx * y) / ry) + ((x1 + x2) / 2);
     cy = ((k * -ry * x) / rx) + ((y1 + y2) / 2);
     // eslint-disable-next-line no-bitwise -- Impossible to satisfy no-bitwise
-    f1 = (Math.asin((((y1 - cy) / ry))) * (10 ** 9) >> 0) / (10 ** 9);
+    f1 = Math.asin((((y1 - cy) / ry) * (10 ** 9) >> 0) / (10 ** 9));
     // eslint-disable-next-line no-bitwise -- Impossible to satisfy no-bitwise
-    f2 = (Math.asin((((y2 - cy) / ry))) * (10 ** 9) >> 0) / (10 ** 9);
+    f2 = Math.asin((((y2 - cy) / ry) * (10 ** 9) >> 0) / (10 ** 9));
 
     f1 = x1 < cx ? Math.PI - f1 : f1;
     f2 = x2 < cx ? Math.PI - f2 : f2;
@@ -2547,7 +2547,7 @@ function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, distance) {
   let POINT = { x: 0, y: 0 };
   let POINTS = [{ x, y }];
 
-  if (distanceIsNumber && distance === 0) {
+  if (distanceIsNumber && distance <= 0) {
     POINT = { x, y };
   }
 
@@ -2643,7 +2643,7 @@ function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) {
   let POINT = { x: 0, y: 0 };
   let POINTS = [{ x, y }];
 
-  if (distanceIsNumber && distance === 0) {
+  if (distanceIsNumber && distance <= 0) {
     POINT = { x, y };
   }
 
@@ -2735,7 +2735,7 @@ function segmentQuadFactory(x1, y1, qx, qy, x2, y2, distance) {
   let POINT = { x: 0, y: 0 };
   let POINTS = [{ x, y }];
 
-  if (distanceIsNumber && distance === 0) {
+  if (distanceIsNumber && distance <= 0) {
     POINT = { x, y };
   }
 

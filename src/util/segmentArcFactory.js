@@ -160,7 +160,7 @@ export default function segmentArcFactory(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2
   let POINT = { x: 0, y: 0 };
   let POINTS = [{ x, y }];
 
-  if (distanceIsNumber && distance === 0) {
+  if (distanceIsNumber && distance <= 0) {
     POINT = { x, y };
   }
 

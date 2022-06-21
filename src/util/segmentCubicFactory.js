@@ -54,7 +54,7 @@ export default function segmentCubicFactory(x1, y1, c1x, c1y, c2x, c2y, x2, y2, 
   let POINT = { x: 0, y: 0 };
   let POINTS = [{ x, y }];
 
-  if (distanceIsNumber && distance === 0) {
+  if (distanceIsNumber && distance <= 0) {
     POINT = { x, y };
   }
 
