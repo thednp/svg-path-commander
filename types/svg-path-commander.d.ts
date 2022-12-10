@@ -885,7 +885,7 @@ declare module "svg-path-commander/src/util/shapeToPath" {
      * @param {boolean=} replace option to replace target
      * @return {SVGPathElement | boolean} the newly created `<path>` element
      */
-    export default function shapeToPath(element: SVGPath.shapeTypes | SVGPath.shapeOps, replace?: boolean | undefined): SVGPathElement | boolean;
+    export default function shapeToPath(element: SVGPath.shapeTypes | SVGPath.shapeOps, replace?: boolean | undefined, ownerDocument?: Document | undefined): SVGPathElement | boolean;
 }
 declare module "svg-path-commander/src/version" {
     export default Version;
