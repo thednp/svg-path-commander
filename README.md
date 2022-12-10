@@ -135,6 +135,25 @@ const myRectAttr = {
 const myRectPath = SVGPathCommander.shapeToPath(myRectAttr);
 document.getElementById('mySVG').append(myRectPath);
 ```
+Server-side using `jsdom`:
+```js
+const { document } = new JSDOM(
+  `<html>
+  <head></head>
+  <body>
+    <svg id="mySVG" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect id="myRect" x="0" width="100" height="100" rx="15" />
+    </svg>
+  </body>
+</html>`,
+  {
+    pretendToBeVisual: true,
+  }
+).window;
+
+const myRect = document.getElementById('myRect');
+SVGPathCommander.shapeToPath(myRect, true, document);
+```
 
 Get the path length:
 ```js

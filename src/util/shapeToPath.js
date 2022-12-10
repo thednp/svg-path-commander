@@ -135,7 +135,9 @@ export function getRectanglePath(attr) {
 /**
  * Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`,
  * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>` or `<glyph>`. If `replace` parameter
- * is `true`, it will replace the target.
+ * is `true`, it will replace the target. The default `ownerDocument` is your current
+ * `document` browser page, if you want to use in server-side using `jsdom`, you can
+ * pass the `jsdom` `document` to `ownDocument`.
  *
  * It can also work with an options object,
  * @see SVGPath.shapeOps
@@ -145,9 +147,10 @@ export function getRectanglePath(attr) {
  *
  * @param {SVGPath.shapeTypes | SVGPath.shapeOps} element target shape
  * @param {boolean=} replace option to replace target
+ * @param {Document=} ownerDocument document for create element
  * @return {SVGPathElement | boolean} the newly created `<path>` element
  */
-export default function shapeToPath(element, replace) {
+export default function shapeToPath(element, replace, ownerDocument) {
   const supportedShapes = Object.keys(shapeParams);
   const { tagName } = element;
 
@@ -155,7 +158,8 @@ export default function shapeToPath(element, replace) {
     throw TypeError(`${error}: "${tagName}" is not SVGElement`);
   }
 
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const doc = ownerDocument || document;
+  const path = doc.createElementNS('http://www.w3.org/2000/svg', 'path');
   /** @type {string} */
   const type = tagName || element.type;
   /** @type {any} disables TS checking for something that's specific to shape */
