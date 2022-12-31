@@ -1,7 +1,0 @@
-{
-  "typeAcquisition": {
-    "include": [
-      "cypress", "shorter-js", "dommatrix"
-    ]
-  }
-}

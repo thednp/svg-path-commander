@@ -13,11 +13,11 @@ jobs:
         with:
           node-version: 16
       - uses: bahmutov/npm-install@v1
-      - run: npm run lint:js
-      - run: npm run build-js
+      - run: npm run lint:ts
+      - run: npm run build-vite
       - run: npm run test
       
       - name: Upload coverage report on Node v16 to coveralls.io...
-        uses: coverallsapp/github-action@v1.1.2
+        uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

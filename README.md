@@ -4,12 +4,15 @@
 [![NPM Version](https://img.shields.io/npm/v/svg-path-commander.svg)](https://www.npmjs.com/package/svg-path-commander)
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg)](http://npm-stat.com/charts.html?svg-path-commander)
 [![jsDeliver](https://img.shields.io/jsdelivr/npm/hw/svg-path-commander)](https://www.jsdelivr.com/package/npm/svg-path-commander)
-![cypress version](https://img.shields.io/badge/cypress-9.6.1-brightgreen)
-![typescript version](https://img.shields.io/badge/typescript-4.5.2-brightgreen)
+[![typescript version](https://img.shields.io/badge/typescript-4.9.4-brightgreen)](https://www.typescriptlang.org/)
+[![cypress version](https://img.shields.io/badge/cypress-12.2.0-brightgreen)](https://www.cypress.io/)
+[![eslint version](https://img.shields.io/badge/eslint-8.30.0-brightgreen)](https://github.com/eslint)
+[![vite version](https://img.shields.io/badge/vite-4.0.3-brightgreen)](https://vitejs.dev/)
+[![prettier version](https://img.shields.io/badge/prettier-2.8.1-brightgreen)](https://prettier.io/)
 
 ![image](./docs/assets/SVGPathCommander.svg)
 
-A modern set of ES6+ JavaScript tools for manipulating the `d` (description) attribute for *SVGPathElement* items. The library is implementing modern JavaScript API to produce reusable path strings with lossless quality. In addition, you also have a powerful tool to convert other SVG shapes like `<circle>` or `<rect>` to `<path>`.
+A modern set of Typescript tools for manipulating the `d` (description) attribute for *SVGPathElement* items. The library is implementing modern JavaScript API to produce reusable path strings with lossless quality. In addition, you also have a powerful tool to convert other SVG shapes like `<circle>` or `<rect>` to `<path>`.
 
 
 While you may find familiar tools inside, this library brings ***new additions***:
@@ -19,7 +22,7 @@ While you may find familiar tools inside, this library brings ***new additions**
 * a new and unique tool to *apply transform functions to path commands* via the modern *DOMMatrix* API.
 
 **The key differences with other libraries**:
-* ES6+ sourced with modernized codebase and build tools; all inherited codebase has been modernized as well;
+* Typescript sourced with modernized codebase and build tools; all inherited codebase has been modernized as well;
 * along with the modern codebase, the library also comes with strong TypeScript definitions;
 * this library can create 3D to 2D projections, making your SVGs look like 3D but in the SVG coordinate system;
 * you can use this library in both web apps and Node.js, you are not restricted to a single environment;

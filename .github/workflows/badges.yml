@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Update version badges 🏷
-        run: npx -p dependency-version-badge update-badge cypress typescript
+        run: npx -p dependency-version-badge update-badge typescript cypress eslint prettier vite
 
       - name: Commit any changed files 💾
         uses: stefanzweifel/git-auto-commit-action@v4

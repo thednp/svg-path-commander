@@ -1,22 +1,28 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "declaration": true,
-    "resolveJsonModule": true,
-    "emitDeclarationOnly": true,
-    "maxNodeModuleJsDepth": 3, // allows to incorporate dependency utils
-    "strict": true,
-    "allowJs": true,
-    "checkJs": true,
-    // "outFile": "types/svg-path-commander.d.ts", // UN-comment to generate delete file
-    "rootDir": "../",
-    "outDir": "types",
-  },
-  "files": [
-    "types/index.d.ts",
-    // "types/more/modules.ts", // UN-comment to generate
-    "types/svg-path-commander.d.ts" // comment to regen
-  ],
+  // https://janessagarrow.com/blog/typescript-and-esbuild/
+ "compilerOptions": {
+   "lib": ["DOM", "ESNext", "DOM.Iterable"],
+   "types": ["vite", "vite/client", "cypress"],
+   "rootDir": "./src",
+   "baseUrl": "./",
+   "module": "ESNext",
+   "target": "ESNext",
+   "moduleResolution": "Node",
+   "allowJs": true,
+   "forceConsistentCasingInFileNames": true,
+   "useDefineForClassFields": true,
+   "strict": true,
+   "sourceMap": true,
+   "resolveJsonModule": true,
+   "esModuleInterop": true,
+   "isolatedModules": false,
+   "noUnusedLocals": true,
+   "noUnusedParameters": true,
+   "noImplicitReturns": true,
+   "removeComments": false,
+   "allowSyntheticDefaultImports": true,
+   "noEmit": true,
+ },
+ "include": ["src/*"],
+ "exclude": ["node_modules", "experiments", "coverage", "dist"],
 }

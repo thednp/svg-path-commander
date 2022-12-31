@@ -1,32 +1,30 @@
 {
   "name": "svg-path-commander",
-  "version": "1.0.5",
-  "description": "ES6+ JavaScript tools for SVG processing and converting path data",
-  "main": "dist/svg-path-commander.min.js",
-  "module": "dist/svg-path-commander.esm.js",
-  "jsnext": "src/index.js",
-  "types": "types/index.d.ts",
+  "author": "thednp",
+  "license": "MIT",
+  "version": "2.0.0-alpha1",
+  "description": "TypeScript tools for SVG processing and converting path data",
+  "source": "src/index.ts",
+  "main": "dist/svg-path-commander.js",
+  "module": "dist/svg-path-commander.mjs",
+  "types": "dist/svg-path-commander.d.ts",
   "files": [
     "dist",
-    "types",
     "src"
   ],
   "scripts": {
-    "test": "npx cypress run",
-    "cypress": "npx cypress open",
+    "pre-test": "npm run clean-coverage",
+    "test": "npm run pre-test && cypress run",
+    "cypress": "npm run pre-test && npx cypress open",
+    "clean-coverage": "rimraf coverage .nyc_output",
     "coverage:report": "nyc report --reporter=lcov --reporter=json --reporter=text --reporter=json-summary",
-    "build": "npm run lint:js && npm-run-all --parallel build-*",
-    "custom-build": "rollup -c --environment",
-    "fix:js": "eslint src --config .eslintrc --fix",
-    "lint:js": "eslint src --config .eslintrc",
-    "build:ts": "tsc -d",
-    "build-js": "rollup --environment FORMAT:umd,MIN:false -c",
-    "build-js-es5": "rollup --environment FORMAT:umd,MIN:false,ES:es5 -c",
-    "build-docs": "rollup --environment FORMAT:umd,MIN:false,OUTPUTFILE:docs/svg-path-commander.js -c",
-    "build-js-min": "rollup --environment FORMAT:umd,MIN:true -c",
-    "build-js-es5-min": "rollup --environment FORMAT:umd,MIN:true,ES:es5 -c",
-    "build-esm": "rollup --environment FORMAT:esm,MIN:false -c",
-    "build-esm-min": "rollup --environment FORMAT:esm,MIN:true -c"
+    "format": "prettier --write \"src/**/*.ts\"",
+    "fix:ts": "eslint src --config .eslintrc.cjs --fix",
+    "lint:ts": "eslint src --config .eslintrc.cjs",
+    "build": "npm run lint:ts && npm run build-vite && npm run build-ts",
+    "build-vite": "vite build && npm run build-docs",
+    "build-ts": "dts-bundle-generator --config ./dts.config.ts",
+    "build-docs": "ncp dist/svg-path-commander.js docs/svg-path-commander.js && ncp dist/svg-path-commander.js.map docs/svg-path-commander.js.map"
   },
   "repository": {
     "type": "git",
@@ -44,36 +42,35 @@
     "absolute",
     "relative",
     "curve",
-    "transform3d"
+    "transform3d",
+    "typescript"
   ],
-  "author": "thednp",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/thednp/svg-path-commander/issues"
   },
   "homepage": "http://thednp.github.io/svg-path-commander",
   "devDependencies": {
-    "@bahmutov/cypress-esbuild-preprocessor": "^2.1.3",
-    "@cypress/code-coverage": "^3.9.12",
-    "@rollup/plugin-buble": "^0.21.3",
-    "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^7.1.3",
-    "cypress": "^9.6.1",
-    "esbuild": "^0.14.30",
-    "eslint": "^7.22.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-vue": "^7.7.0",
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.1.5",
+    "@cypress/code-coverage": "^3.10.0",
+    "@types/istanbul-lib-instrument": "^1.7.4",
+    "@typescript-eslint/eslint-plugin": "^5.47.0",
+    "@typescript-eslint/parser": "^5.47.0",
+    "cypress": "^12.2.0",
+    "dts-bundle-generator": "^7.1.0",
+    "eslint": "^8.30.0",
+    "eslint-plugin-jsdoc": "^39.6.4",
+    "eslint-plugin-prefer-arrow": "^1.2.3",
+    "eslint-plugin-prettier": "^4.2.1",
     "istanbul-lib-coverage": "^3.2.0",
-    "istanbul-lib-instrument": "^5.2.0",
-    "npm-run-all": "^4.1.5",
+    "istanbul-lib-instrument": "^5.2.1",
+    "ncp": "^2.0.0",
     "nyc": "^15.1.0",
-    "rollup": "^2.38.4",
-    "rollup-plugin-cleanup": "^3.2.1",
-    "rollup-plugin-terser": "^5.3.1",
-    "typescript": "^4.5.2"
+    "prettier": "^2.8.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.9.4",
+    "vite": "^4.0.3"
   },
   "dependencies": {
-    "dommatrix": "^1.0.3"
+    "@thednp/dommatrix": "^2.0.0-alpha3"
   }
 }
