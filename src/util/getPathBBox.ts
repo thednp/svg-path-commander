@@ -8,7 +8,7 @@ import pathLengthFactory from './pathLengthFactory';
  * @param path the shape `pathArray`
  * @returns the length of the cubic-bezier segment
  */
-const getPathBBox = (path?: PathArray): PathBBox => {
+const getPathBBox = (path?: PathArray | string): PathBBox => {
   if (!path) {
     return {
       x: 0,
