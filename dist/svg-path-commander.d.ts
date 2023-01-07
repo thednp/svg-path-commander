@@ -271,7 +271,7 @@ export type ShapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement
 export type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
 declare class SVGPathCommander {
 	static CSSMatrix: typeof CSSMatrix;
-	static getPathBBox: (path?: PathArray | undefined) => PathBBox;
+	static getPathBBox: (path?: string | PathArray | undefined) => PathBBox;
 	static getPathArea: (path: PathArray) => number;
 	static getTotalLength: (pathInput: string | PathArray) => number;
 	static getDrawDirection: (path: string | PathArray) => boolean;
