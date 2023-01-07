@@ -12,6 +12,13 @@
     "dist",
     "src"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/svg-path-commander.mjs",
+      "require": "./dist/svg-path-commander.cjs",
+      "types": "./dist/svg-path-commander.d.ts"
+    }
+  },
   "scripts": {
     "pre-test": "npm run clean-coverage",
     "test": "npm run pre-test && cypress run",
