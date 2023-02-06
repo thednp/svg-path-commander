@@ -2,12 +2,12 @@
   "name": "svg-path-commander",
   "author": "thednp",
   "license": "MIT",
-  "version": "2.0.0-alpha3",
+  "version": "2.0.0",
   "description": "TypeScript tools for SVG processing and converting path data",
   "source": "src/index.ts",
-  "main": "dist/svg-path-commander.js",
-  "module": "dist/svg-path-commander.mjs",
-  "types": "dist/svg-path-commander.d.ts",
+  "main": "./dist/svg-path-commander.js",
+  "module": "./dist/svg-path-commander.mjs",
+  "types": "./dist/svg-path-commander.d.ts",
   "files": [
     "dist",
     "src"

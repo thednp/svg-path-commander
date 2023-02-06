@@ -3,7 +3,7 @@
  "compilerOptions": {
    "lib": ["DOM", "ESNext", "DOM.Iterable"],
    "types": ["vite", "vite/client", "cypress"],
-   "rootDir": "./src",
+   "rootDir": "./",
    "baseUrl": "./",
    "module": "ESNext",
    "target": "ESNext",
