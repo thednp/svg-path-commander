@@ -5,7 +5,9 @@
   "version": "2.0.1",
   "description": "TypeScript tools for SVG processing and converting path data",
   "source": "src/index.ts",
-  "main": "dist/svg-path-commander",
+  "main": "dist/svg-path-commander.js",
+  "module": "dist/svg-path-commander.cjs",
+  "esnext": "dist/svg-path-commander.mjs",
   "types": "dist/svg-path-commander.d.ts",
   "scripts": {
     "pre-test": "npm run clean-coverage",
@@ -66,6 +68,6 @@
     "vite": "^4.0.4"
   },
   "dependencies": {
-    "@thednp/dommatrix": "^2.0.1"
+    "@thednp/dommatrix": "^2.0.2"
   }
 }
