@@ -7,7 +7,7 @@
 [![typescript version](https://img.shields.io/badge/typescript-4.9.4-brightgreen)](https://www.typescriptlang.org/)
 [![cypress version](https://img.shields.io/badge/cypress-12.2.0-brightgreen)](https://www.cypress.io/)
 [![eslint version](https://img.shields.io/badge/eslint-8.30.0-brightgreen)](https://github.com/eslint)
-[![vite version](https://img.shields.io/badge/vite-4.0.3-brightgreen)](https://vitejs.dev/)
+[![vite version](https://img.shields.io/badge/vite-4.0.4-brightgreen)](https://vitejs.dev/)
 [![prettier version](https://img.shields.io/badge/prettier-2.8.1-brightgreen)](https://prettier.io/)
 
 ![image](./docs/assets/SVGPathCommander.svg)
