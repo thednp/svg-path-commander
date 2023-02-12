@@ -17,6 +17,7 @@ A modern set of Typescript tools for manipulating the `d` (description) attribut
 
 While you may find familiar tools inside, this library brings ***new additions***:
 * the build in `getBBox`, `getPointAtLength` and `getTotalLength` are more reliable and much more accurate than the native methods, not to mention their world class performance ratings;
+* thanks to the community contributions we've implemented useful tools like `getPropertiesAtLength`, `getSegmentOfPoint` or `isPointInStroke`;
 * a tool that can *reverse path draw direction* without altering path commands, even with specific shorthand path commands;
 * a unique tool that can *reverse path draw direction* for path strings with only 'C' path commands;
 * a new and unique tool to *apply transform functions to path commands* via the modern *DOMMatrix* API.
@@ -46,7 +47,7 @@ npm install svg-path-commander
 
 # CDN
 ```html
-<script src="https://cdn.jsdelivr.net/npm/svg-path-commander/dist/svg-path-commander.min.js">
+<script src="https://cdn.jsdelivr.net/npm/svg-path-commander/dist/svg-path-commander.js">
 ```
 
 # Quick Guide

@@ -1,6 +1,5 @@
 /// <reference types="cypress" />
 
-// import SVGPathCommander from '../../src/svg-path-commander';
 import SVGPathCommander from '../../src/index';
 import invalidPathValue from '../../src/parser/invalidPathValue';
 import error from '../../src/parser/error';
