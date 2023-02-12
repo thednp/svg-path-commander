@@ -2,23 +2,11 @@
   "name": "svg-path-commander",
   "author": "thednp",
   "license": "MIT",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "TypeScript tools for SVG processing and converting path data",
   "source": "src/index.ts",
-  "main": "./dist/svg-path-commander.js",
-  "module": "./dist/svg-path-commander.mjs",
-  "types": "./dist/svg-path-commander.d.ts",
-  "files": [
-    "dist",
-    "src"
-  ],
-  "exports": {
-    ".": {
-      "import": "./dist/svg-path-commander.mjs",
-      "require": "./dist/svg-path-commander.cjs",
-      "types": "./dist/svg-path-commander.d.ts"
-    }
-  },
+  "main": "dist/svg-path-commander",
+  "types": "dist/svg-path-commander.d.ts",
   "scripts": {
     "pre-test": "npm run clean-coverage",
     "test": "npm run pre-test && cypress run",
@@ -75,9 +63,9 @@
     "prettier": "^2.8.1",
     "rimraf": "^3.0.2",
     "typescript": "^4.9.4",
-    "vite": "^4.0.3"
+    "vite": "^4.0.4"
   },
   "dependencies": {
-    "@thednp/dommatrix": "^2.0.0-alpha3"
+    "@thednp/dommatrix": "^2.0.1"
   }
 }

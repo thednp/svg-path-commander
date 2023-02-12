@@ -69,6 +69,7 @@ const at = {
   }
   e.index = s, e.param = +e.pathValue.slice(r, s);
 }, _t = (e) => [
+  // Special spaces
   5760,
   6158,
   8192,
@@ -86,10 +87,12 @@ const at = {
   8287,
   12288,
   65279,
+  // Line terminators
   10,
   13,
   8232,
   8233,
+  // White spaces
   32,
   9,
   11,
@@ -318,63 +321,219 @@ const oe = {
   return K([n, r, s, i, o, l, c, a, m, f, y, g, h, u, x, p]);
 };
 class N {
+  /**
+   * @constructor
+   * @param init accepts all parameter configurations:
+   * * valid CSS transform string,
+   * * CSSMatrix/DOMMatrix instance,
+   * * a 6/16 elements *Array*.
+   */
   constructor(t) {
     return this.a = 1, this.b = 0, this.c = 0, this.d = 1, this.e = 0, this.f = 0, this.m11 = 1, this.m12 = 0, this.m13 = 0, this.m14 = 0, this.m21 = 0, this.m22 = 1, this.m23 = 0, this.m24 = 0, this.m31 = 0, this.m32 = 0, this.m33 = 1, this.m34 = 0, this.m41 = 0, this.m42 = 0, this.m43 = 0, this.m44 = 1, t ? this.setMatrixValue(t) : this;
   }
+  /**
+   * A `Boolean` whose value is `true` if the matrix is the identity matrix. The identity
+   * matrix is one in which every value is 0 except those on the main diagonal from top-left
+   * to bottom-right corner (in other words, where the offsets in each direction are equal).
+   *
+   * @return the current property value
+   */
   get isIdentity() {
     return this.m11 === 1 && this.m12 === 0 && this.m13 === 0 && this.m14 === 0 && this.m21 === 0 && this.m22 === 1 && this.m23 === 0 && this.m24 === 0 && this.m31 === 0 && this.m32 === 0 && this.m33 === 1 && this.m34 === 0 && this.m41 === 0 && this.m42 === 0 && this.m43 === 0 && this.m44 === 1;
   }
+  /**
+   * A `Boolean` flag whose value is `true` if the matrix was initialized as a 2D matrix
+   * and `false` if the matrix is 3D.
+   *
+   * @return the current property value
+   */
   get is2D() {
     return this.m31 === 0 && this.m32 === 0 && this.m33 === 1 && this.m34 === 0 && this.m43 === 0 && this.m44 === 1;
   }
+  /**
+   * The `setMatrixValue` method replaces the existing matrix with one computed
+   * in the browser. EG: `matrix(1,0.25,-0.25,1,0,0)`
+   *
+   * The method accepts any *Array* values, the result of
+   * `DOMMatrix` instance method `toFloat64Array()` / `toFloat32Array()` calls
+   * or `CSSMatrix` instance method `toArray()`.
+   *
+   * This method expects valid *matrix()* / *matrix3d()* string values, as well
+   * as other transform functions like *translateX(10px)*.
+   *
+   * @param source
+   * @return the matrix instance
+   */
   setMatrixValue(t) {
     return typeof t == "string" && t.length && t !== "none" ? Et(t) : Array.isArray(t) || t instanceof Float64Array || t instanceof Float32Array ? K(t) : typeof t == "object" ? jt(t) : this;
   }
+  /**
+   * Returns a *Float32Array* containing elements which comprise the matrix.
+   * The method can return either the 16 elements or the 6 elements
+   * depending on the value of the `is2D` parameter.
+   *
+   * @param is2D *Array* representation of the matrix
+   * @return an *Array* representation of the matrix
+   */
   toFloat32Array(t) {
     return Float32Array.from(xt(this, t));
   }
+  /**
+   * Returns a *Float64Array* containing elements which comprise the matrix.
+   * The method can return either the 16 elements or the 6 elements
+   * depending on the value of the `is2D` parameter.
+   *
+   * @param is2D *Array* representation of the matrix
+   * @return an *Array* representation of the matrix
+   */
   toFloat64Array(t) {
     return Float64Array.from(xt(this, t));
   }
+  /**
+   * Creates and returns a string representation of the matrix in `CSS` matrix syntax,
+   * using the appropriate `CSS` matrix notation.
+   *
+   * matrix3d *matrix3d(m11, m12, m13, m14, m21, ...)*
+   * matrix *matrix(a, b, c, d, e, f)*
+   *
+   * @return a string representation of the matrix
+   */
   toString() {
     const { is2D: t } = this, n = this.toFloat64Array(t).join(", ");
     return `${t ? "matrix" : "matrix3d"}(${n})`;
   }
+  /**
+   * Returns a JSON representation of the `CSSMatrix` instance, a standard *Object*
+   * that includes `{a,b,c,d,e,f}` and `{m11,m12,m13,..m44}` properties as well
+   * as the `is2D` & `isIdentity` properties.
+   *
+   * The result can also be used as a second parameter for the `fromMatrix` static method
+   * to load values into another matrix instance.
+   *
+   * @return an *Object* with all matrix values.
+   */
   toJSON() {
     const { is2D: t, isIdentity: n } = this;
     return { ...this, is2D: t, isIdentity: n };
   }
+  /**
+   * The Multiply method returns a new CSSMatrix which is the result of this
+   * matrix multiplied by the passed matrix, with the passed matrix to the right.
+   * This matrix is not modified.
+   *
+   * @param m2 CSSMatrix
+   * @return The resulted matrix.
+   */
   multiply(t) {
     return k(this, t);
   }
+  /**
+   * The translate method returns a new matrix which is this matrix post
+   * multiplied by a translation matrix containing the passed values. If the z
+   * component is undefined, a 0 value is used in its place. This matrix is not
+   * modified.
+   *
+   * @param x X component of the translation value.
+   * @param y Y component of the translation value.
+   * @param z Z component of the translation value.
+   * @return The resulted matrix
+   */
   translate(t, n, r) {
     const s = t;
     let i = n, o = r;
     return typeof i > "u" && (i = 0), typeof o > "u" && (o = 0), k(this, Dt(s, i, o));
   }
+  /**
+   * The scale method returns a new matrix which is this matrix post multiplied by
+   * a scale matrix containing the passed values. If the z component is undefined,
+   * a 1 value is used in its place. If the y component is undefined, the x
+   * component value is used in its place. This matrix is not modified.
+   *
+   * @param x The X component of the scale value.
+   * @param y The Y component of the scale value.
+   * @param z The Z component of the scale value.
+   * @return The resulted matrix
+   */
   scale(t, n, r) {
     const s = t;
     let i = n, o = r;
     return typeof i > "u" && (i = t), typeof o > "u" && (o = 1), k(this, Xt(s, i, o));
   }
+  /**
+   * The rotate method returns a new matrix which is this matrix post multiplied
+   * by each of 3 rotation matrices about the major axes, first X, then Y, then Z.
+   * If the y and z components are undefined, the x value is used to rotate the
+   * object about the z axis, as though the vector (0,0,x) were passed. All
+   * rotation values are in degrees. This matrix is not modified.
+   *
+   * @param rx The X component of the rotation, or Z if Y and Z are null.
+   * @param ry The (optional) Y component of the rotation value.
+   * @param rz The (optional) Z component of the rotation value.
+   * @return The resulted matrix
+   */
   rotate(t, n, r) {
     let s = t, i = n || 0, o = r || 0;
     return typeof t == "number" && typeof n > "u" && typeof r > "u" && (o = s, s = 0, i = 0), k(this, Zt(s, i, o));
   }
+  /**
+   * The rotateAxisAngle method returns a new matrix which is this matrix post
+   * multiplied by a rotation matrix with the given axis and `angle`. The right-hand
+   * rule is used to determine the direction of rotation. All rotation values are
+   * in degrees. This matrix is not modified.
+   *
+   * @param x The X component of the axis vector.
+   * @param y The Y component of the axis vector.
+   * @param z The Z component of the axis vector.
+   * @param angle The angle of rotation about the axis vector, in degrees.
+   * @return The resulted matrix
+   */
   rotateAxisAngle(t, n, r, s) {
     if ([t, n, r, s].some((i) => Number.isNaN(+i)))
       throw new TypeError("CSSMatrix: expecting 4 values");
     return k(this, Rt(t, n, r, s));
   }
+  /**
+   * Specifies a skew transformation along the `x-axis` by the given angle.
+   * This matrix is not modified.
+   *
+   * @param angle The angle amount in degrees to skew.
+   * @return The resulted matrix
+   */
   skewX(t) {
     return k(this, Ft(t));
   }
+  /**
+   * Specifies a skew transformation along the `y-axis` by the given angle.
+   * This matrix is not modified.
+   *
+   * @param angle The angle amount in degrees to skew.
+   * @return The resulted matrix
+   */
   skewY(t) {
     return k(this, Qt(t));
   }
+  /**
+   * Specifies a skew transformation along both the `x-axis` and `y-axis`.
+   * This matrix is not modified.
+   *
+   * @param angleX The X-angle amount in degrees to skew.
+   * @param angleY The angle amount in degrees to skew.
+   * @return The resulted matrix
+   */
   skew(t, n) {
     return k(this, lt(t, n));
   }
+  /**
+   * Transforms a specified vector using the matrix, returning a new
+   * {x,y,z,w} Tuple *Object* comprising the transformed vector.
+   * Neither the matrix nor the original vector are altered.
+   *
+   * The method is equivalent with `transformPoint()` method
+   * of the `DOMMatrix` constructor.
+   *
+   * @param t Tuple with `{x,y,z,w}` components
+   * @return the resulting Tuple
+   */
   transformPoint(t) {
     const n = this.m11 * t.x + this.m21 * t.y + this.m31 * t.z + this.m41 * t.w, r = this.m12 * t.x + this.m22 * t.y + this.m32 * t.z + this.m42 * t.w, s = this.m13 * t.x + this.m23 * t.y + this.m33 * t.z + this.m43 * t.w, i = this.m14 * t.x + this.m24 * t.y + this.m34 * t.z + this.m44 * t.w;
     return t instanceof DOMPoint ? new DOMPoint(n, r, s, i) : {
@@ -386,7 +545,8 @@ class N {
   }
 }
 C(N, "Translate", Dt), C(N, "Rotate", Zt), C(N, "RotateAxisAngle", Rt), C(N, "Scale", Xt), C(N, "SkewX", Ft), C(N, "SkewY", Qt), C(N, "Skew", lt), C(N, "Multiply", k), C(N, "fromArray", K), C(N, "fromMatrix", jt), C(N, "fromString", Et), C(N, "toArray", xt), C(N, "isCompatibleArray", zt), C(N, "isCompatibleObject", It);
-const Mt = (e) => ct(e) && e.every(([t]) => t === t.toUpperCase()), X = (e) => {
+const Mt = (e) => ct(e) && // `isPathArray` also checks if it's `Array`
+e.every(([t]) => t === t.toUpperCase()), X = (e) => {
   if (Mt(e))
     return [...e];
   const t = R(e);
@@ -431,7 +591,13 @@ const Mt = (e) => ct(e) && e.every(([t]) => t === t.toUpperCase()), X = (e) => {
     const a = r * 2 - i, m = s * 2 - o;
     t.x1 = a, t.y1 = m, c = ["C", a, m, ...l];
   } else if (n === "T") {
-    const a = r * 2 - (t.qx ? t.qx : 0), m = s * 2 - (t.qy ? t.qy : 0);
+    const a = r * 2 - (t.qx ? t.qx : (
+      /* istanbul ignore next */
+      0
+    )), m = s * 2 - (t.qy ? t.qy : (
+      /* istanbul ignore next */
+      0
+    ));
     t.qx = a, t.qy = m, c = ["Q", a, m, ...l];
   } else if (n === "Q") {
     const [a, m] = l;
@@ -674,6 +840,7 @@ const Mt = (e) => ct(e) && e.every(([t]) => t === t.toUpperCase()), X = (e) => {
     y2: s,
     cx: t + i / 2,
     cy: n + o / 2,
+    // an estimted guess
     cz: Math.max(i, o) + Math.min(i, o) / 2
   };
 }, dt = (e, t, n) => {
@@ -720,11 +887,16 @@ const Mt = (e) => ct(e) && e.every(([t]) => t === t.toUpperCase()), X = (e) => {
   const o = 0.3333333333333333, l = 2 / 3;
   return [
     o * e + l * n,
+    // cpx1
     o * t + l * r,
+    // cpy1
     o * s + l * n,
+    // cpx2
     o * i + l * r,
+    // cpy2
     s,
     i
+    // x,y
   ];
 }, St = (e, t, n, r) => [...V([e, t], [n, r], 0.5), n, r, n, r], rt = (e, t) => {
   const [n] = e, r = e.slice(1).map(Number), [s, i] = r;
@@ -804,7 +976,8 @@ const Mt = (e) => ct(e) && e.every(([t]) => t === t.toUpperCase()), X = (e) => {
   for (G(t); t.index < t.max && !t.err.length; )
     Vt(t);
   return !t.err.length && "mM".includes(t.segments[0][0]);
-}, Jt = (e) => ct(e) && e.slice(1).every(([t]) => t === t.toLowerCase()), ot = (e, t) => {
+}, Jt = (e) => ct(e) && // `isPathArray` checks if it's `Array`
+e.slice(1).every(([t]) => t === t.toLowerCase()), ot = (e, t) => {
   let { round: n } = at;
   if (t === "off" || n === "off")
     return [...e];
@@ -863,7 +1036,8 @@ const Mt = (e) => ct(e) && e.every(([t]) => t === t.toUpperCase()), X = (e) => {
     ["s", 0, -o, i, -o]
   ]) : [["M", t, n], ["h", r], ["v", s], ["H", t], ["Z"]];
 }, ve = (e, t, n) => {
-  const r = n || document, s = r.defaultView || window, i = Object.keys(Tt), o = e instanceof s.SVGElement, l = o ? e.tagName : null;
+  const r = n || document, s = r.defaultView || /* istanbul ignore next */
+  window, i = Object.keys(Tt), o = e instanceof s.SVGElement, l = o ? e.tagName : null;
   if (l && i.every((h) => l !== h))
     throw TypeError(`${q}: "${l}" is not SVGElement`);
   const c = r.createElementNS("http://www.w3.org/2000/svg", "path"), a = o ? l : e.type, m = Tt[a], f = { type: a };
@@ -970,10 +1144,15 @@ const Mt = (e) => ct(e) && e.every(([t]) => t === t.toUpperCase()), X = (e) => {
     const [o, l] = s.slice(-2).map(Number);
     return {
       seg: t[i],
+      // absolute
       n: s,
+      // normalized
       c: t[i][0],
+      // pathCommand
       x: o,
+      // x
       y: l
+      // y
     };
   }).map((s, i, o) => {
     const l = s.seg, c = s.n, a = i && o[i - 1], m = o[i + 1], f = s.c, y = o.length, g = i ? o[i - 1].x : o[y - 1].x, h = i ? o[i - 1].y : o[y - 1].y;
@@ -1022,6 +1201,7 @@ const Mt = (e) => ct(e) && e.every(([t]) => t === t.toUpperCase()), X = (e) => {
 }, qt = (e, t, n) => {
   const [r, s, i] = n, [o, l, c] = ke(e, [...t, 0, 1]), a = o - r, m = l - s, f = c - i;
   return [
+    // protect against division by ZERO
     a * (Math.abs(i) / Math.abs(f) || 1) + r,
     m * (Math.abs(i) / Math.abs(f) || 1) + s
   ];
@@ -1066,6 +1246,7 @@ const Mt = (e) => ct(e) && e.every(([t]) => t === t.toUpperCase()), X = (e) => {
   ];
 };
 class $e {
+  // bring main utilities to front
   static CSSMatrix = N;
   static getPathBBox = vt;
   static getPathArea = Bt;
@@ -1101,6 +1282,11 @@ class $e {
   static pathToRelative = bt;
   static pathToCurve = it;
   static pathToString = j;
+  /**
+   * @constructor
+   * @param {string} pathValue the path string
+   * @param {any} config instance options
+   */
   constructor(t, n) {
     const r = n || {}, s = typeof t > "u";
     if (s || !t.length)
@@ -1126,41 +1312,106 @@ class $e {
       h = [c, a, m];
     return this.round = g, this.origin = h, this;
   }
+  /**
+   * Returns the path bounding box, equivalent to native `path.getBBox()`.
+   *
+   * @public
+   * @returns the pathBBox
+   */
   getBBox() {
     return vt(this.segments);
   }
+  /**
+   * Returns the total path length, equivalent to native `path.getTotalLength()`.
+   *
+   * @public
+   * @returns the path total length
+   */
   getTotalLength() {
     return Z(this.segments);
   }
+  /**
+   * Returns an `{x,y}` point in the path stroke at a given length,
+   * equivalent to the native `path.getPointAtLength()`.
+   *
+   * @public
+   * @param length the length
+   * @returns the requested point
+   */
   getPointAtLength(t) {
     return J(this.segments, t);
   }
+  /**
+   * Convert path to absolute values
+   *
+   * @public
+   */
   toAbsolute() {
     const { segments: t } = this;
     return this.segments = X(t), this;
   }
+  /**
+   * Convert path to relative values
+   *
+   * @public
+   */
   toRelative() {
     const { segments: t } = this;
     return this.segments = bt(t), this;
   }
+  /**
+   * Convert path to cubic-bezier values. In addition, un-necessary `Z`
+   * segment is removed if previous segment extends to the `M` segment.
+   *
+   * @public
+   */
   toCurve() {
     const { segments: t } = this;
     return this.segments = it(t), this;
   }
+  /**
+   * Reverse the order of the segments and their values.
+   *
+   * @param onlySubpath option to reverse all sub-paths except first
+   * @public
+   */
   reverse(t) {
     this.toAbsolute();
     const { segments: n } = this, r = Lt(n), s = r.length > 1 ? r : !1, i = s ? [...s].map((l, c) => t ? c ? st(l) : [...l] : st(l)) : [...n];
     let o = [];
     return s ? o = i.flat(1) : o = t ? n : st(n), this.segments = [...o], this;
   }
+  /**
+   * Normalize path in 2 steps:
+   * * convert `pathArray`(s) to absolute values
+   * * convert shorthand notation to standard notation
+   *
+   * @public
+   */
   normalize() {
     const { segments: t } = this;
     return this.segments = O(t), this;
   }
+  /**
+   * Optimize `pathArray` values:
+   * * convert segments to absolute and/or relative values
+   * * select segments with shortest resulted string
+   * * round values to the specified `decimals` option value
+   *
+   * @public
+   */
   optimize() {
     const { segments: t } = this;
     return this.segments = kt(t, this.round), this;
   }
+  /**
+   * Transform path using values from an `Object` defined as `transformObject`.
+   *
+   * @see TransformObject for a quick refference
+   *
+   * @param source a `transformObject`as described above
+   * @public
+   */
   transform(t) {
     if (!t || typeof t != "object" || typeof t == "object" && !["translate", "rotate", "skew", "scale"].some((c) => c in t))
       return this;
@@ -1178,12 +1429,29 @@ class $e {
       o.origin = [r, s, i];
     return this.segments = $t(n, o), this;
   }
+  /**
+   * Rotate path 180deg vertically
+   *
+   * @public
+   */
   flipX() {
     return this.transform({ rotate: [0, 180, 0] }), this;
   }
+  /**
+   * Rotate path 180deg horizontally
+   *
+   * @public
+   */
   flipY() {
     return this.transform({ rotate: [180, 0, 0] }), this;
   }
+  /**
+   * Export the current path to be used
+   * for the `d` (description) attribute.
+   *
+   * @public
+   * @return the path string
+   */
   toString() {
     return j(this.segments, this.round);
   }

@@ -14,7 +14,7 @@ jobs:
           node-version: 16
       - uses: bahmutov/npm-install@v1
       - run: npm run lint:ts
-      - run: npm run build-vite
+      - run: npm run build
       - run: npm run test
       
       - name: Upload coverage report on Node v16 to coveralls.io...
