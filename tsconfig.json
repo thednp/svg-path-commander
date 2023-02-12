@@ -23,6 +23,6 @@
    "allowSyntheticDefaultImports": true,
    "noEmit": true,
  },
- "include": ["src/*"],
+ "include": ["src/*", "src/**/*"],
  "exclude": ["node_modules", "experiments", "coverage", "dist"],
 }
