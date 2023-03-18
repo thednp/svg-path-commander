@@ -4,11 +4,11 @@
 [![NPM Version](https://img.shields.io/npm/v/svg-path-commander.svg)](https://www.npmjs.com/package/svg-path-commander)
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg)](http://npm-stat.com/charts.html?svg-path-commander)
 [![jsDeliver](https://img.shields.io/jsdelivr/npm/hw/svg-path-commander)](https://www.jsdelivr.com/package/npm/svg-path-commander)
-[![typescript version](https://img.shields.io/badge/typescript-4.9.4-brightgreen)](https://www.typescriptlang.org/)
-[![cypress version](https://img.shields.io/badge/cypress-12.2.0-brightgreen)](https://www.cypress.io/)
-[![eslint version](https://img.shields.io/badge/eslint-8.30.0-brightgreen)](https://github.com/eslint)
-[![vite version](https://img.shields.io/badge/vite-4.0.4-brightgreen)](https://vitejs.dev/)
-[![prettier version](https://img.shields.io/badge/prettier-2.8.1-brightgreen)](https://prettier.io/)
+[![typescript version](https://img.shields.io/badge/typescript-5.0.2-brightgreen)](https://www.typescriptlang.org/)
+[![cypress version](https://img.shields.io/badge/cypress-12.8.1-brightgreen)](https://www.cypress.io/)
+[![eslint version](https://img.shields.io/badge/eslint-8.36.0-brightgreen)](https://github.com/eslint)
+[![vite version](https://img.shields.io/badge/vite-4.2.0-brightgreen)](https://vitejs.dev/)
+[![prettier version](https://img.shields.io/badge/prettier-2.8.4-brightgreen)](https://prettier.io/)
 
 ![image](./docs/assets/SVGPathCommander.svg)
 
