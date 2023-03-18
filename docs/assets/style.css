@@ -125,7 +125,7 @@ path {transition: fill 0.5s ease}
   .text-center { text-align: center;}
 }
 /* BS Tooltip */
-.tooltip{position:absolute;z-index:1070;display:block;margin:0;font-family:var(--bs-font-sans-serif);font-style:normal;font-weight:400;line-height:1.5;text-align:left;text-align:start;text-decoration:none;text-shadow:none;text-transform:none;letter-spacing:normal;word-break:normal;word-spacing:normal;white-space:normal;line-break:auto;font-size:0.875rem;word-wrap:break-word;opacity:0}
+.tooltip{position:fixed;z-index:1070;display:block;margin:0;font-family:var(--bs-font-sans-serif);font-style:normal;font-weight:400;line-height:1.5;text-align:left;text-align:start;text-decoration:none;text-shadow:none;text-transform:none;letter-spacing:normal;word-break:normal;word-spacing:normal;white-space:normal;line-break:auto;font-size:0.875rem;word-wrap:break-word;opacity:0}
 .tooltip.show{opacity:0.95}
 .tooltip .tooltip-arrow{position:absolute;display:block;width:0.8rem;height:0.4rem}
 .tooltip .tooltip-arrow::before{position:absolute;content:"";border-color:transparent;border-style:solid}
