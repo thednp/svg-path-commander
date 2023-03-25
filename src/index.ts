@@ -29,6 +29,7 @@ import isAbsoluteArray from './util/isAbsoluteArray';
 import isRelativeArray from './util/isRelativeArray';
 import isCurveArray from './util/isCurveArray';
 import isNormalizedArray from './util/isNormalizedArray';
+import shapeToPathArray from './util/shapeToPathArray';
 import shapeToPath from './util/shapeToPath';
 
 import roundPath from './process/roundPath';
@@ -79,6 +80,7 @@ class SVGPathCommander {
   public static isCurveArray = isCurveArray;
   public static isNormalizedArray = isNormalizedArray;
   public static shapeToPath = shapeToPath;
+  public static shapeToPathArray = shapeToPathArray;
   public static parsePathString = parsePathString;
   public static roundPath = roundPath;
   public static splitPath = splitPath;

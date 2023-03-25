@@ -40,8 +40,8 @@ export interface EllipseAttr {
 	cx: number;
 	cy: number;
 	rx: number;
-	ry: number;
-	[key: string]: string | number;
+	ry?: number;
+	[key: string]: string | number | undefined;
 }
 export interface RectAttr {
 	type: "rect";
@@ -49,9 +49,9 @@ export interface RectAttr {
 	height: number;
 	x: number;
 	y: number;
-	rx: number;
-	ry: number;
-	[key: string]: string | number;
+	rx?: number;
+	ry?: number;
+	[key: string]: string | number | undefined;
 }
 export interface GlyphAttr {
 	type: "glyph";
@@ -316,6 +316,7 @@ declare class SVGPathCommander {
 	static isCurveArray: (path: unknown) => path is CurveArray;
 	static isNormalizedArray: (path: unknown) => path is NormalArray;
 	static shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean | undefined, ownerDocument?: Document | undefined) => false | SVGPathElement;
+	static shapeToPathArray: (element: ShapeTypes | ShapeOps, ownerDocument?: Document | undefined) => false | PathArray;
 	static parsePathString: (pathInput: string | PathArray) => PathArray;
 	static roundPath: (path: PathArray, roundOption?: number | "off" | undefined) => PathArray;
 	static splitPath: (pathInput: PathArray) => PathArray[];

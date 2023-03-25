@@ -12,8 +12,13 @@ const isPathArray = (path: unknown): path is PathArray => {
     Array.isArray(path) &&
     path.every((seg: PathSegment) => {
       const lk = seg[0].toLowerCase() as RelativeCommand;
-      return paramsCount[lk] === seg.length - 1 && 'achlmqstvz'.includes(lk);
-    })
+      return (
+        paramsCount[lk] === seg.length - 1 &&
+        'achlmqstvz'.includes(lk) &&
+        (seg.slice(1) as unknown[]).every(Number.isFinite)
+      );
+    }) &&
+    path.length > 0
   );
 };
 export default isPathArray;

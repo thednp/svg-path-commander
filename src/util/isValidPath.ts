@@ -10,7 +10,7 @@ import PathParser from '../parser/pathParser';
  * @returns the path string validity
  */
 const isValidPath = (pathString: string) => {
-  if (typeof pathString !== 'string') {
+  if (typeof pathString !== 'string' || !pathString.length) {
     return false;
   }
 
