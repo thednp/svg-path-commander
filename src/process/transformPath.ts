@@ -9,6 +9,8 @@ import defaultOptions from '../options/options';
 import type { PathArray, PathCommand, TransformObjectValues } from '../types';
 import type { PathTransform, TransformObject } from '../interface';
 
+import CSSMatrix from '@thednp/dommatrix';
+
 /**
  * Apply a 2D / 3D transformation to a `pathArray` instance.
  *
@@ -19,7 +21,10 @@ import type { PathTransform, TransformObject } from '../interface';
  * @param transform the transform functions `Object`
  * @returns the resulted `pathArray`
  */
-const transformPath = (path: string | PathArray, transform?: Partial<TransformObject>): PathArray => {
+const transformPath = (
+  path: string | PathArray,
+  transform?: CSSMatrix | string | Partial<TransformObject>,
+): PathArray => {
   let x = 0;
   let y = 0;
   let i;
@@ -29,19 +34,34 @@ const transformPath = (path: string | PathArray, transform?: Partial<TransformOb
   let lx;
   let ly;
   const absolutePath = pathToAbsolute(path);
-  const transformProps = transform && Object.keys(transform);
-
-  // when used as a static method, invalidate somehow
-  if (!transform || (transformProps && !transformProps.length)) return [...absolutePath];
-
   const normalizedPath = normalizePath(absolutePath);
-  // transform origin is extremely important
-  if (!transform.origin) {
-    const { origin: defaultOrigin } = defaultOptions;
-    Object.assign(transform, { origin: defaultOrigin });
+
+  let matrixInstance: CSSMatrix = new CSSMatrix();
+  let origin: [number, number, number] = [0, 0, 0];
+
+  if (typeof transform === 'string') {
+    matrixInstance = new CSSMatrix(transform);
+  } else if (transform instanceof CSSMatrix) {
+    matrixInstance = transform;
+  } else {
+    const transformProps = transform && Object.keys(transform);
+
+    // when used as a static method, invalidate somehow
+    if (!transform || (transformProps && !transformProps.length)) return [...absolutePath];
+
+    // transform origin is extremely important
+    if (!transform.origin) {
+      const { origin: defaultOrigin } = defaultOptions;
+      Object.assign(transform, { origin: defaultOrigin });
+    }
+    matrixInstance = getSVGMatrix(transform as TransformObjectValues);
+    origin = (transform.origin as [number, number, number]) || [0, 0, 0];
   }
-  const matrixInstance = getSVGMatrix(transform as TransformObjectValues);
-  const { origin } = transform;
+
+  if (!matrixInstance) {
+    throw new Error('invalid matrix instance');
+  }
+
   const params = { ...paramsParser };
   let segment = [];
   let seglen = 0;
