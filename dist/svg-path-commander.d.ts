@@ -333,6 +333,12 @@ declare class SVGPathCommander {
 	static pathToRelative: (pathInput: string | PathArray) => RelativeArray;
 	static pathToCurve: (pathInput: string | PathArray) => CurveArray;
 	static pathToString: (path: PathArray, round?: number | "off" | undefined) => string;
+	static arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, recursive?: [
+		number,
+		number,
+		number,
+		number
+	] | undefined) => number[];
 	segments: PathArray;
 	round: number | "off";
 	origin: [

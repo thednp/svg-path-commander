@@ -40,6 +40,7 @@ import reversePath from './process/reversePath';
 import normalizePath from './process/normalizePath';
 import transformPath from './process/transformPath';
 import splitCubic from './process/splitCubic';
+import arcToCubic from './process/arcToCubic';
 
 import pathToAbsolute from './convert/pathToAbsolute';
 import pathToRelative from './convert/pathToRelative';
@@ -94,6 +95,7 @@ class SVGPathCommander {
   public static pathToRelative = pathToRelative;
   public static pathToCurve = pathToCurve;
   public static pathToString = pathToString;
+  public static arcToCubic = arcToCubic;
   // declare class properties
   declare segments: PathArray;
   declare round: number | 'off';
