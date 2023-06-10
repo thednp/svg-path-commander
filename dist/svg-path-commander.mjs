@@ -626,7 +626,7 @@ e.every(([t]) => t === t.toUpperCase()), Q = (e) => {
     n.x1 = +i[o - 2], n.y1 = +i[o - 1], n.x2 = +i[o - 4] || n.x1, n.y2 = +i[o - 3] || n.y1;
   }
   return t;
-}, j = (e, t, n) => {
+}, E = (e, t, n) => {
   const [r, s] = e, [i, o] = t;
   return [r + (i - r) * n, s + (o - s) * n];
 }, dt = (e, t, n, r, s) => {
@@ -638,7 +638,7 @@ e.every(([t]) => t === t.toUpperCase()), Q = (e) => {
     else if (s >= i)
       o = { x: n, y: r };
     else {
-      const [a, l] = j([e, t], [n, r], s / i);
+      const [a, l] = E([e, t], [n, r], s / i);
       o = { x: a, y: l };
     }
   return {
@@ -669,8 +669,8 @@ e.every(([t]) => t === t.toUpperCase()), Q = (e) => {
     y: -u(b) * A + y(b) * d
   }, T = M.x ** 2 / h ** 2 + M.y ** 2 / x ** 2;
   T > 1 && (h *= g(T), x *= g(T));
-  const E = h ** 2 * x ** 2 - h ** 2 * M.y ** 2 - x ** 2 * M.x ** 2, H = h ** 2 * M.y ** 2 + x ** 2 * M.x ** 2;
-  let F = E / H;
+  const j = h ** 2 * x ** 2 - h ** 2 * M.y ** 2 - x ** 2 * M.x ** 2, H = h ** 2 * M.y ** 2 + x ** 2 * M.x ** 2;
+  let F = j / H;
   F = F < 0 ? 0 : F;
   const tt = (i !== o ? 1 : -1) * g(F), S = {
     x: tt * (h * M.y / x),
@@ -861,21 +861,21 @@ e.every(([t]) => t === t.toUpperCase()), Q = (e) => {
 }, Ut = (e, t, n, r, s, i, o, a, l, c) => {
   let m = e, u = t, y = n, g = r, f = a, h = l;
   const x = Math.PI * 120 / 180, p = Math.PI / 180 * (+s || 0);
-  let b = [], A, d, M, T, E;
+  let b = [], A, d, M, T, j;
   if (c)
-    [d, M, T, E] = c;
+    [d, M, T, j] = c;
   else {
     A = rt(m, u, -p), m = A.x, u = A.y, A = rt(f, h, -p), f = A.x, h = A.y;
     const P = (m - f) / 2, L = (u - h) / 2;
     let I = P * P / (y * y) + L * L / (g * g);
     I > 1 && (I = Math.sqrt(I), y *= I, g *= I);
     const xt = y * y, pt = g * g, Ct = (i === o ? -1 : 1) * Math.sqrt(Math.abs((xt * pt - xt * L * L - pt * P * P) / (xt * L * L + pt * P * P)));
-    T = Ct * y * L / g + (m + f) / 2, E = Ct * -g * P / y + (u + h) / 2, d = Math.asin(((u - E) / g * 10 ** 9 >> 0) / 10 ** 9), M = Math.asin(((h - E) / g * 10 ** 9 >> 0) / 10 ** 9), d = m < T ? Math.PI - d : d, M = f < T ? Math.PI - M : M, d < 0 && (d = Math.PI * 2 + d), M < 0 && (M = Math.PI * 2 + M), o && d > M && (d -= Math.PI * 2), !o && M > d && (M -= Math.PI * 2);
+    T = Ct * y * L / g + (m + f) / 2, j = Ct * -g * P / y + (u + h) / 2, d = Math.asin(((u - j) / g * 10 ** 9 >> 0) / 10 ** 9), M = Math.asin(((h - j) / g * 10 ** 9 >> 0) / 10 ** 9), d = m < T ? Math.PI - d : d, M = f < T ? Math.PI - M : M, d < 0 && (d = Math.PI * 2 + d), M < 0 && (M = Math.PI * 2 + M), o && d > M && (d -= Math.PI * 2), !o && M > d && (M -= Math.PI * 2);
   }
   let H = M - d;
   if (Math.abs(H) > x) {
     const P = M, L = f, I = h;
-    M = d + x * (o && M > d ? 1 : -1), f = T + y * Math.cos(M), h = E + g * Math.sin(M), b = Ut(f, h, y, g, s, 0, o, L, I, [M, P, T, E]);
+    M = d + x * (o && M > d ? 1 : -1), f = T + y * Math.cos(M), h = j + g * Math.sin(M), b = Ut(f, h, y, g, s, 0, o, L, I, [M, P, T, j]);
   }
   H = M - d;
   const F = Math.cos(d), tt = Math.sin(d), S = Math.cos(M), et = Math.sin(M), Y = Math.tan(H / 4), nt = 4 / 3 * y * Y, st = 4 / 3 * g * Y, $ = [m, u], q = [m + nt * tt, u - st * F], B = [f + nt * et, h - st * S], J = [f, h];
@@ -901,7 +901,10 @@ e.every(([t]) => t === t.toUpperCase()), Q = (e) => {
     i
     // x,y
   ];
-}, St = (e, t, n, r) => [...j([e, t], [n, r], 0.5), n, r, n, r], ot = (e, t) => {
+}, St = (e, t, n, r) => {
+  const s = E([e, t], [n, r], 0.3333333333333333), i = E([e, t], [n, r], 2 / 3);
+  return [...s, ...i, n, r];
+}, ot = (e, t) => {
   const [n] = e, r = e.slice(1).map(Number), [s, i] = r;
   let o;
   const { x1: a, y1: l, x: c, y: m } = t;
@@ -1252,7 +1255,7 @@ e.slice(1).every(([t]) => t === t.toLowerCase()), lt = {
   }
   return [...m];
 }, ze = (e) => {
-  const n = e.slice(0, 2), r = e.slice(2, 4), s = e.slice(4, 6), i = e.slice(6, 8), o = j(n, r, 0.5), a = j(r, s, 0.5), l = j(s, i, 0.5), c = j(o, a, 0.5), m = j(a, l, 0.5), u = j(c, m, 0.5);
+  const n = e.slice(0, 2), r = e.slice(2, 4), s = e.slice(4, 6), i = e.slice(6, 8), o = E(n, r, 0.5), a = E(r, s, 0.5), l = E(s, i, 0.5), c = E(o, a, 0.5), m = E(a, l, 0.5), u = E(c, m, 0.5);
   return [
     ["C", ...o, ...c, ...u],
     ["C", ...m, ...l, ...i]
