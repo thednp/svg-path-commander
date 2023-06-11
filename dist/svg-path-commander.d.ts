@@ -269,8 +269,16 @@ export type CurveArray = [
 ];
 export type ShapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;
 export type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
+export type TransformObjectValues = Partial<TransformObject> & {
+	origin: [
+		number,
+		number,
+		number
+	];
+};
 declare class SVGPathCommander {
 	static CSSMatrix: typeof CSSMatrix;
+	static getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix;
 	static getPathBBox: (path?: string | PathArray | undefined) => PathBBox;
 	static getPathArea: (path: PathArray) => number;
 	static getTotalLength: (pathInput: string | PathArray) => number;

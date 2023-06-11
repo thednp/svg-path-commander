@@ -34,6 +34,7 @@ import shapeToPath from './util/shapeToPath';
 
 import roundPath from './process/roundPath';
 import splitPath from './process/splitPath';
+import getSVGMatrix from './process/getSVGMatrix';
 import optimizePath from './process/optimizePath';
 import reverseCurve from './process/reverseCurve';
 import reversePath from './process/reversePath';
@@ -59,6 +60,7 @@ import pathToString from './convert/pathToString';
 class SVGPathCommander {
   // bring main utilities to front
   public static CSSMatrix = CSSMatrix;
+  public static getSVGMatrix = getSVGMatrix;
   public static getPathBBox = getPathBBox;
   public static getPathArea = getPathArea;
   public static getTotalLength = getTotalLength;
