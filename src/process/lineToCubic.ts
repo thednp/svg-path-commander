@@ -10,8 +10,8 @@ import midPoint from '../math/midPoint';
  * @returns the cubic-bezier segment
  */
 const lineToCubic = (x1: number, y1: number, x2: number, y2: number) => {
-  const t = 0.5;
-  const mid = midPoint([x1, y1], [x2, y2], t);
-  return [...mid, x2, y2, x2, y2];
+  const c1 = midPoint([x1, y1], [x2, y2], 1.0 / 3.0);
+  const c2 = midPoint([x1, y1], [x2, y2], 2.0 / 3.0);
+  return [...c1, ...c2, x2, y2];
 };
 export default lineToCubic;
