@@ -16,7 +16,7 @@ jobs:
           node-version: 18
           cache: pnpm
       # - uses: bahmutov/npm-install@v1
-      - run: pnpm install
+      - run: pnpm install --no-frozen-lockfile
       - run: pnpm build
       - run: pnpm test
       
