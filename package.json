@@ -15,16 +15,16 @@
     }
   },
   "scripts": {
-    "pre-test": "npm run clean-coverage",
-    "test": "npm run pre-test && cypress run",
-    "cypress": "npm run pre-test && npx cypress open",
+    "pre-test": "pnpm clean-coverage",
+    "test": "pnpm pre-test && cypress run",
+    "cypress": "pnpm pre-test && npx cypress open",
     "clean-coverage": "rimraf coverage .nyc_output",
     "coverage:report": "nyc report --reporter=lcov --reporter=json --reporter=text --reporter=json-summary",
     "format": "prettier --write \"src/**/*.ts\"",
     "fix:ts": "eslint src --config .eslintrc.cjs --fix",
     "lint:ts": "eslint src --config .eslintrc.cjs",
-    "build": "npm run lint:ts && npm run build-vite && npm run build-ts",
-    "build-vite": "vite build && npm run build-docs",
+    "build": "pnpm lint:ts && pnpm build-vite && pnpm build-ts",
+    "build-vite": "vite build && pnpm build-docs",
     "build-ts": "dts-bundle-generator --config ./dts.config.ts",
     "build-docs": "ncp dist/svg-path-commander.js docs/svg-path-commander.js && ncp dist/svg-path-commander.js.map docs/svg-path-commander.js.map"
   },
