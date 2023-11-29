@@ -2,7 +2,8 @@
   // https://janessagarrow.com/blog/typescript-and-esbuild/
  "compilerOptions": {
    "lib": ["DOM", "ESNext", "DOM.Iterable"],
-   "types": ["vite", "vite/client", "cypress", "@thednp/dommatrix"],
+  //  "types": ["vite", "vite/client", "cypress", "@thednp/dommatrix"],
+   "types": ["@thednp/dommatrix"],
    "rootDir": "./",
    "baseUrl": "./",
    "module": "ESNext",
