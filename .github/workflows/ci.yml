@@ -18,7 +18,7 @@ jobs:
       # - uses: bahmutov/npm-install@v1
       - run: pnpm install
       - run: pnpm build
-      - run: pnpm run test
+      - run: pnpm test
       
       - name: Upload coverage report on Node v18 to coveralls.io...
         uses: coverallsapp/github-action@master
