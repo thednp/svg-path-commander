@@ -1,6 +1,6 @@
 var te = Object.defineProperty;
 var ee = (e, t, n) => t in e ? te(e, t, { enumerable: !0, configurable: !0, writable: !0, value: n }) : e[t] = n;
-var N = (e, t, n) => (ee(e, typeof t != "symbol" ? t + "" : t, n), n);
+var N = (e, t, n) => ee(e, typeof t != "symbol" ? t + "" : t, n);
 const mt = {
   origin: [0, 0, 0],
   round: 4
@@ -166,7 +166,7 @@ const _ = (e) => Array.isArray(e) && e.every((t) => {
     r = s, s = e[n], i += r[1] * s[0] - r[0] * s[1];
   return i / 2;
 }, W = (e, t) => Math.sqrt((e[0] - t[0]) * (e[0] - t[0]) + (e[1] - t[1]) * (e[1] - t[1])), ae = (e) => e.reduce((t, n, r) => r ? t + W(e[r - 1], n) : 0, 0);
-var me = Object.defineProperty, he = (e, t, n) => t in e ? me(e, t, { enumerable: !0, configurable: !0, writable: !0, value: n }) : e[t] = n, C = (e, t, n) => (he(e, typeof t != "symbol" ? t + "" : t, n), n);
+var me = Object.defineProperty, he = (e, t, n) => t in e ? me(e, t, { enumerable: !0, configurable: !0, writable: !0, value: n }) : e[t] = n, C = (e, t, n) => he(e, typeof t != "symbol" ? t + "" : t, n);
 const ue = {
   a: 1,
   b: 0,
@@ -233,8 +233,7 @@ const ue = {
   const r = `CSSMatrix: invalid transform string "${e}"`;
   return t.split(")").filter((s) => s).forEach((s) => {
     const [i, o] = s.split("(");
-    if (!o)
-      throw TypeError(r);
+    if (!o) throw TypeError(r);
     const a = o.split(",").map((f) => f.includes("rad") ? parseFloat(f) * (180 / Math.PI) : parseFloat(f)), [l, c, m, u] = a, y = [l, c, m], g = [l, c, m, u];
     if (i === "perspective" && l && [c, m].every((f) => f === void 0))
       n.m34 = -1 / l;
@@ -1044,8 +1043,7 @@ e.slice(1).every(([t]) => t === t.toLowerCase()), lt = {
   return a === "circle" ? m = ke(c) : a === "ellipse" ? m = Se(c) : ["polyline", "polygon"].includes(a) ? m = Le(c) : a === "rect" ? m = $e(c) : a === "line" ? m = Te(c) : ["glyph", "path"].includes(a) && (m = Z(i ? e.getAttribute("d") || "" : e.d || "")), _(m) && m.length ? m : !1;
 }, at = (e, t) => {
   let { round: n } = mt;
-  if (t === "off" || n === "off")
-    return [...e];
+  if (t === "off" || n === "off") return [...e];
   n = typeof t == "number" && t >= 0 ? t : n;
   const r = typeof n == "number" && n >= 1 ? 10 ** n : 1;
   return e.map((s) => {
@@ -1055,10 +1053,8 @@ e.slice(1).every(([t]) => t === t.toLowerCase()), lt = {
 }, At = (e, t) => at(e, t).map((n) => n[0] + n.slice(1).join(" ")).join(""), qe = (e, t, n) => {
   const r = n || document, s = r.defaultView || /* istanbul ignore next */
   window, i = Object.keys(lt), o = e instanceof s.SVGElement, a = o ? e.tagName : null;
-  if (a === "path")
-    throw TypeError(`${k}: "${a}" is already SVGPathElement`);
-  if (a && i.every((h) => a !== h))
-    throw TypeError(`${k}: "${a}" is not SVGElement`);
+  if (a === "path") throw TypeError(`${k}: "${a}" is already SVGPathElement`);
+  if (a && i.every((h) => a !== h)) throw TypeError(`${k}: "${a}" is not SVGElement`);
   const l = r.createElementNS("http://www.w3.org/2000/svg", "path"), c = o ? a : e.type, m = lt[c], u = { type: c }, y = mt.round, g = Wt(e, r), f = g && g.length ? At(g, y) : "";
   return o ? (m.forEach((h) => {
     u[h] = e.getAttribute(h);
@@ -1224,8 +1220,7 @@ e.slice(1).every(([t]) => t === t.toLowerCase()), lt = {
 }, Et = (e, t) => {
   let n = 0, r = 0, s, i, o, a, l, c;
   const m = Q(e), u = t && Object.keys(t);
-  if (!t || u && !u.length)
-    return [...m];
+  if (!t || u && !u.length) return [...m];
   const y = z(m);
   if (!t.origin) {
     const { origin: M } = mt;
@@ -1278,8 +1273,7 @@ class w {
     if (u === "auto") {
       const h = `${Math.floor(Math.max(o, a))}`.length;
       g = h >= 4 ? 0 : 4 - h;
-    } else
-      Number.isInteger(u) || u === "off" ? g = u : g = mt.round;
+    } else Number.isInteger(u) || u === "off" ? g = u : g = mt.round;
     let f;
     if (Array.isArray(y) && y.length >= 2) {
       const [h, x, p] = y.map(Number);

@@ -3,24 +3,24 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-20.04
-    name: Test on Node v18
+    name: Test on Node v20
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v3
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: pnpm
       # - uses: bahmutov/npm-install@v1
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm build
       - run: pnpm test
       
-      - name: Upload coverage report on Node v18 to coveralls.io...
+      - name: Upload coverage report on to coveralls.io...
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

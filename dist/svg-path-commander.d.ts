@@ -1,4 +1,4 @@
-import CSSMatrix from '@thednp/dommatrix';
+import CSSMatrix$1 from '@thednp/dommatrix';
 
 export interface SegmentProperties {
 	segment: PathSegment;
@@ -276,10 +276,20 @@ export type TransformObjectValues = Partial<TransformObject> & {
 		number
 	];
 };
+/**
+ * Creates a new SVGPathCommander instance with the following properties:
+ * * segments: `pathArray`
+ * * round: number
+ * * origin: [number, number, number?]
+ *
+ * @class
+ * @author thednp <https://github.com/thednp/svg-path-commander>
+ * @returns {SVGPathCommander} a new SVGPathCommander instance
+ */
 declare class SVGPathCommander {
-	static CSSMatrix: typeof CSSMatrix;
-	static getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix;
-	static getPathBBox: (path?: string | PathArray | undefined) => PathBBox;
+	static CSSMatrix: typeof CSSMatrix$1;
+	static getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix$1;
+	static getPathBBox: (path?: PathArray | string) => PathBBox;
 	static getPathArea: (path: PathArray) => number;
 	static getTotalLength: (pathInput: string | PathArray) => number;
 	static getDrawDirection: (path: string | PathArray) => boolean;
@@ -287,8 +297,8 @@ declare class SVGPathCommander {
 		x: number;
 		y: number;
 	};
-	static pathLengthFactory: (pathInput: string | PathArray, distance?: number | undefined) => LengthFactory;
-	static getPropertiesAtLength: (pathInput: string | PathArray, distance?: number | undefined) => SegmentProperties;
+	static pathLengthFactory: (pathInput: string | PathArray, distance?: number) => LengthFactory;
+	static getPropertiesAtLength: (pathInput: string | PathArray, distance?: number) => SegmentProperties;
 	static getPropertiesAtPoint: (pathInput: string | PathArray, point: {
 		x: number;
 		y: number;
@@ -312,7 +322,7 @@ declare class SVGPathCommander {
 		x: number;
 		y: number;
 	}) => SegmentProperties | undefined;
-	static getSegmentAtLength: (pathInput: string | PathArray, distance?: number | undefined) => PathSegment | undefined;
+	static getSegmentAtLength: (pathInput: string | PathArray, distance?: number) => PathSegment | undefined;
 	static isPointInStroke: (pathInput: string | PathArray, point: {
 		x: number;
 		y: number;
@@ -323,24 +333,24 @@ declare class SVGPathCommander {
 	static isRelativeArray: (path: unknown) => path is RelativeArray;
 	static isCurveArray: (path: unknown) => path is CurveArray;
 	static isNormalizedArray: (path: unknown) => path is NormalArray;
-	static shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean | undefined, ownerDocument?: Document | undefined) => false | SVGPathElement;
-	static shapeToPathArray: (element: ShapeTypes | ShapeOps, ownerDocument?: Document | undefined) => false | PathArray;
+	static shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean, ownerDocument?: Document) => SVGPathElement | false;
+	static shapeToPathArray: (element: ShapeTypes | ShapeOps, ownerDocument?: Document) => PathArray | false;
 	static parsePathString: (pathInput: string | PathArray) => PathArray;
-	static roundPath: (path: PathArray, roundOption?: number | "off" | undefined) => PathArray;
+	static roundPath: (path: PathArray, roundOption?: number | "off") => PathArray;
 	static splitPath: (pathInput: PathArray) => PathArray[];
 	static splitCubic: (pts: number[]) => [
 		CubicSegment,
 		CubicSegment
 	];
-	static optimizePath: (pathInput: PathArray, round: number | "off") => PathArray;
+	static optimizePath: (pathInput: PathArray, round: "off" | number) => PathArray;
 	static reverseCurve: (path: CurveArray) => CurveArray;
 	static reversePath: (pathInput: PathArray) => PathArray;
 	static normalizePath: (pathInput: string | PathArray) => NormalArray;
-	static transformPath: (path: string | PathArray, transform?: Partial<TransformObject> | undefined) => PathArray;
+	static transformPath: (path: string | PathArray, transform?: Partial<TransformObject>) => PathArray;
 	static pathToAbsolute: (pathInput: string | PathArray) => AbsoluteArray;
 	static pathToRelative: (pathInput: string | PathArray) => RelativeArray;
 	static pathToCurve: (pathInput: string | PathArray) => CurveArray;
-	static pathToString: (path: PathArray, round?: number | "off" | undefined) => string;
+	static pathToString: (path: PathArray, round?: number | "off") => string;
 	segments: PathArray;
 	round: number | "off";
 	origin: [
