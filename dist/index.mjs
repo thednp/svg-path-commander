@@ -1380,7 +1380,10 @@ var shapeToPathArray = (element, ownerDocument) => {
   else if (type === "rect") pathArray = getRectanglePath(config);
   else if (type === "line") pathArray = getLinePath(config);
   else if (["glyph", "path"].includes(type)) {
-    pathArray = parsePathString_default(targetIsElement ? element.getAttribute("d") || "" : element.d || "");
+    pathArray = parsePathString_default(
+      targetIsElement ? element.getAttribute("d") || /* istanbul ignore next @preserve */
+      "" : element.d || ""
+    );
   }
   if (isPathArray_default(pathArray) && pathArray.length) {
     return pathArray;
@@ -2146,3 +2149,5 @@ var src_default = SVGPathCommander;
 export {
   src_default as default
 };
+/* istanbul ignore else @preserve */
+// istanbul ignore else @preserve

@@ -167,8 +167,11 @@ const shapeToPathArray = (element: ShapeTypes | ShapeOps, ownerDocument?: Docume
   else if (type === 'rect') pathArray = getRectanglePath(config as unknown as RectAttr);
   else if (type === 'line') pathArray = getLinePath(config as unknown as LineAttr);
   else if (['glyph', 'path'].includes(type)) {
-    pathArray = parsePathString(targetIsElement ? element.getAttribute('d')
-      || /* istanbul ignore next @preserve */'' : (element as GlyphAttr).d || '');
+    pathArray = parsePathString(
+      targetIsElement
+        ? element.getAttribute('d') || /* istanbul ignore next @preserve */ ''
+        : (element as GlyphAttr).d || '',
+    );
   }
 
   // replace target element

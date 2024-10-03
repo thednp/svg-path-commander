@@ -363,7 +363,7 @@ var SVGPathCommander = (() => {
   };
   var polygonLength_default = polygonLength;
 
-  // node_modules/.pnpm/@thednp+dommatrix@2.0.7/node_modules/@thednp/dommatrix/dist/dommatrix.mjs
+  // node_modules/.pnpm/@thednp+dommatrix@2.0.8/node_modules/@thednp/dommatrix/dist/dommatrix.mjs
   var Z = Object.defineProperty;
   var z = (s, t, e) => t in s ? Z(s, t, { enumerable: true, configurable: true, writable: true, value: e }) : s[t] = e;
   var p = (s, t, e) => z(s, typeof t != "symbol" ? t + "" : t, e);
@@ -1802,7 +1802,10 @@ var SVGPathCommander = (() => {
     else if (type === "rect") pathArray = getRectanglePath(config);
     else if (type === "line") pathArray = getLinePath(config);
     else if (["glyph", "path"].includes(type)) {
-      pathArray = parsePathString_default(targetIsElement ? element.getAttribute("d") || "" : element.d || "");
+      pathArray = parsePathString_default(
+        targetIsElement ? element.getAttribute("d") || /* istanbul ignore next @preserve */
+        "" : element.d || ""
+      );
     }
     if (isPathArray_default(pathArray) && pathArray.length) {
       return pathArray;
@@ -2565,3 +2568,10 @@ var SVGPathCommander = (() => {
   var src_default = SVGPathCommander;
   return __toCommonJS(src_exports);
 })();
+/* istanbul ignore else @preserve */
+// istanbul ignore else @preserve
+/*! Bundled license information:
+
+@thednp/dommatrix/dist/dommatrix.mjs:
+  (* istanbul ignore else @preserve *)
+*/
