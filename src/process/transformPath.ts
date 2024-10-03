@@ -53,7 +53,7 @@ const transformPath = (path: string | PathArray, transform?: Partial<TransformOb
     for (i = 0, ii = absolutePath.length; i < ii; i += 1) {
       segment = absolutePath[i];
 
-      /* istanbul ignore else */
+      /* istanbul ignore else @preserve */
       if (absolutePath[i]) [pathCommand] = segment;
 
       // REPLACE Arc path commands with Cubic Beziers
@@ -98,7 +98,7 @@ const transformPath = (path: string | PathArray, transform?: Partial<TransformOb
       if (pathCommand === 'L' || pathCommand === 'H' || pathCommand === 'V') {
         [lx, ly] = projection2d(matrixInstance, [seg.x, seg.y], origin as [number, number, number]);
 
-        /* istanbul ignore else */
+        /* istanbul ignore else @preserve */
         if (x !== lx && y !== ly) {
           segment = ['L', lx, ly];
         } else if (y === ly) {

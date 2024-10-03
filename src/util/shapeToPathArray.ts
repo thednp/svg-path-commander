@@ -97,9 +97,9 @@ export const getRectanglePath = (attr: RectAttr): PathArray => {
     // rx = !rx ? ry : rx;
     // ry = !ry ? rx : ry;
 
-    /* istanbul ignore else */
+    /* istanbul ignore else @preserve */
     if (rx * 2 > w) rx -= (rx * 2 - w) / 2;
-    /* istanbul ignore else */
+    /* istanbul ignore else @preserve */
     if (ry * 2 > h) ry -= (ry * 2 - h) / 2;
 
     return [
@@ -167,7 +167,8 @@ const shapeToPathArray = (element: ShapeTypes | ShapeOps, ownerDocument?: Docume
   else if (type === 'rect') pathArray = getRectanglePath(config as unknown as RectAttr);
   else if (type === 'line') pathArray = getLinePath(config as unknown as LineAttr);
   else if (['glyph', 'path'].includes(type)) {
-    pathArray = parsePathString(targetIsElement ? element.getAttribute('d') || '' : (element as GlyphAttr).d || '');
+    pathArray = parsePathString(targetIsElement ? element.getAttribute('d')
+      || /* istanbul ignore next @preserve */'' : (element as GlyphAttr).d || '');
   }
 
   // replace target element

@@ -42,7 +42,7 @@ const pathLengthFactory = (pathInput: string | PathArray, distance?: number): Le
     data = !isM ? [x, y, ...(seg.slice(1) as number[])] : data;
 
     // this segment is always ZERO
-    /* istanbul ignore else */
+    /* istanbul ignore else @preserve */
     if (isM) {
       // remember mx, my for Z
       [, mx, my] = seg as MSegment;

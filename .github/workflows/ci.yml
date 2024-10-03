@@ -15,10 +15,18 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-      # - uses: bahmutov/npm-install@v1
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm build
-      - run: pnpm test
+
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright
+        run: pnpm exec playwright install
+
+      - name: Build
+        run: pnpm build
+
+      - name: ViTest
+        run: pnpm test
       
       - name: Upload coverage report on to coveralls.io...
         uses: coverallsapp/github-action@master

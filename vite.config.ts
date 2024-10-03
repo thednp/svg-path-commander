@@ -27,6 +27,9 @@ export default defineConfig({
       fileName: (format: string) => fileName[format],
     },
     sourcemap: true,
+    rollupOptions: {
+      
+    }
   }
 });
 

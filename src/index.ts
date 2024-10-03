@@ -306,6 +306,7 @@ class SVGPathCommander {
     } = this;
     const transform = {} as TransformObjectValues;
     for (const [k, v] of Object.entries(source) as TransformEntries) {
+      // istanbul ignore else @preserve
       if (k === 'skew' && Array.isArray(v)) {
         transform[k] = v.map(Number) as [number, number];
       } else if ((k === 'rotate' || k === 'translate' || k === 'origin' || k === 'scale') && Array.isArray(v)) {

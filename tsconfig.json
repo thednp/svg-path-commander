@@ -23,7 +23,12 @@
    "removeComments": false,
    "allowSyntheticDefaultImports": true,
    "noEmit": true,
+   "paths": {
+    "~/*": [
+      "./src/*"
+    ],
+  }
  },
- "include": ["src/*", "src/**/*"],
+ "include": ["src/*", "src/**/*", "test/**/*"],
  "exclude": ["node_modules", "experiments", "coverage", "dist"],
 }
