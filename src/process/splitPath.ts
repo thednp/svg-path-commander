@@ -19,7 +19,7 @@ const splitPath = (pathInput: PathArray): PathArray[] => {
       path = [seg];
       pi += 1;
     } else {
-      path = [...path, seg];
+      path.push(seg);
     }
     composite[pi] = path;
   });

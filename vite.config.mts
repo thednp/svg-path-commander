@@ -1,5 +1,5 @@
 "use strict";
-import {resolve} from 'path';
+import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import { name } from './package.json';
 
@@ -17,6 +17,11 @@ const fileName = {
 
 export default defineConfig({
   base: './',
+  resolve: {
+    alias: {
+      "~": resolve(__dirname, "src"),
+    },
+  },
   build: {
     emptyOutDir: true,
     outDir: 'dist',
@@ -27,9 +32,10 @@ export default defineConfig({
       fileName: (format: string) => fileName[format],
     },
     sourcemap: true,
-    rollupOptions: {
-      
-    }
+    reportCompressedSize: true,
+  },
+  esbuild: {
+    legalComments: 'none'
   }
 });
 

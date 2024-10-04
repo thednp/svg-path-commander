@@ -1,5 +1,7 @@
 import { PathArray, TransformObjectValues } from './types';
 import { Options, PathBBox, TransformEntries, TransformObject } from './interface';
+export * from './types';
+export * from './interface';
 import defaultOptions from './options/options';
 
 import error from './parser/error';
@@ -41,6 +43,7 @@ import reversePath from './process/reversePath';
 import normalizePath from './process/normalizePath';
 import transformPath from './process/transformPath';
 import splitCubic from './process/splitCubic';
+import replaceArc from './process/replaceArc';
 
 import pathToAbsolute from './convert/pathToAbsolute';
 import pathToRelative from './convert/pathToRelative';
@@ -55,7 +58,7 @@ import pathToString from './convert/pathToString';
  *
  * @class
  * @author thednp <https://github.com/thednp/svg-path-commander>
- * @returns {SVGPathCommander} a new SVGPathCommander instance
+ * @returns a new SVGPathCommander instance
  */
 class SVGPathCommander {
   // bring main utilities to front
@@ -87,6 +90,7 @@ class SVGPathCommander {
   public static roundPath = roundPath;
   public static splitPath = splitPath;
   public static splitCubic = splitCubic;
+  public static replaceArc = replaceArc;
   public static optimizePath = optimizePath;
   public static reverseCurve = reverseCurve;
   public static reversePath = reversePath;
@@ -103,8 +107,8 @@ class SVGPathCommander {
 
   /**
    * @constructor
-   * @param {string} pathValue the path string
-   * @param {any} config instance options
+   * @param pathValue the path string
+   * @param config instance options
    */
   constructor(pathValue: string, config?: Partial<Options>) {
     const instanceOptions = config || {};
@@ -121,7 +125,7 @@ class SVGPathCommander {
 
     this.segments = segments;
 
-    const { width, height, cx, cy, cz } = this.getBBox();
+    const { width, height, cx, cy, cz } = this.getBBox(20);
 
     // set instance options.round
     const { round: roundOption, origin: originOption } = instanceOptions;
@@ -160,20 +164,22 @@ class SVGPathCommander {
    * Returns the path bounding box, equivalent to native `path.getBBox()`.
    *
    * @public
+   * @param sampleSize the scan resolution
    * @returns the pathBBox
    */
-  getBBox(): PathBBox {
-    return getPathBBox(this.segments);
+  getBBox(sampleSize: number | undefined = defaultOptions.sampleSize): PathBBox {
+    return getPathBBox(this.segments, sampleSize);
   }
 
   /**
    * Returns the total path length, equivalent to native `path.getTotalLength()`.
    *
    * @public
+   * @param sampleSize the scan resolution
    * @returns the path total length
    */
-  getTotalLength() {
-    return getTotalLength(this.segments);
+  getTotalLength(sampleSize: number | undefined = defaultOptions.sampleSize) {
+    return getTotalLength(this.segments, sampleSize);
   }
 
   /**
@@ -182,10 +188,11 @@ class SVGPathCommander {
    *
    * @public
    * @param length the length
+   * @param sampleSize the scan resolution
    * @returns the requested point
    */
-  getPointAtLength(length: number): { x: number; y: number } {
-    return getPointAtLength(this.segments, length);
+  getPointAtLength(length: number, sampleSize: number | undefined = defaultOptions.sampleSize) {
+    return getPointAtLength(this.segments, length, sampleSize);
   }
 
   /**

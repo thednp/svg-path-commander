@@ -20,7 +20,7 @@ import isRelativeArray from '../util/isRelativeArray';
 const pathToRelative = (pathInput: string | PathArray): RelativeArray => {
   /* istanbul ignore else */
   if (isRelativeArray(pathInput)) {
-    return [...pathInput];
+    return pathInput.slice(0) as RelativeArray;
   }
 
   const path = parsePathString(pathInput);

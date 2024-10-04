@@ -118,12 +118,14 @@
       </p>
     </div>
     <div class="col p-0">
-      <p class="text-right">2023 &copy; <a href="https://github.com/thednp">thednp</a></p>
+      <p class="text-right">2024 &copy; <a href="https://github.com/thednp">thednp</a></p>
     </div>
   </div>
-  <script src="../src/index.ts" type="module"></script>
+  <!-- <script src="../src/index.ts" type="module"></script> -->
+
   <script type="module">
-    import { pathToCurve, pathToString, roundPath, splitPath, reverseCurve, optimizePath } from '../src/index.ts';
+    import SVGPathCommander from '../src/index.ts';
+    const { pathToCurve, pathToString, roundPath, splitPath, reverseCurve, optimizePath } = SVGPathCommander;
     const svg = document.getElementById('test-svg'),
         path = svg.children[0],
         inputTextArea = document.getElementById('t1'),
@@ -164,6 +166,7 @@
       outputTextArea.value = pv.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.parse = parse;
 
     function toNormal() { // normalize
       pathValue = inputTextArea.value || pathValue
@@ -176,6 +179,7 @@
       outputTextArea.value = nm.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.toNormal = toNormal;
 
     function toOptimal() { // optimize
       pathValue = inputTextArea.value || pathValue
@@ -188,6 +192,8 @@
       outputTextArea.value = opt.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.toOptimal = toOptimal;
+
 
     // inputTextArea.value = shapes[2];
 
@@ -202,6 +208,7 @@
       outputTextArea.value = absPath.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.toAbs = toAbs;
 
     function toRel() { // To relative coordinates
       pathValue = inputTextArea.value || pathValue
@@ -214,6 +221,7 @@
       outputTextArea.value = relPath.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.toRel = toRel;
 
     let usedCurve = false;
     function toCurve() { // To curve coordinates
@@ -231,6 +239,7 @@
       console.warn(`The "toCurve()" instance example doesn\'t round the path values as configured with 'round: off' option.`);
       usedCurve = true;
     }
+    window.toCurve = toCurve
 
     function toRevCurve(onlySubpath) { // To curve coordinates
       pathValue = inputTextArea.value || pathValue
@@ -244,6 +253,8 @@
       outputTextArea.value = cv.toString();
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.toRevCurve = toRevCurve;
+
     function toRev(onlySubpath) { // reverse coordinates
       pathValue = inputTextArea.value || pathValue
 
@@ -256,6 +267,8 @@
       outputTextArea.value = revPath;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.toRev = toRev;
+
     function toSplit() { // split coordinates
       pathValue = inputTextArea.value || pathValue
       
@@ -268,6 +281,8 @@
       outputTextArea.value = splitPath(absPath.segments).map(x => new SVGPathCommander(x).toRelative().toString()).join('\r\n\r\n');
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.toSplit = toSplit;
+
     function flipX() { // transform
       pathValue = inputTextArea.value || pathValue         
       
@@ -283,6 +298,8 @@
       outputTextArea.value = tfPath;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.flipX = flipX;
+
     function flipY() { // transform
       pathValue = inputTextArea.value || pathValue         
       
@@ -298,6 +315,8 @@
       outputTextArea.value = tfPath;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.flipY = flipY;
+
     function flipXY() { // transform
       pathValue = inputTextArea.value || pathValue         
       
@@ -313,6 +332,8 @@
       outputTextArea.value = tfPath;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.flipXY = flipXY;
+
     function transform(transformObject) { // transform
       pathValue = inputTextArea.value || pathValue         
       transformObject = transformObject || { translate: 1, skew: 15, rotate:-45, scale: 0.5 }
@@ -326,7 +347,9 @@
       outputTextArea.value = tfPath;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
     }
+    window.transform = transform;
   </script>
+
 </body>
 
 </html>

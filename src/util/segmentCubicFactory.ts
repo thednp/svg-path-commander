@@ -1,5 +1,6 @@
-import { LengthFactory } from 'src/interface';
+import type { LengthFactory } from '../interface';
 import distanceSquareRoot from '../math/distanceSquareRoot';
+import defaultOptions from '../options/options';
 
 /**
  * Returns a {x,y} point at a given length, the total length and
@@ -47,6 +48,7 @@ const getPointAtCubicSegmentLength = (
  * @param x2 the ending point X
  * @param y2 the ending point Y
  * @param distance the point distance
+ * @param sampleSize the scan resolution, the higher the better accuracy and slower performance
  * @returns the segment length, point, min & max
  */
 const segmentCubicFactory = (
@@ -58,7 +60,8 @@ const segmentCubicFactory = (
   c2y: number,
   x2: number,
   y2: number,
-  distance?: number,
+  distance: number | undefined,
+  sampleSize: number | undefined = defaultOptions.sampleSize,
 ): LengthFactory => {
   const distanceIsNumber = typeof distance === 'number';
   let x = x1;
@@ -68,18 +71,17 @@ const segmentCubicFactory = (
   let cur = [x, y] as [number, number];
   let t = 0;
   let POINT = { x: 0, y: 0 };
-  let POINTS = [{ x, y }];
+  const POINTS = [{ x, y }];
 
   if (distanceIsNumber && distance <= 0) {
     POINT = { x, y };
   }
 
-  const sampleSize = 300;
   for (let j = 0; j <= sampleSize; j += 1) {
     t = j / sampleSize;
 
     ({ x, y } = getPointAtCubicSegmentLength(x1, y1, c1x, c1y, c2x, c2y, x2, y2, t));
-    POINTS = [...POINTS, { x, y }];
+    POINTS.push({ x, y });
     LENGTH += distanceSquareRoot(cur, [x, y]);
     cur = [x, y];
 

@@ -14,7 +14,7 @@ import type { NormalArray, PathArray } from '../types';
  */
 const normalizePath = (pathInput: string | PathArray): NormalArray => {
   if (isNormalizedArray(pathInput)) {
-    return [...pathInput];
+    return pathInput.slice(0) as NormalArray;
   }
 
   const path = pathToAbsolute(pathInput);

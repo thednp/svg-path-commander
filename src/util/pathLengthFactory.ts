@@ -5,6 +5,7 @@ import segmentLineFactory from './segmentLineFactory';
 import segmentArcFactory from './segmentArcFactory';
 import segmentCubicFactory from './segmentCubicFactory';
 import segmentQuadFactory from './segmentQuadFactory';
+import defaultOptions from '../options/options';
 
 /**
  * Returns a {x,y} point at a given length
@@ -13,9 +14,14 @@ import segmentQuadFactory from './segmentQuadFactory';
  *
  * @param pathInput the `pathArray` to look into
  * @param distance the length of the shape to look at
+ * @param sampleSize the scan resolution, the higher the better accuracy and slower performance
  * @returns the path length, point, min & max
  */
-const pathLengthFactory = (pathInput: string | PathArray, distance?: number): LengthFactory => {
+const pathLengthFactory = (
+  pathInput: string | PathArray,
+  distance: number | undefined,
+  sampleSize: number | undefined = defaultOptions.sampleSize,
+): LengthFactory => {
   const path = normalizePath(pathInput);
   const distanceIsNumber = typeof distance === 'number';
   let isM;
@@ -26,8 +32,8 @@ const pathLengthFactory = (pathInput: string | PathArray, distance?: number): Le
   let mx = 0;
   let my = 0;
   let seg;
-  let MIN = [] as { x: number; y: number }[];
-  let MAX = [] as { x: number; y: number }[];
+  const MIN = [] as { x: number; y: number }[];
+  const MAX = [] as { x: number; y: number }[];
   let length = 0;
   let min = { x: 0, y: 0 };
   let max = min;
@@ -56,28 +62,31 @@ const pathLengthFactory = (pathInput: string | PathArray, distance?: number): Le
     } else if (pathCommand === 'L') {
       ({ length, min, max, point } = segmentLineFactory(
         ...(data as [number, number, number, number]),
-        (distance || 0) - LENGTH,
+        distanceIsNumber ? distance - LENGTH : undefined,
       ));
     } else if (pathCommand === 'A') {
       ({ length, min, max, point } = segmentArcFactory(
         ...(data as [number, number, number, number, number, number, number, number, number]),
-        (distance || 0) - LENGTH,
+        distanceIsNumber ? distance - LENGTH : undefined,
+        sampleSize,
       ));
     } else if (pathCommand === 'C') {
       ({ length, min, max, point } = segmentCubicFactory(
-        ...(data as [number, number, number, number, number, number, number]),
-        (distance || 0) - LENGTH,
+        ...(data as [number, number, number, number, number, number, number, number]),
+        distanceIsNumber ? distance - LENGTH : undefined,
+        sampleSize,
       ));
     } else if (pathCommand === 'Q') {
       ({ length, min, max, point } = segmentQuadFactory(
         ...(data as [number, number, number, number, number, number]),
-        (distance || 0) - LENGTH,
+        distanceIsNumber ? distance - LENGTH : undefined,
+        sampleSize,
       ));
     } else if (pathCommand === 'Z') {
       data = [x, y, mx, my];
       ({ length, min, max, point } = segmentLineFactory(
         ...(data as [number, number, number, number]),
-        (distance || 0) - LENGTH,
+        distanceIsNumber ? distance - LENGTH : undefined,
       ));
     }
 
@@ -85,8 +94,8 @@ const pathLengthFactory = (pathInput: string | PathArray, distance?: number): Le
       POINT = point;
     }
 
-    MAX = [...MAX, max];
-    MIN = [...MIN, min];
+    MAX.push(max);
+    MIN.push(min);
     LENGTH += length;
 
     [x, y] = pathCommand !== 'Z' ? (seg.slice(-2) as [number, number]) : [mx, my];

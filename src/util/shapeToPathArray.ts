@@ -134,7 +134,7 @@ export const getRectanglePath = (attr: RectAttr): PathArray => {
  * @param ownerDocument document for create element
  * @return the newly created `<path>` element
  */
-const shapeToPathArray = (element: ShapeTypes | ShapeOps, ownerDocument?: Document): PathArray | false => {
+const shapeToPathArray = (element: ShapeTypes | ShapeOps, ownerDocument?: Document) => {
   const doc = ownerDocument || document;
   const win = doc.defaultView || /* istanbul ignore next */ window;
   const supportedShapes = Object.keys(shapeParams) as (keyof ShapeParams)[];

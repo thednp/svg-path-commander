@@ -1,12 +1,13 @@
 import normalizePath from './normalizePath';
-import pathToAbsolute from '../convert/pathToAbsolute';
-import segmentToCubic from './segmentToCubic';
-import fixArc from './fixArc';
+// import pathToAbsolute from '../convert/pathToAbsolute';
+// import segmentToCubic from './segmentToCubic';
+// import fixArc from './fixArc';
 import getSVGMatrix from './getSVGMatrix';
 import projection2d from './projection2d';
 import paramsParser from '../parser/paramsParser';
+import replaceArc from './replaceArc';
 import defaultOptions from '../options/options';
-import type { PathArray, PathCommand, TransformObjectValues } from '../types';
+import type { AbsoluteArray, PathArray, TransformObjectValues } from '../types';
 import type { PathTransform, TransformObject } from '../interface';
 
 /**
@@ -28,11 +29,14 @@ const transformPath = (path: string | PathArray, transform?: Partial<TransformOb
   let jj;
   let lx;
   let ly;
-  const absolutePath = pathToAbsolute(path);
+  // REPLACE Arc path commands with Cubic Beziers
+  // we don't have any scripting know-how on 3d ellipse transformation
+  // Arc segments don't work with 3D transformations or skews
+  const absolutePath = replaceArc(path);
   const transformProps = transform && Object.keys(transform);
 
   // when used as a static method, invalidate somehow
-  if (!transform || (transformProps && !transformProps.length)) return [...absolutePath];
+  if (!transform || (transformProps && !transformProps.length)) return absolutePath.slice(0) as PathArray;
 
   const normalizedPath = normalizePath(absolutePath);
   // transform origin is extremely important
@@ -46,34 +50,10 @@ const transformPath = (path: string | PathArray, transform?: Partial<TransformOb
   let segment = [];
   let seglen = 0;
   let pathCommand = '';
-  let transformedPath = [] as PathTransform[];
-  const allPathCommands = [] as PathCommand[]; // needed for arc to curve transformation
+  const transformedPath = [] as PathTransform[];
 
   if (!matrixInstance.isIdentity) {
     for (i = 0, ii = absolutePath.length; i < ii; i += 1) {
-      segment = absolutePath[i];
-
-      /* istanbul ignore else @preserve */
-      if (absolutePath[i]) [pathCommand] = segment;
-
-      // REPLACE Arc path commands with Cubic Beziers
-      // we don't have any scripting know-how on 3d ellipse transformation
-      // Arc segments don't work 3D transformations or skews
-      /// ////////////////////////////////////////
-      allPathCommands[i] = pathCommand as PathCommand;
-
-      if (pathCommand === 'A') {
-        segment = segmentToCubic(normalizedPath[i], params);
-
-        absolutePath[i] = segmentToCubic(normalizedPath[i], params);
-        fixArc(absolutePath, allPathCommands, i);
-
-        normalizedPath[i] = segmentToCubic(normalizedPath[i], params);
-        fixArc(normalizedPath, allPathCommands, i);
-        ii = Math.max(absolutePath.length, normalizedPath.length);
-      }
-
-      /// ////////////////////////////////////////
       segment = normalizedPath[i];
       seglen = segment.length;
 
@@ -89,7 +69,7 @@ const transformPath = (path: string | PathArray, transform?: Partial<TransformOb
         y: params.y1,
       };
 
-      transformedPath = [...transformedPath, ...[result]];
+      transformedPath.push(result);
     }
 
     return transformedPath.map(seg => {
@@ -123,6 +103,6 @@ const transformPath = (path: string | PathArray, transform?: Partial<TransformOb
       }
     }) as PathArray;
   }
-  return [...absolutePath];
+  return absolutePath.slice(0) as AbsoluteArray;
 };
 export default transformPath;

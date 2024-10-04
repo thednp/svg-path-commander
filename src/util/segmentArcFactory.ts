@@ -1,6 +1,7 @@
 import type { LengthFactory } from '../interface';
 import segmentLineFactory from './segmentLineFactory';
 import distanceSquareRoot from '../math/distanceSquareRoot';
+import defaultOptions from '../options/options';
 
 /**
  * Returns an angle value between two points.
@@ -151,6 +152,7 @@ const getPointAtArcSegmentLength = (
  * @param X2 the ending x position
  * @param Y2 the ending y position
  * @param distance the point distance
+ * @param sampleSize the scan resolution, the higher the better accuracy and slower performance
  * @returns the segment length, point, min & max
  */
 const segmentArcFactory = (
@@ -163,7 +165,8 @@ const segmentArcFactory = (
   SF: number,
   X2: number,
   Y2: number,
-  distance: number,
+  distance: number | undefined,
+  sampleSize: number | undefined = defaultOptions.sampleSize,
 ): LengthFactory => {
   const distanceIsNumber = typeof distance === 'number';
   let x = X1;
@@ -173,18 +176,18 @@ const segmentArcFactory = (
   let cur = [x, y] as [number, number];
   let t = 0;
   let POINT = { x: 0, y: 0 };
-  let POINTS = [{ x, y }];
+  const POINTS = [{ x, y }];
 
   if (distanceIsNumber && distance <= 0) {
     POINT = { x, y };
   }
 
-  const sampleSize = 300;
+  // const sampleSize = 300;
   for (let j = 0; j <= sampleSize; j += 1) {
     t = j / sampleSize;
 
     ({ x, y } = getPointAtArcSegmentLength(X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, t));
-    POINTS = [...POINTS, { x, y }];
+    POINTS.push({ x, y });
     LENGTH += distanceSquareRoot(cur, [x, y]);
     cur = [x, y];
 

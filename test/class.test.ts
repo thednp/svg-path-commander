@@ -1,7 +1,7 @@
 import { expect, it, describe, beforeEach, vi } from 'vitest';
 import SVGPathCommander from '~/index';
-import invalidPathValue from '~/parser/invalidPathValue';
-import error from '~/parser/error';
+import invalidPathValue from '../src/parser/invalidPathValue';
+import error from '../src/parser/error';
 
 import getMarkup from './fixtures/getMarkup';
 import shapes from './fixtures/shapes';

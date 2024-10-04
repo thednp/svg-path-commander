@@ -18,7 +18,7 @@ import { CurveArray, PathArray, PathCommand } from '../types';
 const pathToCurve = (pathInput: string | PathArray): CurveArray => {
   /* istanbul ignore else */
   if (isCurveArray(pathInput)) {
-    return [...pathInput];
+    return pathInput.slice(0) as CurveArray;
   }
 
   const path = normalizePath(pathInput);

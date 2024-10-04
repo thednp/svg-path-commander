@@ -2,8 +2,8 @@
   // https://janessagarrow.com/blog/typescript-and-esbuild/
  "compilerOptions": {
    "lib": ["DOM", "ESNext", "DOM.Iterable"],
-  //  "types": ["vite", "vite/client", "cypress", "@thednp/dommatrix"],
-   "types": ["@thednp/dommatrix"],
+  //  "types": ["vite", "vite/client", "vitest", "node", "@thednp/dommatrix"],
+  //  "types": ["@thednp/dommatrix"],
    "rootDir": "./",
    "baseUrl": "./",
    "module": "ESNext",
@@ -25,10 +25,10 @@
    "noEmit": true,
    "paths": {
     "~/*": [
-      "./src/*"
+      "src"
     ],
   }
  },
- "include": ["src/*", "src/**/*", "test/**/*"],
+ "include": ["src/*", "test/**/*"],
  "exclude": ["node_modules", "experiments", "coverage", "dist"],
 }

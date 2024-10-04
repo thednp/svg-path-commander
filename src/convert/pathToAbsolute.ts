@@ -25,7 +25,7 @@ import type {
 const pathToAbsolute = (pathInput: string | PathArray): AbsoluteArray => {
   /* istanbul ignore else */
   if (isAbsoluteArray(pathInput)) {
-    return [...pathInput];
+    return pathInput.slice(0) as AbsoluteArray;
   }
 
   const path = parsePathString(pathInput);

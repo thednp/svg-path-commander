@@ -13,7 +13,7 @@ import type { PathArray } from '../types';
  */
 const parsePathString = (pathInput: string | PathArray): PathArray => {
   if (isPathArray(pathInput)) {
-    return [...pathInput];
+    return pathInput.slice(0) as PathArray;
   }
 
   const path = new PathParser(pathInput);

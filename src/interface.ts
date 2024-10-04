@@ -1,51 +1,51 @@
 import type { PathSegment } from './types';
 
-export interface SegmentProperties {
+export type SegmentProperties = {
   segment: PathSegment;
   index: number;
   length: number;
   lengthAtSegment: number;
   [key: string]: any;
-}
+};
 
-export interface PointProperties {
+export type PointProperties = {
   closest: {
     x: number;
     y: number;
   };
   distance: number;
   segment?: SegmentProperties;
-}
+};
 
-export interface LineAttr {
+export type LineAttr = {
   type: 'line';
   x1: number;
   y1: number;
   x2: number;
   y2: number;
   [key: string]: string | number;
-}
-export interface PolyAttr {
+};
+export type PolyAttr = {
   type: 'polygon' | 'polyline';
   points: string;
   [key: string]: string | number;
-}
-export interface CircleAttr {
+};
+export type CircleAttr = {
   type: 'circle';
   cx: number;
   cy: number;
   r: number;
   [key: string]: string | number;
-}
-export interface EllipseAttr {
+};
+export type EllipseAttr = {
   type: 'ellipse';
   cx: number;
   cy: number;
   rx: number;
   ry?: number;
   [key: string]: string | number | undefined;
-}
-export interface RectAttr {
+};
+export type RectAttr = {
   type: 'rect';
   width: number;
   height: number;
@@ -54,14 +54,14 @@ export interface RectAttr {
   rx?: number;
   ry?: number;
   [key: string]: string | number | undefined;
-}
-export interface GlyphAttr {
+};
+export type GlyphAttr = {
   type: 'glyph';
   d: string;
   [key: string]: string | number;
-}
+};
 
-export interface ShapeParams {
+export type ShapeParams = {
   line: ['x1', 'y1', 'x2', 'y2'];
   circle: ['cx', 'cy', 'r'];
   ellipse: ['cx', 'cy', 'rx', 'ry'];
@@ -69,9 +69,9 @@ export interface ShapeParams {
   polygon: ['points'];
   polyline: ['points'];
   glyph: ['d'];
-}
+};
 
-export interface PathBBox {
+export type PathBBox = {
   width: number;
   height: number;
   x: number;
@@ -81,13 +81,13 @@ export interface PathBBox {
   cx: number;
   cy: number;
   cz: number;
-}
-export interface SegmentLimits {
+};
+export type SegmentLimits = {
   min: { x: number; y: number };
   max: { x: number; y: number };
-}
+};
 
-export interface ParserParams {
+export type ParserParams = {
   x1: number;
   y1: number;
   x2: number;
@@ -96,34 +96,35 @@ export interface ParserParams {
   y: number;
   qx: number | null;
   qy: number | null;
-}
+};
 
-export interface LengthFactory {
+export type LengthFactory = {
   length: number;
   point: { x: number; y: number };
   min: { x: number; y: number };
   max: { x: number; y: number };
-}
+};
 
-export interface Options {
+export type Options = {
   round: 'auto' | 'off' | number;
   origin: number[];
-}
+  sampleSize: number;
+};
 
-export interface PathTransform {
+export type PathTransform = {
   s: PathSegment;
   c: string;
   x: number;
   y: number;
-}
+};
 
-export interface TransformObject {
+export type TransformObject = {
   translate: number | number[];
   rotate: number | number[];
   scale: number | number[];
   skew: number | number[];
   origin: number[];
-}
+};
 
 export type TransformProps = keyof TransformObject;
 export type TransformEntries = [TransformProps, TransformObject[TransformProps]][];

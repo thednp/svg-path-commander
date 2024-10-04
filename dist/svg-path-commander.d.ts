@@ -1,49 +1,49 @@
 import CSSMatrix$1 from '@thednp/dommatrix';
 
-export interface SegmentProperties {
+export type SegmentProperties = {
 	segment: PathSegment;
 	index: number;
 	length: number;
 	lengthAtSegment: number;
 	[key: string]: any;
-}
-export interface PointProperties {
+};
+export type PointProperties = {
 	closest: {
 		x: number;
 		y: number;
 	};
 	distance: number;
 	segment?: SegmentProperties;
-}
-export interface LineAttr {
+};
+export type LineAttr = {
 	type: "line";
 	x1: number;
 	y1: number;
 	x2: number;
 	y2: number;
 	[key: string]: string | number;
-}
-export interface PolyAttr {
+};
+export type PolyAttr = {
 	type: "polygon" | "polyline";
 	points: string;
 	[key: string]: string | number;
-}
-export interface CircleAttr {
+};
+export type CircleAttr = {
 	type: "circle";
 	cx: number;
 	cy: number;
 	r: number;
 	[key: string]: string | number;
-}
-export interface EllipseAttr {
+};
+export type EllipseAttr = {
 	type: "ellipse";
 	cx: number;
 	cy: number;
 	rx: number;
 	ry?: number;
 	[key: string]: string | number | undefined;
-}
-export interface RectAttr {
+};
+export type RectAttr = {
 	type: "rect";
 	width: number;
 	height: number;
@@ -52,13 +52,49 @@ export interface RectAttr {
 	rx?: number;
 	ry?: number;
 	[key: string]: string | number | undefined;
-}
-export interface GlyphAttr {
+};
+export type GlyphAttr = {
 	type: "glyph";
 	d: string;
 	[key: string]: string | number;
-}
-export interface PathBBox {
+};
+export type ShapeParams = {
+	line: [
+		"x1",
+		"y1",
+		"x2",
+		"y2"
+	];
+	circle: [
+		"cx",
+		"cy",
+		"r"
+	];
+	ellipse: [
+		"cx",
+		"cy",
+		"rx",
+		"ry"
+	];
+	rect: [
+		"width",
+		"height",
+		"x",
+		"y",
+		"rx",
+		"ry"
+	];
+	polygon: [
+		"points"
+	];
+	polyline: [
+		"points"
+	];
+	glyph: [
+		"d"
+	];
+};
+export type PathBBox = {
 	width: number;
 	height: number;
 	x: number;
@@ -68,8 +104,28 @@ export interface PathBBox {
 	cx: number;
 	cy: number;
 	cz: number;
-}
-export interface LengthFactory {
+};
+export type SegmentLimits = {
+	min: {
+		x: number;
+		y: number;
+	};
+	max: {
+		x: number;
+		y: number;
+	};
+};
+export type ParserParams = {
+	x1: number;
+	y1: number;
+	x2: number;
+	y2: number;
+	x: number;
+	y: number;
+	qx: number | null;
+	qy: number | null;
+};
+export type LengthFactory = {
 	length: number;
 	point: {
 		x: number;
@@ -83,18 +139,33 @@ export interface LengthFactory {
 		x: number;
 		y: number;
 	};
-}
-export interface Options {
+};
+export type Options = {
 	round: "auto" | "off" | number;
 	origin: number[];
-}
-export interface TransformObject {
+	sampleSize: number;
+};
+export type PathTransform = {
+	s: PathSegment;
+	c: string;
+	x: number;
+	y: number;
+};
+export type TransformObject = {
 	translate: number | number[];
 	rotate: number | number[];
 	scale: number | number[];
 	skew: number | number[];
 	origin: number[];
-}
+};
+export type TransformProps = keyof TransformObject;
+export type TransformEntries = [
+	TransformProps,
+	TransformObject[TransformProps]
+][];
+export type SpaceNumber = 5760 | 6158 | 8192 | 8193 | 8194 | 8195 | 8196 | 8197 | 8198 | 8199 | 8200 | 8201 | 8202 | 8239 | 8287 | 12288 | 65279 | 10 | 13 | 8232 | 8233 | 32 | 9 | 11 | 12 | 160 | 5760;
+export type PathCommandNumber = 109 | 122 | 108 | 104 | 118 | 99 | 115 | 113 | 116 | 97;
+export type DigitNumber = 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57;
 export type MCommand = "M";
 export type mCommand = "m";
 export type LCommand = "L";
@@ -115,6 +186,9 @@ export type TCommand = "T";
 export type tCommand = "t";
 export type ACommand = "A";
 export type aCommand = "a";
+export type AbsoluteCommand = MCommand | LCommand | VCommand | HCommand | ZCommand | CCommand | SCommand | QCommand | TCommand | ACommand;
+export type RelativeCommand = mCommand | lCommand | vCommand | hCommand | zCommand | cCommand | sCommand | qCommand | tCommand | aCommand;
+export type PathCommand = AbsoluteCommand | RelativeCommand;
 export type MSegment = [
 	MCommand,
 	number,
@@ -244,6 +318,7 @@ export type aSegment = [
 ];
 export type ArcSegment = ASegment | aSegment;
 export type PathSegment = MoveSegment | LineSegment | VertLineSegment | HorLineSegment | CloseSegment | CubicSegment | ShortCubicSegment | QuadSegment | ShortQuadSegment | ArcSegment;
+export type ShortSegment = VertLineSegment | HorLineSegment | ShortCubicSegment | ShortQuadSegment | CloseSegment;
 export type AbsoluteSegment = MSegment | LSegment | VSegment | HSegment | CSegment | SSegment | QSegment | TSegment | ASegment | ZSegment;
 export type RelativeSegment = mSegment | lSegment | vSegment | hSegment | cSegment | sSegment | qSegment | tSegment | aSegment | zSegment;
 export type NormalSegment = MSegment | LSegment | CSegment | QSegment | ASegment | ZSegment;
@@ -267,7 +342,17 @@ export type CurveArray = [
 	MSegment,
 	...CSegment[]
 ];
+export type PolygonArray = [
+	MSegment,
+	...LSegment[],
+	ZSegment
+];
+export type PolylineArray = [
+	MSegment,
+	...LSegment[]
+];
 export type ShapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;
+export type ShapeTags = "line" | "polyline" | "polygon" | "ellipse" | "circle" | "rect" | "glyph";
 export type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
 export type TransformObjectValues = Partial<TransformObject> & {
 	origin: [
@@ -284,25 +369,25 @@ export type TransformObjectValues = Partial<TransformObject> & {
  *
  * @class
  * @author thednp <https://github.com/thednp/svg-path-commander>
- * @returns {SVGPathCommander} a new SVGPathCommander instance
+ * @returns a new SVGPathCommander instance
  */
 declare class SVGPathCommander {
 	static CSSMatrix: typeof CSSMatrix$1;
 	static getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix$1;
-	static getPathBBox: (path?: PathArray | string) => PathBBox;
+	static getPathBBox: (path: PathArray | string, sampleSize?: number | undefined) => PathBBox;
 	static getPathArea: (path: PathArray) => number;
-	static getTotalLength: (pathInput: string | PathArray) => number;
+	static getTotalLength: (pathInput: string | PathArray, sampleSize?: number | undefined) => number;
 	static getDrawDirection: (path: string | PathArray) => boolean;
-	static getPointAtLength: (pathInput: string | PathArray, distance: number) => {
+	static getPointAtLength: (pathInput: string | PathArray, distance: number, sampleSize?: number | undefined) => {
 		x: number;
 		y: number;
 	};
-	static pathLengthFactory: (pathInput: string | PathArray, distance?: number) => LengthFactory;
-	static getPropertiesAtLength: (pathInput: string | PathArray, distance?: number) => SegmentProperties;
+	static pathLengthFactory: (pathInput: string | PathArray, distance: number | undefined, sampleSize?: number | undefined) => LengthFactory;
+	static getPropertiesAtLength: (pathInput: string | PathArray, distance?: number, samplesize?: number) => SegmentProperties;
 	static getPropertiesAtPoint: (pathInput: string | PathArray, point: {
 		x: number;
 		y: number;
-	}) => PointProperties;
+	}, sampleSize?: number) => PointProperties;
 	static polygonLength: (polygon: [
 		number,
 		number
@@ -314,19 +399,19 @@ declare class SVGPathCommander {
 	static getClosestPoint: (pathInput: string | PathArray, point: {
 		x: number;
 		y: number;
-	}) => {
+	}, sampleSize?: number | undefined) => {
 		x: number;
 		y: number;
 	};
 	static getSegmentOfPoint: (path: string | PathArray, point: {
 		x: number;
 		y: number;
-	}) => SegmentProperties | undefined;
-	static getSegmentAtLength: (pathInput: string | PathArray, distance?: number) => PathSegment | undefined;
+	}, sampleSize?: number | undefined) => SegmentProperties | undefined;
+	static getSegmentAtLength: (pathInput: string | PathArray, distance?: number, sampleSize?: number) => PathSegment | undefined;
 	static isPointInStroke: (pathInput: string | PathArray, point: {
 		x: number;
 		y: number;
-	}) => boolean;
+	}, sampleSize?: number) => boolean;
 	static isValidPath: (pathString: string) => boolean;
 	static isPathArray: (path: unknown) => path is PathArray;
 	static isAbsoluteArray: (path: unknown) => path is AbsoluteArray;
@@ -334,7 +419,7 @@ declare class SVGPathCommander {
 	static isCurveArray: (path: unknown) => path is CurveArray;
 	static isNormalizedArray: (path: unknown) => path is NormalArray;
 	static shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean, ownerDocument?: Document) => SVGPathElement | false;
-	static shapeToPathArray: (element: ShapeTypes | ShapeOps, ownerDocument?: Document) => PathArray | false;
+	static shapeToPathArray: (element: ShapeTypes | ShapeOps, ownerDocument?: Document) => false | PathArray;
 	static parsePathString: (pathInput: string | PathArray) => PathArray;
 	static roundPath: (path: PathArray, roundOption?: number | "off") => PathArray;
 	static splitPath: (pathInput: PathArray) => PathArray[];
@@ -342,6 +427,7 @@ declare class SVGPathCommander {
 		CubicSegment,
 		CubicSegment
 	];
+	static replaceArc: (pathInput: PathArray | string) => PathArray;
 	static optimizePath: (pathInput: PathArray, round: "off" | number) => PathArray;
 	static reverseCurve: (path: CurveArray) => CurveArray;
 	static reversePath: (pathInput: PathArray) => PathArray;
@@ -360,33 +446,36 @@ declare class SVGPathCommander {
 	];
 	/**
 	 * @constructor
-	 * @param {string} pathValue the path string
-	 * @param {any} config instance options
+	 * @param pathValue the path string
+	 * @param config instance options
 	 */
 	constructor(pathValue: string, config?: Partial<Options>);
 	/**
 	 * Returns the path bounding box, equivalent to native `path.getBBox()`.
 	 *
 	 * @public
+	 * @param sampleSize the scan resolution
 	 * @returns the pathBBox
 	 */
-	getBBox(): PathBBox;
+	getBBox(sampleSize?: number | undefined): PathBBox;
 	/**
 	 * Returns the total path length, equivalent to native `path.getTotalLength()`.
 	 *
 	 * @public
+	 * @param sampleSize the scan resolution
 	 * @returns the path total length
 	 */
-	getTotalLength(): number;
+	getTotalLength(sampleSize?: number | undefined): number;
 	/**
 	 * Returns an `{x,y}` point in the path stroke at a given length,
 	 * equivalent to the native `path.getPointAtLength()`.
 	 *
 	 * @public
 	 * @param length the length
+	 * @param sampleSize the scan resolution
 	 * @returns the requested point
 	 */
-	getPointAtLength(length: number): {
+	getPointAtLength(length: number, sampleSize?: number | undefined): {
 		x: number;
 		y: number;
 	};

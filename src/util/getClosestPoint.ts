@@ -1,3 +1,4 @@
+import defaultOptions from '../options/options';
 import type { PathArray } from '../types';
 import getPropertiesAtPoint from './getPropertiesAtPoint';
 
@@ -6,10 +7,15 @@ import getPropertiesAtPoint from './getPropertiesAtPoint';
  *
  * @param pathInput target `pathArray`
  * @param point the given point
+ * @param sampleSize the scan resolution
  * @returns the best match
  */
-const getClosestPoint = (pathInput: string | PathArray, point: { x: number; y: number }): { x: number; y: number } => {
-  return getPropertiesAtPoint(pathInput, point).closest;
+const getClosestPoint = (
+  pathInput: string | PathArray,
+  point: { x: number; y: number },
+  sampleSize: number | undefined = defaultOptions.sampleSize,
+) => {
+  return getPropertiesAtPoint(pathInput, point, sampleSize).closest;
 };
 
 export default getClosestPoint;
