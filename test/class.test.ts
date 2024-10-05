@@ -94,7 +94,15 @@ describe('SVGPathCommander Class Test', () => {
       new SVGPathCommander('2 0a2 2 0 00-2 2');
     } catch (er) {
       expect(er).to.be.instanceOf(TypeError);
-      expect(er).to.have.property('message', `${error}: ${invalidPathValue} "2" is not a path command`);
+      expect(er).to.have.property('message', `${error}: ${invalidPathValue} "2" is not a path command at index 0`);
+    }
+  
+    try {
+      new SVGPathCommander(`M13.158 9.208a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094 0.942a1.63 1.63 0 0 0 3.229 -0.314a1.6 1.6 0 0 0 -0.12 -0.627a1.6 1.6 0 0 0 -0.353 -0.533a1.6 1.6 0 0 0 -0.53 -0.356a1.6 1.6 0 0 0 -0.625 -0.125z
+a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094 0.942a1.63 1.63 0 0 0 3.229 -0.314a1.6 1.6 0 0 0 -0.12 -0.627a1.6 1.6 0 0 0 -0.353 -0.533a1.6 1.6 0 0 0 -0.53 -0.356a1.6 1.6 0 0 0 -0.625 -0.125za1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094 0.942a1.63 1.63 0 0 0 3.229 -0.314a1.6 1.6 0 0 0 -0.12 -0.627a1.6 1.6 0 0 0 -0.353 -0.533a1.6 1.6 0 0 0 -0.53 -0.356a1.6 1.6 0 0 0 -0.625 -0.125z`);
+    } catch (er) {
+      expect(er).to.be.instanceOf(TypeError);
+      expect(er).to.have.property('message', `${error}: ${invalidPathValue} "a" is not a MoveTo path command at index 240`);
     }
   });
 
