@@ -1,4 +1,4 @@
-import type { PathArray, PathSegment } from '../types';
+import type { PointTuple, PathArray, PathSegment } from '../types';
 import type { SegmentProperties } from '../interface';
 import parsePathString from '../parser/parsePathString';
 import getTotalLength from './getTotalLength';
@@ -20,7 +20,7 @@ const getPropertiesAtLength = (pathInput: string | PathArray, distance?: number)
   let lengthAtSegment = 0;
   let length = 0;
   let segment = pathArray[0] as PathSegment;
-  const [x, y] = segment.slice(-2) as [number, number];
+  const [x, y] = segment.slice(-2) as PointTuple;
   const point = { x, y };
 
   // If the path is empty, return 0.

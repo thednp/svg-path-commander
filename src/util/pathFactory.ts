@@ -1,4 +1,4 @@
-import type { MSegment, PathArray, PathSegment, Point } from '../types';
+import type { MSegment, PathArray, PathSegment, Point, PointTuple } from '../types';
 // import type { LengthFactory } from '../interface';
 import normalizePath from '../process/normalizePath';
 import getLineSegmentProperties from '../math/lineTools';
@@ -100,7 +100,7 @@ const pathFactory = (pathInput: string | PathArray, distance?: number) => {
     MAX.push(props.bbox.max);
     LENGTH += props.length;
 
-    [x, y] = pathCommand !== 'Z' ? (seg.slice(-2) as [number, number]) : [mx, my];
+    [x, y] = pathCommand !== 'Z' ? (seg.slice(-2) as PointTuple) : [mx, my];
   }
 
   // native `getPointAtLength` behavior when the given distance

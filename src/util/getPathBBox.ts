@@ -1,5 +1,5 @@
-import { PathBBox } from 'src/interface';
-import { PathArray } from 'src/types';
+import { PathBBox } from '../interface';
+import { PathArray } from '../types';
 import pathFactory from './pathFactory';
 
 /**
@@ -23,11 +23,10 @@ const getPathBBox = (path: PathArray | string): PathBBox => {
     };
   }
 
-  const props = pathFactory(path);
   const {
     min: { x: xMin, y: yMin },
     max: { x: xMax, y: yMax },
-  } = props.bbox;
+  } = pathFactory(path).bbox;
 
   const width = xMax - xMin;
   const height = yMax - yMin;

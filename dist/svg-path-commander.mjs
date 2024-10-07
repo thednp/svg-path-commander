@@ -983,21 +983,21 @@ e.every(([t]) => t === t.toUpperCase()), H = (e) => {
       cy: 0,
       cz: 0
     };
-  const t = yt(e), {
-    min: { x: n, y: s },
-    max: { x: r, y: i }
-  } = t.bbox, o = r - n, c = i - s;
+  const {
+    min: { x: t, y: n },
+    max: { x: s, y: r }
+  } = yt(e).bbox, i = s - t, o = r - n;
   return {
-    width: o,
-    height: c,
-    x: n,
-    y: s,
-    x2: r,
-    y2: i,
-    cx: n + o / 2,
-    cy: s + c / 2,
+    width: i,
+    height: o,
+    x: t,
+    y: n,
+    x2: s,
+    y2: r,
+    cx: t + i / 2,
+    cy: n + o / 2,
     // an estimted guess
-    cz: Math.max(o, c) + Math.min(o, c) / 2
+    cz: Math.max(i, o) + Math.min(i, o) / 2
   };
 }, vt = (e, t, n) => {
   if (e[n].length > 7) {

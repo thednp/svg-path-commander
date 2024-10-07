@@ -1,5 +1,5 @@
 import type { ParserParams } from '../interface';
-import type { NormalSegment, PathSegment } from '../types';
+import type { NormalSegment, PointTuple, PathSegment } from '../types';
 
 /**
  * Normalizes a single segment of a `pathArray` object.
@@ -35,9 +35,9 @@ const normalizeSegment = (segment: PathSegment, params: ParserParams): NormalSeg
     const qy = py1 * 2 - (params.qy ? params.qy : /* istanbul ignore next */ 0);
     params.qx = qx;
     params.qy = qy;
-    result = ['Q', qx, qy, ...(values as [number, number])];
+    result = ['Q', qx, qy, ...(values as PointTuple)];
   } else if (pathCommand === 'Q') {
-    const [nqx, nqy] = values as [number, number];
+    const [nqx, nqy] = values as PointTuple;
     params.qx = nqx;
     params.qy = nqy;
   }

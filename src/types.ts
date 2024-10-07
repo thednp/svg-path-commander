@@ -196,3 +196,5 @@ export type Point = {
   x: number;
   y: number;
 };
+
+export type PointTuple = [number, number];

@@ -1,4 +1,5 @@
-import { PathArray, TransformObjectValues } from './types';
+'use strict';
+import { PointTuple, PathArray, TransformObjectValues } from './types';
 import type { Options, TransformEntries, TransformObject } from './interface';
 export * from './types';
 export * from './interface';
@@ -311,7 +312,7 @@ class SVGPathCommander {
     for (const [k, v] of Object.entries(source) as TransformEntries) {
       // istanbul ignore else @preserve
       if (k === 'skew' && Array.isArray(v)) {
-        transform[k] = v.map(Number) as [number, number];
+        transform[k] = v.map(Number) as PointTuple;
       } else if ((k === 'rotate' || k === 'translate' || k === 'origin' || k === 'scale') && Array.isArray(v)) {
         transform[k] = v.map(Number) as [number, number, number];
       } else if (k !== 'origin' && typeof Number(v) === 'number') transform[k] = Number(v);

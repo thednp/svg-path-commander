@@ -9,7 +9,7 @@ import type {
   SSegment,
   TSegment,
   VSegment,
-} from 'src/types';
+} from '../types';
 import pathToAbsolute from '../convert/pathToAbsolute';
 import normalizePath from './normalizePath';
 

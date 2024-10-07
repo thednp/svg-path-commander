@@ -13,6 +13,7 @@ import type {
   SSegment,
   CSegment,
   MSegment,
+  PointTuple,
 } from '../types';
 
 /**
@@ -85,9 +86,7 @@ const pathToAbsolute = (pathInput: string | PathArray): AbsoluteArray => {
     } else if (absCommand === 'V') {
       [, y] = absoluteSegment as VSegment;
     } else {
-      // x = absoluteSegment[segLength - 2];
-      // y = absoluteSegment[segLength - 1];
-      [x, y] = absoluteSegment.slice(-2) as [number, number];
+      [x, y] = absoluteSegment.slice(-2) as PointTuple;
 
       if (absCommand === 'M') {
         mx = x;

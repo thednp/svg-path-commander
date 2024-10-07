@@ -1,4 +1,4 @@
-import { type Point } from '../types';
+import type { PointTuple, Point } from '../types';
 
 /**
  * Tools from bezier.js by Mike 'Pomax' Kamermans
@@ -198,12 +198,12 @@ export const minmaxQ = (A: [number, number, number]) => {
   /* istanbul ignore else @preserve */
   if (A[1] >= A[0] ? A[2] >= A[1] : A[2] <= A[1]) {
     // if no extremum in ]0,1[
-    return [min, max] as [number, number];
+    return [min, max] as PointTuple;
   }
 
   // check if the extremum E is min or max
   const E = (A[0] * A[2] - A[1] * A[1]) / (A[0] - 2 * A[1] + A[2]);
-  return (E < min ? [E, max] : [min, E]) as [number, number];
+  return (E < min ? [E, max] : [min, E]) as PointTuple;
 };
 
 /**
@@ -219,7 +219,7 @@ export const minmaxC = (A: [number, number, number, number]) => {
   if (Math.abs(K) < CBEZIER_MINMAX_EPSILON) {
     if (A[0] === A[3] && A[0] === A[1]) {
       // no curve, point targeting same location
-      return [A[0], A[3]] as [number, number];
+      return [A[0], A[3]] as PointTuple;
     }
 
     return minmaxQ([A[0], -0.5 * A[0] + 1.5 * A[1], A[0] - 3 * A[1] + 3 * A[2]]);
@@ -230,7 +230,7 @@ export const minmaxC = (A: [number, number, number, number]) => {
 
   // if the polynomial is monotone in [0,1]
   if (T <= 0) {
-    return [Math.min(A[0], A[3]), Math.max(A[0], A[3])] as [number, number];
+    return [Math.min(A[0], A[3]), Math.max(A[0], A[3])] as PointTuple;
   }
   const S = Math.sqrt(T);
 
@@ -257,5 +257,5 @@ export const minmaxC = (A: [number, number, number, number]) => {
     }
   }
 
-  return [min, max] as [number, number];
+  return [min, max] as PointTuple;
 };

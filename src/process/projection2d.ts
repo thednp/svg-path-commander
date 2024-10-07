@@ -1,4 +1,5 @@
 import CSSMatrix from '@thednp/dommatrix';
+import { type PointTuple } from '../types';
 
 /**
  * Transforms a specified point using a matrix, returning a new
@@ -34,7 +35,7 @@ const translatePoint = (cssm: CSSMatrix, v: [number, number, number, number]): [
  * @param origin the [x,y,z] transform origin
  * @returns the projected [x,y] coordinates
  */
-const projection2d = (m: CSSMatrix, point2D: [number, number], origin: [number, number, number]): [number, number] => {
+const projection2d = (m: CSSMatrix, point2D: PointTuple, origin: [number, number, number]): PointTuple => {
   const [originX, originY, originZ] = origin;
   const [x, y, z] = translatePoint(m, [...point2D, 0, 1]);
 

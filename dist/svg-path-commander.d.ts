@@ -364,6 +364,10 @@ export type Point = {
 	x: number;
 	y: number;
 };
+export type PointTuple = [
+	number,
+	number
+];
 /**
  * Creates a new SVGPathCommander instance with the following properties:
  * * segments: `pathArray`
@@ -407,14 +411,8 @@ declare class SVGPathCommander {
 		x: number;
 		y: number;
 	}) => PointProperties;
-	static polygonLength: (polygon: [
-		number,
-		number
-	][]) => number;
-	static polygonArea: (polygon: [
-		number,
-		number
-	][]) => number;
+	static polygonLength: (polygon: PointTuple[]) => number;
+	static polygonArea: (polygon: PointTuple[]) => number;
 	static getClosestPoint: (pathInput: string | PathArray, point: {
 		x: number;
 		y: number;

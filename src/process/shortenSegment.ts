@@ -1,4 +1,4 @@
-import type { ParserParams } from 'src/interface';
+import type { ParserParams } from '../interface';
 import type {
   AbsoluteSegment,
   HSegment,

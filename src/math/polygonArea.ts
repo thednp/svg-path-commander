@@ -1,3 +1,5 @@
+import { type PointTuple } from '../types';
+
 /**
  * d3-polygon-area
  * https://github.com/d3/d3-polygon
@@ -7,7 +9,7 @@
  * @param polygon an array of coordinates
  * @returns the polygon area
  */
-const polygonArea = (polygon: [number, number][]): number => {
+const polygonArea = (polygon: PointTuple[]): number => {
   const n = polygon.length;
   let i = -1;
   let a;

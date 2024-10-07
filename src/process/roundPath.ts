@@ -1,4 +1,4 @@
-import type { PathArray } from 'src/types';
+import type { PathArray } from '../types';
 import defaultOptions from '../options/options';
 
 /**

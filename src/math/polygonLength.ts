@@ -1,3 +1,4 @@
+import { type PointTuple } from '../types';
 import distanceSquareRoot from './distanceSquareRoot';
 
 /**
@@ -9,7 +10,7 @@ import distanceSquareRoot from './distanceSquareRoot';
  * @param polygon an array of coordinates
  * @returns {number} the polygon length
  */
-const polygonLength = (polygon: [number, number][]): number => {
+const polygonLength = (polygon: PointTuple[]): number => {
   return polygon.reduce((length, point, i) => {
     if (i) {
       return length + distanceSquareRoot(polygon[i - 1], point);
