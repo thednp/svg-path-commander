@@ -1,4 +1,3 @@
-import defaultOptions from '../options/options';
 import type { PathArray } from '../types';
 import type { PointProperties } from '../interface';
 import getPointAtLength from './getPointAtLength';
@@ -15,17 +14,12 @@ import normalizePath from '../process/normalizePath';
  *
  * @param pathInput target `pathArray`
  * @param point the given point
- * @param sampleSize the scan resolution
  * @returns the requested properties
  */
-const getPropertiesAtPoint = (
-  pathInput: string | PathArray,
-  point: { x: number; y: number },
-  sampleSize: number = defaultOptions.sampleSize,
-): PointProperties => {
+const getPropertiesAtPoint = (pathInput: string | PathArray, point: { x: number; y: number }): PointProperties => {
   const path = parsePathString(pathInput);
   const normalPath = normalizePath(path);
-  const pathLength = getTotalLength(path, sampleSize);
+  const pathLength = getTotalLength(path);
   const distanceTo = (p: { x: number; y: number }) => {
     const dx = p.x - point.x;
     const dy = p.y - point.y;
@@ -40,8 +34,9 @@ const getPropertiesAtPoint = (
 
   // linear scan for coarse approximation
   for (let scanLength = 0; scanLength <= pathLength; scanLength += precision) {
-    scan = getPointAtLength(normalPath, scanLength, sampleSize);
+    scan = getPointAtLength(normalPath, scanLength);
     scanDistance = distanceTo(scan);
+
     if (scanDistance < bestDistance) {
       closest = scan;
       bestLength = scanLength;
@@ -58,13 +53,14 @@ const getPropertiesAtPoint = (
   let beforeDistance = 0;
   let afterDistance = 0;
 
-  while (precision > 0.5) {
+  while (precision > 0.000001) {
     beforeLength = bestLength - precision;
-    before = getPointAtLength(normalPath, beforeLength, sampleSize);
+    before = getPointAtLength(normalPath, beforeLength);
     beforeDistance = distanceTo(before);
     afterLength = bestLength + precision;
-    after = getPointAtLength(normalPath, afterLength, sampleSize);
+    after = getPointAtLength(normalPath, afterLength);
     afterDistance = distanceTo(after);
+
     if (beforeLength >= 0 && beforeDistance < bestDistance) {
       closest = before;
       bestLength = beforeLength;
@@ -76,9 +72,10 @@ const getPropertiesAtPoint = (
     } else {
       precision /= 2;
     }
+    if (precision < 0.00001) break;
   }
 
-  const segment = getPropertiesAtLength(path, bestLength, sampleSize);
+  const segment = getPropertiesAtLength(path, bestLength);
   const distance = Math.sqrt(bestDistance);
 
   return { closest, distance, segment };

@@ -125,6 +125,7 @@
 
   <script type="module">
     import SVGPathCommander from '../src/index.ts';
+    window.SVGPathCommander = SVGPathCommander;
     const { pathToCurve, pathToString, roundPath, splitPath, reverseCurve, optimizePath } = SVGPathCommander;
     const svg = document.getElementById('test-svg'),
         path = svg.children[0],

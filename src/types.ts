@@ -191,3 +191,8 @@ export type ShapeTags = 'line' | 'polyline' | 'polygon' | 'ellipse' | 'circle' |
 export type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
 
 export type TransformObjectValues = Partial<TransformObject> & { origin: [number, number, number] };
+
+export type Point = {
+  x: number;
+  y: number;
+};

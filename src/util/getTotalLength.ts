@@ -1,6 +1,5 @@
 import type { PathArray } from '../types';
-import pathLengthFactory from './pathLengthFactory';
-import defaultOptions from '../options/options';
+import pathFactory from './pathFactory';
 
 /**
  * Returns the shape total length, or the equivalent to `shape.getTotalLength()`.
@@ -9,13 +8,9 @@ import defaultOptions from '../options/options';
  * with paths that are not `curveArray`.
  *
  * @param pathInput the target `pathArray`
- * @param sampleSize the scan resolution
  * @returns the shape total length
  */
-const getTotalLength = (
-  pathInput: string | PathArray,
-  sampleSize: number | undefined = defaultOptions.sampleSize,
-): number => {
-  return pathLengthFactory(pathInput, undefined, sampleSize).length;
+const getTotalLength = (pathInput: string | PathArray): number => {
+  return pathFactory(pathInput).length;
 };
 export default getTotalLength;

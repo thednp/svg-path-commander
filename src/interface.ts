@@ -108,7 +108,6 @@ export type LengthFactory = {
 export type Options = {
   round: 'auto' | 'off' | number;
   origin: number[];
-  sampleSize: number;
 };
 
 export type PathTransform = {

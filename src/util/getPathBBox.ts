@@ -1,19 +1,14 @@
 import { PathBBox } from 'src/interface';
 import { PathArray } from 'src/types';
-import pathLengthFactory from './pathLengthFactory';
-import defaultOptions from '../options/options';
+import pathFactory from './pathFactory';
 
 /**
  * Returns the bounding box of a shape.
  *
  * @param path the shape `pathArray`
- * @param sampleSize the scan resolution
  * @returns the length of the cubic-bezier segment
  */
-const getPathBBox = (
-  path: PathArray | string,
-  sampleSize: number | undefined = defaultOptions.sampleSize,
-): PathBBox => {
+const getPathBBox = (path: PathArray | string): PathBBox => {
   if (!path) {
     return {
       x: 0,
@@ -28,10 +23,11 @@ const getPathBBox = (
     };
   }
 
+  const props = pathFactory(path);
   const {
     min: { x: xMin, y: yMin },
     max: { x: xMax, y: yMax },
-  } = pathLengthFactory(path, undefined, sampleSize);
+  } = props.bbox;
 
   const width = xMax - xMin;
   const height = yMax - yMin;

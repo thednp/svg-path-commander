@@ -215,13 +215,13 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
 
   it('Test getPointAtLength', () => {
     const pt = new SVGPathCommander('M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z').getPointAtLength(25);
-    expect(pt).to.deep.equal({ x: 8.716821870196814, y: 16 });
+    expect(pt).to.deep.equal({ x: 8.716814692820414, y: 16 });
 
     const pt1 = new SVGPathCommander('M2 0A2 2 0 00 2 0').getPointAtLength(0);
     expect(pt1).to.deep.equal({ x: 2, y: 0 });
 
     const pt2 = new SVGPathCommander('M2 0A0 2 0 00 0 2').getPointAtLength(0.5);
-    expect(pt2).to.deep.equal({x: 1.6464466094067265, y: 0.35355339059327356});
+    expect(pt2).to.deep.equal({x: 1.6464466094067263, y: 0.35355339059327373 });
 
     const pt3 = new SVGPathCommander('M2 0A3 2 0 00 0 2').getPointAtLength(5);
     expect(pt3).to.deep.equal({x: 0, y: 2});

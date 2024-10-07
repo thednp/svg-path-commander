@@ -2,7 +2,7 @@
   "name": "svg-path-commander",
   "author": "thednp",
   "license": "MIT",
-  "version": "2.0.11",
+  "version": "2.1.0",
   "description": "Modern TypeScript tools for SVG",
   "source": "./src/index.ts",
   "main": "./dist/svg-path-commander.js",

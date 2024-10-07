@@ -143,7 +143,6 @@ export type LengthFactory = {
 export type Options = {
 	round: "auto" | "off" | number;
 	origin: number[];
-	sampleSize: number;
 };
 export type PathTransform = {
 	s: PathSegment;
@@ -361,6 +360,10 @@ export type TransformObjectValues = Partial<TransformObject> & {
 		number
 	];
 };
+export type Point = {
+	x: number;
+	y: number;
+};
 /**
  * Creates a new SVGPathCommander instance with the following properties:
  * * segments: `pathArray`
@@ -374,20 +377,36 @@ export type TransformObjectValues = Partial<TransformObject> & {
 declare class SVGPathCommander {
 	static CSSMatrix: typeof CSSMatrix$1;
 	static getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix$1;
-	static getPathBBox: (path: PathArray | string, sampleSize?: number | undefined) => PathBBox;
+	static getPathBBox: (path: PathArray | string) => PathBBox;
 	static getPathArea: (path: PathArray) => number;
-	static getTotalLength: (pathInput: string | PathArray, sampleSize?: number | undefined) => number;
+	static getTotalLength: (pathInput: string | PathArray) => number;
 	static getDrawDirection: (path: string | PathArray) => boolean;
-	static getPointAtLength: (pathInput: string | PathArray, distance: number, sampleSize?: number | undefined) => {
+	static getPointAtLength: (pathInput: string | PathArray, distance: number) => {
 		x: number;
 		y: number;
 	};
-	static pathLengthFactory: (pathInput: string | PathArray, distance: number | undefined, sampleSize?: number | undefined) => LengthFactory;
-	static getPropertiesAtLength: (pathInput: string | PathArray, distance?: number, samplesize?: number) => SegmentProperties;
+	static pathFactory: (pathInput: string | PathArray, distance?: number) => {
+		point: {
+			x: number;
+			y: number;
+		};
+		length: number;
+		readonly bbox: {
+			min: {
+				x: number;
+				y: number;
+			};
+			max: {
+				x: number;
+				y: number;
+			};
+		};
+	};
+	static getPropertiesAtLength: (pathInput: string | PathArray, distance?: number) => SegmentProperties;
 	static getPropertiesAtPoint: (pathInput: string | PathArray, point: {
 		x: number;
 		y: number;
-	}, sampleSize?: number) => PointProperties;
+	}) => PointProperties;
 	static polygonLength: (polygon: [
 		number,
 		number
@@ -399,19 +418,19 @@ declare class SVGPathCommander {
 	static getClosestPoint: (pathInput: string | PathArray, point: {
 		x: number;
 		y: number;
-	}, sampleSize?: number | undefined) => {
+	}) => {
 		x: number;
 		y: number;
 	};
 	static getSegmentOfPoint: (path: string | PathArray, point: {
 		x: number;
 		y: number;
-	}, sampleSize?: number | undefined) => SegmentProperties | undefined;
-	static getSegmentAtLength: (pathInput: string | PathArray, distance?: number, sampleSize?: number) => PathSegment | undefined;
+	}) => SegmentProperties | undefined;
+	static getSegmentAtLength: (pathInput: string | PathArray, distance?: number) => PathSegment | undefined;
 	static isPointInStroke: (pathInput: string | PathArray, point: {
 		x: number;
 		y: number;
-	}, sampleSize?: number) => boolean;
+	}) => boolean;
 	static isValidPath: (pathString: string) => boolean;
 	static isPathArray: (path: unknown) => path is PathArray;
 	static isAbsoluteArray: (path: unknown) => path is AbsoluteArray;
@@ -450,32 +469,31 @@ declare class SVGPathCommander {
 	 * @param config instance options
 	 */
 	constructor(pathValue: string, config?: Partial<Options>);
+	get bbox(): PathBBox;
+	get length(): number;
 	/**
 	 * Returns the path bounding box, equivalent to native `path.getBBox()`.
 	 *
 	 * @public
-	 * @param sampleSize the scan resolution
 	 * @returns the pathBBox
 	 */
-	getBBox(sampleSize?: number | undefined): PathBBox;
+	getBBox(): PathBBox;
 	/**
 	 * Returns the total path length, equivalent to native `path.getTotalLength()`.
 	 *
 	 * @public
-	 * @param sampleSize the scan resolution
 	 * @returns the path total length
 	 */
-	getTotalLength(sampleSize?: number | undefined): number;
+	getTotalLength(): number;
 	/**
 	 * Returns an `{x,y}` point in the path stroke at a given length,
 	 * equivalent to the native `path.getPointAtLength()`.
 	 *
 	 * @public
 	 * @param length the length
-	 * @param sampleSize the scan resolution
 	 * @returns the requested point
 	 */
-	getPointAtLength(length: number, sampleSize?: number | undefined): {
+	getPointAtLength(length: number): {
 		x: number;
 		y: number;
 	};

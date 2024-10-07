@@ -85,6 +85,7 @@ module.exports = {
                 "hoist": "all"
             }
         ],
+        "@typescript-eslint/no-loss-of-precision": "off",
         "@typescript-eslint/no-unused-expressions": "error",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-var-requires": "error",

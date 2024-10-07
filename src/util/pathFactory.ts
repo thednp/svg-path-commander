@@ -1,11 +1,11 @@
-import type { MSegment, PathArray } from '../types';
-import type { LengthFactory } from '../interface';
+import type { MSegment, PathArray, PathSegment, Point } from '../types';
+// import type { LengthFactory } from '../interface';
 import normalizePath from '../process/normalizePath';
-import segmentLineFactory from './segmentLineFactory';
-import segmentArcFactory from './segmentArcFactory';
-import segmentCubicFactory from './segmentCubicFactory';
-import segmentQuadFactory from './segmentQuadFactory';
-import defaultOptions from '../options/options';
+import getLineSegmentProperties from '../math/lineTools';
+import getArcSegmentProperties from '../math/arcTools';
+import getCubicSegmentProperties from '../math/cubicTools';
+import getQuadSegmentProperties from '../math/quadTools';
+import DISTANCE_EPSILON from './distanceEpsilon';
 
 /**
  * Returns a {x,y} point at a given length
@@ -14,32 +14,33 @@ import defaultOptions from '../options/options';
  *
  * @param pathInput the `pathArray` to look into
  * @param distance the length of the shape to look at
- * @param sampleSize the scan resolution, the higher the better accuracy and slower performance
  * @returns the path length, point, min & max
  */
-const pathLengthFactory = (
-  pathInput: string | PathArray,
-  distance: number | undefined,
-  sampleSize: number | undefined = defaultOptions.sampleSize,
-): LengthFactory => {
+const pathFactory = (pathInput: string | PathArray, distance?: number) => {
   const path = normalizePath(pathInput);
   const distanceIsNumber = typeof distance === 'number';
-  let isM;
+  let isM = false;
   let data = [] as number[];
-  let pathCommand;
+  let pathCommand = 'M';
   let x = 0;
   let y = 0;
   let mx = 0;
   let my = 0;
-  let seg;
-  const MIN = [] as { x: number; y: number }[];
-  const MAX = [] as { x: number; y: number }[];
-  let length = 0;
+  let seg = path[0] as PathSegment;
+  const MIN = [] as Point[];
+  const MAX = [] as Point[];
   let min = { x: 0, y: 0 };
-  let max = min;
-  let point = min;
+  let max = { x: 0, y: 0 };
   let POINT = min;
   let LENGTH = 0;
+  let props = {
+    point: { x: 0, y: 0 },
+    length: 0,
+    bbox: {
+      min: { x: 0, y: 0 },
+      max: { x: 0, y: 0 },
+    },
+  };
 
   for (let i = 0, ll = path.length; i < ll; i += 1) {
     seg = path[i];
@@ -47,77 +48,83 @@ const pathLengthFactory = (
     isM = pathCommand === 'M';
     data = !isM ? [x, y, ...(seg.slice(1) as number[])] : data;
 
+    if (distanceIsNumber && distance < DISTANCE_EPSILON) {
+      POINT = min;
+    }
+
     // this segment is always ZERO
     /* istanbul ignore else @preserve */
     if (isM) {
       // remember mx, my for Z
       [, mx, my] = seg as MSegment;
       min = { x: mx, y: my };
-      max = min;
-      length = 0;
-
-      if (distanceIsNumber && distance < 0.001) {
-        POINT = min;
-      }
+      max = { x: mx, y: my };
+      props = {
+        point: min,
+        length: 0,
+        bbox: { min, max },
+      };
     } else if (pathCommand === 'L') {
-      ({ length, min, max, point } = segmentLineFactory(
+      props = getLineSegmentProperties(
         ...(data as [number, number, number, number]),
         distanceIsNumber ? distance - LENGTH : undefined,
-      ));
+      );
     } else if (pathCommand === 'A') {
-      ({ length, min, max, point } = segmentArcFactory(
+      props = getArcSegmentProperties(
         ...(data as [number, number, number, number, number, number, number, number, number]),
         distanceIsNumber ? distance - LENGTH : undefined,
-        sampleSize,
-      ));
+      );
     } else if (pathCommand === 'C') {
-      ({ length, min, max, point } = segmentCubicFactory(
+      props = getCubicSegmentProperties(
         ...(data as [number, number, number, number, number, number, number, number]),
         distanceIsNumber ? distance - LENGTH : undefined,
-        sampleSize,
-      ));
+      );
     } else if (pathCommand === 'Q') {
-      ({ length, min, max, point } = segmentQuadFactory(
+      props = getQuadSegmentProperties(
         ...(data as [number, number, number, number, number, number]),
         distanceIsNumber ? distance - LENGTH : undefined,
-        sampleSize,
-      ));
+      );
     } else if (pathCommand === 'Z') {
       data = [x, y, mx, my];
-      ({ length, min, max, point } = segmentLineFactory(
+      props = getLineSegmentProperties(
         ...(data as [number, number, number, number]),
         distanceIsNumber ? distance - LENGTH : undefined,
-      ));
+      );
     }
 
-    if (distanceIsNumber && LENGTH < distance && LENGTH + length >= distance) {
-      POINT = point;
+    if (distanceIsNumber && LENGTH < distance && LENGTH + props.length >= distance) {
+      POINT = props.point;
     }
 
-    MAX.push(max);
-    MIN.push(min);
-    LENGTH += length;
+    MIN.push(props.bbox.min);
+    MAX.push(props.bbox.max);
+    LENGTH += props.length;
 
     [x, y] = pathCommand !== 'Z' ? (seg.slice(-2) as [number, number]) : [mx, my];
   }
 
   // native `getPointAtLength` behavior when the given distance
   // is higher than total length
-  if (distanceIsNumber && distance >= LENGTH) {
+  if (distanceIsNumber && distance > LENGTH - DISTANCE_EPSILON) {
     POINT = { x, y };
   }
 
   return {
-    length: LENGTH,
     point: POINT,
-    min: {
-      x: Math.min(...MIN.map(n => n.x)),
-      y: Math.min(...MIN.map(n => n.y)),
-    },
-    max: {
-      x: Math.max(...MAX.map(n => n.x)),
-      y: Math.max(...MAX.map(n => n.y)),
+    length: LENGTH,
+    get bbox() {
+      return {
+        min: {
+          x: Math.min(...MIN.map(n => n.x)),
+          y: Math.min(...MIN.map(n => n.y)),
+        },
+        max: {
+          x: Math.max(...MAX.map(n => n.x)),
+          y: Math.max(...MAX.map(n => n.y)),
+        },
+      };
     },
   };
 };
-export default pathLengthFactory;
+
+export default pathFactory;

@@ -1,5 +1,5 @@
 import { PathArray, TransformObjectValues } from './types';
-import { Options, PathBBox, TransformEntries, TransformObject } from './interface';
+import type { Options, TransformEntries, TransformObject } from './interface';
 export * from './types';
 export * from './interface';
 import defaultOptions from './options/options';
@@ -16,7 +16,7 @@ import getPathArea from './util/getPathArea';
 import getTotalLength from './util/getTotalLength';
 import getDrawDirection from './util/getDrawDirection';
 import getPointAtLength from './util/getPointAtLength';
-import pathLengthFactory from './util/pathLengthFactory';
+import pathFactory from './util/pathFactory';
 
 import getPropertiesAtLength from './util/getPropertiesAtLength';
 import getPropertiesAtPoint from './util/getPropertiesAtPoint';
@@ -69,7 +69,7 @@ class SVGPathCommander {
   public static getTotalLength = getTotalLength;
   public static getDrawDirection = getDrawDirection;
   public static getPointAtLength = getPointAtLength;
-  public static pathLengthFactory = pathLengthFactory;
+  public static pathFactory = pathFactory;
   public static getPropertiesAtLength = getPropertiesAtLength;
   public static getPropertiesAtPoint = getPropertiesAtPoint;
   public static polygonLength = polygonLength;
@@ -119,13 +119,8 @@ class SVGPathCommander {
     }
 
     const segments = parsePathString(pathValue);
-    // if (typeof segments === 'string') {
-    //   throw TypeError(segments);
-    // }
-
     this.segments = segments;
-
-    const { width, height, cx, cy, cz } = this.getBBox(20);
+    const { width, height, cx, cy, cz } = this.bbox;
 
     // set instance options.round
     const { round: roundOption, origin: originOption } = instanceOptions;
@@ -142,7 +137,8 @@ class SVGPathCommander {
 
     // set instance options.origin
     // the SVGPathCommander class will always override the default origin
-    let origin: [number, number, number];
+    let origin = [cx, cy, cz] as [number, number, number];
+    /* istanbul ignore else @preserve */
     if (Array.isArray(originOption) && originOption.length >= 2) {
       const [originX, originY, originZ] = originOption.map(Number);
       origin = [
@@ -150,8 +146,6 @@ class SVGPathCommander {
         !Number.isNaN(originY) ? originY : cy,
         !Number.isNaN(originZ) ? originZ : cz,
       ];
-    } else {
-      origin = [cx, cy, cz];
     }
 
     this.round = round;
@@ -159,27 +153,31 @@ class SVGPathCommander {
 
     return this;
   }
+  get bbox() {
+    return getPathBBox(this.segments);
+  }
+  get length() {
+    return getTotalLength(this.segments);
+  }
 
   /**
    * Returns the path bounding box, equivalent to native `path.getBBox()`.
    *
    * @public
-   * @param sampleSize the scan resolution
    * @returns the pathBBox
    */
-  getBBox(sampleSize: number | undefined = defaultOptions.sampleSize): PathBBox {
-    return getPathBBox(this.segments, sampleSize);
+  getBBox() {
+    return this.bbox;
   }
 
   /**
    * Returns the total path length, equivalent to native `path.getTotalLength()`.
    *
    * @public
-   * @param sampleSize the scan resolution
    * @returns the path total length
    */
-  getTotalLength(sampleSize: number | undefined = defaultOptions.sampleSize) {
-    return getTotalLength(this.segments, sampleSize);
+  getTotalLength() {
+    return this.length;
   }
 
   /**
@@ -188,11 +186,10 @@ class SVGPathCommander {
    *
    * @public
    * @param length the length
-   * @param sampleSize the scan resolution
    * @returns the requested point
    */
-  getPointAtLength(length: number, sampleSize: number | undefined = defaultOptions.sampleSize) {
-    return getPointAtLength(this.segments, length, sampleSize);
+  getPointAtLength(length: number) {
+    return getPointAtLength(this.segments, length);
   }
 
   /**
@@ -243,23 +240,22 @@ class SVGPathCommander {
     const subPath = split.length > 1 ? split : false;
 
     const absoluteMultiPath = subPath
-      ? [...subPath].map((x, i) => {
+      ? subPath.map((x, i) => {
           if (onlySubpath) {
-            // return i ? reversePath(x) : parsePathString(x);
-            return i ? reversePath(x) : [...x];
+            return i ? reversePath(x) : x.slice(0);
           }
           return reversePath(x);
         })
-      : [...segments];
+      : segments.slice(0);
 
-    let path = [];
+    let path = [] as unknown as PathArray;
     if (subPath) {
-      path = absoluteMultiPath.flat(1);
+      path = absoluteMultiPath.flat(1) as PathArray;
     } else {
       path = onlySubpath ? segments : reversePath(segments);
     }
 
-    this.segments = [...path] as PathArray;
+    this.segments = path.slice(0) as PathArray;
     return this;
   }
 

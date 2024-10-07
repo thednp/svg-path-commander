@@ -1,0 +1,3 @@
+const DISTANCE_EPSILON = 0.00001;
+
+export default DISTANCE_EPSILON;
