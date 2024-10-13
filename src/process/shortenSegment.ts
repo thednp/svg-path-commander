@@ -28,8 +28,8 @@ const shortenSegment = (
 ): ShortSegment => {
   const [pathCommand] = segment;
   const round4 = (n: number) => Math.round(n * 10 ** 4) / 10 ** 4;
-  const segmentValues = segment.slice(1).map(n => +n);
-  const normalValues = normalSegment.slice(1).map(n => +n);
+  const segmentValues = segment.slice(1) as number[];
+  const normalValues = normalSegment.slice(1) as number[];
   const { x1: px1, y1: py1, x2: px2, y2: py2, x: px, y: py } = params;
   let result = segment;
   const [x, y] = normalValues.slice(-2);

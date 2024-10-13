@@ -1,7 +1,6 @@
 import scanSegment from './scanSegment';
 import skipSpaces from './skipSpaces';
 import PathParser from './pathParser';
-import isPathArray from '../util/isPathArray';
 import type { PathArray } from '../types';
 
 /**
@@ -11,9 +10,10 @@ import type { PathArray } from '../types';
  * @param pathInput the string to be parsed
  * @returns the resulted `pathArray` or error string
  */
-const parsePathString = (pathInput: string | PathArray): PathArray => {
-  if (isPathArray(pathInput)) {
+const parsePathString = (pathInput: string | PathArray) => {
+  if (typeof pathInput !== 'string') {
     return pathInput.slice(0) as PathArray;
+    // return pathInput;
   }
 
   const path = new PathParser(pathInput);
@@ -24,7 +24,7 @@ const parsePathString = (pathInput: string | PathArray): PathArray => {
     scanSegment(path);
   }
 
-  if (path.err && path.err.length) {
+  if (path?.err.length) {
     throw TypeError(path.err);
   }
 

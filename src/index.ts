@@ -17,7 +17,6 @@ import getPathArea from './util/getPathArea';
 import getTotalLength from './util/getTotalLength';
 import getDrawDirection from './util/getDrawDirection';
 import getPointAtLength from './util/getPointAtLength';
-import pathFactory from './util/pathFactory';
 
 import getPropertiesAtLength from './util/getPropertiesAtLength';
 import getPropertiesAtPoint from './util/getPropertiesAtPoint';
@@ -44,7 +43,6 @@ import reversePath from './process/reversePath';
 import normalizePath from './process/normalizePath';
 import transformPath from './process/transformPath';
 import splitCubic from './process/splitCubic';
-import replaceArc from './process/replaceArc';
 
 import pathToAbsolute from './convert/pathToAbsolute';
 import pathToRelative from './convert/pathToRelative';
@@ -62,7 +60,6 @@ import pathToString from './convert/pathToString';
  * @returns a new SVGPathCommander instance
  */
 class SVGPathCommander {
-  // bring main utilities to front
   public static CSSMatrix = CSSMatrix;
   public static getSVGMatrix = getSVGMatrix;
   public static getPathBBox = getPathBBox;
@@ -70,7 +67,6 @@ class SVGPathCommander {
   public static getTotalLength = getTotalLength;
   public static getDrawDirection = getDrawDirection;
   public static getPointAtLength = getPointAtLength;
-  public static pathFactory = pathFactory;
   public static getPropertiesAtLength = getPropertiesAtLength;
   public static getPropertiesAtPoint = getPropertiesAtPoint;
   public static polygonLength = polygonLength;
@@ -91,7 +87,6 @@ class SVGPathCommander {
   public static roundPath = roundPath;
   public static splitPath = splitPath;
   public static splitCubic = splitCubic;
-  public static replaceArc = replaceArc;
   public static optimizePath = optimizePath;
   public static reverseCurve = reverseCurve;
   public static reversePath = reversePath;
@@ -121,16 +116,12 @@ class SVGPathCommander {
 
     const segments = parsePathString(pathValue);
     this.segments = segments;
-    const { width, height, cx, cy, cz } = this.bbox;
 
-    // set instance options.round
+    // // set instance options.round
     const { round: roundOption, origin: originOption } = instanceOptions;
     let round: number | 'off';
 
-    if (roundOption === 'auto') {
-      const pathScale = `${Math.floor(Math.max(width, height))}`.length;
-      round = pathScale >= 4 ? 0 : 4 - pathScale;
-    } else if (Number.isInteger(roundOption) || roundOption === 'off') {
+    if (Number.isInteger(roundOption) || roundOption === 'off') {
       round = roundOption as number | 'off';
     } else {
       round = defaultOptions.round as number;
@@ -138,14 +129,14 @@ class SVGPathCommander {
 
     // set instance options.origin
     // the SVGPathCommander class will always override the default origin
-    let origin = [cx, cy, cz] as [number, number, number];
+    let origin = defaultOptions.origin as [number, number, number];
     /* istanbul ignore else @preserve */
     if (Array.isArray(originOption) && originOption.length >= 2) {
       const [originX, originY, originZ] = originOption.map(Number);
       origin = [
-        !Number.isNaN(originX) ? originX : cx,
-        !Number.isNaN(originY) ? originY : cy,
-        !Number.isNaN(originZ) ? originZ : cz,
+        !Number.isNaN(originX) ? originX : 0,
+        !Number.isNaN(originY) ? originY : 0,
+        !Number.isNaN(originZ) ? originZ : 0,
       ];
     }
 
@@ -339,7 +330,8 @@ class SVGPathCommander {
    * @public
    */
   flipX() {
-    this.transform({ rotate: [0, 180, 0] });
+    const { cx, cy } = this.bbox;
+    this.transform({ rotate: [0, 180, 0], origin: [cx, cy, 0] });
     return this;
   }
 
@@ -349,7 +341,8 @@ class SVGPathCommander {
    * @public
    */
   flipY() {
-    this.transform({ rotate: [180, 0, 0] });
+    const { cx, cy } = this.bbox;
+    this.transform({ rotate: [180, 0, 0], origin: [cx, cy, 0] });
     return this;
   }
 

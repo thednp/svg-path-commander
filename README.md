@@ -4,7 +4,7 @@
 [![NPM Version](https://img.shields.io/npm/v/svg-path-commander.svg)](https://www.npmjs.com/package/svg-path-commander)
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg)](http://npm-stat.com/charts.html?svg-path-commander)
 [![jsDeliver](https://img.shields.io/jsdelivr/npm/hw/svg-path-commander)](https://www.jsdelivr.com/package/npm/svg-path-commander)
-[![typescript version](https://img.shields.io/badge/typescript-5.6.2-brightgreen)](https://www.typescriptlang.org/)
+[![typescript version](https://img.shields.io/badge/typescript-5.6.3-brightgreen)](https://www.typescriptlang.org/)
 [![prettier version](https://img.shields.io/badge/prettier-2.8.8-brightgreen)](https://prettier.io/)
 [![eslint version](https://img.shields.io/badge/eslint-8.57.1-brightgreen)](https://github.com/eslint)
 [![vitest version](https://img.shields.io/badge/vitest-2.1.2-brightgreen)](https://vitest.dev/)
@@ -75,7 +75,7 @@ const transform = {
   rotate: 15, // Z axis rotation
   scale: 0.75, // uniform scale on X, Y, Z axis
   skew: 15, // skew 15deg on the X axis
-  origin: [15, 0] // if not specified, it will calculate a bounding box to determine a proper `transform-origin`
+  origin: [15, 0] // if not specified, it will use the default origin value [0, 0]
 }
 const transformed2DPathString = new SVGPathCommander(path).transform(transform).toString();
 
@@ -88,6 +88,21 @@ const transform = {
   origin: [15, 15, 15] // full `transform-origin` for a typical 3D transformation
 }
 const transformed3DPathString = new SVGPathCommander(path).transform(transform).toString();
+```
+
+Access the `bbox` instance property to apply a consistent `transform-origin`:
+```js
+// apply a 3D transformation with a consistent origin
+const transformed3DPath = new SVGPathCommander(path);
+const { cx, cy, cz } = transformed3DPath.bbox;
+const transform = {
+  translate: [15, 15, 15], // `[15, 15]` would apply a 2D translation, and only `15` for X axis translation
+  rotate: [15, 15, 15], // or only "15" for 2D rotation on Z axis
+  scale: [0.7, 0.75, 0.8], // or only "0.7" for 2D scale on all X, Y, Z axis
+  skew: [15, 15], // or only "15" for the X axis
+  origin: [cx, cy, cz] // the origin
+}
+const transformed3DPathString = transformed3DPath.transform(transform).toString();
 ```
 
 SVGPathCommander comes with a full range of additional static methods, here's how to normalize a path:
@@ -112,12 +127,52 @@ const myPathString = SVGPathCommander.pathToString([['M', 0, 0], ['L', 50, 0]]);
 // result => 'M0 0 L50 0'
 ```
 
-
 Check a path string validity:
 ```js
 SVGPathCommander.isValidPath(path);
 // result => boolean
 ```
+
+Check if path is a certain kind of `PathArray`:
+```js
+SVGPathCommander.isAbsoluteArray([['M', 0, 0], ['L', 50, 0]]);
+// result => true
+```
+
+Create a custom function to apply a 3D transformation using static methods:
+```ts
+import { parsePathString, getPathBBox, transformPath, pathToString } from 'svg-path-commander';
+
+function myTransformFn(pathInput: string | PathArray, transformObject: TransformObject) {
+  const path = parsePathString(pathInput);
+  const { cx, cy, cz } = getPathBBox(path);
+
+  return pathToString(
+    transformPath(path, {
+      ...transformObject, origin: [cx, cy, cz]
+    })
+  )
+}
+```
+In extreme cases where performance is paramount, you can consider the parent SVG `viewBox` attribute to extract a bounding box required for a consistent transform origin.
+
+```ts
+// const svgViewBox = document.getElementById('my-svg').getAttribute('viewBox');
+const viewBox = '0 0 24 24';
+
+const [x, y, width, height] = viewBox.split(/\s/).map(Number);
+const origin = [
+  x + width / 2, // CX
+  y + height / 2, // CY
+  Math.max(width, height) + Math.min(width, height) / 2, // CZ
+];
+
+// use this origin for your shape transformation
+const myNewString = new SVGPathCommander('M0 0 H50')
+  .transform({ rotate: [35, 0, 0], origin })
+  .toString();
+```
+
 
 Convert a shape to `<path>` and transfer all non-specific attributes
 ```js
@@ -213,6 +268,7 @@ For developer guidelines, and a complete list of static methods, head over to th
 * James Halliday for his excelent [point-at-length](https://github.com/substack/point-at-length)
 * Eric Eastwood for his excelent [svg-curve-lib](https://github.com/MadLittleMods/svg-curve-lib)
 * PhET Interactive Simulations for their [kite](https://github.com/phetsims/kite)
+* [herrstrietzel](https://github.com/herrstrietzel) for his awesome [svg-pathdata-getbbox](https://github.com/herrstrietzel/svg-pathdata-getbbox)
 
 # License
 **SVGPathCommander** is released under [MIT Licence](https://github.com/thednp/svg-path-commander/blob/master/LICENSE).

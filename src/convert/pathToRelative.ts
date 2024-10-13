@@ -1,14 +1,15 @@
 import type {
-  aSegment,
+  AbsoluteCommand,
   hSegment,
   PathArray,
+  PointTuple,
   RelativeArray,
   RelativeCommand,
-  RelativeSegment,
   vSegment,
 } from '../types';
 import parsePathString from '../parser/parsePathString';
-import isRelativeArray from '../util/isRelativeArray';
+import iterate from '../process/iterate';
+import relativizeSegment from '../process/relativizeSegment';
 
 /**
  * Parses a path string value or object and returns an array
@@ -18,75 +19,45 @@ import isRelativeArray from '../util/isRelativeArray';
  * @returns the resulted `pathArray` with relative values
  */
 const pathToRelative = (pathInput: string | PathArray): RelativeArray => {
-  /* istanbul ignore else */
-  if (isRelativeArray(pathInput)) {
-    return pathInput.slice(0) as RelativeArray;
-  }
-
-  const path = parsePathString(pathInput);
   let x = 0;
   let y = 0;
   let mx = 0;
   let my = 0;
+  let pathCommand = 'M';
+  const path = parsePathString(pathInput);
 
-  return path.map(segment => {
-    const values = segment.slice(1).map(Number);
-    const [pathCommand] = segment;
-    const relativeCommand = pathCommand.toLowerCase() as RelativeCommand;
+  return iterate<RelativeArray>(path, (seg, params, i) => {
+    [pathCommand] = seg;
+    const result = relativizeSegment(seg, params, i);
+    const [resultedCommand] = result;
+    const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
+    const relCommand = pathCommand.toLowerCase() as RelativeCommand;
+    const isRelative = resultedCommand === relCommand;
 
-    if (pathCommand === 'M') {
-      [x, y] = values;
-      mx = x;
-      my = y;
-      return ['M', x, y];
-    }
-
-    let relativeSegment = [];
-
-    if (pathCommand !== relativeCommand) {
-      if (relativeCommand === 'a') {
-        relativeSegment = [
-          relativeCommand,
-          values[0],
-          values[1],
-          values[2],
-          values[3],
-          values[4],
-          values[5] - x,
-          values[6] - y,
-        ] as aSegment;
-      } else if (relativeCommand === 'v') {
-        relativeSegment = [relativeCommand, values[0] - y] as vSegment;
-      } else if (relativeCommand === 'h') {
-        relativeSegment = [relativeCommand, values[0] - x] as hSegment;
-      } else {
-        // use brakets for `eslint: no-case-declaration`
-        // https://stackoverflow.com/a/50753272/803358
-        const relValues = values.map((n, j) => n - (j % 2 ? y : x));
-        relativeSegment = [relativeCommand, ...relValues] as RelativeSegment;
-      }
-    } else {
-      if (pathCommand === 'm') {
-        mx = values[0] + x;
-        my = values[1] + y;
-      }
-      relativeSegment = [relativeCommand, ...values] as RelativeSegment;
-    }
-
-    const segLength = relativeSegment.length;
-    if (relativeCommand === 'z') {
+    if (absCommand === 'Z') {
       x = mx;
       y = my;
-    } else if (relativeCommand === 'h') {
-      x += relativeSegment[1] as number;
-    } else if (relativeCommand === 'v') {
-      y += relativeSegment[1] as number;
+    } else if (absCommand === 'H') {
+      [, x] = result as hSegment;
+      x += isRelative ? params.x : /* istanbul ignore next @preserve */ 0;
+    } else if (absCommand === 'V') {
+      [, y] = result as vSegment;
+      y += isRelative ? params.y : /* istanbul ignore next @preserve */ 0;
     } else {
-      x += relativeSegment[segLength - 2] as number;
-      y += relativeSegment[segLength - 1] as number;
+      [x, y] = result.slice(-2) as PointTuple;
+      x += isRelative ? params.x : 0;
+      y += isRelative ? params.y : 0;
+
+      if (absCommand === 'M') {
+        mx = x;
+        my = y;
+      }
     }
 
-    return relativeSegment as typeof segment;
-  }) as RelativeArray;
+    params.x = x;
+    params.y = y;
+
+    return result;
+  });
 };
 export default pathToRelative;

@@ -1,8 +1,8 @@
-import pathToAbsolute from '../convert/pathToAbsolute';
 import normalizeSegment from './normalizeSegment';
-import isNormalizedArray from '../util/isNormalizedArray';
-import paramsParser from '../parser/paramsParser';
-import type { NormalArray, PathArray } from '../types';
+import type { AbsoluteCommand, NormalArray, PathArray, PointTuple } from '../types';
+import iterate from './iterate';
+import parsePathString from '../parser/parsePathString';
+import absolutizeSegment from './absolutizeSegment';
 
 /**
  * Normalizes a `path` object for further processing:
@@ -12,33 +12,39 @@ import type { NormalArray, PathArray } from '../types';
  * @param pathInput the string to be parsed or 'pathArray'
  * @returns the normalized `pathArray`
  */
-const normalizePath = (pathInput: string | PathArray): NormalArray => {
-  if (isNormalizedArray(pathInput)) {
-    return pathInput.slice(0) as NormalArray;
-  }
+const normalizePath = (pathInput: string | PathArray) => {
+  let x = 0;
+  let y = 0;
+  let mx = 0;
+  let my = 0;
+  let pathCommand = 'M';
 
-  const path = pathToAbsolute(pathInput);
-  const params = { ...paramsParser };
-  const allPathCommands = [];
-  const ii = path.length;
-  let pathCommand = '';
+  return iterate<NormalArray>(parsePathString(pathInput), (seg, params) => {
+    const absoluteSegment = absolutizeSegment(seg, params);
+    const result = normalizeSegment(absoluteSegment, params);
+    [pathCommand] = result;
+    const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
 
-  for (let i = 0; i < ii; i += 1) {
-    [pathCommand] = path[i];
+    if (absCommand === 'Z') {
+      x = mx;
+      y = my;
+    } else {
+      [x, y] = result.slice(-2) as PointTuple;
 
-    // Save current path command
-    allPathCommands[i] = pathCommand;
-    path[i] = normalizeSegment(path[i], params);
+      if (absCommand === 'M') {
+        mx = x;
+        my = y;
+      }
+    }
 
-    const segment = path[i];
-    const seglen = segment.length;
-
-    params.x1 = +segment[seglen - 2];
-    params.y1 = +segment[seglen - 1];
-    params.x2 = +segment[seglen - 4] || params.x1;
-    params.y2 = +segment[seglen - 3] || params.y1;
-  }
-
-  return path as NormalArray;
+    // const seglen = result.length;
+    // params.x1 = +result[seglen - 2];
+    // params.y1 = +result[seglen - 1];
+    // params.x2 = +result[seglen - 4] || params.x1;
+    // params.y2 = +result[seglen - 3] || params.y1;
+    params.x = x;
+    params.y = y;
+    return result;
+  });
 };
 export default normalizePath;

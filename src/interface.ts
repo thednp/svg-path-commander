@@ -106,7 +106,7 @@ export type LengthFactory = {
 };
 
 export type Options = {
-  round: 'auto' | 'off' | number;
+  round: 'off' | number;
   origin: number[];
 };
 

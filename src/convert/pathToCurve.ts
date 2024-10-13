@@ -1,9 +1,9 @@
-import fixArc from '../process/fixArc';
-import isCurveArray from '../util/isCurveArray';
-import normalizePath from '../process/normalizePath';
 import segmentToCubic from '../process/segmentToCubic';
-import paramsParser from '../parser/paramsParser';
-import { CurveArray, PathArray, PathCommand } from '../types';
+import { AbsoluteCommand, CSegment, CurveArray, PathArray, PointTuple } from '../types';
+import iterate from '../process/iterate';
+import parsePathString from '../parser/parsePathString';
+import normalizeSegment from '../process/normalizeSegment';
+import absolutizeSegment from '../process/absolutizeSegment';
 
 /**
  * Parses a path string value or 'pathArray' and returns a new one
@@ -16,34 +16,42 @@ import { CurveArray, PathArray, PathCommand } from '../types';
  * @returns the resulted `pathArray` converted to cubic-bezier
  */
 const pathToCurve = (pathInput: string | PathArray): CurveArray => {
-  /* istanbul ignore else */
-  if (isCurveArray(pathInput)) {
-    return pathInput.slice(0) as CurveArray;
-  }
+  let x = 0;
+  let y = 0;
+  let mx = 0;
+  let my = 0;
+  let pathCommand = 'M';
 
-  const path = normalizePath(pathInput);
-  const params = { ...paramsParser };
-  const allPathCommands = [] as PathCommand[];
-  let pathCommand = ''; // ts-lint
-  let ii = path.length;
+  const path = parsePathString(pathInput);
+  return iterate<CurveArray>(path, (seg, params, i) => {
+    const absSegment = absolutizeSegment(seg, params);
+    [pathCommand] = absSegment;
 
-  for (let i = 0; i < ii; i += 1) {
-    [pathCommand] = path[i];
-    allPathCommands[i] = pathCommand as PathCommand;
+    const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
+    const normalSegment = normalizeSegment(absSegment, params);
+    let result = segmentToCubic(normalSegment, params);
+    const isLongArc = result[0] === 'C' && result.length > 7;
 
-    path[i] = segmentToCubic(path[i], params);
+    if (isLongArc) {
+      path.splice(i + 1, 0, ['C', ...result.slice(7)] as CSegment);
+      result = result.slice(0, 7) as CSegment;
+    }
 
-    fixArc(path, allPathCommands, i);
-    ii = path.length;
+    if (absCommand === 'Z') {
+      x = mx;
+      y = my;
+    } else {
+      [x, y] = result.slice(-2) as PointTuple;
 
-    const segment = path[i];
-    const seglen = segment.length;
-    params.x1 = +segment[seglen - 2];
-    params.y1 = +segment[seglen - 1];
-    params.x2 = +segment[seglen - 4] || params.x1;
-    params.y2 = +segment[seglen - 3] || params.y1;
-  }
+      if (absCommand === 'M') {
+        mx = x;
+        my = y;
+      }
+    }
 
-  return path as CurveArray;
+    params.x = x;
+    params.y = y;
+    return result;
+  });
 };
 export default pathToCurve;

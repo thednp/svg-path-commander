@@ -1,4 +1,13 @@
-import type { LineAttr, CircleAttr, PolyAttr, RectAttr, EllipseAttr, GlyphAttr, TransformObject } from './interface';
+import type {
+  LineAttr,
+  CircleAttr,
+  PolyAttr,
+  RectAttr,
+  EllipseAttr,
+  GlyphAttr,
+  TransformObject,
+  ParserParams,
+} from './interface';
 
 export type SpaceNumber =
   | 0x1680
@@ -198,3 +207,26 @@ export type Point = {
 };
 
 export type PointTuple = [number, number];
+
+export type DerivedPoint = Point & { t: number };
+export type QuadPoints = [Point, Point, Point, Point, Point, Point];
+export type CubicPoints = [Point, Point, Point, Point, Point, Point, Point, Point];
+export type DerivedQuadPoints = [DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint];
+export type DerivedCubicPoints = [
+  DerivedPoint,
+  DerivedPoint,
+  DerivedPoint,
+  DerivedPoint,
+  DerivedPoint,
+  DerivedPoint,
+  DerivedPoint,
+  DerivedPoint,
+];
+export type QuadCoordinates = [number, number, number, number, number, number];
+export type CubicCoordinates = [number, number, number, number, number, number, number, number];
+export type ArcCoordinates = [number, number, number, number, number, number, number, number, number];
+export type LineCoordinates = [number, number, number, number];
+
+export type DeriveCallback = (t: number) => Point;
+
+export type IteratorCallback = (segment: PathSegment, params: ParserParams, index: number) => PathSegment;

@@ -57,6 +57,9 @@
           <button type="button" data-bs-toggle="tooltip" title="Initialize, optimize, remove decimals, and update pathString" onclick="toOptimal()">Optimize</button>
           <button type="button" data-bs-toggle="tooltip" title="Initialize, reverse, optimize and update pathString" onclick="toRev()">Reverse</button>
           <button type="button" data-bs-toggle="tooltip" title="Initialize, reverse subpath, optimize and update pathString" onclick="toRev(1)">Reverse Subpath</button>
+          <button type="button" data-bs-toggle="tooltip" title="Show 100 points at equal lengths" onclick="setPointAtLength()">PointAtLength</button>
+          <button type="button" data-bs-toggle="tooltip" title="Show path total length in the console" onclick="showTotalLength()">TotalLength</button>
+          <button type="button" data-bs-toggle="tooltip" title="Show path bounding box in the console" onclick="showBBox()">BoundingBox</button>
         </p>
         
         <p><b>KUTE.js Tools</b></p>
@@ -165,7 +168,8 @@
       
       outputTextArea.style.height = ''
       outputTextArea.value = pv.toString();
-      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
+      removePointAtLength();
     }
 
     function toNormal() { // normalize
@@ -177,7 +181,8 @@
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
       outputTextArea.value = nm.toString();
-      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
+      removePointAtLength();
     }
 
     function toOptimal() { // optimize
@@ -189,7 +194,8 @@
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
       outputTextArea.value = opt.toString();
-      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
+      removePointAtLength();
     }
 
     // inputTextArea.value = shapes[2];
@@ -203,7 +209,8 @@
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
       outputTextArea.value = absPath.toString();
-      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
+      removePointAtLength();
     }
 
     function toRel() { // To relative coordinates
@@ -215,7 +222,8 @@
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
       outputTextArea.value = relPath.toString();
-      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
+      removePointAtLength();
     }
 
     let usedCurve = false;
@@ -233,6 +241,7 @@
       if (!usedCurve) 
       console.warn(`The "toCurve()" instance example doesn\'t round the path values as configured with 'round: off' option.`);
       usedCurve = true;
+      removePointAtLength();
     }
 
     function toRevCurve(onlySubpath) { // To curve coordinates
@@ -245,7 +254,8 @@
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
       outputTextArea.value = cv.toString();
-      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
+      removePointAtLength();
     }
     function toRev(onlySubpath) { // reverse coordinates
       pathValue = inputTextArea.value || pathValue
@@ -257,7 +267,8 @@
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
       outputTextArea.value = revPath;
-      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
+      removePointAtLength();
     }
     function toSplit() { // split coordinates
       pathValue = inputTextArea.value || pathValue
@@ -269,14 +280,15 @@
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
       outputTextArea.value = splitPath(absPath.segments).map(x => new SVGPathCommander(x).toRelative().toString()).join('\r\n\r\n');
-      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
+      removePointAtLength();
     }
     function flipX() { // transform
       pathValue = inputTextArea.value || pathValue         
       
       var tfPath = new SVGPathCommander( pathValue )
       .flipX()
-      .optimize()
+      // .optimize()
       .toString();
       
       path.setAttribute('d', tfPath);
@@ -285,6 +297,7 @@
       outputTextArea.style.height = ''
       outputTextArea.value = tfPath;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      removePointAtLength()
     }
     function flipY() { // transform
       pathValue = inputTextArea.value || pathValue         
@@ -300,6 +313,7 @@
       outputTextArea.style.height = ''
       outputTextArea.value = tfPath;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      removePointAtLength()
     }
     function flipXY() { // transform
       pathValue = inputTextArea.value || pathValue         
@@ -315,20 +329,79 @@
       outputTextArea.style.height = ''
       outputTextArea.value = tfPath;
       outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      removePointAtLength()
     }
     function transform(transformObject) { // transform
       pathValue = inputTextArea.value || pathValue         
       transformObject = transformObject || { translate: 1, skew: 15, rotate:-45, scale: 0.5 }
       
-      var tfPath = new SVGPathCommander( pathValue ).transform(transformObject).optimize().toString();
-      
+      // var tfPath = new SVGPathCommander( pathValue ).transform(transformObject).optimize().toString();
+      var tf = new SVGPathCommander( pathValue );
+      var { cx, cy, cz } = tf.bbox;
+      var tfPath = tf.transform({ ...transformObject, origin: [cx, cy, cz]}).optimize().toString();
+
       path.setAttribute('d', tfPath);
       path.setAttribute('fill', randomColor());
       svg.setAttribute('viewBox',document.getElementById('i1').value||'0 0 16 16');
       outputTextArea.style.height = ''
       outputTextArea.value = tfPath;
-      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px'
+      outputTextArea.style.height = (outputTextArea.scrollHeight - vertSpacing) + 'px';
+      removePointAtLength();
     }
+
+    const removePointAtLength = () => {
+      [...path.parentElement.getElementsByTagName('circle')].forEach(c => c.remove());
+    }
+
+    const showTotalLength = () => {
+      const pathString = path.getAttribute('d');
+      const totalLength = SVGPathCommander.getTotalLength(pathString);
+      console.log(`Shape total length is: %d`, totalLength)
+    }
+  
+    const showBBox = () => {
+      const pathString = path.getAttribute('d');
+      const bbox = SVGPathCommander.getPathBBox(pathString);
+      const niceBBox = Object.entries(bbox).map(([name, value]) => `${name}: ${value}\n`)
+      console.log(`Shape bounding box length is: \n`, ...niceBBox)
+    }
+    const setPointAtLength = () => {
+      removePointAtLength();
+      const ns = "http://www.w3.org/2000/svg";
+      const pathString = path.getAttribute('d');
+      const totalLength = SVGPathCommander.getTotalLength(pathString);
+      const totalLength1 = path.getTotalLength();
+      // console.log(totalLength);
+      let currentLength = 0;
+      let currentLength1 = 0;
+      let point = { x: 0, y: 0 };
+      const sampleSize = 100;
+      const round = (n) => Math.round(n * 10 ** 4) / 10 ** 4;
+      for (let i = 0; i <= sampleSize; i += 1) {
+        currentLength = (i / (sampleSize - 1)) * totalLength;
+        point = SVGPathCommander.getPointAtLength(pathString, currentLength);
+        const circle = document.createElementNS(ns, 'circle');
+        circle.setAttribute("cx", point.x);
+        circle.setAttribute( "cy", point.y);
+        circle.setAttribute( "r", 0.1);
+        circle.setAttribute( "fill", "white");
+        circle.setAttribute( "data-bs-toggle", "tooltip");
+        circle.setAttribute( "title", `Index: ${i} | [${round(point.x)}, ${round(point.y)}]`);
+        path.parentElement.append(circle);
+
+        // currentLength1 = (i / (sampleSize - 1)) * totalLength1;
+        // const nativepoint = path.getPointAtLength(currentLength1);
+        // const circle1 = document.createElementNS(ns, 'circle');
+        // circle1.setAttribute("cx", nativepoint.x);
+        // circle1.setAttribute( "cy", nativepoint.y);
+        // circle1.setAttribute( "r", 0.05);
+        // circle1.setAttribute( "fill", "red");
+        // circle1.setAttribute( "data-bs-toggle", "tooltip");
+        // circle1.setAttribute( "title", `Index: ${i} | [${round(point.x)}, ${round(point.y)}]`);
+        // path.parentElement.append(circle1);
+      }
+  }
+
   </script>
 </body>
 

@@ -1,20 +1,7 @@
 import parsePathString from '../parser/parsePathString';
-import isAbsoluteArray from '../util/isAbsoluteArray';
-import type {
-  PathArray,
-  AbsoluteArray,
-  AbsoluteCommand,
-  AbsoluteSegment,
-  VSegment,
-  HSegment,
-  QSegment,
-  TSegment,
-  ASegment,
-  SSegment,
-  CSegment,
-  MSegment,
-  PointTuple,
-} from '../types';
+import absolutizeSegment from '../process/absolutizeSegment';
+import type { AbsoluteArray, AbsoluteCommand, HSegment, PathArray, PointTuple, VSegment } from '../types';
+import iterate from '../process/iterate';
 
 /**
  * Parses a path string value or object and returns an array
@@ -23,70 +10,28 @@ import type {
  * @param pathInput the path string | object
  * @returns the resulted `pathArray` with absolute values
  */
-const pathToAbsolute = (pathInput: string | PathArray): AbsoluteArray => {
-  /* istanbul ignore else */
-  if (isAbsoluteArray(pathInput)) {
-    return pathInput.slice(0) as AbsoluteArray;
-  }
-
-  const path = parsePathString(pathInput);
+const pathToAbsolute = (pathInput: string | PathArray) => {
   let x = 0;
   let y = 0;
   let mx = 0;
   let my = 0;
+  let pathCommand = 'M';
+  const path = parsePathString(pathInput);
 
-  // the `absoluteSegment[]` is for sure an `absolutePath`
-  return path.map(segment => {
-    const values = segment.slice(1).map(Number);
-    const [pathCommand] = segment;
+  return iterate<AbsoluteArray>(path, (seg, params) => {
+    [pathCommand] = seg;
+    const result = absolutizeSegment(seg, params);
     const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
 
-    if (pathCommand === 'M') {
-      [x, y] = values;
-      mx = x;
-      my = y;
-      return ['M', x, y] as MSegment;
-    }
-
-    let absoluteSegment = [] as unknown as AbsoluteSegment;
-
-    if (pathCommand !== absCommand) {
-      if (absCommand === 'A') {
-        absoluteSegment = [
-          absCommand,
-          values[0],
-          values[1],
-          values[2],
-          values[3],
-          values[4],
-          values[5] + x,
-          values[6] + y,
-        ] as ASegment;
-      } else if (absCommand === 'V') {
-        absoluteSegment = [absCommand, values[0] + y] as VSegment;
-      } else if (absCommand === 'H') {
-        absoluteSegment = [absCommand, values[0] + x] as HSegment;
-      } else {
-        // use brakets for `eslint: no-case-declaration`
-        // https://stackoverflow.com/a/50753272/803358
-        const absValues = values.map((n, j) => n + (j % 2 ? y : x));
-        // for n, l, c, s, q, t
-        absoluteSegment = [absCommand, ...absValues] as QSegment | TSegment | SSegment | CSegment;
-      }
-    } else {
-      absoluteSegment = [absCommand, ...values] as typeof segment;
-    }
-
-    // const segLength = absoluteSegment.length;
     if (absCommand === 'Z') {
       x = mx;
       y = my;
     } else if (absCommand === 'H') {
-      [, x] = absoluteSegment as HSegment;
+      [, x] = result as HSegment;
     } else if (absCommand === 'V') {
-      [, y] = absoluteSegment as VSegment;
+      [, y] = result as VSegment;
     } else {
-      [x, y] = absoluteSegment.slice(-2) as PointTuple;
+      [x, y] = result.slice(-2) as PointTuple;
 
       if (absCommand === 'M') {
         mx = x;
@@ -94,7 +39,9 @@ const pathToAbsolute = (pathInput: string | PathArray): AbsoluteArray => {
       }
     }
 
-    return absoluteSegment;
-  }) as AbsoluteArray;
+    params.x = x;
+    params.y = y;
+    return result;
+  });
 };
 export default pathToAbsolute;

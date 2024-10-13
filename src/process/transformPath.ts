@@ -1,14 +1,14 @@
-import normalizePath from './normalizePath';
-// import pathToAbsolute from '../convert/pathToAbsolute';
-// import segmentToCubic from './segmentToCubic';
-// import fixArc from './fixArc';
 import getSVGMatrix from './getSVGMatrix';
 import projection2d from './projection2d';
-import paramsParser from '../parser/paramsParser';
-import replaceArc from './replaceArc';
 import defaultOptions from '../options/options';
-import type { AbsoluteArray, PathArray, TransformObjectValues } from '../types';
-import type { PathTransform, TransformObject } from '../interface';
+import type { AbsoluteArray, CSegment, PathArray, PointTuple, TransformObjectValues } from '../types';
+import type { TransformObject } from '../interface';
+import iterate from './iterate';
+import parsePathString from '../parser/parsePathString';
+import absolutizeSegment from './absolutizeSegment';
+import segmentToCubic from './segmentToCubic';
+import normalizeSegment from './normalizeSegment';
+import paramsParser from '../parser/paramsParser';
 
 /**
  * Apply a 2D / 3D transformation to a `pathArray` instance.
@@ -20,89 +20,96 @@ import type { PathTransform, TransformObject } from '../interface';
  * @param transform the transform functions `Object`
  * @returns the resulted `pathArray`
  */
-const transformPath = (path: string | PathArray, transform?: Partial<TransformObject>): PathArray => {
+const transformPath = (pathInput: PathArray | string, transform?: Partial<TransformObject>) => {
   let x = 0;
   let y = 0;
-  let i;
-  let j;
-  let ii;
-  let jj;
-  let lx;
-  let ly;
-  // REPLACE Arc path commands with Cubic Beziers
-  // we don't have any scripting know-how on 3d ellipse transformation
-  // Arc segments don't work with 3D transformations or skews
-  const absolutePath = replaceArc(path);
+  let mx = 0;
+  let my = 0;
+  let lx = 0;
+  let ly = 0;
+  let j = 0;
+  let jj = 0;
+  let nx = 0;
+  let ny = 0;
+  let pathCommand = 'M';
+  // transform uses it's own set of params
+  const transformParams = { ...paramsParser };
+  const path = parsePathString(pathInput);
   const transformProps = transform && Object.keys(transform);
 
   // when used as a static method, invalidate somehow
-  if (!transform || (transformProps && !transformProps.length)) return absolutePath.slice(0) as PathArray;
+  if (!transform || (transformProps && !transformProps.length)) return path;
 
-  const normalizedPath = normalizePath(absolutePath);
   // transform origin is extremely important
   if (!transform.origin) {
-    const { origin: defaultOrigin } = defaultOptions;
-    Object.assign(transform, { origin: defaultOrigin });
+    Object.assign(transform, { origin: defaultOptions.origin });
   }
+  const origin = transform.origin as [number, number, number];
   const matrixInstance = getSVGMatrix(transform as TransformObjectValues);
-  const { origin } = transform;
-  const params = { ...paramsParser };
-  let segment = [];
-  let seglen = 0;
-  let pathCommand = '';
-  const transformedPath = [] as PathTransform[];
 
-  if (!matrixInstance.isIdentity) {
-    for (i = 0, ii = absolutePath.length; i < ii; i += 1) {
-      segment = normalizedPath[i];
-      seglen = segment.length;
+  if (matrixInstance.isIdentity) return path;
 
-      params.x1 = +segment[seglen - 2];
-      params.y1 = +segment[seglen - 1];
-      params.x2 = +segment[seglen - 4] || params.x1;
-      params.y2 = +segment[seglen - 3] || params.y1;
+  return iterate<AbsoluteArray>(path, (seg, _, i) => {
+    const absSegment = absolutizeSegment(seg, transformParams);
+    [pathCommand] = absSegment;
 
-      const result = {
-        s: absolutePath[i],
-        c: absolutePath[i][0],
-        x: params.x1,
-        y: params.y1,
-      };
+    let result =
+      pathCommand === 'A'
+        ? segmentToCubic(absSegment, transformParams)
+        : ['V', 'H'].includes(pathCommand)
+        ? normalizeSegment(absSegment, transformParams)
+        : absSegment;
+    const isLongArc = result[0] === 'C' && result.length > 7;
+    const normalizedSegment = (isLongArc ? result.slice(0, 7) : result.slice(0)) as typeof result;
 
-      transformedPath.push(result);
+    if (isLongArc) {
+      path.splice(i + 1, 0, ['C', ...result.slice(7)] as CSegment);
+      result = result.slice(0, 7) as CSegment;
     }
 
-    return transformedPath.map(seg => {
-      pathCommand = seg.c;
-      segment = seg.s;
-      if (pathCommand === 'L' || pathCommand === 'H' || pathCommand === 'V') {
-        [lx, ly] = projection2d(matrixInstance, [seg.x, seg.y], origin as [number, number, number]);
+    if (result[0] === 'L') {
+      const values = result.slice(-2) as PointTuple;
+      [lx, ly] = projection2d(matrixInstance, values, origin);
 
-        /* istanbul ignore else @preserve */
-        if (x !== lx && y !== ly) {
-          segment = ['L', lx, ly];
-        } else if (y === ly) {
-          segment = ['H', lx];
-        } else if (x === lx) {
-          segment = ['V', ly];
-        }
-
-        // now update x and y
-        x = lx;
-        y = ly;
-
-        return segment;
-      } else {
-        for (j = 1, jj = segment.length; j < jj; j += 2) {
-          [x, y] = projection2d(matrixInstance, [+segment[j], +segment[j + 1]], origin as [number, number, number]);
-          segment[j] = x;
-          segment[j + 1] = y;
-        }
-
-        return segment;
+      /* istanbul ignore else @preserve */
+      if (x !== lx && y !== ly) {
+        result = ['L', lx, ly];
+      } else if (y === ly) {
+        result = ['H', lx];
+      } else if (x === lx) {
+        result = ['V', ly];
       }
-    }) as PathArray;
-  }
-  return absolutePath.slice(0) as AbsoluteArray;
+    } else {
+      for (j = 1, jj = result.length; j < jj; j += 2) {
+        [lx, ly] = projection2d(matrixInstance, [+result[j], +result[j + 1]], origin);
+        result[j] = lx;
+        result[j + 1] = ly;
+      }
+    }
+    // now update x and y
+    x = lx;
+    y = ly;
+
+    if (pathCommand === 'Z') {
+      nx = mx;
+      ny = my;
+    } else {
+      [nx, ny] = normalizedSegment.slice(-2) as PointTuple;
+      if (pathCommand === 'M') {
+        mx = nx;
+        my = ny;
+      }
+    }
+
+    const seglen = normalizedSegment.length;
+    transformParams.x1 = +normalizedSegment[seglen - 2];
+    transformParams.y1 = +normalizedSegment[seglen - 1];
+    transformParams.x2 = +normalizedSegment[seglen - 4] || transformParams.x1;
+    transformParams.y2 = +normalizedSegment[seglen - 3] || transformParams.y1;
+    transformParams.x = nx;
+    transformParams.y = ny;
+    return result;
+  });
 };
+
 export default transformPath;

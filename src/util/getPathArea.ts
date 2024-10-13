@@ -1,5 +1,5 @@
 import pathToCurve from '../convert/pathToCurve';
-import type { PointTuple, PathArray } from '../types';
+import type { PointTuple, PathArray, QuadCoordinates } from '../types';
 
 /**
  * Returns the area of a single cubic-bezier segment.
@@ -60,7 +60,7 @@ const getPathArea = (path: PathArray) => {
           [, x, y] = seg;
           return 0;
         default:
-          len = getCubicSegArea(x, y, ...(seg.slice(1) as [number, number, number, number, number, number]));
+          len = getCubicSegArea(x, y, ...(seg.slice(1) as QuadCoordinates));
           [x, y] = seg.slice(-2) as PointTuple;
           return len;
       }

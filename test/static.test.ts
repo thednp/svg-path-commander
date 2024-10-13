@@ -1,13 +1,11 @@
 import { expect, it, describe, beforeEach, vi } from 'vitest';
 import SVGPathCommander, { type CurveArray, type ShapeTypes } from '~/index';
 import invalidPathValue from '../src/parser/invalidPathValue';
-import getCubicProperties from '../src/math/cubicTools';
-import getQuadProperties from '../src/math/quadTools';
-import getArcProperties from '../src/math/arcTools';
 import error from '../src/parser/error';
 
 import getMarkup from './fixtures/getMarkup';
 import simpleShapes from './fixtures/simpleShapes';
+import shapes from './fixtures/shapes';
 import shapeObjects from './fixtures/shapeObjects';
 
 import "../docs/assets/style.css";
@@ -212,7 +210,7 @@ describe('SVGPathCommander Static Methods', () => {
     const propsPoint400 = getPropertiesAtPoint(simpleShapes.initial[1], { "x": 50, "y": 10 });
     expect(propsPoint400.closest).to.deep.equal({ x: 50.000003520199236, y: 10.000000000000531 })
     expect(propsPoint400.distance).to.equal(0.0000035201992361067316)
-    expect(propsPoint400.segment).to.deep.equal({ segment: ['s', 20, 80, 40, 80], index: 2, length: 94.75724347727943, lengthAtSegment: 94.75724347727943})
+    expect(propsPoint400.segment).to.deep.equal({ segment: ['s', 20, 80, 40, 80], index: 2, length: 94.75724347727943, lengthAtSegment: 94.75724347727943 })
   });
 
   it(`Can do getSegmentAtLength`, () => {
@@ -228,7 +226,7 @@ describe('SVGPathCommander Static Methods', () => {
     // first point
     expect(getSegmentOfPoint(simpleShapes.initial[1], { x: 10, y: 90 })).to.deep.equal({ segment: ["M", 10, 90], index: 0, length: 0, point: { x: 10, y: 90 }, lengthAtSegment: 0 });
     // mid point
-    expect(getSegmentOfPoint(simpleShapes.initial[3], { x: 9, y: 9 })).to.deep.equal({ segment: ["a", 6, 4, 10, 0, 0, 8, 0], index: 7, length: 7.498916687913066,/* point: { x: 6, y: 10 },*/ lengthAtSegment: 55.613707646817915 });
+    expect(getSegmentOfPoint(simpleShapes.initial[3], { x: 9, y: 9 })).to.deep.equal({ segment: ["a", 6, 4, 10, 0, 1, 8, 0], index: 5, length: 7.498916687913066,/* point: { x: 6, y: 10 },*/ lengthAtSegment: 48.11479095890485 });
   });
 
   it(`Can do getClosestPoint`, () => {
@@ -236,7 +234,7 @@ describe('SVGPathCommander Static Methods', () => {
     // first point
     expect(getClosestPoint(simpleShapes.initial[1], { x: 10, y: 90 })).to.deep.equal({ x: 10, y: 90 });
     // mid point
-    expect(getClosestPoint(simpleShapes.initial[3], { x: 9, y: 9 })).to.deep.equal({ x: 8.648537607602185, y: 10.940998877338636 });
+    expect(getClosestPoint(simpleShapes.initial[3], { x: 9, y: 9 })).to.deep.equal({ x: 8.995511191469355, y: 8.952970323068374 });
   });
 
   it(`Can do isPointInStroke`, () => {
@@ -245,7 +243,7 @@ describe('SVGPathCommander Static Methods', () => {
     expect(isPointInStroke(simpleShapes.initial[1], { x: 10, y: 90 })).to.be.true;
     // mid point'
     // expect(isPointInStroke(simpleShapes.initial[1], { x: 28.94438057441916, y: 46.29922469345143 })).to.be.true;
-    expect(isPointInStroke(simpleShapes.initial[1], {x: 90, y: 90})).to.be.true;
+    expect(isPointInStroke(simpleShapes.initial[1], { x: 90, y: 90 })).to.be.true;
     // ({ x: 10, y: 10 })
     expect(isPointInStroke(simpleShapes.initial[1], { x: 10, y: 10 })).to.be.false;
     // ({ x: 45.355339, y: 45.355339 })
@@ -288,17 +286,39 @@ describe('SVGPathCommander Static Methods', () => {
     expect(path2).to.equal(simpleShapes.normalized[0]);
   });
 
+  it(`Can check path type`, () => {
+    const { parsePathString, isPathArray, isCurveArray, isAbsoluteArray, isRelativeArray, isNormalizedArray } = SVGPathCommander;
+    // const 
+    expect(isPathArray(simpleShapes.initial[0])).to.be.false;
+    expect(isPathArray(parsePathString(simpleShapes.initial[0]))).to.be.true;
+    expect(isAbsoluteArray(simpleShapes.normalized[0])).to.be.false;
+    expect(isAbsoluteArray(parsePathString(simpleShapes.normalized[0]))).to.be.true;
+    expect(isRelativeArray(shapes.relative[7])).to.be.false;
+    // console.log(parsePathString(shapes.relative[7]))
+    expect(isRelativeArray(parsePathString(shapes.relative[7]))).to.be.true;
+    expect(isNormalizedArray(simpleShapes.normalized[0])).to.be.false;
+    expect(isNormalizedArray(parsePathString(simpleShapes.normalized[0]))).to.be.true;
+    expect(isCurveArray(simpleShapes.normalized[1])).to.be.false;
+    expect(isCurveArray(parsePathString(simpleShapes.normalized[1]))).to.be.true;
+
+  });
+
   it(`Can cover all remaining branches`, () => {
-    const { pathFactory, getPointAtLength, getTotalLength } = SVGPathCommander;
-    const path = pathFactory(simpleShapes.normalized[0] as string, undefined);
-    expect(path.length).to.be.above(0);
+    const { splitPath, parsePathString, getPathBBox, getPointAtLength, getTotalLength } = SVGPathCommander;
+    expect(getPointAtLength(simpleShapes.normalized[3], 24.057395479452424)).to.deep.equal({ x: 14, y: 10 });
     expect(getPointAtLength(simpleShapes.normalized[0], 0)).to.deep.equal({ x: 10, y: 10 });
-    expect(getTotalLength(simpleShapes.normalized[0])).to.be.above(233); 
-    const cubic = getCubicProperties(16, 8, 16, 4.134, 12.418, 1, 8, 1, undefined);
-    expect(cubic.length).to.be.above(0);
-    const quad = getQuadProperties(8, 1.34, 10.75, 1.34, 12.7, 3.29, undefined);
-    expect(quad.length).to.be.above(0);
-    const arc = getArcProperties(10, 0, 0.5, 0.5, 0, 0, 1, 10, 1, undefined);
-    expect(arc.length).to.be.above(0);
+    expect(getPointAtLength(simpleShapes.normalized[3], undefined)).to.deep.equal({ x: 6, y: 10 });
+    expect(getTotalLength(simpleShapes.normalized[0])).to.be.above(233);
+    expect(getPathBBox(simpleShapes.normalized[2])).to.deep.equal({
+      "cx": 100, "cy": 50, "cz": 192.5,
+      "height": 25, "width": 180,
+      "x": 10, "y": 37.5, "x2": 190, "y2": 62.5,
+    });
+    expect(getPathBBox(simpleShapes.normalized[1])).to.deep.equal({
+      "cx": 90, "cy": 50, "cz": 200,
+      "height": 80, "width": 160,
+      "x": 10, "y": 10, "x2": 170,"y2": 90,
+    });
+    expect(splitPath(parsePathString(shapes.relative[1])).length).to.equal(7);
   });
 });

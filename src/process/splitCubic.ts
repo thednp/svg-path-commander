@@ -5,10 +5,11 @@ import type { CubicSegment, PointTuple } from '../types';
  * Split a cubic-bezier segment into two.
  *
  * @param pts the cubic-bezier parameters
+ * @param ratio the cubic-bezier parameters
  * @return two new cubic-bezier segments
  */
-const splitCubic = (pts: number[] /* , ratio */): [CubicSegment, CubicSegment] => {
-  const t = /* ratio || */ 0.5;
+const splitCubic = (pts: number[], ratio = 0.5): [CubicSegment, CubicSegment] => {
+  const t = ratio;
   const p0 = pts.slice(0, 2) as PointTuple;
   const p1 = pts.slice(2, 4) as PointTuple;
   const p2 = pts.slice(4, 6) as PointTuple;

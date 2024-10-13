@@ -11,7 +11,7 @@ import type { ParserParams } from '../interface';
  * @param params the source segment parameters
  * @returns the cubic-bezier segment
  */
-const segmentToCubic = (segment: PathSegment, params: ParserParams): MSegment | CSegment => {
+const segmentToCubic = (segment: PathSegment, params: ParserParams) => {
   const [pathCommand] = segment;
   const values = segment.slice(1).map(Number);
   const [x, y] = values;

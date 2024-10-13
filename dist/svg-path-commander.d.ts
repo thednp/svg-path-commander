@@ -141,7 +141,7 @@ export type LengthFactory = {
 	};
 };
 export type Options = {
-	round: "auto" | "off" | number;
+	round: "off" | number;
 	origin: number[];
 };
 export type PathTransform = {
@@ -368,6 +368,82 @@ export type PointTuple = [
 	number,
 	number
 ];
+export type DerivedPoint = Point & {
+	t: number;
+};
+export type QuadPoints = [
+	Point,
+	Point,
+	Point,
+	Point,
+	Point,
+	Point
+];
+export type CubicPoints = [
+	Point,
+	Point,
+	Point,
+	Point,
+	Point,
+	Point,
+	Point,
+	Point
+];
+export type DerivedQuadPoints = [
+	DerivedPoint,
+	DerivedPoint,
+	DerivedPoint,
+	DerivedPoint,
+	DerivedPoint,
+	DerivedPoint
+];
+export type DerivedCubicPoints = [
+	DerivedPoint,
+	DerivedPoint,
+	DerivedPoint,
+	DerivedPoint,
+	DerivedPoint,
+	DerivedPoint,
+	DerivedPoint,
+	DerivedPoint
+];
+export type QuadCoordinates = [
+	number,
+	number,
+	number,
+	number,
+	number,
+	number
+];
+export type CubicCoordinates = [
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number
+];
+export type ArcCoordinates = [
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number
+];
+export type LineCoordinates = [
+	number,
+	number,
+	number,
+	number
+];
+export type DeriveCallback = (t: number) => Point;
+export type IteratorCallback = (segment: PathSegment, params: ParserParams, index: number) => PathSegment;
 /**
  * Creates a new SVGPathCommander instance with the following properties:
  * * segments: `pathArray`
@@ -381,30 +457,23 @@ export type PointTuple = [
 declare class SVGPathCommander {
 	static CSSMatrix: typeof CSSMatrix$1;
 	static getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix$1;
-	static getPathBBox: (path: PathArray | string) => PathBBox;
+	static getPathBBox: (pathInput: PathArray | string) => {
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+		x2: number;
+		y2: number;
+		cx: number;
+		cy: number;
+		cz: number;
+	};
 	static getPathArea: (path: PathArray) => number;
 	static getTotalLength: (pathInput: string | PathArray) => number;
 	static getDrawDirection: (path: string | PathArray) => boolean;
-	static getPointAtLength: (pathInput: string | PathArray, distance: number) => {
+	static getPointAtLength: (pathInput: string | PathArray, distance?: number) => {
 		x: number;
 		y: number;
-	};
-	static pathFactory: (pathInput: string | PathArray, distance?: number) => {
-		point: {
-			x: number;
-			y: number;
-		};
-		length: number;
-		readonly bbox: {
-			min: {
-				x: number;
-				y: number;
-			};
-			max: {
-				x: number;
-				y: number;
-			};
-		};
 	};
 	static getPropertiesAtLength: (pathInput: string | PathArray, distance?: number) => SegmentProperties;
 	static getPropertiesAtPoint: (pathInput: string | PathArray, point: {
@@ -440,16 +509,15 @@ declare class SVGPathCommander {
 	static parsePathString: (pathInput: string | PathArray) => PathArray;
 	static roundPath: (path: PathArray, roundOption?: number | "off") => PathArray;
 	static splitPath: (pathInput: PathArray) => PathArray[];
-	static splitCubic: (pts: number[]) => [
+	static splitCubic: (pts: number[], ratio?: number) => [
 		CubicSegment,
 		CubicSegment
 	];
-	static replaceArc: (pathInput: PathArray | string) => PathArray;
 	static optimizePath: (pathInput: PathArray, round: "off" | number) => PathArray;
 	static reverseCurve: (path: CurveArray) => CurveArray;
 	static reversePath: (pathInput: PathArray) => PathArray;
 	static normalizePath: (pathInput: string | PathArray) => NormalArray;
-	static transformPath: (path: string | PathArray, transform?: Partial<TransformObject>) => PathArray;
+	static transformPath: (pathInput: PathArray | string, transform?: Partial<TransformObject>) => PathArray;
 	static pathToAbsolute: (pathInput: string | PathArray) => AbsoluteArray;
 	static pathToRelative: (pathInput: string | PathArray) => RelativeArray;
 	static pathToCurve: (pathInput: string | PathArray) => CurveArray;
@@ -467,7 +535,17 @@ declare class SVGPathCommander {
 	 * @param config instance options
 	 */
 	constructor(pathValue: string, config?: Partial<Options>);
-	get bbox(): PathBBox;
+	get bbox(): {
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+		x2: number;
+		y2: number;
+		cx: number;
+		cy: number;
+		cz: number;
+	};
 	get length(): number;
 	/**
 	 * Returns the path bounding box, equivalent to native `path.getBBox()`.
@@ -475,7 +553,17 @@ declare class SVGPathCommander {
 	 * @public
 	 * @returns the pathBBox
 	 */
-	getBBox(): PathBBox;
+	getBBox(): {
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+		x2: number;
+		y2: number;
+		cx: number;
+		cy: number;
+		cz: number;
+	};
 	/**
 	 * Returns the total path length, equivalent to native `path.getTotalLength()`.
 	 *

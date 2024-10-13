@@ -1,4 +1,14 @@
-import type { PointTuple, Point } from '../types';
+import type {
+  PointTuple,
+  DerivedPoint,
+  QuadPoints,
+  CubicPoints,
+  DerivedQuadPoints,
+  DerivedCubicPoints,
+  QuadCoordinates,
+  CubicCoordinates,
+  DeriveCallback,
+} from '../types';
 
 /**
  * Tools from bezier.js by Mike 'Pomax' Kamermans
@@ -36,25 +46,6 @@ const Cvalues = [
   0.0285313886289336631813078159518782864491, 0.0285313886289336631813078159518782864491,
   0.0123412297999871995468056670700372915759, 0.0123412297999871995468056670700372915759,
 ];
-
-type DerivedPoint = Point & { t: number };
-type QuadPoints = [Point, Point, Point, Point, Point, Point];
-type CubicPoints = [Point, Point, Point, Point, Point, Point, Point, Point];
-type DerivedQuadPoints = [DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint];
-type DerivedCubicPoints = [
-  DerivedPoint,
-  DerivedPoint,
-  DerivedPoint,
-  DerivedPoint,
-  DerivedPoint,
-  DerivedPoint,
-  DerivedPoint,
-  DerivedPoint,
-];
-export type QuadCoordinates = [number, number, number, number, number, number];
-export type CubicCoordinates = [number, number, number, number, number, number, number, number];
-
-type DeriveCallback = (t: number) => Point;
 
 /**
  *
@@ -195,7 +186,7 @@ export const minmaxQ = (A: [number, number, number]) => {
   const min = Math.min(A[0], A[2]);
   const max = Math.max(A[0], A[2]);
 
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore next @preserve */
   if (A[1] >= A[0] ? A[2] >= A[1] : A[2] <= A[1]) {
     // if no extremum in ]0,1[
     return [min, max] as PointTuple;
@@ -215,7 +206,7 @@ export const minmaxC = (A: [number, number, number, number]) => {
   const K = A[0] - 3 * A[1] + 3 * A[2] - A[3];
 
   // if the polynomial is (almost) quadratic and not cubic
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore next @preserve */
   if (Math.abs(K) < CBEZIER_MINMAX_EPSILON) {
     if (A[0] === A[3] && A[0] === A[1]) {
       // no curve, point targeting same location
@@ -241,6 +232,7 @@ export const minmaxC = (A: [number, number, number, number]) => {
   const L = A[0] - 2 * A[1] + A[2];
   // check local extrema
   for (let R = (L + S) / K, i = 1; i <= 2; R = (L - S) / K, i++) {
+    // istanbul ignore next @preserve
     if (R > 0 && R < 1) {
       // if the extrema is for R in [0,1]
       const Q =
