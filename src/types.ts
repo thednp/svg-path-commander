@@ -1,13 +1,4 @@
-import type {
-  LineAttr,
-  CircleAttr,
-  PolyAttr,
-  RectAttr,
-  EllipseAttr,
-  GlyphAttr,
-  TransformObject,
-  ParserParams,
-} from './interface';
+import type { LineAttr, CircleAttr, PolyAttr, RectAttr, EllipseAttr, GlyphAttr, TransformObject } from './interface';
 
 export type SpaceNumber =
   | 0x1680
@@ -229,4 +220,9 @@ export type LineCoordinates = [number, number, number, number];
 
 export type DeriveCallback = (t: number) => Point;
 
-export type IteratorCallback = (segment: PathSegment, params: ParserParams, index: number) => PathSegment;
+export type IteratorCallback = (
+  segment: PathSegment,
+  index: number,
+  lastX: number,
+  lastY: number,
+) => PathSegment | false | void | undefined;

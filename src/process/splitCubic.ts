@@ -22,8 +22,8 @@ const splitCubic = (pts: number[], ratio = 0.5): [CubicSegment, CubicSegment] =>
   const p9 = midPoint(p7, p8, t);
 
   return [
-    ['C', ...p4, ...p7, ...p9],
-    ['C', ...p8, ...p6, ...p3],
+    ['C', p4[0], p4[1], p7[0], p7[1], p9[0], p9[1]],
+    ['C', p8[0], p8[1], p6[0], p6[1], p3[0], p3[1]],
   ];
 };
 export default splitCubic;

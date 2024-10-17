@@ -1,4 +1,4 @@
-import type { PointTuple, PathArray, PathSegment } from '../types';
+import type { PathArray, PathSegment } from '../types';
 import type { SegmentProperties } from '../interface';
 import parsePathString from '../parser/parsePathString';
 import getTotalLength from './getTotalLength';
@@ -20,8 +20,6 @@ const getPropertiesAtLength = (pathInput: string | PathArray, distance?: number)
   let lengthAtSegment = 0;
   let length = 0;
   let segment = pathArray[0] as PathSegment;
-  const [x, y] = segment.slice(-2) as PointTuple;
-  const point = { x, y };
 
   // If the path is empty, return 0.
   if (index <= 0 || !distance || !Number.isFinite(distance)) {
@@ -29,7 +27,6 @@ const getPropertiesAtLength = (pathInput: string | PathArray, distance?: number)
       segment,
       index: 0,
       length,
-      point,
       lengthAtSegment,
     };
   }
@@ -38,8 +35,9 @@ const getPropertiesAtLength = (pathInput: string | PathArray, distance?: number)
     pathTemp = pathArray.slice(0, -1) as PathArray;
     lengthAtSegment = getTotalLength(pathTemp);
     length = pathLength - lengthAtSegment;
+    segment = pathArray[index];
     return {
-      segment: pathArray[index],
+      segment,
       index,
       length,
       lengthAtSegment,
@@ -53,6 +51,7 @@ const getPropertiesAtLength = (pathInput: string | PathArray, distance?: number)
     lengthAtSegment = getTotalLength(pathTemp);
     length = pathLength - lengthAtSegment;
     pathLength = lengthAtSegment;
+
     segments.push({
       segment,
       index,

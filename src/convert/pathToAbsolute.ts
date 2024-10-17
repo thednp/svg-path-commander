@@ -1,6 +1,6 @@
 import parsePathString from '../parser/parsePathString';
 import absolutizeSegment from '../process/absolutizeSegment';
-import type { AbsoluteArray, AbsoluteCommand, HSegment, PathArray, PointTuple, VSegment } from '../types';
+import type { AbsoluteArray, PathArray } from '../types';
 import iterate from '../process/iterate';
 
 /**
@@ -11,37 +11,8 @@ import iterate from '../process/iterate';
  * @returns the resulted `pathArray` with absolute values
  */
 const pathToAbsolute = (pathInput: string | PathArray) => {
-  let x = 0;
-  let y = 0;
-  let mx = 0;
-  let my = 0;
-  let pathCommand = 'M';
   const path = parsePathString(pathInput);
 
-  return iterate<AbsoluteArray>(path, (seg, params) => {
-    [pathCommand] = seg;
-    const result = absolutizeSegment(seg, params);
-    const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
-
-    if (absCommand === 'Z') {
-      x = mx;
-      y = my;
-    } else if (absCommand === 'H') {
-      [, x] = result as HSegment;
-    } else if (absCommand === 'V') {
-      [, y] = result as VSegment;
-    } else {
-      [x, y] = result.slice(-2) as PointTuple;
-
-      if (absCommand === 'M') {
-        mx = x;
-        my = y;
-      }
-    }
-
-    params.x = x;
-    params.y = y;
-    return result;
-  });
+  return iterate<AbsoluteArray>(path, absolutizeSegment);
 };
 export default pathToAbsolute;

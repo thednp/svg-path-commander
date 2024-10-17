@@ -5,7 +5,6 @@ export type SegmentProperties = {
 	index: number;
 	length: number;
 	lengthAtSegment: number;
-	[key: string]: any;
 };
 export type PointProperties = {
 	closest: {
@@ -443,7 +442,49 @@ export type LineCoordinates = [
 	number
 ];
 export type DeriveCallback = (t: number) => Point;
-export type IteratorCallback = (segment: PathSegment, params: ParserParams, index: number) => PathSegment;
+export type IteratorCallback = (segment: PathSegment, index: number, lastX: number, lastY: number) => PathSegment | false | void | undefined;
+declare const arcLength: (rx: number, ry: number, theta: number) => number;
+declare const arcPoint: (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => {
+	x: number;
+	y: number;
+};
+declare const angleBetween: (v0: Point, v1: Point) => number;
+declare const getArcProps: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => {
+	rx: number;
+	ry: number;
+	startAngle: number;
+	endAngle: number;
+	center: {
+		x: number;
+		y: number;
+	};
+};
+declare const getArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => number;
+declare const getPointAtArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number, distance?: number) => {
+	x: number;
+	y: number;
+};
+declare const getArcBBox: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => {
+	min: {
+		x: number;
+		y: number;
+	};
+	max: {
+		x: number;
+		y: number;
+	};
+};
+declare class PathParser {
+	segments: PathArray | PathSegment[];
+	pathValue: string;
+	max: number;
+	index: number;
+	param: number;
+	segmentStart: number;
+	data: (string | number)[];
+	err: string;
+	constructor(pathString: string);
+}
 /**
  * Creates a new SVGPathCommander instance with the following properties:
  * * segments: `pathArray`
@@ -456,7 +497,130 @@ export type IteratorCallback = (segment: PathSegment, params: ParserParams, inde
  */
 declare class SVGPathCommander {
 	static CSSMatrix: typeof CSSMatrix$1;
-	static getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix$1;
+	static pathToAbsolute: (pathInput: string | PathArray) => AbsoluteArray;
+	static pathToRelative: (pathInput: string | PathArray) => RelativeArray;
+	static pathToCurve: (pathInput: string | PathArray) => CurveArray;
+	static pathToString: (path: PathArray, roundOption?: number | "off") => string;
+	static arcTools: typeof arcTools;
+	static bezierTools: {
+		Cvalues: number[];
+		Tvalues: number[];
+		minmaxC: ([v1, cp1, cp2, v2]: [
+			number,
+			number,
+			number,
+			number
+		]) => PointTuple;
+		minmaxQ: ([v1, cp, v2]: [
+			number,
+			number,
+			number
+		]) => PointTuple;
+		getBezierLength: (curve: CubicCoordinates | QuadCoordinates) => number;
+		bezierLength: (derivativeFn: DeriveCallback) => number;
+		calculateBezier: (derivativeFn: DeriveCallback, t: number) => number;
+		computeBezier: (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => DerivedPoint;
+		deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedQuadPoints | DerivedCubicPoints)[];
+		CBEZIER_MINMAX_EPSILON: number;
+	};
+	static cubicTools: {
+		getCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => number;
+		getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => {
+			min: {
+				x: number;
+				y: number;
+			};
+			max: {
+				x: number;
+				y: number;
+			};
+		};
+		getPointAtCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number, distance?: number) => {
+			x: number;
+			y: number;
+		};
+		getPointAtCubicSegmentLength: ([x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates, t: number) => {
+			x: number;
+			y: number;
+		};
+	};
+	static lineTools: {
+		getPointAtLineLength: (x1: number, y1: number, x2: number, y2: number, distance?: number) => {
+			x: number;
+			y: number;
+		};
+		getLineBBox: (x1: number, y1: number, x2: number, y2: number) => {
+			min: {
+				x: number;
+				y: number;
+			};
+			max: {
+				x: number;
+				y: number;
+			};
+		};
+		getLineLength: (x1: number, y1: number, x2: number, y2: number) => number;
+	};
+	static quadTools: {
+		getPointAtQuadSegmentLength: ([x1, y1, cx, cy, x2, y2]: QuadCoordinates, t: number) => {
+			x: number;
+			y: number;
+		};
+		getQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => number;
+		getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => {
+			min: {
+				x: number;
+				y: number;
+			};
+			max: {
+				x: number;
+				y: number;
+			};
+		};
+		getPointAtQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number, distance?: number) => {
+			x: number;
+			y: number;
+		};
+	};
+	static polygonTools: {
+		polygonArea: (polygon: PointTuple[]) => number;
+		polygonLength: (polygon: PointTuple[]) => number;
+	};
+	static distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
+	static distanceEpsilon: number;
+	static midPoint: (a: PointTuple, b: PointTuple, t: number) => PointTuple;
+	static rotateVector: (x: number, y: number, rad: number) => {
+		x: number;
+		y: number;
+	};
+	static roundTo: (n: number, round: number) => number;
+	static finalizeSegment: (path: PathParser) => void;
+	static invalidPathValue: string;
+	static isArcCommand: (code: number) => code is 97;
+	static isDigit: (code: number) => code is DigitNumber;
+	static isDigitStart: (code: number) => code is DigitNumber | 43 | 45 | 46;
+	static isMoveCommand: (code: number) => code is 109 | 77;
+	static isPathCommand: (code: number) => code is PathCommandNumber;
+	static isSpace: (ch: number) => ch is SpaceNumber;
+	static paramsCount: {
+		a: number;
+		c: number;
+		h: number;
+		l: number;
+		m: number;
+		r: number;
+		q: number;
+		s: number;
+		t: number;
+		v: number;
+		z: number;
+	};
+	static paramsParser: ParserParams;
+	static pathParser: typeof PathParser;
+	static scanFlag: (path: PathParser) => void;
+	static scanParam: (path: PathParser) => void;
+	static scanSegment: (path: PathParser) => void;
+	static skipSpaces: (path: PathParser) => void;
 	static getPathBBox: (pathInput: PathArray | string) => {
 		x: number;
 		y: number;
@@ -476,12 +640,7 @@ declare class SVGPathCommander {
 		y: number;
 	};
 	static getPropertiesAtLength: (pathInput: string | PathArray, distance?: number) => SegmentProperties;
-	static getPropertiesAtPoint: (pathInput: string | PathArray, point: {
-		x: number;
-		y: number;
-	}) => PointProperties;
-	static polygonLength: (polygon: PointTuple[]) => number;
-	static polygonArea: (polygon: PointTuple[]) => number;
+	static getPropertiesAtPoint: (pathInput: string | PathArray, point: Point) => PointProperties;
 	static getClosestPoint: (pathInput: string | PathArray, point: {
 		x: number;
 		y: number;
@@ -506,22 +665,47 @@ declare class SVGPathCommander {
 	static isNormalizedArray: (path: unknown) => path is NormalArray;
 	static shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean, ownerDocument?: Document) => SVGPathElement | false;
 	static shapeToPathArray: (element: ShapeTypes | ShapeOps, ownerDocument?: Document) => false | PathArray;
-	static parsePathString: (pathInput: string | PathArray) => PathArray;
+	static shapeParams: ShapeParams;
+	static parsePathString: <T extends PathArray>(pathInput: string | T) => PathArray;
+	static absolutizeSegment: (segment: PathSegment, index: number, lastX: number, lastY: number) => AbsoluteSegment;
+	static arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, recursive?: [
+		number,
+		number,
+		number,
+		number
+	]) => number[];
+	static getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix$1;
+	static iterate: <T extends PathArray>(path: PathArray, iterator: IteratorCallback) => T;
+	static lineToCubic: (x1: number, y1: number, x2: number, y2: number) => number[];
+	static normalizePath: (pathInput: string | PathArray) => NormalArray;
+	static normalizeSegment: (segment: PathSegment, params: ParserParams) => NormalSegment;
+	static optimizePath: (pathInput: PathArray, roundOption: number) => PathArray;
+	static projection2d: (m: CSSMatrix$1, point2D: PointTuple, origin: [
+		number,
+		number,
+		number
+	]) => PointTuple;
+	static quadToCubic: (x1: number, y1: number, qx: number, qy: number, x2: number, y2: number) => [
+		number,
+		number,
+		number,
+		number,
+		number,
+		number
+	];
+	static relativizeSegment: (segment: PathSegment, index: number, lastX: number, lastY: number) => MSegment | RelativeSegment;
+	static reverseCurve: (path: CurveArray) => CurveArray;
+	static reversePath: (pathInput: PathArray) => PathArray;
 	static roundPath: (path: PathArray, roundOption?: number | "off") => PathArray;
-	static splitPath: (pathInput: PathArray) => PathArray[];
+	static roundSegment: <T extends PathSegment>(segment: T, roundOption: number) => T;
+	static segmentToCubic: (segment: PathSegment, params: ParserParams) => MSegment | CSegment;
+	static shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSegment, params: ParserParams, prevCommand: PathCommand) => ShortSegment;
 	static splitCubic: (pts: number[], ratio?: number) => [
 		CubicSegment,
 		CubicSegment
 	];
-	static optimizePath: (pathInput: PathArray, round: "off" | number) => PathArray;
-	static reverseCurve: (path: CurveArray) => CurveArray;
-	static reversePath: (pathInput: PathArray) => PathArray;
-	static normalizePath: (pathInput: string | PathArray) => NormalArray;
+	static splitPath: (pathInput: PathArray) => PathArray[];
 	static transformPath: (pathInput: PathArray | string, transform?: Partial<TransformObject>) => PathArray;
-	static pathToAbsolute: (pathInput: string | PathArray) => AbsoluteArray;
-	static pathToRelative: (pathInput: string | PathArray) => RelativeArray;
-	static pathToCurve: (pathInput: string | PathArray) => CurveArray;
-	static pathToString: (path: PathArray, round?: number | "off") => string;
 	segments: PathArray;
 	round: number | "off";
 	origin: [
@@ -655,6 +839,10 @@ declare class SVGPathCommander {
 	 * @return the path string
 	 */
 	toString(): string;
+}
+
+declare namespace arcTools {
+	export { angleBetween, arcLength, arcPoint, getArcBBox, getArcLength, getArcProps, getPointAtArcLength };
 }
 
 export {

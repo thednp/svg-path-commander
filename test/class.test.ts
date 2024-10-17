@@ -283,6 +283,8 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
 
     path.setAttribute('d', rect.toString());
     expect(path.getAttribute('d')).to.equal('M2 0A2 2 0 0 0 0 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2V2A2 2 0 0 0 14 0H2z');
+    // add at least one round: 'off' test
+    expect(new SVGPathCommander(simpleShapes.normalized[2], { round: 'off' }).optimize().toString()).to.equal(simpleShapes.initial[2]);
   });
 
   it('Test reverse single path', async () => {

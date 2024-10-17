@@ -1,14 +1,14 @@
 import getSVGMatrix from './getSVGMatrix';
 import projection2d from './projection2d';
 import defaultOptions from '../options/options';
-import type { AbsoluteArray, CSegment, PathArray, PointTuple, TransformObjectValues } from '../types';
+import type { AbsoluteArray, AbsoluteSegment, CSegment, LSegment, PathArray, TransformObjectValues } from '../types';
 import type { TransformObject } from '../interface';
 import iterate from './iterate';
 import parsePathString from '../parser/parsePathString';
-import absolutizeSegment from './absolutizeSegment';
 import segmentToCubic from './segmentToCubic';
 import normalizeSegment from './normalizeSegment';
 import paramsParser from '../parser/paramsParser';
+import absolutizeSegment from './absolutizeSegment';
 
 /**
  * Apply a 2D / 3D transformation to a `pathArray` instance.
@@ -21,16 +21,15 @@ import paramsParser from '../parser/paramsParser';
  * @returns the resulted `pathArray`
  */
 const transformPath = (pathInput: PathArray | string, transform?: Partial<TransformObject>) => {
+  // last x and y transformed values
   let x = 0;
   let y = 0;
-  let mx = 0;
-  let my = 0;
+  // new x and y transformed
   let lx = 0;
   let ly = 0;
+  // segment params iteration index and length
   let j = 0;
   let jj = 0;
-  let nx = 0;
-  let ny = 0;
   let pathCommand = 'M';
   // transform uses it's own set of params
   const transformParams = { ...paramsParser };
@@ -38,7 +37,7 @@ const transformPath = (pathInput: PathArray | string, transform?: Partial<Transf
   const transformProps = transform && Object.keys(transform);
 
   // when used as a static method, invalidate somehow
-  if (!transform || (transformProps && !transformProps.length)) return path;
+  if (!transform || (transformProps && !transformProps.length)) return path.slice(0) as typeof path;
 
   // transform origin is extremely important
   if (!transform.origin) {
@@ -47,29 +46,37 @@ const transformPath = (pathInput: PathArray | string, transform?: Partial<Transf
   const origin = transform.origin as [number, number, number];
   const matrixInstance = getSVGMatrix(transform as TransformObjectValues);
 
-  if (matrixInstance.isIdentity) return path;
+  if (matrixInstance.isIdentity) return path.slice(0) as typeof path;
 
-  return iterate<AbsoluteArray>(path, (seg, _, i) => {
-    const absSegment = absolutizeSegment(seg, transformParams);
-    [pathCommand] = absSegment;
+  return iterate<AbsoluteArray>(path, (seg, index, lastX, lastY) => {
+    transformParams.x = lastX;
+    transformParams.y = lastY;
+    [pathCommand] = seg;
+    const absCommand = pathCommand.toUpperCase();
+    const isRelative = absCommand !== pathCommand;
+    const absoluteSegment = isRelative
+      ? absolutizeSegment(seg, index, lastX, lastY)
+      : (seg.slice(0) as AbsoluteSegment);
 
     let result =
-      pathCommand === 'A'
-        ? segmentToCubic(absSegment, transformParams)
-        : ['V', 'H'].includes(pathCommand)
-        ? normalizeSegment(absSegment, transformParams)
-        : absSegment;
-    const isLongArc = result[0] === 'C' && result.length > 7;
-    const normalizedSegment = (isLongArc ? result.slice(0, 7) : result.slice(0)) as typeof result;
+      absCommand === 'A'
+        ? segmentToCubic(absoluteSegment, transformParams)
+        : ['V', 'H'].includes(absCommand)
+        ? normalizeSegment(absoluteSegment, transformParams)
+        : absoluteSegment;
+
+    // update pathCommand
+    pathCommand = result[0];
+    const isLongArc = pathCommand === 'C' && result.length > 7;
+    const tempSegment = (isLongArc ? result.slice(0, 7) : result.slice(0)) as AbsoluteSegment;
 
     if (isLongArc) {
-      path.splice(i + 1, 0, ['C', ...result.slice(7)] as CSegment);
-      result = result.slice(0, 7) as CSegment;
+      path.splice(index + 1, 0, ['C' as typeof pathCommand | number].concat(result.slice(7)) as CSegment);
+      result = tempSegment as CSegment;
     }
 
-    if (result[0] === 'L') {
-      const values = result.slice(-2) as PointTuple;
-      [lx, ly] = projection2d(matrixInstance, values, origin);
+    if (pathCommand === 'L') {
+      [lx, ly] = projection2d(matrixInstance, [(result as LSegment)[1], (result as LSegment)[2]], origin);
 
       /* istanbul ignore else @preserve */
       if (x !== lx && y !== ly) {
@@ -90,24 +97,12 @@ const transformPath = (pathInput: PathArray | string, transform?: Partial<Transf
     x = lx;
     y = ly;
 
-    if (pathCommand === 'Z') {
-      nx = mx;
-      ny = my;
-    } else {
-      [nx, ny] = normalizedSegment.slice(-2) as PointTuple;
-      if (pathCommand === 'M') {
-        mx = nx;
-        my = ny;
-      }
-    }
+    const seglen = tempSegment.length;
+    transformParams.x1 = +tempSegment[seglen - 2];
+    transformParams.y1 = +tempSegment[seglen - 1];
+    transformParams.x2 = +tempSegment[seglen - 4] || transformParams.x1;
+    transformParams.y2 = +tempSegment[seglen - 3] || transformParams.y1;
 
-    const seglen = normalizedSegment.length;
-    transformParams.x1 = +normalizedSegment[seglen - 2];
-    transformParams.y1 = +normalizedSegment[seglen - 1];
-    transformParams.x2 = +normalizedSegment[seglen - 4] || transformParams.x1;
-    transformParams.y2 = +normalizedSegment[seglen - 3] || transformParams.y1;
-    transformParams.x = nx;
-    transformParams.y = ny;
     return result;
   });
 };

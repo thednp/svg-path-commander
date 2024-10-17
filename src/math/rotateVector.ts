@@ -8,8 +8,9 @@
  * @returns the rotated vector
  */
 const rotateVector = (x: number, y: number, rad: number): { x: number; y: number } => {
-  const X = x * Math.cos(rad) - y * Math.sin(rad);
-  const Y = x * Math.sin(rad) + y * Math.cos(rad);
+  const { sin, cos } = Math;
+  const X = x * cos(rad) - y * sin(rad);
+  const Y = x * sin(rad) + y * cos(rad);
   return { x: X, y: Y };
 };
 

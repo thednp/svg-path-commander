@@ -1,8 +1,8 @@
-import { length, minmaxC } from './bezier';
+import { getBezierLength, minmaxC } from './bezier';
 import { type CubicCoordinates } from '../types';
 
 /**
- * Returns a {x,y} point at a given length of a CubicBezier segment.
+ * Returns a point at a given length of a CubicBezier segment.
  *
  * @param x1 the starting point X
  * @param y1 the starting point Y
@@ -15,7 +15,7 @@ import { type CubicCoordinates } from '../types';
  * @param t a [0-1] ratio
  * @returns the point at cubic-bezier segment length
  */
-export const getPointAtCubicSegmentLength = ([x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates, t: number) => {
+const getPointAtCubicSegmentLength = ([x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates, t: number) => {
   const t1 = 1 - t;
   return {
     x: t1 ** 3 * x1 + 3 * t1 ** 2 * t * c1x + 3 * t1 * t ** 2 * c2x + t ** 3 * x2,
@@ -36,7 +36,7 @@ export const getPointAtCubicSegmentLength = ([x1, y1, c1x, c1y, c2x, c2y, x2, y2
  * @param y2 the ending point Y
  * @returns the CubicBezier segment length
  */
-export const getCubicLength = (
+const getCubicLength = (
   x1: number,
   y1: number,
   c1x: number,
@@ -46,7 +46,7 @@ export const getCubicLength = (
   x2: number,
   y2: number,
 ) => {
-  return length([x1, y1, c1x, c1y, c2x, c2y, x2, y2]);
+  return getBezierLength([x1, y1, c1x, c1y, c2x, c2y, x2, y2]);
 };
 
 /**
@@ -63,7 +63,7 @@ export const getCubicLength = (
  * @param distance the distance to look at
  * @returns the point at CubicBezier length
  */
-export const getPointAtCubicLength = (
+const getPointAtCubicLength = (
   x1: number,
   y1: number,
   c1x: number,
@@ -78,7 +78,7 @@ export const getPointAtCubicLength = (
   let point = { x: x1, y: y1 };
   /* istanbul ignore else @preserve */
   if (distanceIsNumber) {
-    const currentLength = length([x1, y1, c1x, c1y, c2x, c2y, x2, y2]);
+    const currentLength = getBezierLength([x1, y1, c1x, c1y, c2x, c2y, x2, y2]);
     if (distance <= 0) {
       // first point already defined
     } else if (distance >= currentLength) {
@@ -103,7 +103,7 @@ export const getPointAtCubicLength = (
  * @param y2 the ending point Y
  * @returns the point at CubicBezier length
  */
-export const getCubicBBox = (
+const getCubicBBox = (
   x1: number,
   y1: number,
   c1x: number,
@@ -120,3 +120,5 @@ export const getCubicBBox = (
     max: { x: cxMinMax[1], y: cyMinMax[1] },
   };
 };
+
+export { getCubicLength, getCubicBBox, getPointAtCubicLength, getPointAtCubicSegmentLength };

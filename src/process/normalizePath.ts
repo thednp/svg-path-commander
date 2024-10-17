@@ -1,11 +1,11 @@
 import normalizeSegment from './normalizeSegment';
-import type { AbsoluteCommand, NormalArray, PathArray, PointTuple } from '../types';
+import type { NormalArray, PathArray } from '../types';
 import iterate from './iterate';
 import parsePathString from '../parser/parsePathString';
-import absolutizeSegment from './absolutizeSegment';
+import paramsParser from '../parser/paramsParser';
 
 /**
- * Normalizes a `path` object for further processing:
+ * Normalizes a `pathArray` object for further processing:
  * * convert segments to absolute values
  * * convert shorthand path commands to their non-shorthand notation
  *
@@ -13,37 +13,20 @@ import absolutizeSegment from './absolutizeSegment';
  * @returns the normalized `pathArray`
  */
 const normalizePath = (pathInput: string | PathArray) => {
-  let x = 0;
-  let y = 0;
-  let mx = 0;
-  let my = 0;
-  let pathCommand = 'M';
+  const path = parsePathString(pathInput);
+  const params = { ...paramsParser };
 
-  return iterate<NormalArray>(parsePathString(pathInput), (seg, params) => {
-    const absoluteSegment = absolutizeSegment(seg, params);
-    const result = normalizeSegment(absoluteSegment, params);
-    [pathCommand] = result;
-    const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
+  return iterate<NormalArray>(path, (seg, _, lastX, lastY) => {
+    params.x = lastX;
+    params.y = lastY;
+    const result = normalizeSegment(seg, params);
 
-    if (absCommand === 'Z') {
-      x = mx;
-      y = my;
-    } else {
-      [x, y] = result.slice(-2) as PointTuple;
+    const seglen = result.length;
+    params.x1 = +result[seglen - 2];
+    params.y1 = +result[seglen - 1];
+    params.x2 = +result[seglen - 4] || params.x1;
+    params.y2 = +result[seglen - 3] || params.y1;
 
-      if (absCommand === 'M') {
-        mx = x;
-        my = y;
-      }
-    }
-
-    // const seglen = result.length;
-    // params.x1 = +result[seglen - 2];
-    // params.y1 = +result[seglen - 1];
-    // params.x2 = +result[seglen - 4] || params.x1;
-    // params.y2 = +result[seglen - 3] || params.y1;
-    params.x = x;
-    params.y = y;
     return result;
   });
 };

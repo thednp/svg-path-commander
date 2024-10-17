@@ -15,7 +15,7 @@ const segmentToCubic = (segment: PathSegment, params: ParserParams) => {
   const [pathCommand] = segment;
   const values = segment.slice(1).map(Number);
   const [x, y] = values;
-  let args;
+  // let args;
   const { x1: px1, y1: py1, x: px, y: py } = params;
 
   if (!'TQ'.includes(pathCommand)) {
@@ -28,17 +28,19 @@ const segmentToCubic = (segment: PathSegment, params: ParserParams) => {
     params.y = y;
     return segment;
   } else if (pathCommand === 'A') {
-    args = [px1, py1, ...values] as [number, number, number, number, number, number, number, number, number];
-    return ['C', ...arcToCubic(...args)] as CSegment;
+    return ['C' as string | number].concat(
+      arcToCubic(px1, py1, values[0], values[1], values[2], values[3], values[4], values[5], values[6]),
+    ) as CSegment;
   } else if (pathCommand === 'Q') {
     params.qx = x;
     params.qy = y;
-    args = [px1, py1, ...values] as [number, number, number, number, number, number];
-    return ['C', ...quadToCubic(...args)] as CSegment;
+    return ['C' as string | number].concat(
+      quadToCubic(px1, py1, values[0], values[1], values[2], values[3]),
+    ) as CSegment;
   } else if (pathCommand === 'L') {
-    return ['C', ...lineToCubic(px1, py1, x, y)] as CSegment;
+    return ['C' as string | number].concat(lineToCubic(px1, py1, x, y)) as CSegment;
   } else if (pathCommand === 'Z') {
-    return ['C', ...lineToCubic(px1, py1, px, py)] as CSegment;
+    return ['C' as string | number].concat(lineToCubic(px1, py1, px, py)) as CSegment;
   }
 
   return segment as MSegment | CSegment;

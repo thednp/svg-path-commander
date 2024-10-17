@@ -1,5 +1,5 @@
 import { expect, it, describe, beforeEach, vi } from 'vitest';
-import SVGPathCommander, { type CurveArray, type ShapeTypes } from '~/index';
+import SVGPathCommander, { PathArray, type CurveArray, type ShapeTypes } from '~/index';
 import invalidPathValue from '../src/parser/invalidPathValue';
 import error from '../src/parser/error';
 
@@ -115,11 +115,12 @@ describe('SVGPathCommander Static Methods', () => {
     });
   });
 
-  it(`Can revert back to default round option`, () => {
-    const sample = [["M", 0, 0], ["L", 181.99955, 0], ["L", 91, 72], ["L", 0, 0], ["Z"]];
-    const rounded = [["M", 0, 0], ["L", 181.9996, 0], ["L", 91, 72], ["L", 0, 0], ["Z"]];
+  it(`Can disable round, use a given decimal amount or revert back to default round option`, () => {
+    const sample = [["M", 0, 0], ["L", 181.99955, 0], ["L", 91, 72], ["L", 0, 0], ["Z"]] as PathArray;
+    const rounded = [["M", 0, 0], ["L", 181.9996, 0], ["L", 91, 72], ["L", 0, 0], ["Z"]] as PathArray;
 
-    // @ts-expect-error
+    expect(SVGPathCommander.roundPath(sample, 4), `can use number setting`).to.deep.equal(rounded);
+    expect(SVGPathCommander.roundPath(sample, 'off'), `can use "off" setting`).to.deep.equal(sample);
     expect(SVGPathCommander.roundPath(sample, -1), `use 4 decimals when negative number is provided`).to.deep.equal(rounded);
     // @ts-expect-error
     expect(SVGPathCommander.roundPath(sample, 'wombat'), `use 4 decimals when string is provided`).to.deep.equal(rounded);
@@ -198,7 +199,7 @@ describe('SVGPathCommander Static Methods', () => {
     const propsPoint0 = getPropertiesAtPoint(simpleShapes.initial[1], { "x": 10, "y": 90 });
     expect(propsPoint0.closest).to.deep.equal({ x: 10, y: 90 });
     expect(propsPoint0.distance).to.equal(0);
-    expect(propsPoint0.segment).to.deep.equal({ segment: ["M", 10, 90], index: 0, length: 0, point: { x: 10, y: 90 }, lengthAtSegment: 0 })
+    expect(propsPoint0.segment).to.deep.equal({ segment: ["M", 10, 90], index: 0, length: 0, lengthAtSegment: 0 })
 
     // getPropertiesAtPoint mid point
     const propsPoint50 = getPropertiesAtPoint(simpleShapes.initial[1], { x: 30.072453006153214, y: 41.42818552481854 });
@@ -224,7 +225,7 @@ describe('SVGPathCommander Static Methods', () => {
   it(`Can do getSegmentOfPoint`, () => {
     const { getSegmentOfPoint } = SVGPathCommander;
     // first point
-    expect(getSegmentOfPoint(simpleShapes.initial[1], { x: 10, y: 90 })).to.deep.equal({ segment: ["M", 10, 90], index: 0, length: 0, point: { x: 10, y: 90 }, lengthAtSegment: 0 });
+    expect(getSegmentOfPoint(simpleShapes.initial[1], { x: 10, y: 90 })).to.deep.equal({ segment: ["M", 10, 90], index: 0, length: 0, lengthAtSegment: 0 });
     // mid point
     expect(getSegmentOfPoint(simpleShapes.initial[3], { x: 9, y: 9 })).to.deep.equal({ segment: ["a", 6, 4, 10, 0, 1, 8, 0], index: 5, length: 7.498916687913066,/* point: { x: 6, y: 10 },*/ lengthAtSegment: 48.11479095890485 });
   });
@@ -267,13 +268,13 @@ describe('SVGPathCommander Static Methods', () => {
   });
 
   it(`Can do polygonLength`, () => {
-    const { polygonLength } = SVGPathCommander;
-    expect(polygonLength([[100, 100], [150, 25], [150, 75], [200, 0]])).to.equal(230.27756377319946);
+    const { polygonTools } = SVGPathCommander;
+    expect(polygonTools.polygonLength([[100, 100], [150, 25], [150, 75], [200, 0]])).to.equal(230.27756377319946);
   });
 
   it(`Can do polygonArea`, () => {
-    const { polygonArea } = SVGPathCommander;
-    expect(polygonArea([[107.4, 13], [113.7, 28.8], [127.9, 31.3], [117.6, 43.5], [120.1, 60.8], [107.4, 52.6], [94.6, 60.8], [97.1, 43.5], [86.8, 31.3], [101, 28.8]])).to.equal(-836.69);
+    const { polygonTools } = SVGPathCommander;
+    expect(polygonTools.polygonArea([[107.4, 13], [113.7, 28.8], [127.9, 31.3], [117.6, 43.5], [120.1, 60.8], [107.4, 52.6], [94.6, 60.8], [97.1, 43.5], [86.8, 31.3], [101, 28.8]])).to.equal(-836.69);
   });
 
   it(`Can do transformPath with empty object`, () => {
@@ -304,7 +305,7 @@ describe('SVGPathCommander Static Methods', () => {
   });
 
   it(`Can cover all remaining branches`, () => {
-    const { splitPath, parsePathString, getPathBBox, getPointAtLength, getTotalLength } = SVGPathCommander;
+    const { splitPath, pathToString, optimizePath, parsePathString, getPathBBox, getPointAtLength, getTotalLength } = SVGPathCommander;
     expect(getPointAtLength(simpleShapes.normalized[3], 24.057395479452424)).to.deep.equal({ x: 14, y: 10 });
     expect(getPointAtLength(simpleShapes.normalized[0], 0)).to.deep.equal({ x: 10, y: 10 });
     expect(getPointAtLength(simpleShapes.normalized[3], undefined)).to.deep.equal({ x: 6, y: 10 });
@@ -320,5 +321,10 @@ describe('SVGPathCommander Static Methods', () => {
       "x": 10, "y": 10, "x2": 170,"y2": 90,
     });
     expect(splitPath(parsePathString(shapes.relative[1])).length).to.equal(7);
+    expect(pathToString(optimizePath(parsePathString(
+      // 'M10 50q15 -25 30 0Q55 75 70 50Q85 25 100 50T130 50Q145 25 160 50t30 0'
+      simpleShapes.normalized[2]
+    ), 2))).to.equal(simpleShapes.initial[2]);
+    // M10 50q15 -25 30 0t30 0t30 0t30 0t30 0t30 0
   });
 });

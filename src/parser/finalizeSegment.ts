@@ -9,21 +9,25 @@ import type { PathCommand, PathSegment, RelativeCommand } from '../types';
  */
 const finalizeSegment = (path: PathParser) => {
   let pathCommand = path.pathValue[path.segmentStart] as PathCommand;
-  let LK = pathCommand.toLowerCase() as RelativeCommand;
+  let relativeCommand = pathCommand.toLowerCase() as RelativeCommand;
   const { data } = path;
 
-  while (data.length >= paramsCount[LK]) {
+  while (data.length >= paramsCount[relativeCommand]) {
     // overloaded `moveTo`
     // https://github.com/rveciana/svg-path-properties/blob/master/src/parse.ts
-    if (LK === 'm' && data.length > 2) {
-      path.segments.push([pathCommand, ...(data.splice(0, 2) as number[])] as PathSegment);
-      LK = 'l';
+    if (relativeCommand === 'm' && data.length > 2) {
+      path.segments.push([pathCommand as PathCommand | number].concat(data.splice(0, 2) as number[]) as PathSegment);
+      relativeCommand = 'l';
       pathCommand = pathCommand === 'm' ? 'l' : 'L';
     } else {
-      path.segments.push([pathCommand, ...(data.splice(0, paramsCount[LK]) as number[])] as PathSegment);
+      path.segments.push(
+        [pathCommand as PathCommand | number].concat(
+          data.splice(0, paramsCount[relativeCommand]) as number[],
+        ) as PathSegment,
+      );
     }
 
-    if (!paramsCount[LK]) {
+    if (!paramsCount[relativeCommand]) {
       break;
     }
   }

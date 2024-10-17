@@ -1,4 +1,4 @@
-import { length, minmaxQ } from './bezier';
+import { getBezierLength, minmaxQ } from './bezier';
 import { type QuadCoordinates } from '../types';
 
 /**
@@ -35,8 +35,8 @@ const getPointAtQuadSegmentLength = ([x1, y1, cx, cy, x2, y2]: QuadCoordinates, 
  * @param y2 the ending point Y
  * @returns the QuadraticBezier segment length
  */
-export const getQuadLength = (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => {
-  return length([x1, y1, cx, cy, x2, y2]);
+const getQuadLength = (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => {
+  return getBezierLength([x1, y1, cx, cy, x2, y2]);
 };
 
 /**
@@ -51,7 +51,7 @@ export const getQuadLength = (x1: number, y1: number, cx: number, cy: number, x2
  * @param distance the distance to look at
  * @returns the point at QuadraticBezier length
  */
-export const getPointAtQuadLength = (
+const getPointAtQuadLength = (
   x1: number,
   y1: number,
   cx: number,
@@ -65,7 +65,7 @@ export const getPointAtQuadLength = (
 
   /* istanbul ignore else @preserve */
   if (distanceIsNumber) {
-    const currentLength = length([x1, y1, cx, cy, x2, y2]);
+    const currentLength = getBezierLength([x1, y1, cx, cy, x2, y2]);
     if (distance <= 0) {
       // first point already defined
     } else if (distance >= currentLength) {
@@ -88,7 +88,7 @@ export const getPointAtQuadLength = (
  * @param y2 the ending point Y
  * @returns the point at CubicBezier length
  */
-export const getQuadBBox = (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => {
+const getQuadBBox = (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => {
   const cxMinMax = minmaxQ([x1, cx, x2]);
   const cyMinMax = minmaxQ([y1, cy, y2]);
   return {
@@ -96,3 +96,5 @@ export const getQuadBBox = (x1: number, y1: number, cx: number, cy: number, x2: 
     max: { x: cxMinMax[1], y: cyMinMax[1] },
   };
 };
+
+export { getPointAtQuadSegmentLength, getQuadLength, getQuadBBox, getPointAtQuadLength };

@@ -1,6 +1,7 @@
-import type { PathArray, PathSegment } from '../types';
+import type { PathArray } from '../types';
 import defaultOptions from '../options/options';
 import iterate from './iterate';
+import roundSegment from './roundSegment';
 
 /**
  * Rounds the values of a `pathArray` instance to
@@ -12,16 +13,21 @@ import iterate from './iterate';
  */
 const roundPath = (path: PathArray, roundOption?: number | 'off') => {
   let { round } = defaultOptions;
-  if (roundOption === 'off' || round === 'off') return path.slice(0) as PathArray;
   // allow for ZERO decimals
-  round = typeof roundOption === 'number' && roundOption >= 0 ? roundOption : round;
-  // to round values to the power
-  // the `round` value must be integer
-  const pow = typeof round === 'number' && round >= 1 ? 10 ** round : 1;
+  round =
+    roundOption === 'off'
+      ? roundOption
+      : typeof roundOption === 'number' && roundOption >= 0
+      ? roundOption
+      : typeof round === 'number' && round >= 0
+      ? round
+      : /* istanbul ignore next @preserve */ 'off';
+
+  /* istanbul ignore else @preserve */
+  if (round === 'off') return path.slice(0) as PathArray;
 
   return iterate<typeof path>(path, segment => {
-    const values = (segment.slice(1) as number[]).map(n => (round ? Math.round(n * pow) / pow : Math.round(n)));
-    return [segment[0], ...values] as PathSegment;
+    return roundSegment(segment, round);
   });
 };
 export default roundPath;

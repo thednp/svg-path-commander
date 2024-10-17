@@ -1,10 +1,11 @@
-import roundPath from './roundPath';
 import pathToAbsolute from '../convert/pathToAbsolute';
-import pathToRelative from '../convert/pathToRelative';
 import shortenSegment from './shortenSegment';
 import paramsParser from '../parser/paramsParser';
-import normalizePath from './normalizePath';
-import type { PathSegment, HSegment, PathArray, VSegment, PathCommand, AbsoluteSegment } from '../types';
+import type { AbsoluteSegment, PathArray, PathCommand } from '../types';
+import iterate from './iterate';
+import normalizeSegment from './normalizeSegment';
+import relativizeSegment from './relativizeSegment';
+import roundSegment from './roundSegment';
 
 /**
  * Optimizes a `pathArray` object:
@@ -12,72 +13,51 @@ import type { PathSegment, HSegment, PathArray, VSegment, PathCommand, AbsoluteS
  * * select shortest segments from absolute and relative `pathArray`s
  *
  * @param pathInput a string or `pathArray`
- * @param round the amount of decimals to round values to
+ * @param roundOption the amount of decimals to round values to
  * @returns the optimized `pathArray`
  */
-const optimizePath = (pathInput: PathArray, round: 'off' | number): PathArray => {
+const optimizePath = (pathInput: PathArray, roundOption: number) => {
   const path = pathToAbsolute(pathInput);
-  const normalPath = normalizePath(path);
-  const params = { ...paramsParser };
-  const allPathCommands = [] as PathCommand[];
-  const ii = path.length;
-  let pathCommand = '' as PathCommand;
-  let prevCommand = '' as PathCommand;
-  let x = 0;
-  let y = 0;
-  let mx = 0;
-  let my = 0;
+  // allow for ZERO decimals or use an aggressive value of 2
+  const round =
+    typeof roundOption === 'number' && roundOption >= 0 ? roundOption : /* istanbul ignore next @preserve */ 2;
+  // this utility overrides the iterator params
+  const optimParams = { ...paramsParser };
 
-  for (let i = 0; i < ii; i += 1) {
-    [pathCommand] = path[i];
+  const allPathCommands = [] as PathCommand[];
+  let pathCommand = 'M' as PathCommand;
+  let prevCommand = 'Z' as PathCommand;
+
+  return iterate(path, (seg, i, lastX, lastY) => {
+    optimParams.x = lastX;
+    optimParams.y = lastY;
+    // const absoluteSegment = absolutizeSegment(seg, optimParams);
+    const normalizedSegment = normalizeSegment(seg, optimParams);
+    let result = seg;
+    [pathCommand] = seg;
 
     // Save current path command
     allPathCommands[i] = pathCommand;
-    // Get previous path command for `shortenSegment`
-    if (i) prevCommand = allPathCommands[i - 1];
-    path[i] = shortenSegment(path[i], normalPath[i], params, prevCommand) as AbsoluteSegment;
-
-    const segment = path[i];
-    const seglen = segment.length;
-
-    // update C, S, Q, T specific params
-    params.x1 = +segment[seglen - 2];
-    params.y1 = +segment[seglen - 1];
-    params.x2 = +segment[seglen - 4] || params.x1;
-    params.y2 = +segment[seglen - 3] || params.y1;
-
-    // update x, y params
-    switch (pathCommand) {
-      case 'Z':
-        x = mx;
-        y = my;
-        break;
-      case 'H':
-        [, x] = segment as HSegment;
-        break;
-      case 'V':
-        [, y] = segment as VSegment;
-        break;
-      default:
-        [x, y] = segment.slice(-2).map(Number);
-
-        if (pathCommand === 'M') {
-          mx = x;
-          my = y;
-        }
-    }
-    params.x = x;
-    params.y = y;
-  }
-
-  const absolutePath = roundPath(path, round);
-  const relativePath = roundPath(pathToRelative(path), round);
-
-  return absolutePath.map((a: PathSegment, i: number) => {
     if (i) {
-      return a.join('').length < relativePath[i].join('').length ? a : relativePath[i];
+      // Get previous path command for `shortenSegment`
+      prevCommand = allPathCommands[i - 1];
+      const shortSegment = shortenSegment(seg as AbsoluteSegment, normalizedSegment, optimParams, prevCommand);
+      const absSegment = roundSegment(shortSegment, round);
+      const absString = absSegment.join('');
+      const relativeSegment = relativizeSegment(shortSegment, i, lastX, lastY);
+      const relSegment = roundSegment(relativeSegment, round);
+      const relString = relSegment.join('');
+      result = absString.length < relString.length ? absSegment : relSegment;
     }
-    return a;
-  }) as PathArray;
+
+    const seglen = normalizedSegment.length;
+    optimParams.x1 = +normalizedSegment[seglen - 2];
+    optimParams.y1 = +normalizedSegment[seglen - 1];
+    optimParams.x2 = +normalizedSegment[seglen - 4] || optimParams.x1;
+    optimParams.y2 = +normalizedSegment[seglen - 3] || optimParams.y1;
+
+    return result;
+  });
 };
+
 export default optimizePath;

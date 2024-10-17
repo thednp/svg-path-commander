@@ -1,9 +1,9 @@
 import segmentToCubic from '../process/segmentToCubic';
-import { AbsoluteCommand, CSegment, CurveArray, PathArray, PointTuple } from '../types';
+import { AbsoluteCommand, CSegment, CurveArray, PathArray } from '../types';
 import iterate from '../process/iterate';
 import parsePathString from '../parser/parsePathString';
 import normalizeSegment from '../process/normalizeSegment';
-import absolutizeSegment from '../process/absolutizeSegment';
+import paramsParser from '../parser/paramsParser';
 
 /**
  * Parses a path string value or 'pathArray' and returns a new one
@@ -16,41 +16,27 @@ import absolutizeSegment from '../process/absolutizeSegment';
  * @returns the resulted `pathArray` converted to cubic-bezier
  */
 const pathToCurve = (pathInput: string | PathArray): CurveArray => {
-  let x = 0;
-  let y = 0;
-  let mx = 0;
-  let my = 0;
-  let pathCommand = 'M';
-
+  const params = { ...paramsParser };
   const path = parsePathString(pathInput);
-  return iterate<CurveArray>(path, (seg, params, i) => {
-    const absSegment = absolutizeSegment(seg, params);
-    [pathCommand] = absSegment;
 
-    const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
-    const normalSegment = normalizeSegment(absSegment, params);
+  return iterate<CurveArray>(path, (seg, index, lastX, lastY) => {
+    params.x = lastX;
+    params.y = lastY;
+    const normalSegment = normalizeSegment(seg, params);
     let result = segmentToCubic(normalSegment, params);
     const isLongArc = result[0] === 'C' && result.length > 7;
 
     if (isLongArc) {
-      path.splice(i + 1, 0, ['C', ...result.slice(7)] as CSegment);
+      path.splice(index + 1, 0, ['C' as AbsoluteCommand | number].concat(result.slice(7)) as CSegment);
       result = result.slice(0, 7) as CSegment;
     }
 
-    if (absCommand === 'Z') {
-      x = mx;
-      y = my;
-    } else {
-      [x, y] = result.slice(-2) as PointTuple;
+    const seglen = result.length;
+    params.x1 = +result[seglen - 2];
+    params.y1 = +result[seglen - 1];
+    params.x2 = +result[seglen - 4] || params.x1;
+    params.y2 = +result[seglen - 3] || params.y1;
 
-      if (absCommand === 'M') {
-        mx = x;
-        my = y;
-      }
-    }
-
-    params.x = x;
-    params.y = y;
     return result;
   });
 };

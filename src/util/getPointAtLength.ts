@@ -1,21 +1,11 @@
 import DISTANCE_EPSILON from './distanceEpsilon';
-import parsePathString from '../parser/parsePathString';
-import type {
-  ArcCoordinates,
-  CubicCoordinates,
-  LineCoordinates,
-  MSegment,
-  PathArray,
-  PointTuple,
-  QuadCoordinates,
-} from '../types';
+import type { MSegment, PathArray, PointTuple } from '../types';
 import iterate from '../process/iterate';
-import absolutizeSegment from '../process/absolutizeSegment';
-import normalizeSegment from '../process/normalizeSegment';
 import { getLineLength, getPointAtLineLength } from '../math/lineTools';
 import { getArcLength, getPointAtArcLength } from '../math/arcTools';
 import { getCubicLength, getPointAtCubicLength } from '../math/cubicTools';
 import { getQuadLength, getPointAtQuadLength } from '../math/quadTools';
+import normalizePath from '../process/normalizePath';
 
 /**
  * Returns [x,y] coordinates of a point at a given length of a shape.
@@ -25,7 +15,7 @@ import { getQuadLength, getPointAtQuadLength } from '../math/quadTools';
  * @returns the requested {x, y} point coordinates
  */
 const getPointAtLength = (pathInput: string | PathArray, distance?: number) => {
-  const path = parsePathString(pathInput);
+  const path = normalizePath(pathInput);
   let isM = false;
   let data = [] as number[];
   let pathCommand = 'M';
@@ -38,18 +28,13 @@ const getPointAtLength = (pathInput: string | PathArray, distance?: number) => {
   let POINT = point;
   let totalLength = 0;
 
-  if (!distanceIsNumber) return point;
+  if (!distanceIsNumber || distance < DISTANCE_EPSILON) return point;
 
-  if (distance < DISTANCE_EPSILON) {
-    POINT = point;
-  }
-
-  iterate(path, (seg, params) => {
-    const absoluteSegment = absolutizeSegment(seg, params);
-    const normalSegment = normalizeSegment(absoluteSegment, params);
-    [pathCommand] = normalSegment;
+  // for (let i = 0; i < pathLen; i += 1) {
+  iterate(path, (seg, _, lastX, lastY) => {
+    [pathCommand] = seg;
     isM = pathCommand === 'M';
-    data = !isM ? [x, y, ...(normalSegment.slice(1) as number[])] : data;
+    data = !isM ? [lastX, lastY].concat(seg.slice(1) as number[]) : data;
 
     // this segment is always ZERO
     /* istanbul ignore else @preserve */
@@ -59,50 +44,67 @@ const getPointAtLength = (pathInput: string | PathArray, distance?: number) => {
       point = { x: mx, y: my };
       length = 0;
     } else if (pathCommand === 'L') {
-      point = getPointAtLineLength(...(data as LineCoordinates), distance - totalLength);
-      length = getLineLength(...(data as LineCoordinates));
+      point = getPointAtLineLength(data[0], data[1], data[2], data[3], distance - totalLength);
+      length = getLineLength(data[0], data[1], data[2], data[3]);
     } else if (pathCommand === 'A') {
-      point = getPointAtArcLength(...(data as ArcCoordinates), distance - totalLength);
-      length = getArcLength(...(data as ArcCoordinates));
+      point = getPointAtArcLength(
+        data[0],
+        data[1],
+        data[2],
+        data[3],
+        data[4],
+        data[5],
+        data[6],
+        data[7],
+        data[8],
+        distance - totalLength,
+      );
+      length = getArcLength(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]);
     } else if (pathCommand === 'C') {
-      point = getPointAtCubicLength(...(data as CubicCoordinates), distance - totalLength);
-      length = getCubicLength(...(data as CubicCoordinates));
+      point = getPointAtCubicLength(
+        data[0],
+        data[1],
+        data[2],
+        data[3],
+        data[4],
+        data[5],
+        data[6],
+        data[7],
+        distance - totalLength,
+      );
+      length = getCubicLength(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
     } else if (pathCommand === 'Q') {
-      point = getPointAtQuadLength(...(data as QuadCoordinates), distance - totalLength);
-      length = getQuadLength(...(data as QuadCoordinates));
+      point = getPointAtQuadLength(data[0], data[1], data[2], data[3], data[4], data[5], distance - totalLength);
+      length = getQuadLength(data[0], data[1], data[2], data[3], data[4], data[5]);
     } else if (pathCommand === 'Z') {
-      data = [x, y, mx, my];
+      data = [lastX, lastY, mx, my];
       point = { x: mx, y: my };
-      length = getLineLength(...(data as LineCoordinates));
+
+      length = getLineLength(data[0], data[1], data[2], data[3]);
     }
 
-    if (totalLength < distance && totalLength + length >= distance) {
+    [x, y] = data.slice(-2);
+
+    if (totalLength < distance) {
       POINT = point;
+    } else {
+      // totalLength >= distance
+      // stop right here
+      // stop iterator now!
+      return false;
     }
 
     totalLength += length;
-    if (pathCommand === 'Z') {
-      x = mx;
-      y = my;
-    } else {
-      [x, y] = normalSegment.slice(-2) as PointTuple;
-
-      if (pathCommand === 'M') {
-        mx = x;
-        my = y;
-      }
-    }
-    params.x = x;
-    params.y = y;
-    return normalSegment;
+    return;
   });
 
   // native `getPointAtLength` behavior when the given distance
   // is higher than total length
   if (distance > totalLength - DISTANCE_EPSILON) {
-    POINT = { x, y };
+    return { x, y };
   }
 
   return POINT;
 };
+
 export default getPointAtLength;

@@ -1,15 +1,7 @@
+import defaultOptions from '../options/options';
 import type { ParserParams } from '../interface';
-import type {
-  AbsoluteSegment,
-  HSegment,
-  NormalSegment,
-  PathCommand,
-  ShortSegment,
-  SSegment,
-  TSegment,
-  VSegment,
-  ZSegment,
-} from '../types';
+import roundTo from '../math/roundTo';
+import type { AbsoluteSegment, NormalSegment, PathCommand, ShortSegment, SSegment, TSegment } from '../types';
 
 /**
  * Shorten a single segment of a `pathArray` object.
@@ -27,12 +19,12 @@ const shortenSegment = (
   prevCommand: PathCommand,
 ): ShortSegment => {
   const [pathCommand] = segment;
-  const round4 = (n: number) => Math.round(n * 10 ** 4) / 10 ** 4;
-  const segmentValues = segment.slice(1) as number[];
+  const { round: defaultRound } = defaultOptions;
+  const round = typeof defaultRound === 'number' ? defaultRound : /* istanbul ignore next */ 4;
   const normalValues = normalSegment.slice(1) as number[];
-  const { x1: px1, y1: py1, x2: px2, y2: py2, x: px, y: py } = params;
-  let result = segment;
-  const [x, y] = normalValues.slice(-2);
+  const { x1, y1, x2, y2, x, y } = params;
+  const [nx, ny] = normalValues.slice(-2);
+  const result = segment;
 
   if (!'TQ'.includes(pathCommand)) {
     // optional but good to be cautious
@@ -40,26 +32,24 @@ const shortenSegment = (
     params.qy = null;
   }
 
-  if (['V', 'H', 'S', 'T', 'Z'].includes(pathCommand)) {
-    result = [pathCommand, ...segmentValues] as VSegment | HSegment | SSegment | TSegment | ZSegment;
-  } else if (pathCommand === 'L') {
-    if (round4(px) === round4(x)) {
-      result = ['V', y];
-    } else if (round4(py) === round4(y)) {
-      result = ['H', x];
+  if (pathCommand === 'L') {
+    if (roundTo(x, round) === roundTo(nx, round)) {
+      return ['V', ny];
+    } else if (roundTo(y, round) === roundTo(ny, round)) {
+      return ['H', nx];
     }
   } else if (pathCommand === 'C') {
-    const [x1, y1] = normalValues;
+    const [nx1, ny1] = normalValues;
+    params.x1 = nx1;
+    params.y1 = ny1;
 
     if (
       'CS'.includes(prevCommand) &&
-      ((round4(x1) === round4(px1 * 2 - px2) && round4(y1) === round4(py1 * 2 - py2)) ||
-        (round4(px1) === round4(px2 * 2 - px) && round4(py1) === round4(py2 * 2 - py)))
+      ((roundTo(nx1, round) === roundTo(x1 * 2 - x2, round) && roundTo(ny1, round) === roundTo(y1 * 2 - y2, round)) ||
+        (roundTo(x1, round) === roundTo(x2 * 2 - x, round) && roundTo(y1, round) === roundTo(y2 * 2 - y, round)))
     ) {
-      result = ['S', ...normalValues.slice(-4)] as SSegment;
+      return ['S', normalValues[2], normalValues[3], normalValues[4], normalValues[5]] as SSegment;
     }
-    params.x1 = x1;
-    params.y1 = y1;
   } else if (pathCommand === 'Q') {
     const [qx, qy] = normalValues;
     params.qx = qx;
@@ -67,13 +57,15 @@ const shortenSegment = (
 
     if (
       'QT'.includes(prevCommand) &&
-      ((round4(qx) === round4(px1 * 2 - px2) && round4(qy) === round4(py1 * 2 - py2)) ||
-        (round4(px1) === round4(px2 * 2 - px) && round4(py1) === round4(py2 * 2 - py)))
+      roundTo(qx, round) === roundTo(x1 * 2 - x2, round) &&
+      roundTo(qy, round) === roundTo(y1 * 2 - y2, round)
     ) {
-      result = ['T', ...normalValues.slice(-2)] as TSegment;
+      return ['T', normalValues[2], normalValues[3]] as TSegment;
     }
   }
 
+  // ['V', 'H', 'S', 'T', 'Z'].includes(pathCommand)
   return result as ShortSegment;
 };
+
 export default shortenSegment;

@@ -5,7 +5,8 @@ export type SegmentProperties = {
   index: number;
   length: number;
   lengthAtSegment: number;
-  [key: string]: any;
+  // point: Point;
+  // [key: string]: any;
 };
 
 export type PointProperties = {

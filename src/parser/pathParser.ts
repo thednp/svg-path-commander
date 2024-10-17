@@ -13,7 +13,7 @@ export default class PathParser {
   declare index: number;
   declare param: number;
   declare segmentStart: number;
-  declare data: any[];
+  declare data: (string | number)[];
   declare err: string;
 
   constructor(pathString: string) {

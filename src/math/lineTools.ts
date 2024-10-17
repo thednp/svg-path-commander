@@ -10,7 +10,7 @@ import distanceSquareRoot from './distanceSquareRoot';
  * @param y2 the ending point Y
  * @returns the line segment length
  */
-export const getLineLength = (x1: number, y1: number, x2: number, y2: number) => {
+const getLineLength = (x1: number, y1: number, x2: number, y2: number) => {
   return distanceSquareRoot([x1, y1], [x2, y2]);
 };
 
@@ -24,12 +24,12 @@ export const getLineLength = (x1: number, y1: number, x2: number, y2: number) =>
  * @param distance the distance to point in [0-1] range
  * @returns the point at length
  */
-export const getPointAtLineLength = (x1: number, y1: number, x2: number, y2: number, distance?: number) => {
-  const length = distanceSquareRoot([x1, y1], [x2, y2]);
+const getPointAtLineLength = (x1: number, y1: number, x2: number, y2: number, distance?: number) => {
   let point = { x: x1, y: y1 };
 
   /* istanbul ignore else @preserve */
   if (typeof distance === 'number') {
+    const length = distanceSquareRoot([x1, y1], [x2, y2]);
     if (distance <= 0) {
       point = { x: x1, y: y1 };
     } else if (distance >= length) {
@@ -52,7 +52,7 @@ export const getPointAtLineLength = (x1: number, y1: number, x2: number, y2: num
  * @param distance the distance to point in [0-1] range
  * @returns the extrema for line segments
  */
-export const getLineBBox = (x1: number, y1: number, x2: number, y2: number) => {
+const getLineBBox = (x1: number, y1: number, x2: number, y2: number) => {
   const { min, max } = Math;
   return {
     min: {
@@ -65,3 +65,5 @@ export const getLineBBox = (x1: number, y1: number, x2: number, y2: number) => {
     },
   };
 };
+
+export { getPointAtLineLength, getLineBBox, getLineLength };

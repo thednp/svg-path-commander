@@ -15,8 +15,6 @@ import type {
  * @see https://github.com/Pomax/bezierjs
  */
 
-const ZERO = { x: 0, y: 0 };
-
 const Tvalues = [
   -0.0640568928626056260850430826247450385909, 0.0640568928626056260850430826247450385909,
   -0.1911188674736163091586398207570696318404, 0.1911188674736163091586398207570696318404,
@@ -52,7 +50,7 @@ const Cvalues = [
  * @param points
  * @returns
  */
-const derive = (points: QuadPoints | CubicPoints) => {
+const deriveBezier = (points: QuadPoints | CubicPoints) => {
   const dpoints = [] as (DerivedCubicPoints | DerivedQuadPoints)[];
   for (let p = points, d = p.length, c = d - 1; d > 1; d -= 1, c -= 1) {
     const list = [] as unknown as DerivedCubicPoints | DerivedQuadPoints;
@@ -74,7 +72,7 @@ const derive = (points: QuadPoints | CubicPoints) => {
  * @param points
  * @param t
  */
-const compute = (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => {
+const computeBezier = (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => {
   // shortcuts
   /* istanbul ignore next @preserve */
   if (t === 0) {
@@ -119,7 +117,7 @@ const compute = (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => {
   let d = 0;
   /* istanbul ignore else @preserve */
   if (order === 2) {
-    p = [p[0], p[1], p[2], ZERO as DerivedPoint];
+    p = [p[0], p[1], p[2], { x: 0, y: 0 } as DerivedPoint];
     a = mt2;
     b = mt * t * 2;
     c = t2;
@@ -136,14 +134,14 @@ const compute = (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => {
   };
 };
 
-const arcfn = (derivativeFn: DeriveCallback, t: number) => {
+const calculateBezier = (derivativeFn: DeriveCallback, t: number) => {
   const d = derivativeFn(t);
   const l = d.x * d.x + d.y * d.y;
 
   return Math.sqrt(l);
 };
 
-const lengthFn = (derivativeFn: DeriveCallback) => {
+const bezierLength = (derivativeFn: DeriveCallback) => {
   const z = 0.5;
   const len = Tvalues.length;
 
@@ -151,7 +149,7 @@ const lengthFn = (derivativeFn: DeriveCallback) => {
 
   for (let i = 0, t; i < len; i++) {
     t = z * Tvalues[i] + z;
-    sum += Cvalues[i] * arcfn(derivativeFn, t);
+    sum += Cvalues[i] * calculateBezier(derivativeFn, t);
   }
   return z * sum;
 };
@@ -160,7 +158,7 @@ const lengthFn = (derivativeFn: DeriveCallback) => {
  * Returns the length of CubicBezier / Quad segment.
  * @param curve cubic / quad bezier segment
  */
-export const length = (curve: CubicCoordinates | QuadCoordinates) => {
+const getBezierLength = (curve: CubicCoordinates | QuadCoordinates) => {
   const points = [] as unknown as CubicPoints | QuadPoints;
   for (let idx = 0, len = curve.length, step = 2; idx < len; idx += step) {
     points.push({
@@ -168,9 +166,9 @@ export const length = (curve: CubicCoordinates | QuadCoordinates) => {
       y: curve[idx + 1],
     });
   }
-  const dpoints = derive(points);
-  return lengthFn((t: number) => {
-    return compute(dpoints[0], t);
+  const dpoints = deriveBezier(points);
+  return bezierLength((t: number) => {
+    return computeBezier(dpoints[0], t);
   });
 };
 
@@ -179,67 +177,64 @@ const CBEZIER_MINMAX_EPSILON = 0.00000001;
 
 /**
  * Returns the most extreme points in a Quad Bezier segment.
- * @param A
+ * @param A an array which consist of X/Y values
  */
 // https://github.com/kpym/SVGPathy/blob/acd1a50c626b36d81969f6e98e8602e128ba4302/lib/box.js#L89
-export const minmaxQ = (A: [number, number, number]) => {
-  const min = Math.min(A[0], A[2]);
-  const max = Math.max(A[0], A[2]);
+const minmaxQ = ([v1, cp, v2]: [number, number, number]) => {
+  const min = Math.min(v1, v2);
+  const max = Math.max(v1, v2);
 
   /* istanbul ignore next @preserve */
-  if (A[1] >= A[0] ? A[2] >= A[1] : A[2] <= A[1]) {
+  if (cp >= v1 ? v2 >= cp : v2 <= cp) {
     // if no extremum in ]0,1[
     return [min, max] as PointTuple;
   }
 
   // check if the extremum E is min or max
-  const E = (A[0] * A[2] - A[1] * A[1]) / (A[0] - 2 * A[1] + A[2]);
+  const E = (v1 * v2 - cp * cp) / (v1 - 2 * cp + v2);
   return (E < min ? [E, max] : [min, E]) as PointTuple;
 };
 
 /**
  * Returns the most extreme points in a Cubic Bezier segment.
- * @param A
+ * @param A an array which consist of X/Y values
  * @see https://github.com/kpym/SVGPathy/blob/acd1a50c626b36d81969f6e98e8602e128ba4302/lib/box.js#L127
  */
-export const minmaxC = (A: [number, number, number, number]) => {
-  const K = A[0] - 3 * A[1] + 3 * A[2] - A[3];
+const minmaxC = ([v1, cp1, cp2, v2]: [number, number, number, number]) => {
+  const K = v1 - 3 * cp1 + 3 * cp2 - v2;
 
   // if the polynomial is (almost) quadratic and not cubic
   /* istanbul ignore next @preserve */
   if (Math.abs(K) < CBEZIER_MINMAX_EPSILON) {
-    if (A[0] === A[3] && A[0] === A[1]) {
+    if (v1 === v2 && v1 === cp1) {
       // no curve, point targeting same location
-      return [A[0], A[3]] as PointTuple;
+      return [v1, v2] as PointTuple;
     }
 
-    return minmaxQ([A[0], -0.5 * A[0] + 1.5 * A[1], A[0] - 3 * A[1] + 3 * A[2]]);
+    return minmaxQ([v1, -0.5 * v1 + 1.5 * cp1, v1 - 3 * cp1 + 3 * cp2]);
   }
 
   // the reduced discriminant of the derivative
-  const T = -A[0] * A[2] + A[0] * A[3] - A[1] * A[2] - A[1] * A[3] + A[1] * A[1] + A[2] * A[2];
+  const T = -v1 * cp2 + v1 * v2 - cp1 * cp2 - cp1 * v2 + cp1 * cp1 + cp2 * cp2;
 
   // if the polynomial is monotone in [0,1]
   if (T <= 0) {
-    return [Math.min(A[0], A[3]), Math.max(A[0], A[3])] as PointTuple;
+    return [Math.min(v1, v2), Math.max(v1, v2)] as PointTuple;
   }
   const S = Math.sqrt(T);
 
   // potential extrema
-  let min = Math.min(A[0], A[3]);
-  let max = Math.max(A[0], A[3]);
+  let min = Math.min(v1, v2);
+  let max = Math.max(v1, v2);
 
-  const L = A[0] - 2 * A[1] + A[2];
+  const L = v1 - 2 * cp1 + cp2;
   // check local extrema
   for (let R = (L + S) / K, i = 1; i <= 2; R = (L - S) / K, i++) {
     // istanbul ignore next @preserve
     if (R > 0 && R < 1) {
       // if the extrema is for R in [0,1]
       const Q =
-        A[0] * (1 - R) * (1 - R) * (1 - R) +
-        A[1] * 3 * (1 - R) * (1 - R) * R +
-        A[2] * 3 * (1 - R) * R * R +
-        A[3] * R * R * R;
+        v1 * (1 - R) * (1 - R) * (1 - R) + cp1 * 3 * (1 - R) * (1 - R) * R + cp2 * 3 * (1 - R) * R * R + v2 * R * R * R;
       if (Q < min) {
         min = Q;
       }
@@ -250,4 +245,17 @@ export const minmaxC = (A: [number, number, number, number]) => {
   }
 
   return [min, max] as PointTuple;
+};
+
+export {
+  Cvalues,
+  Tvalues,
+  minmaxC,
+  minmaxQ,
+  getBezierLength,
+  bezierLength,
+  calculateBezier,
+  computeBezier,
+  deriveBezier,
+  CBEZIER_MINMAX_EPSILON,
 };

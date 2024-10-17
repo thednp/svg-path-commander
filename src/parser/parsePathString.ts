@@ -10,10 +10,9 @@ import type { PathArray } from '../types';
  * @param pathInput the string to be parsed
  * @returns the resulted `pathArray` or error string
  */
-const parsePathString = (pathInput: string | PathArray) => {
+const parsePathString = <T extends PathArray>(pathInput: string | T) => {
   if (typeof pathInput !== 'string') {
-    return pathInput.slice(0) as PathArray;
-    // return pathInput;
+    return pathInput.slice(0) as typeof pathInput;
   }
 
   const path = new PathParser(pathInput);

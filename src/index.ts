@@ -1,53 +1,99 @@
 'use strict';
+import CSSMatrix from '@thednp/dommatrix';
 import { PointTuple, PathArray, TransformObjectValues } from './types';
 import type { Options, TransformEntries, TransformObject } from './interface';
 export * from './types';
 export * from './interface';
 import defaultOptions from './options/options';
 
-import error from './parser/error';
-import parsePathString from './parser/parsePathString';
-
-import polygonArea from './math/polygonArea';
-import polygonLength from './math/polygonLength';
-
-import CSSMatrix from '@thednp/dommatrix';
-import getPathBBox from './util/getPathBBox';
-import getPathArea from './util/getPathArea';
-import getTotalLength from './util/getTotalLength';
-import getDrawDirection from './util/getDrawDirection';
-import getPointAtLength from './util/getPointAtLength';
-
-import getPropertiesAtLength from './util/getPropertiesAtLength';
-import getPropertiesAtPoint from './util/getPropertiesAtPoint';
-import getClosestPoint from './util/getClosestPoint';
-import getSegmentOfPoint from './util/getSegmentOfPoint';
-import getSegmentAtLength from './util/getSegmentAtLength';
-import isPointInStroke from './util/isPointInStroke';
-
-import isValidPath from './util/isValidPath';
-import isPathArray from './util/isPathArray';
-import isAbsoluteArray from './util/isAbsoluteArray';
-import isRelativeArray from './util/isRelativeArray';
-import isCurveArray from './util/isCurveArray';
-import isNormalizedArray from './util/isNormalizedArray';
-import shapeToPathArray from './util/shapeToPathArray';
-import shapeToPath from './util/shapeToPath';
-
-import roundPath from './process/roundPath';
-import splitPath from './process/splitPath';
-import getSVGMatrix from './process/getSVGMatrix';
-import optimizePath from './process/optimizePath';
-import reverseCurve from './process/reverseCurve';
-import reversePath from './process/reversePath';
-import normalizePath from './process/normalizePath';
-import transformPath from './process/transformPath';
-import splitCubic from './process/splitCubic';
-
 import pathToAbsolute from './convert/pathToAbsolute';
 import pathToRelative from './convert/pathToRelative';
 import pathToCurve from './convert/pathToCurve';
 import pathToString from './convert/pathToString';
+import * as arcTools from './math/arcTools';
+import {
+  Cvalues,
+  Tvalues,
+  minmaxC,
+  minmaxQ,
+  getBezierLength,
+  bezierLength,
+  calculateBezier,
+  computeBezier,
+  deriveBezier,
+  CBEZIER_MINMAX_EPSILON,
+} from './math/bezier';
+import { getCubicLength, getCubicBBox, getPointAtCubicLength, getPointAtCubicSegmentLength } from './math/cubicTools';
+import { getPointAtLineLength, getLineBBox, getLineLength } from './math/lineTools';
+import { getPointAtQuadSegmentLength, getQuadLength, getQuadBBox, getPointAtQuadLength } from './math/quadTools';
+import { polygonArea, polygonLength } from './math/polygonTools';
+
+import distanceSquareRoot from './math/distanceSquareRoot';
+import midPoint from './math/midPoint';
+import rotateVector from './math/rotateVector';
+import roundTo from './math/roundTo';
+
+import error from './parser/error';
+import parsePathString from './parser/parsePathString';
+import finalizeSegment from './parser/finalizeSegment';
+import invalidPathValue from './parser/invalidPathValue';
+import isArcCommand from './parser/isArcCommand';
+import isDigit from './parser/isDigit';
+import isDigitStart from './parser/isDigitStart';
+import isMoveCommand from './parser/isMoveCommand';
+import isPathCommand from './parser/isPathCommand';
+import isSpace from './parser/isSpace';
+import paramsCount from './parser/paramsCount';
+import paramsParser from './parser/paramsParser';
+import pathParser from './parser/pathParser';
+import scanFlag from './parser/scanFlag';
+import scanParam from './parser/scanParam';
+import scanSegment from './parser/scanSegment';
+import skipSpaces from './parser/skipSpaces';
+
+import distanceEpsilon from './util/distanceEpsilon';
+import getClosestPoint from './util/getClosestPoint';
+import getDrawDirection from './util/getDrawDirection';
+import getPathArea from './util/getPathArea';
+import getPathBBox from './util/getPathBBox';
+import getPointAtLength from './util/getPointAtLength';
+import getPropertiesAtLength from './util/getPropertiesAtLength';
+import getPropertiesAtPoint from './util/getPropertiesAtPoint';
+import getSegmentAtLength from './util/getSegmentAtLength';
+import getSegmentOfPoint from './util/getSegmentOfPoint';
+import getTotalLength from './util/getTotalLength';
+
+import isAbsoluteArray from './util/isAbsoluteArray';
+import isCurveArray from './util/isCurveArray';
+import isNormalizedArray from './util/isNormalizedArray';
+import isPathArray from './util/isPathArray';
+import isPointInStroke from './util/isPointInStroke';
+import isRelativeArray from './util/isRelativeArray';
+import isValidPath from './util/isValidPath';
+import shapeParams from './util/shapeParams';
+import shapeToPath from './util/shapeToPath';
+import shapeToPathArray from './util/shapeToPathArray';
+
+import absolutizeSegment from './process/absolutizeSegment';
+import arcToCubic from './process/arcToCubic';
+import getSVGMatrix from './process/getSVGMatrix';
+import iterate from './process/iterate';
+import lineToCubic from './process/lineToCubic';
+import normalizePath from './process/normalizePath';
+import normalizeSegment from './process/normalizeSegment';
+import optimizePath from './process/optimizePath';
+import projection2d from './process/projection2d';
+import quadToCubic from './process/quadToCubic';
+import relativizeSegment from './process/relativizeSegment';
+import reverseCurve from './process/reverseCurve';
+import reversePath from './process/reversePath';
+import roundPath from './process/roundPath';
+import roundSegment from './process/roundSegment';
+import segmentToCubic from './process/segmentToCubic';
+import shortenSegment from './process/shortenSegment';
+import splitCubic from './process/splitCubic';
+import splitPath from './process/splitPath';
+import transformPath from './process/transformPath';
 
 /**
  * Creates a new SVGPathCommander instance with the following properties:
@@ -61,7 +107,47 @@ import pathToString from './convert/pathToString';
  */
 class SVGPathCommander {
   public static CSSMatrix = CSSMatrix;
-  public static getSVGMatrix = getSVGMatrix;
+  public static pathToAbsolute = pathToAbsolute;
+  public static pathToRelative = pathToRelative;
+  public static pathToCurve = pathToCurve;
+  public static pathToString = pathToString;
+  public static arcTools = arcTools;
+  public static bezierTools = {
+    Cvalues,
+    Tvalues,
+    minmaxC,
+    minmaxQ,
+    getBezierLength,
+    bezierLength,
+    calculateBezier,
+    computeBezier,
+    deriveBezier,
+    CBEZIER_MINMAX_EPSILON,
+  };
+  public static cubicTools = { getCubicLength, getCubicBBox, getPointAtCubicLength, getPointAtCubicSegmentLength };
+  public static lineTools = { getPointAtLineLength, getLineBBox, getLineLength };
+  public static quadTools = { getPointAtQuadSegmentLength, getQuadLength, getQuadBBox, getPointAtQuadLength };
+  public static polygonTools = { polygonArea, polygonLength };
+  public static distanceSquareRoot = distanceSquareRoot;
+  public static distanceEpsilon = distanceEpsilon;
+  public static midPoint = midPoint;
+  public static rotateVector = rotateVector;
+  public static roundTo = roundTo;
+  public static finalizeSegment = finalizeSegment;
+  public static invalidPathValue = invalidPathValue;
+  public static isArcCommand = isArcCommand;
+  public static isDigit = isDigit;
+  public static isDigitStart = isDigitStart;
+  public static isMoveCommand = isMoveCommand;
+  public static isPathCommand = isPathCommand;
+  public static isSpace = isSpace;
+  public static paramsCount = paramsCount;
+  public static paramsParser = paramsParser;
+  public static pathParser = pathParser;
+  public static scanFlag = scanFlag;
+  public static scanParam = scanParam;
+  public static scanSegment = scanSegment;
+  public static skipSpaces = skipSpaces;
   public static getPathBBox = getPathBBox;
   public static getPathArea = getPathArea;
   public static getTotalLength = getTotalLength;
@@ -69,8 +155,6 @@ class SVGPathCommander {
   public static getPointAtLength = getPointAtLength;
   public static getPropertiesAtLength = getPropertiesAtLength;
   public static getPropertiesAtPoint = getPropertiesAtPoint;
-  public static polygonLength = polygonLength;
-  public static polygonArea = polygonArea;
   public static getClosestPoint = getClosestPoint;
   public static getSegmentOfPoint = getSegmentOfPoint;
   public static getSegmentAtLength = getSegmentAtLength;
@@ -83,19 +167,28 @@ class SVGPathCommander {
   public static isNormalizedArray = isNormalizedArray;
   public static shapeToPath = shapeToPath;
   public static shapeToPathArray = shapeToPathArray;
+  public static shapeParams = shapeParams;
   public static parsePathString = parsePathString;
-  public static roundPath = roundPath;
-  public static splitPath = splitPath;
-  public static splitCubic = splitCubic;
+  public static absolutizeSegment = absolutizeSegment;
+  public static arcToCubic = arcToCubic;
+  public static getSVGMatrix = getSVGMatrix;
+  public static iterate = iterate;
+  public static lineToCubic = lineToCubic;
+  public static normalizePath = normalizePath;
+  public static normalizeSegment = normalizeSegment;
   public static optimizePath = optimizePath;
+  public static projection2d = projection2d;
+  public static quadToCubic = quadToCubic;
+  public static relativizeSegment = relativizeSegment;
   public static reverseCurve = reverseCurve;
   public static reversePath = reversePath;
-  public static normalizePath = normalizePath;
+  public static roundPath = roundPath;
+  public static roundSegment = roundSegment;
+  public static segmentToCubic = segmentToCubic;
+  public static shortenSegment = shortenSegment;
+  public static splitCubic = splitCubic;
+  public static splitPath = splitPath;
   public static transformPath = transformPath;
-  public static pathToAbsolute = pathToAbsolute;
-  public static pathToRelative = pathToRelative;
-  public static pathToCurve = pathToCurve;
-  public static pathToString = pathToString;
   // declare class properties
   declare segments: PathArray;
   declare round: number | 'off';
@@ -114,8 +207,7 @@ class SVGPathCommander {
       throw TypeError(`${error}: "pathValue" is ${undefPath ? 'undefined' : 'empty'}`);
     }
 
-    const segments = parsePathString(pathValue);
-    this.segments = segments;
+    this.segments = parsePathString(pathValue);
 
     // // set instance options.round
     const { round: roundOption, origin: originOption } = instanceOptions;
@@ -274,8 +366,9 @@ class SVGPathCommander {
    */
   optimize() {
     const { segments } = this;
+    const round = this.round === 'off' ? 2 : this.round;
 
-    this.segments = optimizePath(segments, this.round);
+    this.segments = optimizePath(segments, round);
     return this;
   }
 

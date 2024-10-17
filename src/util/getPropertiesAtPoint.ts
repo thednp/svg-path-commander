@@ -1,4 +1,4 @@
-import type { PathArray } from '../types';
+import type { PathArray, Point } from '../types';
 import type { PointProperties } from '../interface';
 import getPointAtLength from './getPointAtLength';
 import getPropertiesAtLength from './getPropertiesAtLength';
@@ -16,17 +16,17 @@ import normalizePath from '../process/normalizePath';
  * @param point the given point
  * @returns the requested properties
  */
-const getPropertiesAtPoint = (pathInput: string | PathArray, point: { x: number; y: number }): PointProperties => {
+const getPropertiesAtPoint = (pathInput: string | PathArray, point: Point): PointProperties => {
   const path = parsePathString(pathInput);
   const normalPath = normalizePath(path);
-  const pathLength = getTotalLength(path);
-  const distanceTo = (p: { x: number; y: number }) => {
+  const pathLength = getTotalLength(normalPath);
+  const distanceTo = (p: Point) => {
     const dx = p.x - point.x;
     const dy = p.y - point.y;
     return dx * dx + dy * dy;
   };
   let precision = 8;
-  let scan: { x: number; y: number };
+  let scan: Point;
   let closest = { x: 0, y: 0 }; // make TS happy
   let scanDistance = 0;
   let bestLength = 0;

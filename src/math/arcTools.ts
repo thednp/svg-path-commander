@@ -8,37 +8,38 @@ import type { Point } from '../types';
  * @param theta the angle in radians
  * @returns the arc length
  */
-const ellipticalArcLength = (rx: number, ry: number, theta: number) => {
+const arcLength = (rx: number, ry: number, theta: number) => {
   const halfTheta = theta / 2;
   const sinHalfTheta = Math.sin(halfTheta);
   const cosHalfTheta = Math.cos(halfTheta);
   const term1 = rx ** 2 * sinHalfTheta ** 2;
   const term2 = ry ** 2 * cosHalfTheta ** 2;
-  const arcLength = Math.sqrt(term1 + term2) * theta;
-  return Math.abs(arcLength);
+  const length = Math.sqrt(term1 + term2) * theta;
+  return Math.abs(length);
 };
 
 /**
- * Compute point on ellipse from angle around ellipse (theta);
- * @param theta the arc sweep angle
+ * Find point on ellipse at given angle around ellipse (theta);
  * @param cx the center X
  * @param cy the center Y
  * @param rx the radius X
  * @param ry the radius Y
- * @param alpha the angle
- * @returns a point around ellipse
+ * @param alpha the arc rotation angle in radians
+ * @param theta the arc sweep angle in radians
+ * @returns a point around ellipse at given angle
  */
-const arc = (theta: number, cx: number, cy: number, rx: number, ry: number, alpha: number) => {
+const arcPoint = (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => {
+  const { sin, cos } = Math;
   // theta is angle in radians around arc
   // alpha is angle of rotation of ellipse in radians
-  const cos = Math.cos(alpha);
-  const sin = Math.sin(alpha);
-  const x = rx * Math.cos(theta);
-  const y = ry * Math.sin(theta);
+  const cosA = cos(alpha);
+  const sinA = sin(alpha);
+  const x = rx * cos(theta);
+  const y = ry * sin(theta);
 
   return {
-    x: cx + cos * x - sin * y,
-    y: cy + sin * x + cos * y,
+    x: cx + cosA * x - sinA * y,
+    y: cy + sinA * x + cosA * y,
   };
 };
 
@@ -46,7 +47,7 @@ const arc = (theta: number, cx: number, cy: number, rx: number, ry: number, alph
  * Returns the angle between two points.
  * @param v0 starting point
  * @param v1 ending point
- * @returns the angle
+ * @returns the angle in radian
  */
 const angleBetween = (v0: Point, v1: Point) => {
   const { x: v0x, y: v0y } = v0;
@@ -54,14 +55,12 @@ const angleBetween = (v0: Point, v1: Point) => {
   const p = v0x * v1x + v0y * v1y;
   const n = Math.sqrt((v0x ** 2 + v0y ** 2) * (v1x ** 2 + v1y ** 2));
   const sign = v0x * v1y - v0y * v1x < 0 ? -1 : 1;
-  const angle = sign * Math.acos(p / n);
-
-  return angle;
+  return sign * Math.acos(p / n);
 };
 
 /**
- * Returns the following properties for an Arc segment: center, start angle
- * and radiuses on X and Y coordinates.
+ * Returns the following properties for an Arc segment: center, start angle,
+ * end angle, and radiuses on X and Y axis.
  *
  * @param x1 the starting point X
  * @param y1 the starting point Y
@@ -91,6 +90,7 @@ const getArcProps = (
   const xRot = ((angle % 360) + 360) % 360;
   const xRotRad = xRot * (PI / 180);
 
+  // istanbul ignore next @preserve
   if (x1 === x && y1 === y) {
     return {
       rx,
@@ -107,7 +107,7 @@ const getArcProps = (
       ry,
       startAngle: 0,
       endAngle: 0,
-      center: { x, y },
+      center: { x: (x + x1) / 2, y: (y + y1) / 2 },
     };
   }
 
@@ -165,7 +165,6 @@ const getArcProps = (
 
   const endAngle = startAngle + sweepAngle;
 
-  // to be used later
   // point.ellipticalArcStartAngle = startAngle;
   // point.ellipticalArcEndAngle = startAngle + sweepAngle;
   // point.ellipticalArcAngle = alpha;
@@ -173,8 +172,6 @@ const getArcProps = (
   // point.ellipticalArcCenter = center;
   // point.resultantRx = rx;
   // point.resultantRy = ry;
-  // point.length = ellipticalArcLength(rx, ry, sweepAngle);
-  // point.box = minmax(center.x, center.y, rx, ry, xRotRad, startAngle, startAngle + sweepAngle);
 
   return {
     center,
@@ -198,7 +195,7 @@ const getArcProps = (
  * @param y2 the ending point Y
  * @returns the length of the Arc segment
  */
-export const getArcLength = (
+const getArcLength = (
   x1: number,
   y1: number,
   RX: number,
@@ -210,7 +207,7 @@ export const getArcLength = (
   y: number,
 ) => {
   const { rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
-  return ellipticalArcLength(rx, ry, endAngle - startAngle);
+  return arcLength(rx, ry, endAngle - startAngle);
 };
 
 /**
@@ -228,7 +225,7 @@ export const getArcLength = (
  * @param distance a [0-1] ratio
  * @returns a point along the Arc segment
  */
-export const getPointAtArcLength = (
+const getPointAtArcLength = (
   x1: number,
   y1: number,
   RX: number,
@@ -242,10 +239,10 @@ export const getPointAtArcLength = (
 ) => {
   let point = { x: x1, y: y1 };
   const { center, rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
-  const length = ellipticalArcLength(rx, ry, endAngle - startAngle);
 
   /* istanbul ignore else @preserve */
   if (typeof distance === 'number') {
+    const length = arcLength(rx, ry, endAngle - startAngle);
     if (distance <= 0) {
       point = { x: x1, y: y1 };
     } else if (distance >= length) {
@@ -278,7 +275,7 @@ export const getPointAtArcLength = (
 };
 
 /**
- * Returns the bounding box for an Arc segment.
+ * Returns the extrema for an Arc segment.
  * @see https://github.com/herrstrietzel/svg-pathdata-getbbox
  *
  * @param x1 the starting point X
@@ -293,7 +290,7 @@ export const getPointAtArcLength = (
  * @returns the extrema of the Arc segment
  *
  */
-export const getArcBBox = (
+const getArcBBox = (
   x1: number,
   y1: number,
   RX: number,
@@ -306,45 +303,46 @@ export const getArcBBox = (
 ) => {
   const { center, rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
   const deltaAngle = endAngle - startAngle;
+  const { min, max, tan, atan2, PI } = Math;
 
   // final on path point
   const p = { x, y };
 
   // circle/elipse center coordinates
-  const [cx, cy] = [center.x, center.y];
+  const { x: cx, y: cy } = center;
 
   // collect extreme points – add end point
   const extremes = [p];
 
   // rotation to radians
-  const alpha = (angle * Math.PI) / 180;
-  const tan = Math.tan(alpha);
+  const alpha = (angle * PI) / 180;
+  const tangent = tan(alpha);
 
   /**
    * find min/max from zeroes of directional derivative along x and y
    * along x axis
    */
-  const theta = Math.atan2(-ry * tan, rx);
+  const theta = atan2(-ry * tangent, rx);
   const angle1 = theta;
-  const angle2 = theta + Math.PI;
-  const angle3 = Math.atan2(ry, rx * tan);
-  const angle4 = angle3 + Math.PI;
+  const angle2 = theta + PI;
+  const angle3 = atan2(ry, rx * tangent);
+  const angle4 = angle3 + PI;
 
   // inner bounding box
   const xArr = [x1, x];
   const yArr = [y1, y];
-  const xMin = Math.min(...xArr);
-  const xMax = Math.max(...xArr);
-  const yMin = Math.min(...yArr);
-  const yMax = Math.max(...yArr);
+  const xMin = min(...xArr);
+  const xMax = max(...xArr);
+  const yMin = min(...yArr);
+  const yMax = max(...yArr);
 
   // on path point close after start
   const angleAfterStart = endAngle - deltaAngle * 0.001;
-  const pP2 = arc(angleAfterStart, cx, cy, rx, ry, alpha);
+  const pP2 = arcPoint(cx, cy, rx, ry, alpha, angleAfterStart);
 
   // on path point close before end
   const angleBeforeEnd = endAngle - deltaAngle * 0.999;
-  const pP3 = arc(angleBeforeEnd, cx, cy, rx, ry, alpha);
+  const pP3 = arcPoint(cx, cy, rx, ry, alpha, angleBeforeEnd);
 
   /**
    * expected extremes
@@ -357,38 +355,42 @@ export const getArcBBox = (
   // istanbul ignore if @preserve
   if (pP2.x > xMax || pP3.x > xMax) {
     // get point for this theta
-    extremes.push(arc(angle1, cx, cy, rx, ry, alpha));
+    extremes.push(arcPoint(cx, cy, rx, ry, alpha, angle1));
   }
 
   // left
   // istanbul ignore if @preserve
   if (pP2.x < xMin || pP3.x < xMin) {
     // get anti-symmetric point
-    extremes.push(arc(angle2, cx, cy, rx, ry, alpha));
+    extremes.push(arcPoint(cx, cy, rx, ry, alpha, angle2));
   }
 
   // top
   // istanbul ignore if @preserve
   if (pP2.y < yMin || pP3.y < yMin) {
     // get anti-symmetric point
-    extremes.push(arc(angle4, cx, cy, rx, ry, alpha));
+    extremes.push(arcPoint(cx, cy, rx, ry, alpha, angle4));
   }
 
   // bottom
   // istanbul ignore if @preserve
   if (pP2.y > yMax || pP3.y > yMax) {
     // get point for this theta
-    extremes.push(arc(angle3, cx, cy, rx, ry, alpha));
+    extremes.push(arcPoint(cx, cy, rx, ry, alpha, angle3));
   }
 
   return {
     min: {
-      x: Math.min(...extremes.map(n => n.x)),
-      y: Math.min(...extremes.map(n => n.y)),
+      x: min(...extremes.map(n => n.x)),
+      y: min(...extremes.map(n => n.y)),
     },
     max: {
-      x: Math.max(...extremes.map(n => n.x)),
-      y: Math.max(...extremes.map(n => n.y)),
+      x: max(...extremes.map(n => n.x)),
+      y: max(...extremes.map(n => n.y)),
     },
   };
 };
+
+export { arcPoint, angleBetween, getArcLength, arcLength, getArcBBox, getArcProps, getPointAtArcLength };
+
+export {};

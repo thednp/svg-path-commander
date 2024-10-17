@@ -13,7 +13,7 @@ import { type PointTuple } from '../types';
  * @return the resulting Tuple
  */
 const translatePoint = (cssm: CSSMatrix, v: [number, number, number, number]): [number, number, number, number] => {
-  let m = CSSMatrix.Translate(...(v.slice(0, -1) as [number, number, number]));
+  let m = CSSMatrix.Translate(v[0], v[1], v[2]);
 
   [, , , m.m44] = v;
   m = cssm.multiply(m);
@@ -37,7 +37,7 @@ const translatePoint = (cssm: CSSMatrix, v: [number, number, number, number]): [
  */
 const projection2d = (m: CSSMatrix, point2D: PointTuple, origin: [number, number, number]): PointTuple => {
   const [originX, originY, originZ] = origin;
-  const [x, y, z] = translatePoint(m, [...point2D, 0, 1]);
+  const [x, y, z] = translatePoint(m, [point2D[0], point2D[1], 0, 1]);
 
   const relativePositionX = x - originX;
   const relativePositionY = y - originY;

@@ -1,23 +1,13 @@
 import iterate from '../process/iterate';
 import { PathBBox } from '../interface';
-import {
-  ArcCoordinates,
-  CubicCoordinates,
-  LineCoordinates,
-  MSegment,
-  PathArray,
-  Point,
-  PointTuple,
-  QuadCoordinates,
-} from '../types';
-// import pathFactory from './pathFactory';
-import absolutizeSegment from '../process/absolutizeSegment';
-import normalizeSegment from '../process/normalizeSegment';
-import parsePathString from '../parser/parsePathString';
+import { MSegment, PathArray, Point } from '../types';
 import { getLineBBox } from '../math/lineTools';
 import { getArcBBox } from '../math/arcTools';
 import { getCubicBBox } from '../math/cubicTools';
 import { getQuadBBox } from '../math/quadTools';
+import parsePathString from '../parser/parsePathString';
+import paramsParser from '../parser/paramsParser';
+import normalizeSegment from '../process/normalizeSegment';
 
 const getPathBBox = (pathInput: PathArray | string) => {
   if (!pathInput) {
@@ -37,58 +27,51 @@ const getPathBBox = (pathInput: PathArray | string) => {
   const path = parsePathString(pathInput);
   let data = [] as number[];
   let pathCommand = 'M';
-  let x = 0;
-  let y = 0;
+  const x = 0;
+  const y = 0;
   let mx = 0;
   let my = 0;
   const MIN = [] as Point[];
   const MAX = [] as Point[];
   let min = { x, y };
   let max = { x, y };
+  const params = { ...paramsParser };
 
-  iterate(path, (seg, params) => {
-    const absoluteSegment = absolutizeSegment(seg, params);
-    const normalSegment = normalizeSegment(absoluteSegment, params);
-    [pathCommand] = normalSegment;
-    data = [x, y, ...normalSegment.slice(1)] as number[];
+  iterate(path, (seg, _, lastX, lastY) => {
+    params.x = lastX;
+    params.y = lastY;
+    const result = normalizeSegment(seg, params);
+    [pathCommand] = result;
+    data = [lastX, lastY].concat(result.slice(1) as number[]);
 
     // this segment is always ZERO
     /* istanbul ignore else @preserve */
     if (pathCommand === 'M') {
       // remember mx, my for Z
-      [, mx, my] = normalSegment as MSegment;
+      [, mx, my] = result as MSegment;
       min = { x: mx, y: my };
       max = { x: mx, y: my };
     } else if (pathCommand === 'L') {
-      ({ min, max } = getLineBBox(...(data as LineCoordinates)));
+      ({ min, max } = getLineBBox(data[0], data[1], data[2], data[3]));
     } else if (pathCommand === 'A') {
-      ({ min, max } = getArcBBox(...(data as ArcCoordinates)));
+      ({ min, max } = getArcBBox(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]));
     } else if (pathCommand === 'C') {
-      ({ min, max } = getCubicBBox(...(data as CubicCoordinates)));
+      ({ min, max } = getCubicBBox(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]));
     } else if (pathCommand === 'Q') {
-      ({ min, max } = getQuadBBox(...(data as QuadCoordinates)));
+      ({ min, max } = getQuadBBox(data[0], data[1], data[2], data[3], data[4], data[5]));
     } else if (pathCommand === 'Z') {
-      data = [x, y, mx, my];
-      ({ min, max } = getLineBBox(...(data as LineCoordinates)));
+      data = [lastX, lastY, mx, my];
+      ({ min, max } = getLineBBox(data[0], data[1], data[2], data[3]));
     }
 
     MIN.push(min);
     MAX.push(max);
 
-    if (pathCommand === 'Z') {
-      x = mx;
-      y = my;
-    } else {
-      [x, y] = normalSegment.slice(-2) as PointTuple;
-
-      if (pathCommand === 'M') {
-        mx = x;
-        my = y;
-      }
-    }
-    params.x = x;
-    params.y = y;
-    return normalSegment;
+    const seglen = result.length;
+    params.x1 = +result[seglen - 2];
+    params.y1 = +result[seglen - 1];
+    params.x2 = +result[seglen - 4] || params.x1;
+    params.y2 = +result[seglen - 3] || params.y1;
   });
 
   const xMin = Math.min(...MIN.map(n => n.x));
