@@ -5,4 +5,5 @@ node_modules
 experiments
 docs
 coverage
+deno.lock
 test/__screenshots__
