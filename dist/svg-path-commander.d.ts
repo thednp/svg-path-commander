@@ -444,10 +444,7 @@ export type LineCoordinates = [
 export type DeriveCallback = (t: number) => Point;
 export type IteratorCallback = (segment: PathSegment, index: number, lastX: number, lastY: number) => PathSegment | false | void | undefined;
 declare const arcLength: (rx: number, ry: number, theta: number) => number;
-declare const arcPoint: (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => {
-	x: number;
-	y: number;
-};
+declare const arcPoint: (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => PointTuple;
 declare const angleBetween: (v0: Point, v1: Point) => number;
 declare const getArcProps: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => {
 	rx: number;
@@ -464,16 +461,12 @@ declare const getPointAtArcLength: (x1: number, y1: number, RX: number, RY: numb
 	x: number;
 	y: number;
 };
-declare const getArcBBox: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => {
-	min: {
-		x: number;
-		y: number;
-	};
-	max: {
-		x: number;
-		y: number;
-	};
-};
+declare const getArcBBox: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => [
+	number,
+	number,
+	number,
+	number
+];
 declare class PathParser {
 	segments: PathArray | PathSegment[];
 	pathValue: string;
@@ -525,16 +518,12 @@ declare class SVGPathCommander {
 	};
 	static cubicTools: {
 		getCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => number;
-		getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => {
-			min: {
-				x: number;
-				y: number;
-			};
-			max: {
-				x: number;
-				y: number;
-			};
-		};
+		getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => [
+			number,
+			number,
+			number,
+			number
+		];
 		getPointAtCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number, distance?: number) => {
 			x: number;
 			y: number;
@@ -549,16 +538,12 @@ declare class SVGPathCommander {
 			x: number;
 			y: number;
 		};
-		getLineBBox: (x1: number, y1: number, x2: number, y2: number) => {
-			min: {
-				x: number;
-				y: number;
-			};
-			max: {
-				x: number;
-				y: number;
-			};
-		};
+		getLineBBox: (x1: number, y1: number, x2: number, y2: number) => [
+			number,
+			number,
+			number,
+			number
+		];
 		getLineLength: (x1: number, y1: number, x2: number, y2: number) => number;
 	};
 	static quadTools: {
@@ -567,16 +552,12 @@ declare class SVGPathCommander {
 			y: number;
 		};
 		getQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => number;
-		getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => {
-			min: {
-				x: number;
-				y: number;
-			};
-			max: {
-				x: number;
-				y: number;
-			};
-		};
+		getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => [
+			number,
+			number,
+			number,
+			number
+		];
 		getPointAtQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number, distance?: number) => {
 			x: number;
 			y: number;
@@ -679,7 +660,7 @@ declare class SVGPathCommander {
 	static lineToCubic: (x1: number, y1: number, x2: number, y2: number) => number[];
 	static normalizePath: (pathInput: string | PathArray) => NormalArray;
 	static normalizeSegment: (segment: PathSegment, params: ParserParams) => NormalSegment;
-	static optimizePath: (pathInput: PathArray, roundOption: number) => PathArray;
+	static optimizePath: (pathInput: PathArray, roundOption?: number) => PathArray;
 	static projection2d: (m: CSSMatrix$1, point2D: PointTuple, origin: [
 		number,
 		number,

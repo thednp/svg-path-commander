@@ -91,7 +91,8 @@ const getPointAtCubicLength = (
 };
 
 /**
- * Returns the boundig box of a CubicBezier segment.
+ * Returns the boundig box of a CubicBezier segment in the following format:
+ * [MIN_X, MIN_Y, MAX_X, MAX_Y]
  *
  * @param x1 the starting point X
  * @param y1 the starting point Y
@@ -101,7 +102,7 @@ const getPointAtCubicLength = (
  * @param c2y the second control point Y
  * @param x2 the ending point X
  * @param y2 the ending point Y
- * @returns the point at CubicBezier length
+ * @returns the extrema of the CubicBezier segment
  */
 const getCubicBBox = (
   x1: number,
@@ -115,10 +116,8 @@ const getCubicBBox = (
 ) => {
   const cxMinMax = minmaxC([x1, c1x, c2x, x2]);
   const cyMinMax = minmaxC([y1, c1y, c2y, y2]);
-  return {
-    min: { x: cxMinMax[0], y: cyMinMax[0] },
-    max: { x: cxMinMax[1], y: cyMinMax[1] },
-  };
+
+  return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]] as [number, number, number, number];
 };
 
 export { getCubicLength, getCubicBBox, getPointAtCubicLength, getPointAtCubicSegmentLength };

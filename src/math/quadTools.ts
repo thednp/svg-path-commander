@@ -78,7 +78,8 @@ const getPointAtQuadLength = (
 };
 
 /**
- * Returns the boundig box of a QuadraticBezier segment.
+ * Returns the boundig box of a QuadraticBezier segment in the following format:
+ * [MIN_X, MIN_Y, MAX_X, MAX_Y]
  *
  * @param x1 the starting point X
  * @param y1 the starting point Y
@@ -86,15 +87,12 @@ const getPointAtQuadLength = (
  * @param cy the control point Y
  * @param x2 the ending point X
  * @param y2 the ending point Y
- * @returns the point at CubicBezier length
+ * @returns the extrema of the QuadraticBezier segment
  */
 const getQuadBBox = (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => {
   const cxMinMax = minmaxQ([x1, cx, x2]);
   const cyMinMax = minmaxQ([y1, cy, y2]);
-  return {
-    min: { x: cxMinMax[0], y: cyMinMax[0] },
-    max: { x: cxMinMax[1], y: cyMinMax[1] },
-  };
+  return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]] as [number, number, number, number];
 };
 
 export { getPointAtQuadSegmentLength, getQuadLength, getQuadBBox, getPointAtQuadLength };

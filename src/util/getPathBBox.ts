@@ -1,13 +1,12 @@
 import iterate from '../process/iterate';
 import { PathBBox } from '../interface';
-import { MSegment, PathArray, Point } from '../types';
+import { LSegment, MSegment, PathArray, PointTuple } from '../types';
 import { getLineBBox } from '../math/lineTools';
 import { getArcBBox } from '../math/arcTools';
 import { getCubicBBox } from '../math/cubicTools';
 import { getQuadBBox } from '../math/quadTools';
 import parsePathString from '../parser/parsePathString';
-import paramsParser from '../parser/paramsParser';
-import normalizeSegment from '../process/normalizeSegment';
+import absolutizeSegment from '../process/absolutizeSegment';
 
 const getPathBBox = (pathInput: PathArray | string) => {
   if (!pathInput) {
@@ -25,59 +24,133 @@ const getPathBBox = (pathInput: PathArray | string) => {
   }
 
   const path = parsePathString(pathInput);
-  let data = [] as number[];
   let pathCommand = 'M';
-  const x = 0;
-  const y = 0;
   let mx = 0;
   let my = 0;
-  const MIN = [] as Point[];
-  const MAX = [] as Point[];
-  let min = { x, y };
-  let max = { x, y };
-  const params = { ...paramsParser };
+  const { max, min } = Math;
+  let xMin = Infinity;
+  let yMin = Infinity;
+  let xMax = -Infinity;
+  let yMax = -Infinity;
+  let minX = 0;
+  let minY = 0;
+  let maxX = 0;
+  let maxY = 0;
+  let paramX1 = 0;
+  let paramY1 = 0;
+  let paramX2 = 0;
+  let paramY2 = 0;
+  let paramQX = 0;
+  let paramQY = 0;
 
-  iterate(path, (seg, _, lastX, lastY) => {
-    params.x = lastX;
-    params.y = lastY;
-    const result = normalizeSegment(seg, params);
-    [pathCommand] = result;
-    data = [lastX, lastY].concat(result.slice(1) as number[]);
+  iterate(path, (seg, index, lastX, lastY) => {
+    [pathCommand] = seg;
+    const absCommand = pathCommand.toUpperCase();
+    const isRelative = absCommand !== pathCommand;
+    const absoluteSegment = isRelative ? absolutizeSegment(seg, index, lastX, lastY) : (seg.slice(0) as typeof seg);
+
+    const normalSegment =
+      absCommand === 'V'
+        ? (['L', lastX, absoluteSegment[1]] as LSegment)
+        : absCommand === 'H'
+        ? (['L', absoluteSegment[1], lastY] as LSegment)
+        : absoluteSegment;
+
+    [pathCommand] = normalSegment;
+
+    if (!'TQ'.includes(absCommand)) {
+      // optional but good to be cautious
+      paramQX = 0;
+      paramQY = 0;
+    }
 
     // this segment is always ZERO
     /* istanbul ignore else @preserve */
     if (pathCommand === 'M') {
-      // remember mx, my for Z
-      [, mx, my] = result as MSegment;
-      min = { x: mx, y: my };
-      max = { x: mx, y: my };
+      [, mx, my] = normalSegment as MSegment;
+      minX = mx;
+      minY = my;
+      maxX = mx;
+      maxY = my;
     } else if (pathCommand === 'L') {
-      ({ min, max } = getLineBBox(data[0], data[1], data[2], data[3]));
+      [minX, minY, maxX, maxY] = getLineBBox(lastX, lastY, normalSegment[1] as number, normalSegment[2] as number);
     } else if (pathCommand === 'A') {
-      ({ min, max } = getArcBBox(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]));
+      [minX, minY, maxX, maxY] = getArcBBox(
+        lastX,
+        lastY,
+        normalSegment[1] as number,
+        normalSegment[2] as number,
+        normalSegment[3] as number,
+        normalSegment[4] as number,
+        normalSegment[5] as number,
+        normalSegment[6] as number,
+        normalSegment[7] as number,
+      );
+    } else if (pathCommand === 'S') {
+      const cp1x = paramX1 * 2 - paramX2;
+      const cp1y = paramY1 * 2 - paramY2;
+
+      [minX, minY, maxX, maxY] = getCubicBBox(
+        lastX,
+        lastY,
+        cp1x,
+        cp1y,
+        normalSegment[1] as number,
+        normalSegment[2] as number,
+        normalSegment[3] as number,
+        normalSegment[4] as number,
+      );
     } else if (pathCommand === 'C') {
-      ({ min, max } = getCubicBBox(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]));
+      [minX, minY, maxX, maxY] = getCubicBBox(
+        lastX,
+        lastY,
+        normalSegment[1] as number,
+        normalSegment[2] as number,
+        normalSegment[3] as number,
+        normalSegment[4] as number,
+        normalSegment[5] as number,
+        normalSegment[6] as number,
+      );
+    } else if (pathCommand === 'T') {
+      paramQX = paramX1 * 2 - paramQX;
+      paramQY = paramY1 * 2 - paramQY;
+      [minX, minY, maxX, maxY] = getQuadBBox(
+        lastX,
+        lastY,
+        paramQX,
+        paramQY,
+        normalSegment[1] as number,
+        normalSegment[2] as number,
+      );
     } else if (pathCommand === 'Q') {
-      ({ min, max } = getQuadBBox(data[0], data[1], data[2], data[3], data[4], data[5]));
+      paramQX = normalSegment[1] as number;
+      paramQY = normalSegment[2] as number;
+      [minX, minY, maxX, maxY] = getQuadBBox(
+        lastX,
+        lastY,
+        normalSegment[1] as number,
+        normalSegment[2] as number,
+        normalSegment[3] as number,
+        normalSegment[4] as number,
+      );
     } else if (pathCommand === 'Z') {
-      data = [lastX, lastY, mx, my];
-      ({ min, max } = getLineBBox(data[0], data[1], data[2], data[3]));
+      [minX, minY, maxX, maxY] = getLineBBox(lastX, lastY, mx, my);
     }
+    xMin = min(minX, xMin);
+    yMin = min(minY, yMin);
+    xMax = max(maxX, xMax);
+    yMax = max(maxY, yMax);
 
-    MIN.push(min);
-    MAX.push(max);
-
-    const seglen = result.length;
-    params.x1 = +result[seglen - 2];
-    params.y1 = +result[seglen - 1];
-    params.x2 = +result[seglen - 4] || params.x1;
-    params.y2 = +result[seglen - 3] || params.y1;
+    // update params
+    [paramX1, paramY1] = pathCommand === 'Z' ? [mx, my] : (normalSegment.slice(-2) as PointTuple);
+    [paramX2, paramY2] =
+      pathCommand === 'C'
+        ? ([normalSegment[3], normalSegment[4]] as PointTuple)
+        : pathCommand === 'S'
+        ? ([normalSegment[1], normalSegment[2]] as PointTuple)
+        : [paramX1, paramY1];
   });
 
-  const xMin = Math.min(...MIN.map(n => n.x));
-  const xMax = Math.max(...MAX.map(n => n.x));
-  const yMin = Math.min(...MIN.map(n => n.y));
-  const yMax = Math.max(...MAX.map(n => n.y));
   const width = xMax - xMin;
   const height = yMax - yMin;
 

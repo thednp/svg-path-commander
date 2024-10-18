@@ -1,5 +1,5 @@
 import { getPointAtLineLength } from './lineTools';
-import type { Point } from '../types';
+import type { Point, PointTuple } from '../types';
 
 /**
  * Returns the Arc segment length.
@@ -37,10 +37,7 @@ const arcPoint = (cx: number, cy: number, rx: number, ry: number, alpha: number,
   const x = rx * cos(theta);
   const y = ry * sin(theta);
 
-  return {
-    x: cx + cosA * x - sinA * y,
-    y: cy + sinA * x + cosA * y,
-  };
+  return [cx + cosA * x - sinA * y, cy + sinA * x + cosA * y] as PointTuple;
 };
 
 /**
@@ -275,7 +272,9 @@ const getPointAtArcLength = (
 };
 
 /**
- * Returns the extrema for an Arc segment.
+ * Returns the extrema for an Arc segment in the following format:
+ * [MIN_X, MIN_Y, MAX_X, MAX_Y]
+ *
  * @see https://github.com/herrstrietzel/svg-pathdata-getbbox
  *
  * @param x1 the starting point X
@@ -305,14 +304,8 @@ const getArcBBox = (
   const deltaAngle = endAngle - startAngle;
   const { min, max, tan, atan2, PI } = Math;
 
-  // final on path point
-  const p = { x, y };
-
   // circle/elipse center coordinates
   const { x: cx, y: cy } = center;
-
-  // collect extreme points – add end point
-  const extremes = [p];
 
   // rotation to radians
   const alpha = (angle * PI) / 180;
@@ -329,12 +322,10 @@ const getArcBBox = (
   const angle4 = angle3 + PI;
 
   // inner bounding box
-  const xArr = [x1, x];
-  const yArr = [y1, y];
-  const xMin = min(...xArr);
-  const xMax = max(...xArr);
-  const yMin = min(...yArr);
-  const yMax = max(...yArr);
+  let xMin = min(x1, x);
+  let xMax = max(x1, x);
+  let yMin = min(y1, y);
+  let yMax = max(y1, y);
 
   // on path point close after start
   const angleAfterStart = endAngle - deltaAngle * 0.001;
@@ -352,45 +343,46 @@ const getArcBBox = (
    */
 
   // right
-  // istanbul ignore if @preserve
-  if (pP2.x > xMax || pP3.x > xMax) {
+  if (pP2[0] > xMax || pP3[0] > xMax) {
     // get point for this theta
-    extremes.push(arcPoint(cx, cy, rx, ry, alpha, angle1));
+    const pxy = arcPoint(cx, cy, rx, ry, alpha, angle1);
+    xMin = min(xMin, pxy[0]);
+    yMin = min(yMin, pxy[1]);
+    xMax = max(xMax, pxy[0]);
+    yMax = max(yMax, pxy[1]);
   }
 
   // left
-  // istanbul ignore if @preserve
-  if (pP2.x < xMin || pP3.x < xMin) {
+  if (pP2[0] < xMin || pP3[0] < xMin) {
     // get anti-symmetric point
-    extremes.push(arcPoint(cx, cy, rx, ry, alpha, angle2));
+    const pxy = arcPoint(cx, cy, rx, ry, alpha, angle2);
+    xMin = min(xMin, pxy[0]);
+    yMin = min(yMin, pxy[1]);
+    xMax = max(xMax, pxy[0]);
+    yMax = max(yMax, pxy[1]);
   }
 
   // top
-  // istanbul ignore if @preserve
-  if (pP2.y < yMin || pP3.y < yMin) {
+  if (pP2[1] < yMin || pP3[1] < yMin) {
     // get anti-symmetric point
-    extremes.push(arcPoint(cx, cy, rx, ry, alpha, angle4));
+    const pxy = arcPoint(cx, cy, rx, ry, alpha, angle4);
+    xMin = min(xMin, pxy[0]);
+    yMin = min(yMin, pxy[1]);
+    xMax = max(xMax, pxy[0]);
+    yMax = max(yMax, pxy[1]);
   }
 
   // bottom
-  // istanbul ignore if @preserve
-  if (pP2.y > yMax || pP3.y > yMax) {
+  if (pP2[1] > yMax || pP3[1] > yMax) {
     // get point for this theta
-    extremes.push(arcPoint(cx, cy, rx, ry, alpha, angle3));
+    const pxy = arcPoint(cx, cy, rx, ry, alpha, angle3);
+    xMin = min(xMin, pxy[0]);
+    yMin = min(yMin, pxy[1]);
+    xMax = max(xMax, pxy[0]);
+    yMax = max(yMax, pxy[1]);
   }
 
-  return {
-    min: {
-      x: min(...extremes.map(n => n.x)),
-      y: min(...extremes.map(n => n.y)),
-    },
-    max: {
-      x: max(...extremes.map(n => n.x)),
-      y: max(...extremes.map(n => n.y)),
-    },
-  };
+  return [xMin, yMin, xMax, yMax] as [number, number, number, number];
 };
 
 export { arcPoint, angleBetween, getArcLength, arcLength, getArcBBox, getArcProps, getPointAtArcLength };
-
-export {};

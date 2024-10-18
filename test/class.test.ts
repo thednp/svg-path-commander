@@ -454,6 +454,8 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
       expect(path.getAttribute('d')).to.equal(simpleShapes.reversed[i]);
 
       expect(new SVGPathCommander(shape).getTotalLength()).to.equal(simpleShapes.length[i]);
+      expect(new SVGPathCommander(shape).getBBox().width).to.equal(simpleShapes.width[i]);
+      expect(new SVGPathCommander(shape).getBBox().height).to.equal(simpleShapes.height[i]);
       expect(new SVGPathCommander(shape).getPointAtLength(0)).to.deep.equal(simpleShapes.pointAt0[i]);
       expect(new SVGPathCommander(shape).getPointAtLength(50)).to.deep.equal(simpleShapes.pointAt50[i]);
       expect(new SVGPathCommander(shape).getPointAtLength(400)).to.deep.equal(simpleShapes.pointAt400[i]);

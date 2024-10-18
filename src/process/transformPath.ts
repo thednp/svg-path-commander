@@ -5,10 +5,8 @@ import type { AbsoluteArray, AbsoluteSegment, CSegment, LSegment, PathArray, Tra
 import type { TransformObject } from '../interface';
 import iterate from './iterate';
 import parsePathString from '../parser/parsePathString';
-import segmentToCubic from './segmentToCubic';
-import normalizeSegment from './normalizeSegment';
-import paramsParser from '../parser/paramsParser';
 import absolutizeSegment from './absolutizeSegment';
+import arcToCubic from './arcToCubic';
 
 /**
  * Apply a 2D / 3D transformation to a `pathArray` instance.
@@ -32,7 +30,6 @@ const transformPath = (pathInput: PathArray | string, transform?: Partial<Transf
   let jj = 0;
   let pathCommand = 'M';
   // transform uses it's own set of params
-  const transformParams = { ...paramsParser };
   const path = parsePathString(pathInput);
   const transformProps = transform && Object.keys(transform);
 
@@ -49,8 +46,6 @@ const transformPath = (pathInput: PathArray | string, transform?: Partial<Transf
   if (matrixInstance.isIdentity) return path.slice(0) as typeof path;
 
   return iterate<AbsoluteArray>(path, (seg, index, lastX, lastY) => {
-    transformParams.x = lastX;
-    transformParams.y = lastY;
     [pathCommand] = seg;
     const absCommand = pathCommand.toUpperCase();
     const isRelative = absCommand !== pathCommand;
@@ -60,9 +55,24 @@ const transformPath = (pathInput: PathArray | string, transform?: Partial<Transf
 
     let result =
       absCommand === 'A'
-        ? segmentToCubic(absoluteSegment, transformParams)
-        : ['V', 'H'].includes(absCommand)
-        ? normalizeSegment(absoluteSegment, transformParams)
+        ? // ? segmentToCubic(absoluteSegment, transformParams)
+          (['C' as string | number].concat(
+            arcToCubic(
+              lastX,
+              lastY,
+              absoluteSegment[1] as number,
+              absoluteSegment[2] as number,
+              absoluteSegment[3] as number,
+              absoluteSegment[4] as number,
+              absoluteSegment[5] as number,
+              absoluteSegment[6] as number,
+              absoluteSegment[7] as number,
+            ),
+          ) as CSegment)
+        : absCommand === 'V'
+        ? (['L', lastX, absoluteSegment[1]] as LSegment)
+        : absCommand === 'H'
+        ? (['L', absoluteSegment[1], lastY] as LSegment)
         : absoluteSegment;
 
     // update pathCommand
@@ -96,12 +106,6 @@ const transformPath = (pathInput: PathArray | string, transform?: Partial<Transf
     // now update x and y
     x = lx;
     y = ly;
-
-    const seglen = tempSegment.length;
-    transformParams.x1 = +tempSegment[seglen - 2];
-    transformParams.y1 = +tempSegment[seglen - 1];
-    transformParams.x2 = +tempSegment[seglen - 4] || transformParams.x1;
-    transformParams.y2 = +tempSegment[seglen - 3] || transformParams.y1;
 
     return result;
   });

@@ -1,7 +1,7 @@
+import type { AbsoluteSegment, PathArray, PathCommand } from '../types';
 import pathToAbsolute from '../convert/pathToAbsolute';
 import shortenSegment from './shortenSegment';
 import paramsParser from '../parser/paramsParser';
-import type { AbsoluteSegment, PathArray, PathCommand } from '../types';
 import iterate from './iterate';
 import normalizeSegment from './normalizeSegment';
 import relativizeSegment from './relativizeSegment';
@@ -16,7 +16,7 @@ import roundSegment from './roundSegment';
  * @param roundOption the amount of decimals to round values to
  * @returns the optimized `pathArray`
  */
-const optimizePath = (pathInput: PathArray, roundOption: number) => {
+const optimizePath = (pathInput: PathArray, roundOption?: number) => {
   const path = pathToAbsolute(pathInput);
   // allow for ZERO decimals or use an aggressive value of 2
   const round =
@@ -31,7 +31,6 @@ const optimizePath = (pathInput: PathArray, roundOption: number) => {
   return iterate(path, (seg, i, lastX, lastY) => {
     optimParams.x = lastX;
     optimParams.y = lastY;
-    // const absoluteSegment = absolutizeSegment(seg, optimParams);
     const normalizedSegment = normalizeSegment(seg, optimParams);
     let result = seg;
     [pathCommand] = seg;

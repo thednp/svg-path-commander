@@ -7,6 +7,11 @@ export default defineConfig({
       "~": resolve(__dirname, "src"),
     },
   },
+  optimizeDeps: {
+    include: [
+      "@vitest/coverage-istanbul"
+    ]
+  },
   test: {
     css: true,
     globals: true,

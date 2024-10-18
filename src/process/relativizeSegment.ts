@@ -50,7 +50,11 @@ const relativizeSegment = (segment: PathSegment, index: number, lastX: number, l
   } else {
     // use brakets for `eslint: no-case-declaration`
     // https://stackoverflow.com/a/50753272/803358
-    const relValues = (segment.slice(1) as number[]).map((n, j) => n - (j % 2 ? lastY : lastX));
+    const relValues = [] as number[];
+    const seglen = segment.length;
+    for (let j = 1; j < seglen; j += 1) {
+      relValues.push((segment[j] as number) - (j % 2 ? lastX : lastY));
+    }
     // for c, s, q, t
     return [relCommand as RelativeCommand | number].concat(relValues) as qSegment | tSegment | sSegment | cSegment;
   }

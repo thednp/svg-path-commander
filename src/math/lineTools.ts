@@ -54,16 +54,8 @@ const getPointAtLineLength = (x1: number, y1: number, x2: number, y2: number, di
  */
 const getLineBBox = (x1: number, y1: number, x2: number, y2: number) => {
   const { min, max } = Math;
-  return {
-    min: {
-      x: min(x1, x2),
-      y: min(y1, y2),
-    },
-    max: {
-      x: max(x1, x2),
-      y: max(y1, y2),
-    },
-  };
+
+  return [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)] as [number, number, number, number];
 };
 
 export { getPointAtLineLength, getLineBBox, getLineLength };
