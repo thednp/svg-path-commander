@@ -131,6 +131,18 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal(rect.toString())
   });
 
+  it('Test dispose', async () => {
+    const path = new SVGPathCommander(`M 2 0 a2 2 0 00-2 2`);
+    expect(path.segments.length).to.equal(2);
+    expect(path.origin).to.deep.equal([0, 0, 0]);
+    expect(path.round).to.equal(4);
+    
+    path.dispose();
+    expect(path.segments).to.be.undefined;
+    expect(path.origin).to.be.undefined;
+    expect(path.round).to.be.undefined;
+  });
+
   it('Test overloaded moveTo', async () => {
     const container = getMarkup();
     wrapper.append(container);
@@ -300,7 +312,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     const rect1 = new SVGPathCommander('M2 0A2 2 0 0 0 0 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2V2A2 2 0 0 0 14 0H2z').reverse(true);
     
     path.setAttribute('d', rect1.toString());
-    expect(path.getAttribute('d')).to.equal('M2 0A2 2 0 0 0 0 2V14A2 2 0 0 0 2 16H14A2 2 0 0 0 16 14V2A2 2 0 0 0 14 0H2Z')
+    expect(path.getAttribute('d')).to.equal('M2 0A2 2 0 0 0 0 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2V2A2 2 0 0 0 14 0H2z')
   });
 
   it('Test reverse composite', async () => {
@@ -322,7 +334,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
 
     const rect = new SVGPathCommander('M2 0A2 2 0 0 0 0 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2V2A2 2 0 0 0 14 0H2zM4 4h8l-4 8z').reverse(true);
     path.setAttribute('d', rect.toString());
-    expect(path.getAttribute('d')).to.equal('M2 0A2 2 0 0 0 0 2V14A2 2 0 0 0 2 16H14A2 2 0 0 0 16 14V2A2 2 0 0 0 14 0H2ZM8 12L12 4H4Z')
+    expect(path.getAttribute('d')).to.equal('M2 0A2 2 0 0 0 0 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2V2A2 2 0 0 0 14 0H2zM8 12L12 4H4Z')
   });
 
   it('Test flipX', () => {

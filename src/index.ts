@@ -317,8 +317,6 @@ class SVGPathCommander {
    * @public
    */
   reverse(onlySubpath?: boolean) {
-    this.toAbsolute();
-
     const { segments } = this;
     const split = splitPath(segments);
     const subPath = split.length > 1 ? split : false;
@@ -448,6 +446,16 @@ class SVGPathCommander {
    */
   toString() {
     return pathToString(this.segments, this.round);
+  }
+
+  /**
+   * Remove the instance.
+   *
+   * @public
+   * @return void
+   */
+  dispose() {
+    Object.keys(this).forEach(key => delete this[key as keyof typeof this]);
   }
 }
 

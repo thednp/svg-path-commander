@@ -1666,7 +1666,6 @@ class A {
    * @public
    */
   reverse(t) {
-    this.toAbsolute();
     const { segments: s } = this, r = Yt(s), n = r.length > 1 ? r : !1, i = n ? n.map((l, c) => t ? c ? ft(l) : l.slice(0) : ft(l)) : s.slice(0);
     let o = [];
     return n ? o = i.flat(1) : o = t ? s : ft(s), this.segments = o.slice(0), this;
@@ -1746,6 +1745,15 @@ class A {
    */
   toString() {
     return kt(this.segments, this.round);
+  }
+  /**
+   * Remove the instance.
+   *
+   * @public
+   * @return void
+   */
+  dispose() {
+    Object.keys(this).forEach((t) => delete this[t]);
   }
 }
 d(A, "CSSMatrix", T), d(A, "pathToAbsolute", ht), d(A, "pathToRelative", Kt), d(A, "pathToCurve", yt), d(A, "pathToString", kt), d(A, "arcTools", Be), d(A, "bezierTools", {

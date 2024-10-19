@@ -820,6 +820,13 @@ declare class SVGPathCommander {
 	 * @return the path string
 	 */
 	toString(): string;
+	/**
+	 * Remove the instance.
+	 *
+	 * @public
+	 * @return void
+	 */
+	dispose(): void;
 }
 
 declare namespace arcTools {
