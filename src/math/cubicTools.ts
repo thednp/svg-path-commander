@@ -1,5 +1,5 @@
-import { getBezierLength, minmaxC } from './bezier';
-import { type CubicCoordinates } from '../types';
+import { getBezierLength, minmaxC } from "./bezier";
+import { type CubicCoordinates } from "../types";
 
 /**
  * Returns a point at a given length of a CubicBezier segment.
@@ -15,11 +15,16 @@ import { type CubicCoordinates } from '../types';
  * @param t a [0-1] ratio
  * @returns the point at cubic-bezier segment length
  */
-const getPointAtCubicSegmentLength = ([x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates, t: number) => {
+const getPointAtCubicSegmentLength = (
+  [x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates,
+  t: number,
+) => {
   const t1 = 1 - t;
   return {
-    x: t1 ** 3 * x1 + 3 * t1 ** 2 * t * c1x + 3 * t1 * t ** 2 * c2x + t ** 3 * x2,
-    y: t1 ** 3 * y1 + 3 * t1 ** 2 * t * c1y + 3 * t1 * t ** 2 * c2y + t ** 3 * y2,
+    x: t1 ** 3 * x1 + 3 * t1 ** 2 * t * c1x + 3 * t1 * t ** 2 * c2x +
+      t ** 3 * x2,
+    y: t1 ** 3 * y1 + 3 * t1 ** 2 * t * c1y + 3 * t1 * t ** 2 * c2y +
+      t ** 3 * y2,
   };
 };
 
@@ -74,7 +79,7 @@ const getPointAtCubicLength = (
   y2: number,
   distance?: number,
 ) => {
-  const distanceIsNumber = typeof distance === 'number';
+  const distanceIsNumber = typeof distance === "number";
   let point = { x: x1, y: y1 };
   /* istanbul ignore else @preserve */
   if (distanceIsNumber) {
@@ -84,7 +89,10 @@ const getPointAtCubicLength = (
     } else if (distance >= currentLength) {
       point = { x: x2, y: y2 };
     } else {
-      point = getPointAtCubicSegmentLength([x1, y1, c1x, c1y, c2x, c2y, x2, y2], distance / currentLength);
+      point = getPointAtCubicSegmentLength(
+        [x1, y1, c1x, c1y, c2x, c2y, x2, y2],
+        distance / currentLength,
+      );
     }
   }
   return point;
@@ -117,7 +125,17 @@ const getCubicBBox = (
   const cxMinMax = minmaxC([x1, c1x, c2x, x2]);
   const cyMinMax = minmaxC([y1, c1y, c2y, y2]);
 
-  return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]] as [number, number, number, number];
+  return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]] as [
+    number,
+    number,
+    number,
+    number,
+  ];
 };
 
-export { getCubicLength, getCubicBBox, getPointAtCubicLength, getPointAtCubicSegmentLength };
+export {
+  getCubicBBox,
+  getCubicLength,
+  getPointAtCubicLength,
+  getPointAtCubicSegmentLength,
+};

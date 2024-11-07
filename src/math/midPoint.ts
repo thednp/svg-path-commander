@@ -1,4 +1,4 @@
-import { PointTuple } from '../types';
+import { PointTuple } from "../types";
 
 /**
  * Returns the coordinates of a specified distance

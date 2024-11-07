@@ -1,5 +1,5 @@
-import type { RelativeArray } from '../types';
-import isPathArray from './isPathArray';
+import type { RelativeArray } from "../types";
+import isPathArray from "./isPathArray";
 
 /**
  * Iterates an array to check if it's a `pathArray`

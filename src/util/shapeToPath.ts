@@ -1,11 +1,11 @@
-import type { ShapeParams } from '../interface';
-import type { ShapeOps, ShapeTypes } from '../types';
-import pathToString from '../convert/pathToString';
-import defaultOptions from '../options/options';
-import error from '../parser/error';
-import isValidPath from './isValidPath';
-import shapeToPathArray from './shapeToPathArray';
-import shapeParams from './shapeParams';
+import type { ShapeParams } from "../interface";
+import type { ShapeOps, ShapeTypes } from "../types";
+import pathToString from "../convert/pathToString";
+import defaultOptions from "../options/options";
+import error from "../parser/error";
+import isValidPath from "./isValidPath";
+import shapeToPathArray from "./shapeToPathArray";
+import shapeParams from "./shapeParams";
 
 /**
  * Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`,
@@ -37,21 +37,27 @@ const shapeToPath = (
   const targetIsElement = element instanceof win.SVGElement;
   const tagName = targetIsElement ? element.tagName : null;
 
-  if (tagName === 'path') throw TypeError(`${error}: "${tagName}" is already SVGPathElement`);
-  if (tagName && supportedShapes.every(s => tagName !== s)) throw TypeError(`${error}: "${tagName}" is not SVGElement`);
+  if (tagName === "path") {
+    throw TypeError(`${error}: "${tagName}" is already SVGPathElement`);
+  }
+  if (tagName && supportedShapes.every((s) => tagName !== s)) {
+    throw TypeError(`${error}: "${tagName}" is not SVGElement`);
+  }
 
-  const path = doc.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const type = (targetIsElement ? tagName : element.type) as ShapeOps['type'];
+  const path = doc.createElementNS("http://www.w3.org/2000/svg", "path");
+  const type = (targetIsElement ? tagName : element.type) as ShapeOps["type"];
   const shapeAttrs = shapeParams[type] as string[];
   const config = { type } as Record<string, string>;
 
   // set d
   const round = defaultOptions.round as number;
   const pathArray = shapeToPathArray(element, doc);
-  const description = pathArray && pathArray.length ? pathToString(pathArray, round) : '';
+  const description = pathArray && pathArray.length
+    ? pathToString(pathArray, round)
+    : "";
 
   if (targetIsElement) {
-    shapeAttrs.forEach(p => {
+    shapeAttrs.forEach((p) => {
       config[p] = element.getAttribute(p) as string;
     });
     // set no-specific shape attributes: fill, stroke, etc
@@ -61,10 +67,10 @@ const shapeToPath = (
   } else {
     Object.assign(config, element);
     // set no-specific shape attributes: fill, stroke, etc
-    Object.keys(config).forEach(k => {
-      if (!shapeAttrs.includes(k) && k !== 'type') {
+    Object.keys(config).forEach((k) => {
+      if (!shapeAttrs.includes(k) && k !== "type") {
         path.setAttribute(
-          k.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`),
+          k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`),
           config[k],
         );
       }
@@ -73,7 +79,7 @@ const shapeToPath = (
 
   // replace target element
   if (isValidPath(description)) {
-    path.setAttribute('d', description);
+    path.setAttribute("d", description);
     if (replace && targetIsElement) {
       element.before(path, element);
       element.remove();

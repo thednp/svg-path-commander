@@ -1,5 +1,5 @@
-import isSpace from './isSpace';
-import type PathParser from './pathParser';
+import isSpace from "./isSpace";
+import type PathParser from "./pathParser";
 
 /**
  * Points the parser to the next character in the

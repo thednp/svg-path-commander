@@ -1,4 +1,4 @@
-import midPoint from '../math/midPoint';
+import midPoint from "../math/midPoint";
 
 /**
  * Converts an L (line-to) segment to C (cubic-bezier).

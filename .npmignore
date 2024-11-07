@@ -5,5 +5,9 @@ node_modules
 experiments
 docs
 coverage
-deno.lock
-test/__screenshots__
+test
+src
+lgtm.yml
+vite.config.mts
+vitest.config.mts
+vitest.config-ui.mts

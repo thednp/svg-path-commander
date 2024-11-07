@@ -1,4 +1,4 @@
-import type { PathArray, PathSegment } from '../types';
+import type { PathArray, PathSegment } from "../types";
 
 /**
  * The `PathParser` is used by the `parsePathString` static method
@@ -24,6 +24,6 @@ export default class PathParser {
     this.param = 0.0;
     this.segmentStart = 0;
     this.data = [];
-    this.err = '';
+    this.err = "";
   }
 }

@@ -1,5 +1,5 @@
-import { getPointAtLineLength } from './lineTools';
-import type { Point, PointTuple } from '../types';
+import { getPointAtLineLength } from "./lineTools";
+import type { Point, PointTuple } from "../types";
 
 /**
  * Returns the Arc segment length.
@@ -28,7 +28,14 @@ const arcLength = (rx: number, ry: number, theta: number) => {
  * @param theta the arc sweep angle in radians
  * @returns a point around ellipse at given angle
  */
-const arcPoint = (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => {
+const arcPoint = (
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  alpha: number,
+  theta: number,
+) => {
   const { sin, cos } = Math;
   // theta is angle in radians around arc
   // alpha is angle of rotation of ellipse in radians
@@ -116,15 +123,18 @@ const getArcProps = (
     y: -sin(xRotRad) * dx + cos(xRotRad) * dy,
   };
 
-  const radiiCheck = transformedPoint.x ** 2 / rx ** 2 + transformedPoint.y ** 2 / ry ** 2;
+  const radiiCheck = transformedPoint.x ** 2 / rx ** 2 +
+    transformedPoint.y ** 2 / ry ** 2;
 
   if (radiiCheck > 1) {
     rx *= sqrt(radiiCheck);
     ry *= sqrt(radiiCheck);
   }
 
-  const cSquareNumerator = rx ** 2 * ry ** 2 - rx ** 2 * transformedPoint.y ** 2 - ry ** 2 * transformedPoint.x ** 2;
-  const cSquareRootDenom = rx ** 2 * transformedPoint.y ** 2 + ry ** 2 * transformedPoint.x ** 2;
+  const cSquareNumerator = rx ** 2 * ry ** 2 -
+    rx ** 2 * transformedPoint.y ** 2 - ry ** 2 * transformedPoint.x ** 2;
+  const cSquareRootDenom = rx ** 2 * transformedPoint.y ** 2 +
+    ry ** 2 * transformedPoint.x ** 2;
 
   let cRadicand = cSquareNumerator / cSquareRootDenom;
   /* istanbul ignore next @preserve */
@@ -136,8 +146,10 @@ const getArcProps = (
   };
 
   const center = {
-    x: cos(xRotRad) * transformedCenter.x - sin(xRotRad) * transformedCenter.y + (x1 + x) / 2,
-    y: sin(xRotRad) * transformedCenter.x + cos(xRotRad) * transformedCenter.y + (y1 + y) / 2,
+    x: cos(xRotRad) * transformedCenter.x - sin(xRotRad) * transformedCenter.y +
+      (x1 + x) / 2,
+    y: sin(xRotRad) * transformedCenter.x + cos(xRotRad) * transformedCenter.y +
+      (y1 + y) / 2,
   };
 
   const startVector = {
@@ -203,7 +215,17 @@ const getArcLength = (
   x: number,
   y: number,
 ) => {
-  const { rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
+  const { rx, ry, startAngle, endAngle } = getArcProps(
+    x1,
+    y1,
+    RX,
+    RY,
+    angle,
+    LAF,
+    SF,
+    x,
+    y,
+  );
   return arcLength(rx, ry, endAngle - startAngle);
 };
 
@@ -235,10 +257,20 @@ const getPointAtArcLength = (
   distance?: number,
 ) => {
   let point = { x: x1, y: y1 };
-  const { center, rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
+  const { center, rx, ry, startAngle, endAngle } = getArcProps(
+    x1,
+    y1,
+    RX,
+    RY,
+    angle,
+    LAF,
+    SF,
+    x,
+    y,
+  );
 
   /* istanbul ignore else @preserve */
-  if (typeof distance === 'number') {
+  if (typeof distance === "number") {
     const length = arcLength(rx, ry, endAngle - startAngle);
     if (distance <= 0) {
       point = { x: x1, y: y1 };
@@ -262,8 +294,10 @@ const getPointAtArcLength = (
       const ellipseComponentY = ry * sin(alpha);
 
       point = {
-        x: cos(xRotRad) * ellipseComponentX - sin(xRotRad) * ellipseComponentY + center.x,
-        y: sin(xRotRad) * ellipseComponentX + cos(xRotRad) * ellipseComponentY + center.y,
+        x: cos(xRotRad) * ellipseComponentX - sin(xRotRad) * ellipseComponentY +
+          center.x,
+        y: sin(xRotRad) * ellipseComponentX + cos(xRotRad) * ellipseComponentY +
+          center.y,
       };
     }
   }
@@ -287,7 +321,6 @@ const getPointAtArcLength = (
  * @param x2 the ending point X
  * @param y2 the ending point Y
  * @returns the extrema of the Arc segment
- *
  */
 const getArcBBox = (
   x1: number,
@@ -300,7 +333,17 @@ const getArcBBox = (
   x: number,
   y: number,
 ) => {
-  const { center, rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
+  const { center, rx, ry, startAngle, endAngle } = getArcProps(
+    x1,
+    y1,
+    RX,
+    RY,
+    angle,
+    LAF,
+    SF,
+    x,
+    y,
+  );
   const deltaAngle = endAngle - startAngle;
   const { min, max, tan, atan2, PI } = Math;
 
@@ -385,4 +428,12 @@ const getArcBBox = (
   return [xMin, yMin, xMax, yMax] as [number, number, number, number];
 };
 
-export { arcPoint, angleBetween, getArcLength, arcLength, getArcBBox, getArcProps, getPointAtArcLength };
+export {
+  angleBetween,
+  arcLength,
+  arcPoint,
+  getArcBBox,
+  getArcLength,
+  getArcProps,
+  getPointAtArcLength,
+};

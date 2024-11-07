@@ -1,5 +1,5 @@
-import error from './error';
-import type PathParser from './pathParser';
+import error from "./error";
+import type PathParser from "./pathParser";
 
 /**
  * Validates an A (arc-to) specific path command value.
@@ -23,7 +23,9 @@ const scanFlag = (path: PathParser) => {
     return;
   }
 
-  path.err = `${error}: invalid Arc flag "${pathValue[index]}", expecting 0 or 1 at index ${index}`;
+  path.err = `${error}: invalid Arc flag "${
+    pathValue[index]
+  }", expecting 0 or 1 at index ${index}`;
 };
 
 export default scanFlag;

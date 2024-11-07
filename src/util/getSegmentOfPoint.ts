@@ -1,6 +1,6 @@
-import type { SegmentProperties } from '../interface';
-import type { PathArray } from '../types';
-import getPropertiesAtPoint from './getPropertiesAtPoint';
+import type { SegmentProperties } from "../interface";
+import type { PathArray } from "../types";
+import getPropertiesAtPoint from "./getPropertiesAtPoint";
 
 /**
  * Returns the path segment which contains a given point.

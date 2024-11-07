@@ -1,4 +1,4 @@
-import rotateVector from '../math/rotateVector';
+import rotateVector from "../math/rotateVector";
 
 /**
  * Converts A (arc-to) segments to C (cubic-bezier-to).
@@ -67,9 +67,12 @@ const arcToCubic = (
     const rx2 = rx * rx;
     const ry2 = ry * ry;
 
-    const k =
-      (LAF === SF ? -1 : 1) *
-      Math.sqrt(Math.abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x) / (rx2 * y * y + ry2 * x * x)));
+    const k = (LAF === SF ? -1 : 1) *
+      Math.sqrt(
+        Math.abs(
+          (rx2 * ry2 - rx2 * y * y - ry2 * x * x) / (rx2 * y * y + ry2 * x * x),
+        ),
+      );
 
     cx = (k * rx * y) / ry + (x1 + x2) / 2;
     cy = (k * -ry * x) / rx + (y1 + y2) / 2;
@@ -99,7 +102,12 @@ const arcToCubic = (
     f2 = f1 + d120 * (SF && f2 > f1 ? 1 : -1);
     x2 = cx + rx * Math.cos(f2);
     y2 = cy + ry * Math.sin(f2);
-    res = arcToCubic(x2, y2, rx, ry, angle, 0, SF, x2old, y2old, [f2, f2old, cx, cy]);
+    res = arcToCubic(x2, y2, rx, ry, angle, 0, SF, x2old, y2old, [
+      f2,
+      f2old,
+      cx,
+      cy,
+    ]);
   }
   df = f2 - f1;
   const c1 = Math.cos(f1);
@@ -121,7 +129,9 @@ const arcToCubic = (
   res = [m2[0], m2[1], m3[0], m3[1], m4[0], m4[1]].concat(res);
   const newres = [];
   for (let i = 0, ii = res.length; i < ii; i += 1) {
-    newres[i] = i % 2 ? rotateVector(res[i - 1], res[i], rad).y : rotateVector(res[i], res[i + 1], rad).x;
+    newres[i] = i % 2
+      ? rotateVector(res[i - 1], res[i], rad).y
+      : rotateVector(res[i], res[i + 1], rad).x;
   }
   return newres;
 };

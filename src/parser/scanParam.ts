@@ -1,7 +1,7 @@
-import isDigit from './isDigit';
-import invalidPathValue from './invalidPathValue';
-import error from './error';
-import type PathParser from './pathParser';
+import isDigit from "./isDigit";
+import invalidPathValue from "./invalidPathValue";
+import error from "./error";
+import type PathParser from "./pathParser";
 
 /**
  * Validates every character of the path string,
@@ -19,7 +19,8 @@ const scanParam = (path: PathParser) => {
   let ch;
 
   if (index >= max) {
-    path.err = `${error}: ${invalidPathValue} at index ${index}, "pathValue" is missing param`;
+    path.err =
+      `${error}: ${invalidPathValue} at index ${index}, "pathValue" is missing param`;
     return;
   }
   ch = pathValue.charCodeAt(index);
@@ -34,7 +35,9 @@ const scanParam = (path: PathParser) => {
   // https://github.com/ariya/esprimas
   if (!isDigit(ch) && ch !== 0x2e /* . */) {
     // path.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
-    path.err = `${error}: ${invalidPathValue} at index ${index}, "${pathValue[index]}" is not a number`;
+    path.err = `${error}: ${invalidPathValue} at index ${index}, "${
+      pathValue[index]
+    }" is not a number`;
     return;
   }
 
@@ -49,7 +52,9 @@ const scanParam = (path: PathParser) => {
       if (ch && isDigit(ch)) {
         // path.err = 'SvgPath: numbers started with `0` such as `09`
         // are illegal (at pos ' + start + ')';
-        path.err = `${error}: ${invalidPathValue} at index ${start}, "${pathValue[start]}" illegal number`;
+        path.err = `${error}: ${invalidPathValue} at index ${start}, "${
+          pathValue[start]
+        }" illegal number`;
         return;
       }
     }
@@ -75,7 +80,9 @@ const scanParam = (path: PathParser) => {
 
   if (ch === 0x65 /* e */ || ch === 0x45 /* E */) {
     if (hasDot && !hasCeiling && !hasDecimal) {
-      path.err = `${error}: ${invalidPathValue} at index ${index}, "${pathValue[index]}" invalid float exponent`;
+      path.err = `${error}: ${invalidPathValue} at index ${index}, "${
+        pathValue[index]
+      }" invalid float exponent`;
       return;
     }
 
@@ -91,7 +98,9 @@ const scanParam = (path: PathParser) => {
         index += 1;
       }
     } else {
-      path.err = `${error}: ${invalidPathValue} at index ${index}, "${pathValue[index]}" invalid integer exponent`;
+      path.err = `${error}: ${invalidPathValue} at index ${index}, "${
+        pathValue[index]
+      }" invalid integer exponent`;
       return;
     }
   }

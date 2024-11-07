@@ -1,5 +1,5 @@
-import { CurveArray } from '../types';
-import isNormalizedArray from './isNormalizedArray';
+import { CurveArray } from "../types";
+import isNormalizedArray from "./isNormalizedArray";
 
 /**
  * Iterates an array to check if it's a `pathArray`
@@ -10,6 +10,6 @@ import isNormalizedArray from './isNormalizedArray';
  */
 const isCurveArray = (path: unknown): path is CurveArray => {
   // `isPathArray` also checks if it's `Array`
-  return isNormalizedArray(path) && path.every(([pc]) => 'MC'.includes(pc));
+  return isNormalizedArray(path) && path.every(([pc]) => "MC".includes(pc));
 };
 export default isCurveArray;

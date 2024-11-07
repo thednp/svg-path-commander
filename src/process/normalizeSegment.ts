@@ -1,17 +1,17 @@
-import type { ParserParams } from '../interface';
+import type { ParserParams } from "../interface";
 import type {
-  NormalSegment,
-  PointTuple,
-  PathSegment,
-  QSegment,
+  ASegment,
   CSegment,
+  HSegment,
   LSegment,
   MSegment,
-  HSegment,
-  VSegment,
-  ASegment,
+  NormalSegment,
   PathCommand,
-} from '../types';
+  PathSegment,
+  PointTuple,
+  QSegment,
+  VSegment,
+} from "../types";
 
 /**
  * Normalizes a single segment of a `pathArray` object.
@@ -28,54 +28,65 @@ const normalizeSegment = (segment: PathSegment, params: ParserParams) => {
   const values = segment.slice(1) as number[];
   let absValues = values.map((n, j) => n + (isRelative ? (j % 2 ? y : x) : 0));
 
-  if (!'TQ'.includes(absCommand)) {
+  if (!"TQ".includes(absCommand)) {
     // optional but good to be cautious
     params.qx = null;
     params.qy = null;
   }
 
   // istanbul ignore else @preserve
-  if (absCommand === 'A') {
-    absValues = values.slice(0, -2).concat(values[5] + (isRelative ? x : 0), values[6] + (isRelative ? y : 0));
+  if (absCommand === "A") {
+    absValues = values.slice(0, -2).concat(
+      values[5] + (isRelative ? x : 0),
+      values[6] + (isRelative ? y : 0),
+    );
 
-    return ['A' as PathCommand | number].concat(absValues) as ASegment;
-  } else if (absCommand === 'H') {
-    return ['L', (segment as HSegment)[1] + (isRelative ? x : 0), py1] as LSegment;
-  } else if (absCommand === 'V') {
-    return ['L', px1, (segment as VSegment)[1] + (isRelative ? y : 0)] as LSegment;
-  } else if (absCommand === 'L') {
+    return ["A" as PathCommand | number].concat(absValues) as ASegment;
+  } else if (absCommand === "H") {
     return [
-      'L',
+      "L",
+      (segment as HSegment)[1] + (isRelative ? x : 0),
+      py1,
+    ] as LSegment;
+  } else if (absCommand === "V") {
+    return [
+      "L",
+      px1,
+      (segment as VSegment)[1] + (isRelative ? y : 0),
+    ] as LSegment;
+  } else if (absCommand === "L") {
+    return [
+      "L",
       (segment as LSegment)[1] + (isRelative ? x : 0),
       (segment as LSegment)[2] + (isRelative ? y : 0),
     ] as LSegment;
-  } else if (absCommand === 'M') {
+  } else if (absCommand === "M") {
     return [
-      'M',
+      "M",
       (segment as MSegment)[1] + (isRelative ? x : 0),
       (segment as MSegment)[2] + (isRelative ? y : 0),
     ] as MSegment;
-  } else if (absCommand === 'C') {
-    return ['C' as PathCommand | number].concat(absValues) as CSegment;
-  } else if (absCommand === 'S') {
+  } else if (absCommand === "C") {
+    return ["C" as PathCommand | number].concat(absValues) as CSegment;
+  } else if (absCommand === "S") {
     const x1 = px1 * 2 - px2;
     const y1 = py1 * 2 - py2;
     params.x1 = x1;
     params.y1 = y1;
-    return ['C', x1, y1].concat(absValues) as CSegment;
-  } else if (absCommand === 'T') {
+    return ["C", x1, y1].concat(absValues) as CSegment;
+  } else if (absCommand === "T") {
     const qx = px1 * 2 - (params.qx ? params.qx : /* istanbul ignore next */ 0);
     const qy = py1 * 2 - (params.qy ? params.qy : /* istanbul ignore next */ 0);
     params.qx = qx;
     params.qy = qy;
-    return ['Q', qx, qy].concat(absValues) as QSegment;
-  } else if (absCommand === 'Q') {
+    return ["Q", qx, qy].concat(absValues) as QSegment;
+  } else if (absCommand === "Q") {
     const [nqx, nqy] = absValues as PointTuple;
     params.qx = nqx;
     params.qy = nqy;
-    return ['Q' as PathCommand | number].concat(absValues) as QSegment;
-  } else if (absCommand === 'Z') {
-    return ['Z'] as NormalSegment;
+    return ["Q" as PathCommand | number].concat(absValues) as QSegment;
+  } else if (absCommand === "Z") {
+    return ["Z"] as NormalSegment;
   }
 
   // istanbul ignore next @preserve

@@ -1,7 +1,7 @@
-import parsePathString from '../parser/parsePathString';
-import absolutizeSegment from '../process/absolutizeSegment';
-import type { AbsoluteArray, PathArray } from '../types';
-import iterate from '../process/iterate';
+import parsePathString from "../parser/parsePathString";
+import absolutizeSegment from "../process/absolutizeSegment";
+import type { AbsoluteArray, PathArray } from "../types";
+import iterate from "../process/iterate";
 
 /**
  * Parses a path string value or object and returns an array

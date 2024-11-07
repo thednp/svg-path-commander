@@ -1,7 +1,7 @@
-import type { PathArray, RelativeArray } from '../types';
-import parsePathString from '../parser/parsePathString';
-import iterate from '../process/iterate';
-import relativizeSegment from '../process/relativizeSegment';
+import type { PathArray, RelativeArray } from "../types";
+import parsePathString from "../parser/parsePathString";
+import iterate from "../process/iterate";
+import relativizeSegment from "../process/relativizeSegment";
 
 /**
  * Parses a path string value or object and returns an array

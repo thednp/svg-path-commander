@@ -1,11 +1,11 @@
-import type { AbsoluteSegment, PathArray, PathCommand } from '../types';
-import pathToAbsolute from '../convert/pathToAbsolute';
-import shortenSegment from './shortenSegment';
-import paramsParser from '../parser/paramsParser';
-import iterate from './iterate';
-import normalizeSegment from './normalizeSegment';
-import relativizeSegment from './relativizeSegment';
-import roundSegment from './roundSegment';
+import type { AbsoluteSegment, PathArray, PathCommand } from "../types";
+import pathToAbsolute from "../convert/pathToAbsolute";
+import shortenSegment from "./shortenSegment";
+import paramsParser from "../parser/paramsParser";
+import iterate from "./iterate";
+import normalizeSegment from "./normalizeSegment";
+import relativizeSegment from "./relativizeSegment";
+import roundSegment from "./roundSegment";
 
 /**
  * Optimizes a `pathArray` object:
@@ -19,14 +19,15 @@ import roundSegment from './roundSegment';
 const optimizePath = (pathInput: PathArray, roundOption?: number) => {
   const path = pathToAbsolute(pathInput);
   // allow for ZERO decimals or use an aggressive value of 2
-  const round =
-    typeof roundOption === 'number' && roundOption >= 0 ? roundOption : /* istanbul ignore next @preserve */ 2;
+  const round = typeof roundOption === "number" && roundOption >= 0
+    ? roundOption
+    : /* istanbul ignore next @preserve */ 2;
   // this utility overrides the iterator params
   const optimParams = { ...paramsParser };
 
   const allPathCommands = [] as PathCommand[];
-  let pathCommand = 'M' as PathCommand;
-  let prevCommand = 'Z' as PathCommand;
+  let pathCommand = "M" as PathCommand;
+  let prevCommand = "Z" as PathCommand;
 
   return iterate(path, (seg, i, lastX, lastY) => {
     optimParams.x = lastX;
@@ -40,12 +41,17 @@ const optimizePath = (pathInput: PathArray, roundOption?: number) => {
     if (i) {
       // Get previous path command for `shortenSegment`
       prevCommand = allPathCommands[i - 1];
-      const shortSegment = shortenSegment(seg as AbsoluteSegment, normalizedSegment, optimParams, prevCommand);
+      const shortSegment = shortenSegment(
+        seg as AbsoluteSegment,
+        normalizedSegment,
+        optimParams,
+        prevCommand,
+      );
       const absSegment = roundSegment(shortSegment, round);
-      const absString = absSegment.join('');
+      const absString = absSegment.join("");
       const relativeSegment = relativizeSegment(shortSegment, i, lastX, lastY);
       const relSegment = roundSegment(relativeSegment, round);
-      const relString = relSegment.join('');
+      const relString = relSegment.join("");
       result = absString.length < relString.length ? absSegment : relSegment;
     }
 

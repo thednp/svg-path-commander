@@ -1,17 +1,17 @@
 import type {
-  AbsoluteSegment,
   AbsoluteCommand,
+  AbsoluteSegment,
   ASegment,
-  VSegment,
+  CSegment,
   HSegment,
+  LSegment,
+  MSegment,
+  PathSegment,
   QSegment,
   SSegment,
   TSegment,
-  CSegment,
-  PathSegment,
-  MSegment,
-  LSegment,
-} from '../types';
+  VSegment,
+} from "../types";
 
 /**
  * Returns an absolute segment of a `PathArray` object.
@@ -22,7 +22,12 @@ import type {
  * @param lastY the last known Y value
  * @returns the absolute segment
  */
-const absolutizeSegment = (segment: PathSegment, index: number, lastX: number, lastY: number) => {
+const absolutizeSegment = (
+  segment: PathSegment,
+  index: number,
+  lastX: number,
+  lastY: number,
+) => {
   const [pathCommand] = segment;
   const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
   const isAbsolute = absCommand === pathCommand;
@@ -30,7 +35,7 @@ const absolutizeSegment = (segment: PathSegment, index: number, lastX: number, l
   /* istanbul ignore else @preserve */
   if (index === 0 || isAbsolute) return segment as MSegment | AbsoluteSegment;
   // const values = segment.slice(1) as number[];
-  if (absCommand === 'A') {
+  if (absCommand === "A") {
     return [
       absCommand,
       segment[1],
@@ -41,12 +46,16 @@ const absolutizeSegment = (segment: PathSegment, index: number, lastX: number, l
       (segment as ASegment)[6] + lastX,
       (segment as ASegment)[7] + lastY,
     ] as ASegment;
-  } else if (absCommand === 'V') {
+  } else if (absCommand === "V") {
     return [absCommand, (segment as VSegment)[1] + lastY] as VSegment;
-  } else if (absCommand === 'H') {
+  } else if (absCommand === "H") {
     return [absCommand, (segment as HSegment)[1] + lastX] as HSegment;
-  } else if (absCommand === 'L') {
-    return [absCommand, (segment as LSegment)[1] + lastX, (segment as LSegment)[2] + lastY] as LSegment;
+  } else if (absCommand === "L") {
+    return [
+      absCommand,
+      (segment as LSegment)[1] + lastX,
+      (segment as LSegment)[2] + lastY,
+    ] as LSegment;
   } else {
     // use brakets for `eslint: no-case-declaration`
     // https://stackoverflow.com/a/50753272/803358

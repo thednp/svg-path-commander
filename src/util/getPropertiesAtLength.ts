@@ -1,7 +1,7 @@
-import type { PathArray, PathSegment } from '../types';
-import type { SegmentProperties } from '../interface';
-import parsePathString from '../parser/parsePathString';
-import getTotalLength from './getTotalLength';
+import type { PathArray, PathSegment } from "../types";
+import type { SegmentProperties } from "../interface";
+import parsePathString from "../parser/parsePathString";
+import getTotalLength from "./getTotalLength";
 
 /**
  * Returns the segment, its index and length as well as
@@ -11,7 +11,10 @@ import getTotalLength from './getTotalLength';
  * @param distance the given length
  * @returns the requested properties
  */
-const getPropertiesAtLength = (pathInput: string | PathArray, distance?: number): SegmentProperties => {
+const getPropertiesAtLength = (
+  pathInput: string | PathArray,
+  distance?: number,
+): SegmentProperties => {
   const pathArray = parsePathString(pathInput);
 
   let pathTemp = pathArray.slice(0) as PathArray;
@@ -61,7 +64,9 @@ const getPropertiesAtLength = (pathInput: string | PathArray, distance?: number)
     index -= 1;
   }
 
-  return segments.find(({ lengthAtSegment: l }) => l <= distance) as SegmentProperties;
+  return segments.find(({ lengthAtSegment: l }) =>
+    l <= distance
+  ) as SegmentProperties;
 };
 
 export default getPropertiesAtLength;

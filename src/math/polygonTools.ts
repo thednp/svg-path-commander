@@ -1,5 +1,5 @@
-import distanceSquareRoot from './distanceSquareRoot';
-import { type PointTuple } from '../types';
+import distanceSquareRoot from "./distanceSquareRoot";
+import { type PointTuple } from "../types";
 
 /**
  * d3-polygon-area

@@ -1,4 +1,12 @@
-import type { LineAttr, CircleAttr, PolyAttr, RectAttr, EllipseAttr, GlyphAttr, TransformObject } from './interface';
+import type {
+  CircleAttr,
+  EllipseAttr,
+  GlyphAttr,
+  LineAttr,
+  PolyAttr,
+  RectAttr,
+  TransformObject,
+} from "./interface";
 
 export type SpaceNumber =
   | 0x1680
@@ -29,40 +37,60 @@ export type SpaceNumber =
   | 0xa0
   | 0x1680;
 
-export type PathCommandNumber = 0x6d | 0x7a | 0x6c | 0x68 | 0x76 | 0x63 | 0x73 | 0x71 | 0x74 | 0x61;
+export type PathCommandNumber =
+  | 0x6d
+  | 0x7a
+  | 0x6c
+  | 0x68
+  | 0x76
+  | 0x63
+  | 0x73
+  | 0x71
+  | 0x74
+  | 0x61;
 
-export type DigitNumber = 0x30 | 0x31 | 0x32 | 0x33 | 0x34 | 0x35 | 0x36 | 0x37 | 0x38 | 0x39;
+export type DigitNumber =
+  | 0x30
+  | 0x31
+  | 0x32
+  | 0x33
+  | 0x34
+  | 0x35
+  | 0x36
+  | 0x37
+  | 0x38
+  | 0x39;
 
 // custom types
-export type MCommand = 'M';
-export type mCommand = 'm';
+export type MCommand = "M";
+export type mCommand = "m";
 
-export type LCommand = 'L';
-export type lCommand = 'l';
+export type LCommand = "L";
+export type lCommand = "l";
 
-export type VCommand = 'V';
-export type vCommand = 'v';
+export type VCommand = "V";
+export type vCommand = "v";
 
-export type HCommand = 'H';
-export type hCommand = 'h';
+export type HCommand = "H";
+export type hCommand = "h";
 
-export type ZCommand = 'Z';
-export type zCommand = 'z';
+export type ZCommand = "Z";
+export type zCommand = "z";
 
-export type CCommand = 'C';
-export type cCommand = 'c';
+export type CCommand = "C";
+export type cCommand = "c";
 
-export type SCommand = 'S';
-export type sCommand = 's';
+export type SCommand = "S";
+export type sCommand = "s";
 
-export type QCommand = 'Q';
-export type qCommand = 'q';
+export type QCommand = "Q";
+export type qCommand = "q";
 
-export type TCommand = 'T';
-export type tCommand = 't';
+export type TCommand = "T";
+export type tCommand = "t";
 
-export type ACommand = 'A';
-export type aCommand = 'a';
+export type ACommand = "A";
+export type aCommand = "a";
 
 export type AbsoluteCommand =
   | MCommand
@@ -110,8 +138,24 @@ export type ZSegment = [ZCommand];
 export type zSegment = [zCommand];
 export type CloseSegment = ZSegment | zSegment;
 
-export type CSegment = [CCommand, number, number, number, number, number, number];
-export type cSegment = [cCommand, number, number, number, number, number, number];
+export type CSegment = [
+  CCommand,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+];
+export type cSegment = [
+  cCommand,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+];
 export type CubicSegment = CSegment | cSegment;
 
 export type SSegment = [SCommand, number, number, number, number];
@@ -126,8 +170,26 @@ export type TSegment = [TCommand, number, number];
 export type tSegment = [tCommand, number, number];
 export type ShortQuadSegment = TSegment | tSegment;
 
-export type ASegment = [ACommand, number, number, number, number, number, number, number];
-export type aSegment = [aCommand, number, number, number, number, number, number, number];
+export type ASegment = [
+  ACommand,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+];
+export type aSegment = [
+  aCommand,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+];
 export type ArcSegment = ASegment | aSegment;
 
 export type PathSegment =
@@ -142,7 +204,12 @@ export type PathSegment =
   | ShortQuadSegment
   | ArcSegment;
 
-export type ShortSegment = VertLineSegment | HorLineSegment | ShortCubicSegment | ShortQuadSegment | CloseSegment;
+export type ShortSegment =
+  | VertLineSegment
+  | HorLineSegment
+  | ShortCubicSegment
+  | ShortQuadSegment
+  | CloseSegment;
 
 export type AbsoluteSegment =
   | MSegment
@@ -168,7 +235,13 @@ export type RelativeSegment =
   | aSegment
   | zSegment;
 
-export type NormalSegment = MSegment | LSegment | CSegment | QSegment | ASegment | ZSegment;
+export type NormalSegment =
+  | MSegment
+  | LSegment
+  | CSegment
+  | QSegment
+  | ASegment
+  | ZSegment;
 
 export type PathArray = [MSegment | mSegment, ...PathSegment[]];
 export type AbsoluteArray = [MSegment, ...AbsoluteSegment[]];
@@ -186,11 +259,27 @@ export type ShapeTypes =
   | SVGCircleElement
   | SVGRectElement;
 
-export type ShapeTags = 'line' | 'polyline' | 'polygon' | 'ellipse' | 'circle' | 'rect' | 'glyph';
+export type ShapeTags =
+  | "line"
+  | "polyline"
+  | "polygon"
+  | "ellipse"
+  | "circle"
+  | "rect"
+  | "glyph";
 
-export type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
+export type ShapeOps =
+  | LineAttr
+  | PolyAttr
+  | PolyAttr
+  | EllipseAttr
+  | CircleAttr
+  | RectAttr
+  | GlyphAttr;
 
-export type TransformObjectValues = Partial<TransformObject> & { origin: [number, number, number] };
+export type TransformObjectValues = Partial<TransformObject> & {
+  origin: [number, number, number];
+};
 
 export type Point = {
   x: number;
@@ -201,8 +290,24 @@ export type PointTuple = [number, number];
 
 export type DerivedPoint = Point & { t: number };
 export type QuadPoints = [Point, Point, Point, Point, Point, Point];
-export type CubicPoints = [Point, Point, Point, Point, Point, Point, Point, Point];
-export type DerivedQuadPoints = [DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint];
+export type CubicPoints = [
+  Point,
+  Point,
+  Point,
+  Point,
+  Point,
+  Point,
+  Point,
+  Point,
+];
+export type DerivedQuadPoints = [
+  DerivedPoint,
+  DerivedPoint,
+  DerivedPoint,
+  DerivedPoint,
+  DerivedPoint,
+  DerivedPoint,
+];
 export type DerivedCubicPoints = [
   DerivedPoint,
   DerivedPoint,
@@ -214,8 +319,27 @@ export type DerivedCubicPoints = [
   DerivedPoint,
 ];
 export type QuadCoordinates = [number, number, number, number, number, number];
-export type CubicCoordinates = [number, number, number, number, number, number, number, number];
-export type ArcCoordinates = [number, number, number, number, number, number, number, number, number];
+export type CubicCoordinates = [
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+];
+export type ArcCoordinates = [
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+];
 export type LineCoordinates = [number, number, number, number];
 
 export type DeriveCallback = (t: number) => Point;

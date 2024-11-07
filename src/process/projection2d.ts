@@ -1,5 +1,5 @@
-import CSSMatrix from '@thednp/dommatrix';
-import { type PointTuple } from '../types';
+import CSSMatrix from "@thednp/dommatrix";
+import { type PointTuple } from "../types";
 
 /**
  * Transforms a specified point using a matrix, returning a new
@@ -12,7 +12,10 @@ import { type PointTuple } from '../types';
  * @param v Tuple
  * @return the resulting Tuple
  */
-const translatePoint = (cssm: CSSMatrix, v: [number, number, number, number]): [number, number, number, number] => {
+const translatePoint = (
+  cssm: CSSMatrix,
+  v: [number, number, number, number],
+): [number, number, number, number] => {
   let m = CSSMatrix.Translate(v[0], v[1], v[2]);
 
   [, , , m.m44] = v;
@@ -35,7 +38,11 @@ const translatePoint = (cssm: CSSMatrix, v: [number, number, number, number]): [
  * @param origin the [x,y,z] transform origin
  * @returns the projected [x,y] coordinates
  */
-const projection2d = (m: CSSMatrix, point2D: PointTuple, origin: [number, number, number]): PointTuple => {
+const projection2d = (
+  m: CSSMatrix,
+  point2D: PointTuple,
+  origin: [number, number, number],
+): PointTuple => {
   const [originX, originY, originZ] = origin;
   const [x, y, z] = translatePoint(m, [point2D[0], point2D[1], 0, 1]);
 
@@ -45,8 +52,10 @@ const projection2d = (m: CSSMatrix, point2D: PointTuple, origin: [number, number
 
   return [
     // protect against division by ZERO
-    relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originX,
-    relativePositionY * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originY,
+    relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) +
+    originX,
+    relativePositionY * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) +
+    originY,
   ];
 };
 export default projection2d;

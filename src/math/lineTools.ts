@@ -1,5 +1,5 @@
-import midPoint from './midPoint';
-import distanceSquareRoot from './distanceSquareRoot';
+import midPoint from "./midPoint";
+import distanceSquareRoot from "./distanceSquareRoot";
 
 /**
  * Returns length for line segments (MoveTo, LineTo).
@@ -24,11 +24,17 @@ const getLineLength = (x1: number, y1: number, x2: number, y2: number) => {
  * @param distance the distance to point in [0-1] range
  * @returns the point at length
  */
-const getPointAtLineLength = (x1: number, y1: number, x2: number, y2: number, distance?: number) => {
+const getPointAtLineLength = (
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  distance?: number,
+) => {
   let point = { x: x1, y: y1 };
 
   /* istanbul ignore else @preserve */
-  if (typeof distance === 'number') {
+  if (typeof distance === "number") {
     const length = distanceSquareRoot([x1, y1], [x2, y2]);
     if (distance <= 0) {
       point = { x: x1, y: y1 };
@@ -55,7 +61,12 @@ const getPointAtLineLength = (x1: number, y1: number, x2: number, y2: number, di
 const getLineBBox = (x1: number, y1: number, x2: number, y2: number) => {
   const { min, max } = Math;
 
-  return [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)] as [number, number, number, number];
+  return [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)] as [
+    number,
+    number,
+    number,
+    number,
+  ];
 };
 
-export { getPointAtLineLength, getLineBBox, getLineLength };
+export { getLineBBox, getLineLength, getPointAtLineLength };

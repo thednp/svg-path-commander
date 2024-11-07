@@ -1,4 +1,4 @@
-import { Options } from '../interface';
+import { Options } from "../interface";
 
 /** SVGPathCommander default options */
 const defaultOptions: Options = {

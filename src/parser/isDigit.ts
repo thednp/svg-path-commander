@@ -1,4 +1,4 @@
-import { DigitNumber } from '../types';
+import { DigitNumber } from "../types";
 
 /**
  * Checks if a character is a digit.

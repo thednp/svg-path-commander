@@ -7,8 +7,8 @@
 [![typescript version](https://img.shields.io/badge/typescript-5.6.3-brightgreen)](https://www.typescriptlang.org/)
 [![prettier version](https://img.shields.io/badge/prettier-2.8.8-brightgreen)](https://prettier.io/)
 [![eslint version](https://img.shields.io/badge/eslint-8.57.1-brightgreen)](https://github.com/eslint)
-[![vitest version](https://img.shields.io/badge/vitest-2.1.3-brightgreen)](https://vitest.dev/)
-[![vite version](https://img.shields.io/badge/vite-5.4.9-brightgreen)](https://vitejs.dev/)
+[![vitest version](https://img.shields.io/badge/vitest-2.1.4-brightgreen)](https://vitest.dev/)
+[![vite version](https://img.shields.io/badge/vite-5.4.10-brightgreen)](https://vitejs.dev/)
 
 ![image](./docs/assets/SVGPathCommander.svg)
 
@@ -62,9 +62,9 @@ const flippedPathString = new SVGPathCommander(path).flipX().toString();
 // result => 'M0 100h100L50 0'
 ```
 
-Optimize a path string for best outcome by using the `round: 'auto'` option which will determine the amount of decimals based on the shape's bounding box:
+Optimize a path string by using the `round` option, to round numbers to 2 decimals and finding shorthand where possible:
 ```js
-const optimizedPathString = new SVGPathCommander(path, {round: 'auto'}).optimize().toString();
+const optimizedPathString = new SVGPathCommander(path, {round: 2}).optimize().toString();
 ```
 
 Or why not apply a **2D transformation** and even a **3D transformation**:

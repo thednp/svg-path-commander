@@ -1,4 +1,4 @@
-import type { PathCommandNumber } from '../types';
+import type { PathCommandNumber } from "../types";
 
 /**
  * Checks if the character is a path command.

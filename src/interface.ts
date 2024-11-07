@@ -1,4 +1,4 @@
-import type { PathSegment } from './types';
+import type { PathSegment } from "./types";
 
 export type SegmentProperties = {
   segment: PathSegment;
@@ -19,7 +19,7 @@ export type PointProperties = {
 };
 
 export type LineAttr = {
-  type: 'line';
+  type: "line";
   x1: number;
   y1: number;
   x2: number;
@@ -27,19 +27,19 @@ export type LineAttr = {
   [key: string]: string | number;
 };
 export type PolyAttr = {
-  type: 'polygon' | 'polyline';
+  type: "polygon" | "polyline";
   points: string;
   [key: string]: string | number;
 };
 export type CircleAttr = {
-  type: 'circle';
+  type: "circle";
   cx: number;
   cy: number;
   r: number;
   [key: string]: string | number;
 };
 export type EllipseAttr = {
-  type: 'ellipse';
+  type: "ellipse";
   cx: number;
   cy: number;
   rx: number;
@@ -47,7 +47,7 @@ export type EllipseAttr = {
   [key: string]: string | number | undefined;
 };
 export type RectAttr = {
-  type: 'rect';
+  type: "rect";
   width: number;
   height: number;
   x: number;
@@ -57,19 +57,19 @@ export type RectAttr = {
   [key: string]: string | number | undefined;
 };
 export type GlyphAttr = {
-  type: 'glyph';
+  type: "glyph";
   d: string;
   [key: string]: string | number;
 };
 
 export type ShapeParams = {
-  line: ['x1', 'y1', 'x2', 'y2'];
-  circle: ['cx', 'cy', 'r'];
-  ellipse: ['cx', 'cy', 'rx', 'ry'];
-  rect: ['width', 'height', 'x', 'y', 'rx', 'ry'];
-  polygon: ['points'];
-  polyline: ['points'];
-  glyph: ['d'];
+  line: ["x1", "y1", "x2", "y2"];
+  circle: ["cx", "cy", "r"];
+  ellipse: ["cx", "cy", "rx", "ry"];
+  rect: ["width", "height", "x", "y", "rx", "ry"];
+  polygon: ["points"];
+  polyline: ["points"];
+  glyph: ["d"];
 };
 
 export type PathBBox = {
@@ -107,7 +107,7 @@ export type LengthFactory = {
 };
 
 export type Options = {
-  round: 'off' | number;
+  round: "off" | number;
   origin: number[];
 };
 
@@ -127,4 +127,7 @@ export type TransformObject = {
 };
 
 export type TransformProps = keyof TransformObject;
-export type TransformEntries = [TransformProps, TransformObject[TransformProps]][];
+export type TransformEntries = [
+  TransformProps,
+  TransformObject[TransformProps],
+][];

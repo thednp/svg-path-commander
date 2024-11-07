@@ -1,2 +1,2 @@
-const error = 'SVGPathCommander Error';
+const error = "SVGPathCommander Error";
 export default error;

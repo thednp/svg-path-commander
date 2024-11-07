@@ -1,10 +1,10 @@
-import type { PathArray, Point } from '../types';
-import type { PointProperties } from '../interface';
-import getPointAtLength from './getPointAtLength';
-import getPropertiesAtLength from './getPropertiesAtLength';
-import getTotalLength from './getTotalLength';
-import parsePathString from '../parser/parsePathString';
-import normalizePath from '../process/normalizePath';
+import type { PathArray, Point } from "../types";
+import type { PointProperties } from "../interface";
+import getPointAtLength from "./getPointAtLength";
+import getPropertiesAtLength from "./getPropertiesAtLength";
+import getTotalLength from "./getTotalLength";
+import parsePathString from "../parser/parsePathString";
+import normalizePath from "../process/normalizePath";
 
 /**
  * Returns the point and segment in path closest to a given point as well as
@@ -16,7 +16,10 @@ import normalizePath from '../process/normalizePath';
  * @param point the given point
  * @returns the requested properties
  */
-const getPropertiesAtPoint = (pathInput: string | PathArray, point: Point): PointProperties => {
+const getPropertiesAtPoint = (
+  pathInput: string | PathArray,
+  point: Point,
+): PointProperties => {
   const path = parsePathString(pathInput);
   const normalPath = normalizePath(path);
   const pathLength = getTotalLength(normalPath);

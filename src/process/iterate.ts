@@ -1,11 +1,20 @@
 // import paramsParser from '../parser/paramsParser';
-import type { PathArray, PathCommand, PathSegment, IteratorCallback, AbsoluteCommand } from '../types';
+import type {
+  AbsoluteCommand,
+  IteratorCallback,
+  PathArray,
+  PathCommand,
+  PathSegment,
+} from "../types";
 
-const iterate = <T extends PathArray>(path: PathArray, iterator: IteratorCallback) => {
+const iterate = <T extends PathArray>(
+  path: PathArray,
+  iterator: IteratorCallback,
+) => {
   let pathLen = path.length;
   let segment: PathSegment;
-  let pathCommand = 'M' as PathCommand;
-  let absCommand = 'M' as AbsoluteCommand;
+  let pathCommand = "M" as PathCommand;
+  let absCommand = "M" as AbsoluteCommand;
   let isRelative = false;
   let x = 0;
   let y = 0;
@@ -28,18 +37,18 @@ const iterate = <T extends PathArray>(path: PathArray, iterator: IteratorCallbac
     }
 
     // segment = path[i];
-    if (absCommand === 'Z') {
+    if (absCommand === "Z") {
       x = mx;
       y = my;
-    } else if (absCommand === 'H') {
+    } else if (absCommand === "H") {
       x = (segment[1] as number) + (isRelative ? x : 0);
-    } else if (absCommand === 'V') {
+    } else if (absCommand === "V") {
       y = (segment[1] as number) + (isRelative ? y : 0);
     } else {
       x = (segment[segLen - 2] as number) + (isRelative ? x : 0);
       y = (segment[segLen - 1] as number) + (isRelative ? y : 0);
 
-      if (absCommand === 'M') {
+      if (absCommand === "M") {
         mx = x;
         my = y;
       }
@@ -47,7 +56,7 @@ const iterate = <T extends PathArray>(path: PathArray, iterator: IteratorCallbac
 
     if (iteratorResult) {
       path[i] = iteratorResult;
-      if (iteratorResult[0] === 'C') {
+      if (iteratorResult[0] === "C") {
         pathLen = path.length;
       }
     }

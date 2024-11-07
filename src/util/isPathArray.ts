@@ -1,5 +1,5 @@
-import type { PathArray, PathSegment, RelativeCommand } from '../types';
-import paramsCount from '../parser/paramsCount';
+import type { PathArray, PathSegment, RelativeCommand } from "../types";
+import paramsCount from "../parser/paramsCount";
 
 /**
  * Iterates an array to check if it's an actual `pathArray`.
@@ -14,7 +14,7 @@ const isPathArray = (path: unknown): path is PathArray => {
       const lk = seg[0].toLowerCase() as RelativeCommand;
       return (
         paramsCount[lk] === seg.length - 1 &&
-        'achlmqstvz'.includes(lk) &&
+        "achlmqstvz".includes(lk) &&
         (seg.slice(1) as unknown[]).every(Number.isFinite)
       );
     }) &&

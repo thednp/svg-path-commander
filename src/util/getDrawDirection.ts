@@ -1,6 +1,6 @@
-import getPathArea from './getPathArea';
-import pathToCurve from '../convert/pathToCurve';
-import type { PathArray } from '../types';
+import getPathArea from "./getPathArea";
+import pathToCurve from "../convert/pathToCurve";
+import type { PathArray } from "../types";
 
 /**
  * Check if a path is drawn clockwise and returns true if so,

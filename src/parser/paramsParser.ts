@@ -1,4 +1,4 @@
-import type { ParserParams } from '../interface';
+import type { ParserParams } from "../interface";
 
 const paramsParser: ParserParams = {
   x1: 0,

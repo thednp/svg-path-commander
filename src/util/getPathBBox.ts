@@ -1,12 +1,12 @@
-import iterate from '../process/iterate';
-import { PathBBox } from '../interface';
-import { LSegment, MSegment, PathArray, PointTuple } from '../types';
-import { getLineBBox } from '../math/lineTools';
-import { getArcBBox } from '../math/arcTools';
-import { getCubicBBox } from '../math/cubicTools';
-import { getQuadBBox } from '../math/quadTools';
-import parsePathString from '../parser/parsePathString';
-import absolutizeSegment from '../process/absolutizeSegment';
+import iterate from "../process/iterate";
+import { PathBBox } from "../interface";
+import { LSegment, MSegment, PathArray, PointTuple } from "../types";
+import { getLineBBox } from "../math/lineTools";
+import { getArcBBox } from "../math/arcTools";
+import { getCubicBBox } from "../math/cubicTools";
+import { getQuadBBox } from "../math/quadTools";
+import parsePathString from "../parser/parsePathString";
+import absolutizeSegment from "../process/absolutizeSegment";
 
 const getPathBBox = (pathInput: PathArray | string) => {
   if (!pathInput) {
@@ -24,7 +24,7 @@ const getPathBBox = (pathInput: PathArray | string) => {
   }
 
   const path = parsePathString(pathInput);
-  let pathCommand = 'M';
+  let pathCommand = "M";
   let mx = 0;
   let my = 0;
   const { max, min } = Math;
@@ -47,18 +47,19 @@ const getPathBBox = (pathInput: PathArray | string) => {
     [pathCommand] = seg;
     const absCommand = pathCommand.toUpperCase();
     const isRelative = absCommand !== pathCommand;
-    const absoluteSegment = isRelative ? absolutizeSegment(seg, index, lastX, lastY) : (seg.slice(0) as typeof seg);
+    const absoluteSegment = isRelative
+      ? absolutizeSegment(seg, index, lastX, lastY)
+      : (seg.slice(0) as typeof seg);
 
-    const normalSegment =
-      absCommand === 'V'
-        ? (['L', lastX, absoluteSegment[1]] as LSegment)
-        : absCommand === 'H'
-        ? (['L', absoluteSegment[1], lastY] as LSegment)
-        : absoluteSegment;
+    const normalSegment = absCommand === "V"
+      ? (["L", lastX, absoluteSegment[1]] as LSegment)
+      : absCommand === "H"
+      ? (["L", absoluteSegment[1], lastY] as LSegment)
+      : absoluteSegment;
 
     [pathCommand] = normalSegment;
 
-    if (!'TQ'.includes(absCommand)) {
+    if (!"TQ".includes(absCommand)) {
       // optional but good to be cautious
       paramQX = 0;
       paramQY = 0;
@@ -66,15 +67,20 @@ const getPathBBox = (pathInput: PathArray | string) => {
 
     // this segment is always ZERO
     /* istanbul ignore else @preserve */
-    if (pathCommand === 'M') {
+    if (pathCommand === "M") {
       [, mx, my] = normalSegment as MSegment;
       minX = mx;
       minY = my;
       maxX = mx;
       maxY = my;
-    } else if (pathCommand === 'L') {
-      [minX, minY, maxX, maxY] = getLineBBox(lastX, lastY, normalSegment[1] as number, normalSegment[2] as number);
-    } else if (pathCommand === 'A') {
+    } else if (pathCommand === "L") {
+      [minX, minY, maxX, maxY] = getLineBBox(
+        lastX,
+        lastY,
+        normalSegment[1] as number,
+        normalSegment[2] as number,
+      );
+    } else if (pathCommand === "A") {
       [minX, minY, maxX, maxY] = getArcBBox(
         lastX,
         lastY,
@@ -86,7 +92,7 @@ const getPathBBox = (pathInput: PathArray | string) => {
         normalSegment[6] as number,
         normalSegment[7] as number,
       );
-    } else if (pathCommand === 'S') {
+    } else if (pathCommand === "S") {
       const cp1x = paramX1 * 2 - paramX2;
       const cp1y = paramY1 * 2 - paramY2;
 
@@ -100,7 +106,7 @@ const getPathBBox = (pathInput: PathArray | string) => {
         normalSegment[3] as number,
         normalSegment[4] as number,
       );
-    } else if (pathCommand === 'C') {
+    } else if (pathCommand === "C") {
       [minX, minY, maxX, maxY] = getCubicBBox(
         lastX,
         lastY,
@@ -111,7 +117,7 @@ const getPathBBox = (pathInput: PathArray | string) => {
         normalSegment[5] as number,
         normalSegment[6] as number,
       );
-    } else if (pathCommand === 'T') {
+    } else if (pathCommand === "T") {
       paramQX = paramX1 * 2 - paramQX;
       paramQY = paramY1 * 2 - paramQY;
       [minX, minY, maxX, maxY] = getQuadBBox(
@@ -122,7 +128,7 @@ const getPathBBox = (pathInput: PathArray | string) => {
         normalSegment[1] as number,
         normalSegment[2] as number,
       );
-    } else if (pathCommand === 'Q') {
+    } else if (pathCommand === "Q") {
       paramQX = normalSegment[1] as number;
       paramQY = normalSegment[2] as number;
       [minX, minY, maxX, maxY] = getQuadBBox(
@@ -133,7 +139,7 @@ const getPathBBox = (pathInput: PathArray | string) => {
         normalSegment[3] as number,
         normalSegment[4] as number,
       );
-    } else if (pathCommand === 'Z') {
+    } else if (pathCommand === "Z") {
       [minX, minY, maxX, maxY] = getLineBBox(lastX, lastY, mx, my);
     }
     xMin = min(minX, xMin);
@@ -142,13 +148,14 @@ const getPathBBox = (pathInput: PathArray | string) => {
     yMax = max(maxY, yMax);
 
     // update params
-    [paramX1, paramY1] = pathCommand === 'Z' ? [mx, my] : (normalSegment.slice(-2) as PointTuple);
-    [paramX2, paramY2] =
-      pathCommand === 'C'
-        ? ([normalSegment[3], normalSegment[4]] as PointTuple)
-        : pathCommand === 'S'
-        ? ([normalSegment[1], normalSegment[2]] as PointTuple)
-        : [paramX1, paramY1];
+    [paramX1, paramY1] = pathCommand === "Z"
+      ? [mx, my]
+      : (normalSegment.slice(-2) as PointTuple);
+    [paramX2, paramY2] = pathCommand === "C"
+      ? ([normalSegment[3], normalSegment[4]] as PointTuple)
+      : pathCommand === "S"
+      ? ([normalSegment[1], normalSegment[2]] as PointTuple)
+      : [paramX1, paramY1];
   });
 
   const width = xMax - xMin;

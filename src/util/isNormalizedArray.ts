@@ -1,5 +1,5 @@
-import type { NormalArray } from '../types';
-import isAbsoluteArray from './isAbsoluteArray';
+import type { NormalArray } from "../types";
+import isAbsoluteArray from "./isAbsoluteArray";
 
 /**
  * Iterates an array to check if it's a `pathArray`
@@ -11,6 +11,6 @@ import isAbsoluteArray from './isAbsoluteArray';
  */
 const isNormalizedArray = (path: unknown): path is NormalArray => {
   // `isAbsoluteArray` also checks if it's `Array`
-  return isAbsoluteArray(path) && path.every(([pc]) => 'ACLMQZ'.includes(pc));
+  return isAbsoluteArray(path) && path.every(([pc]) => "ACLMQZ".includes(pc));
 };
 export default isNormalizedArray;

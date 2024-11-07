@@ -1,5 +1,5 @@
-import type { PathArray } from '../types';
-import getPropertiesAtPoint from './getPropertiesAtPoint';
+import type { PathArray } from "../types";
+import getPropertiesAtPoint from "./getPropertiesAtPoint";
 
 /**
  * Returns the point in path closest to a given point.
@@ -8,7 +8,10 @@ import getPropertiesAtPoint from './getPropertiesAtPoint';
  * @param point the given point
  * @returns the best match
  */
-const getClosestPoint = (pathInput: string | PathArray, point: { x: number; y: number }) => {
+const getClosestPoint = (
+  pathInput: string | PathArray,
+  point: { x: number; y: number },
+) => {
   return getPropertiesAtPoint(pathInput, point).closest;
 };
 

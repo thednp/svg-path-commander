@@ -1,8 +1,8 @@
-import normalizeSegment from './normalizeSegment';
-import type { NormalArray, PathArray } from '../types';
-import iterate from './iterate';
-import parsePathString from '../parser/parsePathString';
-import paramsParser from '../parser/paramsParser';
+import normalizeSegment from "./normalizeSegment";
+import type { NormalArray, PathArray } from "../types";
+import iterate from "./iterate";
+import parsePathString from "../parser/parsePathString";
+import paramsParser from "../parser/paramsParser";
 
 /**
  * Normalizes a `pathArray` object for further processing:

@@ -1,9 +1,9 @@
-import segmentToCubic from '../process/segmentToCubic';
-import { AbsoluteCommand, CSegment, CurveArray, PathArray } from '../types';
-import iterate from '../process/iterate';
-import parsePathString from '../parser/parsePathString';
-import normalizeSegment from '../process/normalizeSegment';
-import paramsParser from '../parser/paramsParser';
+import segmentToCubic from "../process/segmentToCubic";
+import { AbsoluteCommand, CSegment, CurveArray, PathArray } from "../types";
+import iterate from "../process/iterate";
+import parsePathString from "../parser/parsePathString";
+import normalizeSegment from "../process/normalizeSegment";
+import paramsParser from "../parser/paramsParser";
 
 /**
  * Parses a path string value or 'pathArray' and returns a new one
@@ -24,10 +24,14 @@ const pathToCurve = (pathInput: string | PathArray): CurveArray => {
     params.y = lastY;
     const normalSegment = normalizeSegment(seg, params);
     let result = segmentToCubic(normalSegment, params);
-    const isLongArc = result[0] === 'C' && result.length > 7;
+    const isLongArc = result[0] === "C" && result.length > 7;
 
     if (isLongArc) {
-      path.splice(index + 1, 0, ['C' as AbsoluteCommand | number].concat(result.slice(7)) as CSegment);
+      path.splice(
+        index + 1,
+        0,
+        ["C" as AbsoluteCommand | number].concat(result.slice(7)) as CSegment,
+      );
       result = result.slice(0, 7) as CSegment;
     }
 

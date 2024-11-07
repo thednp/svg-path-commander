@@ -10,10 +10,10 @@ import type {
   SSegment,
   TSegment,
   VSegment,
-} from '../types';
-import pathToAbsolute from '../convert/pathToAbsolute';
-import normalizePath from './normalizePath';
-import iterate from './iterate';
+} from "../types";
+import pathToAbsolute from "../convert/pathToAbsolute";
+import normalizePath from "./normalizePath";
+import iterate from "./iterate";
 
 /**
  * Reverses all segments of a `pathArray` and returns a new `pathArray` instance
@@ -26,7 +26,7 @@ const reversePath = (pathInput: PathArray) => {
   const absolutePath = pathToAbsolute(pathInput);
   const normalizedPath = normalizePath(absolutePath);
   const pLen = absolutePath.length;
-  const isClosed = absolutePath[pLen - 1][0] === 'Z';
+  const isClosed = absolutePath[pLen - 1][0] === "Z";
 
   const reversedPath = iterate(absolutePath, (segment, i) => {
     const normalizedSegment = normalizedPath[i];
@@ -39,10 +39,10 @@ const reversePath = (pathInput: PathArray) => {
     let result = segment;
 
     switch (pathCommand) {
-      case 'M':
-        result = (isClosed ? ['Z'] : [pathCommand, x, y]) as PathSegment;
+      case "M":
+        result = (isClosed ? ["Z"] : [pathCommand, x, y]) as PathSegment;
         break;
-      case 'A':
+      case "A":
         result = [
           pathCommand,
           segment[1],
@@ -54,17 +54,28 @@ const reversePath = (pathInput: PathArray) => {
           y,
         ] as ASegment;
         break;
-      case 'C':
-        if (nextSeg && nextCommand === 'S') {
-          result = ['S', segment[1], segment[2], x, y] as SSegment;
+      case "C":
+        if (nextSeg && nextCommand === "S") {
+          result = ["S", segment[1], segment[2], x, y] as SSegment;
         } else {
-          result = [pathCommand, segment[3], segment[4], segment[1], segment[2], x, y] as CSegment;
+          result = [
+            pathCommand,
+            segment[3],
+            segment[4],
+            segment[1],
+            segment[2],
+            x,
+            y,
+          ] as CSegment;
         }
         break;
-      case 'S':
-        if (prevCommand && 'CS'.includes(prevCommand) && (!nextSeg || nextCommand !== 'S')) {
+      case "S":
+        if (
+          prevCommand && "CS".includes(prevCommand) &&
+          (!nextSeg || nextCommand !== "S")
+        ) {
           result = [
-            'C',
+            "C",
             normalizedSegment[3],
             normalizedSegment[4],
             normalizedSegment[1],
@@ -73,41 +84,62 @@ const reversePath = (pathInput: PathArray) => {
             y,
           ] as CSegment;
         } else {
-          result = [pathCommand, normalizedSegment[1], normalizedSegment[2], x, y] as SSegment;
+          result = [
+            pathCommand,
+            normalizedSegment[1],
+            normalizedSegment[2],
+            x,
+            y,
+          ] as SSegment;
         }
         break;
-      case 'Q':
-        if (nextSeg && nextCommand === 'T') {
-          result = ['T', x, y] as TSegment;
+      case "Q":
+        if (nextSeg && nextCommand === "T") {
+          result = ["T", x, y] as TSegment;
         } else {
           result = [pathCommand, segment[1], segment[2], x, y] as QSegment;
         }
         break;
-      case 'T':
-        if (prevCommand && 'QT'.includes(prevCommand) && (!nextSeg || nextCommand !== 'T')) {
-          result = ['Q', normalizedSegment[1], normalizedSegment[2], x, y] as QSegment;
+      case "T":
+        if (
+          prevCommand && "QT".includes(prevCommand) &&
+          (!nextSeg || nextCommand !== "T")
+        ) {
+          result = [
+            "Q",
+            normalizedSegment[1],
+            normalizedSegment[2],
+            x,
+            y,
+          ] as QSegment;
         } else {
           result = [pathCommand, x, y] as TSegment;
         }
         break;
-      case 'Z':
-        result = ['M', x, y] as MSegment;
+      case "Z":
+        result = ["M", x, y] as MSegment;
         break;
-      case 'H':
+      case "H":
         result = [pathCommand, x] as HSegment;
         break;
-      case 'V':
+      case "V":
         result = [pathCommand, y] as VSegment;
         break;
       default:
-        result = [pathCommand as typeof pathCommand | number].concat(segment.slice(1, -2), x, y) as PathSegment;
+        result = [pathCommand as typeof pathCommand | number].concat(
+          segment.slice(1, -2),
+          x,
+          y,
+        ) as PathSegment;
     }
 
     return result;
   });
 
   return (
-    isClosed ? reversedPath.reverse() : [reversedPath[0] as PathSegment].concat(reversedPath.slice(1).reverse())
+    isClosed
+      ? reversedPath.reverse()
+      : [reversedPath[0] as PathSegment].concat(reversedPath.slice(1).reverse())
   ) as PathArray;
 };
 

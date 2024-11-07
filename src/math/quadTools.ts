@@ -1,5 +1,5 @@
-import { getBezierLength, minmaxQ } from './bezier';
-import { type QuadCoordinates } from '../types';
+import { getBezierLength, minmaxQ } from "./bezier";
+import { type QuadCoordinates } from "../types";
 
 /**
  * Returns the {x,y} coordinates of a point at a
@@ -16,7 +16,10 @@ import { type QuadCoordinates } from '../types';
  * @param t a [0-1] ratio
  * @returns the requested {x,y} coordinates
  */
-const getPointAtQuadSegmentLength = ([x1, y1, cx, cy, x2, y2]: QuadCoordinates, t: number) => {
+const getPointAtQuadSegmentLength = (
+  [x1, y1, cx, cy, x2, y2]: QuadCoordinates,
+  t: number,
+) => {
   const t1 = 1 - t;
   return {
     x: t1 ** 2 * x1 + 2 * t1 * t * cx + t ** 2 * x2,
@@ -35,7 +38,14 @@ const getPointAtQuadSegmentLength = ([x1, y1, cx, cy, x2, y2]: QuadCoordinates, 
  * @param y2 the ending point Y
  * @returns the QuadraticBezier segment length
  */
-const getQuadLength = (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => {
+const getQuadLength = (
+  x1: number,
+  y1: number,
+  cx: number,
+  cy: number,
+  x2: number,
+  y2: number,
+) => {
   return getBezierLength([x1, y1, cx, cy, x2, y2]);
 };
 
@@ -60,7 +70,7 @@ const getPointAtQuadLength = (
   y2: number,
   distance?: number,
 ) => {
-  const distanceIsNumber = typeof distance === 'number';
+  const distanceIsNumber = typeof distance === "number";
   let point = { x: x1, y: y1 };
 
   /* istanbul ignore else @preserve */
@@ -71,7 +81,10 @@ const getPointAtQuadLength = (
     } else if (distance >= currentLength) {
       point = { x: x2, y: y2 };
     } else {
-      point = getPointAtQuadSegmentLength([x1, y1, cx, cy, x2, y2], distance / currentLength);
+      point = getPointAtQuadSegmentLength(
+        [x1, y1, cx, cy, x2, y2],
+        distance / currentLength,
+      );
     }
   }
   return point;
@@ -89,10 +102,27 @@ const getPointAtQuadLength = (
  * @param y2 the ending point Y
  * @returns the extrema of the QuadraticBezier segment
  */
-const getQuadBBox = (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => {
+const getQuadBBox = (
+  x1: number,
+  y1: number,
+  cx: number,
+  cy: number,
+  x2: number,
+  y2: number,
+) => {
   const cxMinMax = minmaxQ([x1, cx, x2]);
   const cyMinMax = minmaxQ([y1, cy, y2]);
-  return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]] as [number, number, number, number];
+  return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]] as [
+    number,
+    number,
+    number,
+    number,
+  ];
 };
 
-export { getPointAtQuadSegmentLength, getQuadLength, getQuadBBox, getPointAtQuadLength };
+export {
+  getPointAtQuadLength,
+  getPointAtQuadSegmentLength,
+  getQuadBBox,
+  getQuadLength,
+};
