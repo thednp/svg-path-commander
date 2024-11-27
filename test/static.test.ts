@@ -51,7 +51,7 @@ describe('SVGPathCommander Static Methods', () => {
       const shape = await vi.waitFor(() => wrapper.querySelector(SHAPE) as SVGElement, { timeout: 200 });
       if (SHAPE === 'wombat') {
         try {
-          SVGPathCommander.shapeToPathArray(shape as unknown as SVGCircleElement, shape.ownerDocument);
+          SVGPathCommander.shapeToPathArray(shape as unknown as SVGCircleElement);
         } catch (er) {
           expect(er).to.be.instanceOf(TypeError);
           expect(er).to.have.property('message', `${error}: "${SHAPE}" is not SVGElement`);

@@ -7,7 +7,7 @@ docs
 coverage
 test
 src
-lgtm.yml
+tsconfig.json
 vite.config.mts
 vitest.config.mts
 vitest.config-ui.mts

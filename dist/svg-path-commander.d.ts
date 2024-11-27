@@ -507,7 +507,7 @@ declare class SVGPathCommander_2 {
     static isCurveArray: (path: unknown) => path is CurveArray;
     static isNormalizedArray: (path: unknown) => path is NormalArray;
     static shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean, ownerDocument?: Document) => SVGPathElement | false;
-    static shapeToPathArray: (element: ShapeTypes | ShapeOps, ownerDocument?: Document) => false | PathArray;
+    static shapeToPathArray: (element: ShapeTypes | ShapeOps) => false | PathArray;
     static shapeParams: ShapeParams;
     static parsePathString: <T extends PathArray>(pathInput: string | T) => PathArray;
     static absolutizeSegment: (segment: PathSegment, index: number, lastX: number, lastY: number) => AbsoluteSegment;

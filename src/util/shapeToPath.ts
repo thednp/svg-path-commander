@@ -4,6 +4,7 @@ import pathToString from "../convert/pathToString";
 import defaultOptions from "../options/options";
 import error from "../parser/error";
 import isValidPath from "./isValidPath";
+import isElement from "./isElement";
 import shapeToPathArray from "./shapeToPathArray";
 import shapeParams from "./shapeParams";
 
@@ -15,7 +16,6 @@ import shapeParams from "./shapeParams";
  * pass the `jsdom` `document` to `ownDocument`.
  *
  * It can also work with an options object, see the type below
- *
  * @see ShapeOps
  *
  * The newly created `<path>` element keeps all non-specific
@@ -32,9 +32,8 @@ const shapeToPath = (
   ownerDocument?: Document,
 ): SVGPathElement | false => {
   const doc = ownerDocument || document;
-  const win = doc.defaultView || /* istanbul ignore next */ window;
   const supportedShapes = Object.keys(shapeParams) as (keyof ShapeParams)[];
-  const targetIsElement = element instanceof win.SVGElement;
+  const targetIsElement = isElement(element);
   const tagName = targetIsElement ? element.tagName : null;
 
   if (tagName === "path") {
@@ -45,13 +44,16 @@ const shapeToPath = (
   }
 
   const path = doc.createElementNS("http://www.w3.org/2000/svg", "path");
-  const type = (targetIsElement ? tagName : element.type) as ShapeOps["type"];
+  const type =
+    (targetIsElement ? tagName : (element as ShapeOps).type) as ShapeOps[
+      "type"
+    ];
   const shapeAttrs = shapeParams[type] as string[];
   const config = { type } as Record<string, string>;
 
   // set d
   const round = defaultOptions.round as number;
-  const pathArray = shapeToPathArray(element, doc);
+  const pathArray = shapeToPathArray(element);
   const description = pathArray && pathArray.length
     ? pathToString(pathArray, round)
     : "";

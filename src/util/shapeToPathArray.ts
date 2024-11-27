@@ -12,6 +12,7 @@ import error from "../parser/error";
 import parsePathString from "../parser/parsePathString";
 import shapeParams from "./shapeParams";
 import isPathArray from "./isPathArray";
+import isElement from "./isElement";
 
 /**
  * Returns a new `pathArray` from line attributes.
@@ -132,33 +133,27 @@ export const getRectanglePath = (attr: RectAttr): PathArray => {
  * Returns a new `pathArray` created from attributes of a `<line>`, `<polyline>`,
  * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>`, <path> or `<glyph>`.
  *
- * The default `ownerDocument` is your current `document` browser page,
- * if you want to use in server-side using `jsdom`, you can pass the
- * `jsdom` `document` to `ownDocument`.
- *
  * It can also work with an options object, see the type below
- *
  * @see ShapeOps
  *
  * @param element target shape
- * @param ownerDocument document for create element
  * @return the newly created `<path>` element
  */
 const shapeToPathArray = (
   element: ShapeTypes | ShapeOps,
-  ownerDocument?: Document,
 ) => {
-  const doc = ownerDocument || document;
-  const win = doc.defaultView || /* istanbul ignore next */ window;
   const supportedShapes = Object.keys(shapeParams) as (keyof ShapeParams)[];
-  const targetIsElement = element instanceof win.SVGElement;
+  const targetIsElement = isElement(element);
   const tagName = targetIsElement ? element.tagName : null;
 
   if (tagName && [...supportedShapes, "path"].every((s) => tagName !== s)) {
     throw TypeError(`${error}: "${tagName}" is not SVGElement`);
   }
 
-  const type = (targetIsElement ? tagName : element.type) as ShapeOps["type"];
+  const type =
+    (targetIsElement ? tagName : (element as ShapeOps).type) as ShapeOps[
+      "type"
+    ];
   const shapeAttrs = shapeParams[type] as string[];
   const config = { type } as Record<string, string>;
 
