@@ -7,6 +7,7 @@ on:
       - src
       - test
       - .github/workflows/ci.yml
+      - package.json
 jobs:
   test:
     runs-on: ubuntu-20.04
