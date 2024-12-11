@@ -108,7 +108,11 @@ const Be = {
       s = s.rotate(0, 0, c);
     else if (i === "scale3d" && h.every((m) => !Number.isNaN(+m)) && h.some((m) => m !== 1))
       s = s.scale(c, a, u);
-    else if (i === "scale" && !Number.isNaN(c) && c !== 1 && u === void 0) {
+    else if (
+      // prop === "scale" && !Number.isNaN(x) && x !== 1 && z === undefined
+      // prop === "scale" && !Number.isNaN(x) && [x, y].some((n) => n !== 1) &&
+      i === "scale" && !Number.isNaN(c) && (c !== 1 || a !== 1) && u === void 0
+    ) {
       const m = Number.isNaN(+a) ? c : a;
       s = s.scale(c, m, 1);
     } else if (i === "skew" && (c || !Number.isNaN(c) && a) && u === void 0)
