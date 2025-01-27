@@ -221,6 +221,11 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(SVGPathCommander.getPathBBox(''), 'Using the static method').to.deep.equal({cx: 0, cy: 0, cz: 0, height: 0, width: 0, x: 0, x2: 0, y: 0, y2: 0});
   });
 
+  it('Test getBBox arcs', async () => {
+    const path = new SVGPathCommander('M77.7553 122.1843A15.6631 5.5 45 0 1 92.7199 129.3707L100.7729 137.4237A15.6631 5.5 45 0 1 92.9947 145.2019L84.9417 137.1489A15.6631 5.5 45 0 1 77.7553 122.1843').getBBox();
+    expect(path, 'Using the SVGPathCommander').to.deep.equal({cx: 92.85730493191977, cy: 137.28630493191974, cz: 47.294968430086385, height: 31.529978953390895, width: 31.529978953390938, x: 77.09231545522431, x2: 108.62229440861525, y: 121.52131545522431, y2: 153.0512944086152});
+  });
+
   it('Test getTotalLength', () => {
     const len = new SVGPathCommander('M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z').getTotalLength();
     expect(Math.round(len)).to.equal(61);

@@ -363,14 +363,17 @@ const getArcBBox = (
   const angle2 = theta + PI;
   const angle3 = atan2(ry, rx * tangent);
   const angle4 = angle3 + PI;
-  const xArray = [x];
-  const yArray = [y];
+  const extremes = [[x, y]] as PointTuple[];
 
   // inner bounding box
   let xMin = min(x1, x);
   let xMax = max(x1, x);
   let yMin = min(y1, y);
   let yMax = max(y1, y);
+  let p1;
+  let p2;
+  let p3;
+  let p4;
 
   // on path point close after start
   const angleAfterStart = endAngle - deltaAngle * 0.00001;
@@ -390,39 +393,35 @@ const getArcBBox = (
   // right
   if (pP2[0] > xMax || pP3[0] > xMax) {
     // get point for this theta
-    const p1 = arcPoint(cx, cy, rx, ry, alpha, angle1);
-    xArray.push(p1[0]);
-    yArray.push(p1[1]);
+    p1 = arcPoint(cx, cy, rx, ry, alpha, angle1);
+    extremes.push(p1);
   }
 
   // left
   if (pP2[0] < xMin || pP3[0] < xMin) {
     // get anti-symmetric point
-    const p2 = arcPoint(cx, cy, rx, ry, alpha, angle2);
-    xArray.push(p2[0]);
-    yArray.push(p2[1]);
+    p2 = arcPoint(cx, cy, rx, ry, alpha, angle2);
+    extremes.push(p2);
   }
 
   // top
   if (pP2[1] < yMin || pP3[1] < yMin) {
     // get anti-symmetric point
-    const p4 = arcPoint(cx, cy, rx, ry, alpha, angle4);
-    xArray.push(p4[0]);
-    yArray.push(p4[1]);
+    p4 = arcPoint(cx, cy, rx, ry, alpha, angle4);
+    extremes.push(p4);
   }
 
   // bottom
   if (pP2[1] > yMax || pP3[1] > yMax) {
     // get point for this theta
-    const p3 = arcPoint(cx, cy, rx, ry, alpha, angle3);
-    xArray.push(p3[0]);
-    yArray.push(p3[1]);
+    p3 = arcPoint(cx, cy, rx, ry, alpha, angle3);
+    extremes.push(p3);
   }
 
-  xMin = min.apply([], xArray);
-  yMin = min.apply([], yArray);
-  xMax = max.apply([], xArray);
-  yMax = max.apply([], yArray);
+  xMin = min.apply([], extremes.map((p) => p[0]));
+  yMin = min.apply([], extremes.map((p) => p[1]));
+  xMax = max.apply([], extremes.map((p) => p[0]));
+  yMax = max.apply([], extremes.map((p) => p[1]));
 
   return [xMin, yMin, xMax, yMax] as [number, number, number, number];
 };

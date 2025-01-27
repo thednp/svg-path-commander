@@ -25,7 +25,13 @@ export default defineConfig({
       // provider: 'webdriverio', // or 'webdriverio'
       enabled: true,
       headless: false,
-      name: 'chromium', // browser name is required
+      // name: 'chromium', // browser name is required
+      instances: [
+        {
+          name: 'chromium',
+          browser: 'chromium',
+          headless: false,
+      }]
     },
   },
 });

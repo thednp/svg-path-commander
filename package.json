@@ -2,7 +2,7 @@
   "name": "svg-path-commander",
   "author": "thednp",
   "license": "MIT",
-  "version": "2.1.7",
+  "version": "2.1.8",
   "description": "🛹 Modern TypeScript tools for SVG",
   "source": "./src/index.ts",
   "main": "./dist/svg-path-commander.js",
@@ -19,7 +19,7 @@
     "badges": "npx -p dependency-version-badge update-badge typescript vitest vite",
     "dev": "vite serve docs --port 3000",
     "test": "pnpm pre-test && vitest --config vitest.config.mts",
-    "test-ui": "pnpm pre-test && vitest --config vitest.config-ui.mts --browser=chrome",
+    "test-ui": "pnpm pre-test && vitest --config vitest.config-ui.mts",
     "clean-coverage": "rm -rf coverage .nyc_output",
     "format": "deno fmt src",
     "lint": "pnpm lint:ts && pnpm check:ts",
@@ -55,14 +55,14 @@
   },
   "homepage": "http://thednp.github.io/svg-path-commander",
   "devDependencies": {
-    "@vitest/browser": "^2.1.8",
-    "@vitest/coverage-istanbul": "^2.1.8",
-    "@vitest/ui": "^2.1.8",
-    "playwright": "^1.49.1",
+    "@vitest/browser": "^3.0.4",
+    "@vitest/coverage-istanbul": "^3.0.4",
+    "@vitest/ui": "^3.0.4",
+    "playwright": "^1.50.0",
     "typescript": "5.6.3",
-    "vite": "^5.4.11",
-    "vite-plugin-dts": "^4.3.0",
-    "vitest": "^2.1.8"
+    "vite": "^6.0.11",
+    "vite-plugin-dts": "^4.5.0",
+    "vitest": "^3.0.4"
   },
   "dependencies": {
     "@thednp/dommatrix": "^2.0.11"
