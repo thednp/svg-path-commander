@@ -8,7 +8,7 @@ on:
       - test
       - .github/workflows/ci.yml
       - package.json
-  commit:
+  pull_request:
     branches:
       - master
     paths:
