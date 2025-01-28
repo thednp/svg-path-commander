@@ -23,6 +23,8 @@ const parsePathString = <T extends PathArray>(pathInput: string | T) => {
     scanSegment(path);
   }
 
+  // handle valid paths first
+  // handle errors second
   if (!path.err.length) {
     if (path.segments.length) {
       /**
