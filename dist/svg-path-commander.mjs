@@ -608,7 +608,7 @@ const D = (e) => {
     Dt(t);
   if (t != null && t.err.length)
     throw TypeError(t.err);
-  return t.segments;
+  return t.segments[0][0] = "M", t.segments;
 }, at = (e, t, s, r) => {
   const [n] = e, i = n.toUpperCase();
   if (t === 0 || i === n) return e;

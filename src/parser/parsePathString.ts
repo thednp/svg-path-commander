@@ -27,6 +27,12 @@ const parsePathString = <T extends PathArray>(pathInput: string | T) => {
     throw TypeError(path.err);
   }
 
+  /**
+   * force absolute first M
+   * getPathBBox calculation requires first segment to be absolute
+   * @see https://github.com/thednp/svg-path-commander/pull/49
+   */
+  path.segments[0][0] = "M";
   return path.segments as PathArray;
 };
 
