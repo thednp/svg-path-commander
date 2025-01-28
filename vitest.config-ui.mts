@@ -23,6 +23,7 @@ export default defineConfig({
     },
     browser: {
       // provider: 'webdriverio', // or 'webdriverio'
+      provider: 'playwright',
       enabled: true,
       headless: false,
       // name: 'chromium', // browser name is required

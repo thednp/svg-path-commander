@@ -1,4 +1,4 @@
-import { expect, it, describe, beforeEach, vi } from 'vitest';
+import { expect, test, describe, beforeEach, vi } from 'vitest';
 import SVGPathCommander from '~/index';
 import invalidPathValue from '../src/parser/invalidPathValue';
 import error from '../src/parser/error';
@@ -17,7 +17,7 @@ describe('SVGPathCommander Class Test', () => {
     wrapper.innerHTML = '';
   });
 
-  it('Test init with no parameter / empty throws error', () => {
+  test('Test init with no parameter / empty throws error', () => {
     try {
       // @ts-expect-error
       new SVGPathCommander();
@@ -33,7 +33,7 @@ describe('SVGPathCommander Class Test', () => {
     }
   });
 
-  it('Test init with invalid path value throws error', () => {
+  test('Test init with invalid path value throws error', () => {
     try {
       new SVGPathCommander('M04 36.9a23.5 23');
     } catch (er) {
@@ -106,7 +106,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     }
   });
 
-  it('Test init with valid path value works', async () => {
+  test('Test init with valid path value works', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -131,7 +131,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal(rect.toString())
   });
 
-  it('Test dispose', async () => {
+  test('Test dispose', async () => {
     const path = new SVGPathCommander(`M 2 0 a2 2 0 00-2 2`);
     expect(path.segments.length).to.equal(2);
     expect(path.origin).to.deep.equal([0, 0, 0]);
@@ -143,7 +143,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.round).to.be.undefined;
   });
 
-  it('Test overloaded moveTo', async () => {
+  test('Test overloaded moveTo', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -168,7 +168,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal(star1.toString());
   });
 
-  it('Test rounding `off`, and [0-5]', async () => {
+  test('Test rounding `off`, and [0-5]', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -215,13 +215,13 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M2 0C0.89543 0 0 0.89543 0 2C0 2 0 9.875 0 14C0 15.10457 0.89543 16 2 16C8 16 10.25 16 14 16C15.10457 16 16 15.10457 16 14C16 8 16 5.75 16 2C16 0.89543 15.10457 0 14 0C8 0 5.75 0 2 0')
   });
 
-  it('Test getBBox', async () => {
+  test('Test getBBox', async () => {
     const rect = new SVGPathCommander('M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z').getBBox();
     expect(rect, 'Using the SVGPathCommander').to.deep.equal({cx: 8, cy: 8, cz: 24, height: 16, width: 16, x: 0, x2: 16, y: 0, y2: 16});
     expect(SVGPathCommander.getPathBBox(''), 'Using the static method').to.deep.equal({cx: 0, cy: 0, cz: 0, height: 0, width: 0, x: 0, x2: 0, y: 0, y2: 0});
   });
 
-  it('Test getBBox arcs', async () => {
+  test('Test getBBox arcs', async () => {
     // https://github.com/thednp/svg-path-commander/issues/47
     const path1 = new SVGPathCommander('M77.7553 122.1843A15.6631 5.5 45 0 1 92.7199 129.3707L100.7729 137.4237A15.6631 5.5 45 0 1 92.9947 145.2019L84.9417 137.1489A15.6631 5.5 45 0 1 77.7553 122.1843').getBBox();
     expect(path1, 'Using the SVGPathCommander').to.deep.equal({cx: 92.85730493191977, cy: 137.28630493191974, cz: 47.294968430086385, height: 31.529978953390895, width: 31.529978953390938, x: 77.09231545522431, x2: 108.62229440861525, y: 121.52131545522431, y2: 153.0512944086152});
@@ -229,12 +229,12 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path2, 'Using the SVGPathCommander').to.deep.equal({ width: 90, height: 75.27596299546647, x: -7, y: 1.7240370045335283, x2: 83, y2: 77, cx: 38, cy: 39.362018502266764, cz: 127.63798149773324});
   });
 
-  it('Test getTotalLength', () => {
+  test('Test getTotalLength', () => {
     const len = new SVGPathCommander('M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z').getTotalLength();
     expect(Math.round(len)).to.equal(61);
   });
 
-  it('Test getPointAtLength', () => {
+  test('Test getPointAtLength', () => {
     const pt = new SVGPathCommander('M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z').getPointAtLength(25);
     expect(pt).to.deep.equal({ x: 8.716814692820414, y: 16 });
 
@@ -248,7 +248,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(pt3).to.deep.equal({x: 0, y: 2});
   });
 
-  it('Test toAbsolute', async () => {
+  test('Test toAbsolute', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -259,7 +259,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M2 0A2 2 0 0 0 0 2V14A2 2 0 0 0 2 16H14A2 2 0 0 0 16 14V2A2 2 0 0 0 14 0H2Z')
   });
 
-  it('Test toRelative', async () => {
+  test('Test toRelative', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -270,7 +270,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M2 0a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-12z')
   });
 
-  it('Test toCurve', async () => {
+  test('Test toCurve', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -282,7 +282,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M2 0C0.8954305003384135 2.0290612532945332e-16 -1.3527075021963556e-16 0.8954305003384133 0 2C0 6 0 10 0 14C1.3527075021963556e-16 15.104569499661586 0.8954305003384133 16 2 16C6 16 10 16 14 16C15.104569499661586 16 16 15.104569499661586 16 14C16 10 16 6 16 2C16 0.8954305003384135 15.104569499661586 6.763537510981778e-17 14 0C10 0 6 0 2 0C2 0 2 0 2 0')
   });
 
-  it('Test normalize', async () => {
+  test('Test normalize', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -293,7 +293,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M2 0A2 2 0 0 0 0 2L0 14A2 2 0 0 0 2 16L14 16A2 2 0 0 0 16 14L16 2A2 2 0 0 0 14 0L2 0Z')
   });
 
-  it('Test optimize', async () => {
+  test('Test optimize', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -307,7 +307,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(new SVGPathCommander(simpleShapes.normalized[2], { round: 'off' }).optimize().toString()).to.equal(simpleShapes.initial[2]);
   });
 
-  it('Test reverse single path', async () => {
+  test('Test reverse single path', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -323,7 +323,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M2 0A2 2 0 0 0 0 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2V2A2 2 0 0 0 14 0H2z')
   });
 
-  it('Test reverse composite', async () => {
+  test('Test reverse composite', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -334,7 +334,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M2 0H14A2 2 0 0 1 16 2V14A2 2 0 0 1 14 16H2A2 2 0 0 1 0 14V2A2 2 0 0 1 2 0ZM8 12L12 4H4Z')
   });
 
-  it('Test reverse composite path with `onlySubpath`', async () => {
+  test('Test reverse composite path with `onlySubpath`', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -345,17 +345,17 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M2 0A2 2 0 0 0 0 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2V2A2 2 0 0 0 14 0H2zM8 12L12 4H4Z')
   });
 
-  it('Test flipX', () => {
+  test('Test flipX', () => {
     const triangle = new SVGPathCommander('M0 0L16 0 L8 16');
     expect(triangle.flipX().toString()).to.equal('M16 0H0L8 16');
   });
 
-  it('Test flipY', () => {
+  test('Test flipY', () => {
     const triangle = new SVGPathCommander('M0 0L16 0 L8 16');
     expect(triangle.flipY().toString()).to.equal('M0 16H16L8 0');
   });
   
-  it('Test empty transform', () => {
+  test('Test empty transform', () => {
     const transform = {}
     const rect = new SVGPathCommander('M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z');
     const transformed = rect.transform(transform);
@@ -368,7 +368,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(rect.segments).to.deep.equal(transformed2.segments);
   });
   
-  it('Test transform', async () => {
+  test('Test transform', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -383,7 +383,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M1.829 0.5176C0.8189 0.2318 -0.1718 0.8649 -0.3837 1.9319L-2.6856 13.523C-2.8975 14.5899 -2.2504 15.6866 -1.2403 15.9725L9.734 19.0783C10.7442 19.3642 11.7349 18.731 11.9468 17.6641L14.2487 6.073C14.4606 5.006 13.8135 3.9094 12.8033 3.6235L1.829 0.5176Z')
   });
 
-  it('Test transform with custom [x,y] origin', async () => {
+  test('Test transform with custom [x,y] origin', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -399,7 +399,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M1.829 0.5176C0.8189 0.2318 -0.1718 0.8649 -0.3837 1.9319L-2.6856 13.523C-2.8975 14.5899 -2.2504 15.6866 -1.2403 15.9725L9.734 19.0783C10.7442 19.3642 11.7349 18.731 11.9468 17.6641L14.2487 6.073C14.4606 5.006 13.8135 3.9094 12.8033 3.6235L1.829 0.5176Z')
   });
 
-  it('Test transform with custom [x,y,z] origin option', async () => {
+  test('Test transform with custom [x,y,z] origin option', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -414,7 +414,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(path.getAttribute('d')).to.equal('M2.2644 -1.6232C1.1515 -1.9382 -0.0487 -1.2959 -0.4093 -0.1515L-5.2306 15.1494C-5.7788 16.8892 -5.0014 18.5047 -3.5039 18.6907L10.9116 20.4811C12.0888 20.6273 13.1574 19.4458 13.3135 17.8935L14.7232 3.8815C14.8313 2.8068 14.1803 1.7491 13.2594 1.4884L2.2644 -1.6232Z');
   });
 
-  it('Test transform with invalid origin value/option, should use [0,0,0]', async () => {
+  test('Test transform with invalid origin value/option, should use [0,0,0]', async () => {
     const container = getMarkup();
     wrapper.append(container);
     await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -443,7 +443,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
   });
   
   simpleShapes.initial.forEach((shape, i) => {
-    it(`Test simple shapes #${i}`, async () => {
+    test(`Test simple shapes #${i}`, async () => {
       const container = getMarkup();
       wrapper.append(container);
       await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
@@ -483,7 +483,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
   });
 
   shapes.initial.forEach((shape, i) => {
-    it(`Test composite shapes #${i}`, async () => {
+    test(`Test composite shapes #${i}`, async () => {
       const container = getMarkup();
       wrapper.append(container);
       await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });

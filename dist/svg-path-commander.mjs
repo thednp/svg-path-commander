@@ -606,9 +606,11 @@ const D = (e) => {
   const t = new Ot(e);
   for (et(t); t.index < t.max && !t.err.length; )
     Dt(t);
-  if (t != null && t.err.length)
+  if (!t.err.length)
+    t.segments.length && (t.segments[0][0] = "M");
+  else
     throw TypeError(t.err);
-  return t.segments[0][0] = "M", t.segments;
+  return t.segments;
 }, at = (e, t, s, r) => {
   const [n] = e, i = n.toUpperCase();
   if (t === 0 || i === n) return e;
