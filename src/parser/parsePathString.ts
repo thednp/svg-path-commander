@@ -26,7 +26,8 @@ const parsePathString = <T extends PathArray>(pathInput: string | T) => {
   if (path?.err.length) {
     throw TypeError(path.err);
   }
-
+  // force absolute first M
+  path.segments[0][0]='M';
   return path.segments as PathArray;
 };
 

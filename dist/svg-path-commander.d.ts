@@ -406,7 +406,7 @@ export declare type sSegment = [sCommand, number, number, number, number];
  * @author thednp <https://github.com/thednp/svg-path-commander>
  * @returns a new SVGPathCommander instance
  */
-declare class SVGPathCommander_2 {
+declare class SVGPathCommander {
     static CSSMatrix: typeof default_2;
     static pathToAbsolute: (pathInput: string | PathArray) => AbsoluteArray_2;
     static pathToRelative: (pathInput: string | PathArray) => RelativeArray_2;
@@ -699,7 +699,7 @@ declare class SVGPathCommander_2 {
      */
     dispose(): void;
 }
-export default SVGPathCommander_2;
+export default SVGPathCommander;
 
 export declare type TCommand = "T";
 
