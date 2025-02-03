@@ -11,36 +11,11 @@ import pathToRelative from "./convert/pathToRelative";
 import pathToCurve from "./convert/pathToCurve";
 import pathToString from "./convert/pathToString";
 import * as arcTools from "./math/arcTools";
-import {
-  bezierLength,
-  calculateBezier,
-  CBEZIER_MINMAX_EPSILON,
-  computeBezier,
-  Cvalues,
-  deriveBezier,
-  getBezierLength,
-  minmaxC,
-  minmaxQ,
-  Tvalues,
-} from "./math/bezier";
-import {
-  getCubicBBox,
-  getCubicLength,
-  getPointAtCubicLength,
-  getPointAtCubicSegmentLength,
-} from "./math/cubicTools";
-import {
-  getLineBBox,
-  getLineLength,
-  getPointAtLineLength,
-} from "./math/lineTools";
-import {
-  getPointAtQuadLength,
-  getPointAtQuadSegmentLength,
-  getQuadBBox,
-  getQuadLength,
-} from "./math/quadTools";
-import { polygonArea, polygonLength } from "./math/polygonTools";
+import * as bezierTools from "./math/bezier";
+import * as cubicTools from "./math/cubicTools";
+import * as lineTools from "./math/lineTools";
+import * as quadTools from "./math/quadTools";
+import * as polygonTools from "./math/polygonTools";
 
 import distanceSquareRoot from "./math/distanceSquareRoot";
 import midPoint from "./math/midPoint";
@@ -120,103 +95,6 @@ import transformPath from "./process/transformPath";
  * @returns a new SVGPathCommander instance
  */
 class SVGPathCommander {
-  public static CSSMatrix = CSSMatrix;
-  public static pathToAbsolute = pathToAbsolute;
-  public static pathToRelative = pathToRelative;
-  public static pathToCurve = pathToCurve;
-  public static pathToString = pathToString;
-  public static arcTools = arcTools;
-  public static bezierTools = {
-    Cvalues,
-    Tvalues,
-    minmaxC,
-    minmaxQ,
-    getBezierLength,
-    bezierLength,
-    calculateBezier,
-    computeBezier,
-    deriveBezier,
-    CBEZIER_MINMAX_EPSILON,
-  };
-  public static cubicTools = {
-    getCubicLength,
-    getCubicBBox,
-    getPointAtCubicLength,
-    getPointAtCubicSegmentLength,
-  };
-  public static lineTools = {
-    getPointAtLineLength,
-    getLineBBox,
-    getLineLength,
-  };
-  public static quadTools = {
-    getPointAtQuadSegmentLength,
-    getQuadLength,
-    getQuadBBox,
-    getPointAtQuadLength,
-  };
-  public static polygonTools = { polygonArea, polygonLength };
-  public static distanceSquareRoot = distanceSquareRoot;
-  public static distanceEpsilon = distanceEpsilon;
-  public static midPoint = midPoint;
-  public static rotateVector = rotateVector;
-  public static roundTo = roundTo;
-  public static finalizeSegment = finalizeSegment;
-  public static invalidPathValue = invalidPathValue;
-  public static isArcCommand = isArcCommand;
-  public static isDigit = isDigit;
-  public static isDigitStart = isDigitStart;
-  public static isMoveCommand = isMoveCommand;
-  public static isPathCommand = isPathCommand;
-  public static isSpace = isSpace;
-  public static paramsCount = paramsCount;
-  public static paramsParser = paramsParser;
-  public static pathParser = pathParser;
-  public static scanFlag = scanFlag;
-  public static scanParam = scanParam;
-  public static scanSegment = scanSegment;
-  public static skipSpaces = skipSpaces;
-  public static getPathBBox = getPathBBox;
-  public static getPathArea = getPathArea;
-  public static getTotalLength = getTotalLength;
-  public static getDrawDirection = getDrawDirection;
-  public static getPointAtLength = getPointAtLength;
-  public static getPropertiesAtLength = getPropertiesAtLength;
-  public static getPropertiesAtPoint = getPropertiesAtPoint;
-  public static getClosestPoint = getClosestPoint;
-  public static getSegmentOfPoint = getSegmentOfPoint;
-  public static getSegmentAtLength = getSegmentAtLength;
-  public static isPointInStroke = isPointInStroke;
-  public static isValidPath = isValidPath;
-  public static isPathArray = isPathArray;
-  public static isAbsoluteArray = isAbsoluteArray;
-  public static isRelativeArray = isRelativeArray;
-  public static isCurveArray = isCurveArray;
-  public static isNormalizedArray = isNormalizedArray;
-  public static shapeToPath = shapeToPath;
-  public static shapeToPathArray = shapeToPathArray;
-  public static shapeParams = shapeParams;
-  public static parsePathString = parsePathString;
-  public static absolutizeSegment = absolutizeSegment;
-  public static arcToCubic = arcToCubic;
-  public static getSVGMatrix = getSVGMatrix;
-  public static iterate = iterate;
-  public static lineToCubic = lineToCubic;
-  public static normalizePath = normalizePath;
-  public static normalizeSegment = normalizeSegment;
-  public static optimizePath = optimizePath;
-  public static projection2d = projection2d;
-  public static quadToCubic = quadToCubic;
-  public static relativizeSegment = relativizeSegment;
-  public static reverseCurve = reverseCurve;
-  public static reversePath = reversePath;
-  public static roundPath = roundPath;
-  public static roundSegment = roundSegment;
-  public static segmentToCubic = segmentToCubic;
-  public static shortenSegment = shortenSegment;
-  public static splitCubic = splitCubic;
-  public static splitPath = splitPath;
-  public static transformPath = transformPath;
   // declare class properties
   declare segments: PathArray;
   declare round: number | "off";
@@ -500,4 +378,158 @@ class SVGPathCommander {
   }
 }
 
-export default SVGPathCommander;
+// export {
+//   absolutizeSegment,
+//   arcToCubic,
+//   arcTools,
+//   bezierTools,
+//   CSSMatrix,
+//   cubicTools,
+//   distanceEpsilon,
+//   distanceSquareRoot,
+//   finalizeSegment,
+//   getClosestPoint,
+//   getDrawDirection,
+//   getPathArea,
+//   getPathBBox,
+//   getPointAtLength,
+//   getPropertiesAtLength,
+//   getPropertiesAtPoint,
+//   getSegmentAtLength,
+//   getSegmentOfPoint,
+//   getSVGMatrix,
+//   getTotalLength,
+//   invalidPathValue,
+//   isAbsoluteArray,
+//   isArcCommand,
+//   isCurveArray,
+//   isDigit,
+//   isDigitStart,
+//   isMoveCommand,
+//   isNormalizedArray,
+//   isPathArray,
+//   isPathCommand,
+//   isPointInStroke,
+//   isRelativeArray,
+//   isSpace,
+//   isValidPath,
+//   iterate,
+//   lineToCubic,
+//   lineTools,
+//   midPoint,
+//   normalizePath,
+//   normalizeSegment,
+//   optimizePath,
+//   paramsCount,
+//   paramsParser,
+//   parsePathString,
+//   pathParser,
+//   pathToAbsolute,
+//   pathToCurve,
+//   pathToRelative,
+//   pathToString,
+//   polygonTools,
+//   projection2d,
+//   quadToCubic,
+//   quadTools,
+//   relativizeSegment,
+//   reverseCurve,
+//   reversePath,
+//   rotateVector,
+//   roundPath,
+//   roundSegment,
+//   roundTo,
+//   scanFlag,
+//   scanParam,
+//   scanSegment,
+//   segmentToCubic,
+//   shapeParams,
+//   shapeToPath,
+//   shapeToPathArray,
+//   shortenSegment,
+//   skipSpaces,
+//   splitCubic,
+//   splitPath,
+//   SVGPathCommander as default,
+//   transformPath,
+// };
+
+const index = {
+  absolutizeSegment,
+  arcToCubic,
+  arcTools,
+  bezierTools,
+  CSSMatrix,
+  cubicTools,
+  distanceEpsilon,
+  distanceSquareRoot,
+  finalizeSegment,
+  getClosestPoint,
+  getDrawDirection,
+  getPathArea,
+  getPathBBox,
+  getPointAtLength,
+  getPropertiesAtLength,
+  getPropertiesAtPoint,
+  getSegmentAtLength,
+  getSegmentOfPoint,
+  getSVGMatrix,
+  getTotalLength,
+  invalidPathValue,
+  isAbsoluteArray,
+  isArcCommand,
+  isCurveArray,
+  isDigit,
+  isDigitStart,
+  isMoveCommand,
+  isNormalizedArray,
+  isPathArray,
+  isPathCommand,
+  isPointInStroke,
+  isRelativeArray,
+  isSpace,
+  isValidPath,
+  iterate,
+  lineToCubic,
+  lineTools,
+  midPoint,
+  normalizePath,
+  normalizeSegment,
+  optimizePath,
+  paramsCount,
+  paramsParser,
+  parsePathString,
+  pathParser,
+  pathToAbsolute,
+  pathToCurve,
+  pathToRelative,
+  pathToString,
+  polygonTools,
+  projection2d,
+  quadToCubic,
+  quadTools,
+  relativizeSegment,
+  reverseCurve,
+  reversePath,
+  rotateVector,
+  roundPath,
+  roundSegment,
+  roundTo,
+  scanFlag,
+  scanParam,
+  scanSegment,
+  segmentToCubic,
+  shapeParams,
+  shapeToPath,
+  shapeToPathArray,
+  shortenSegment,
+  skipSpaces,
+  splitCubic,
+  splitPath,
+  // SVGPathCommander as default,
+  transformPath,
+};
+
+const defaultExport = Object.assign(SVGPathCommander, index);
+
+export { defaultExport as default, index };

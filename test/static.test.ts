@@ -1,5 +1,5 @@
 import { expect, test, describe, beforeEach, vi } from 'vitest';
-import SVGPathCommander, { PathArray, type CurveArray, type ShapeTypes } from '~/index';
+import SVGPathCommander, { type PathArray, type CurveArray, type ShapeTypes } from '~/index';
 import invalidPathValue from '../src/parser/invalidPathValue';
 import error from '../src/parser/error';
 
