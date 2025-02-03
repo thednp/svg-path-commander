@@ -113,7 +113,7 @@ const normalizedPath = SVGPathCommander.normalizePath(path);
 
 Reverse a path:
 ```js
-const path = 'M0 0 H50';
+const path = SVGPathCommander.normalizePath('M0 0 H50');
 
 const reversedPath = SVGPathCommander.reversePath(path);
 // result => [['M', 50, 0], ['H', 0]]
