@@ -137,7 +137,7 @@ export declare type CubicSegment = CSegment | cSegment;
 
 export declare type CurveArray = [MSegment, ...CSegment[]];
 
-declare const defaultExport: typeof SVGPathCommander_2 & {
+declare const _default: typeof SVGPathCommander_2 & {
     absolutizeSegment: (segment: PathSegment_2, index: number, lastX: number, lastY: number) => AbsoluteSegment_2;
     arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, recursive?: [number, number, number, number]) => number[];
     arcTools: typeof arcTools;
@@ -251,7 +251,7 @@ declare const defaultExport: typeof SVGPathCommander_2 & {
     splitPath: (pathInput: PathArray) => PathArray[];
     transformPath: (pathInput: PathArray | string, transform?: Partial<TransformObject>) => PathArray;
 };
-export default defaultExport;
+export default _default;
 
 export declare type DeriveCallback = (t: number) => Point;
 
@@ -305,121 +305,6 @@ export declare type HorLineSegment = HSegment | hSegment;
 export declare type HSegment = [HCommand, number];
 
 export declare type hSegment = [hCommand, number];
-
-export declare const index: {
-    absolutizeSegment: (segment: PathSegment_2, index: number, lastX: number, lastY: number) => AbsoluteSegment_2;
-    arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, recursive?: [number, number, number, number]) => number[];
-    arcTools: typeof arcTools;
-    bezierTools: typeof bezierTools;
-    CSSMatrix: typeof default_2;
-    cubicTools: typeof cubicTools;
-    distanceEpsilon: number;
-    distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
-    finalizeSegment: (path: default_3) => void;
-    getClosestPoint: (pathInput: string | PathArray, point: {
-        x: number;
-        y: number;
-    }) => {
-        x: number;
-        y: number;
-    };
-    getDrawDirection: (path: string | PathArray) => boolean;
-    getPathArea: (path: PathArray) => number;
-    getPathBBox: (pathInput: PathArray | string) => {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-        x2: number;
-        y2: number;
-        cx: number;
-        cy: number;
-        cz: number;
-    };
-    getPointAtLength: (pathInput: string | PathArray, distance?: number) => {
-        x: number;
-        y: number;
-    };
-    getPropertiesAtLength: (pathInput: string | PathArray, distance?: number) => SegmentProperties_2;
-    getPropertiesAtPoint: (pathInput: string | PathArray, point: Point_2) => PointProperties_2;
-    getSegmentAtLength: (pathInput: string | PathArray, distance?: number) => PathSegment_2 | undefined;
-    getSegmentOfPoint: (path: string | PathArray, point: {
-        x: number;
-        y: number;
-    }) => SegmentProperties_2 | undefined;
-    getSVGMatrix: (transform: TransformObjectValues) => default_2;
-    getTotalLength: (pathInput: string | PathArray) => number;
-    invalidPathValue: string;
-    isAbsoluteArray: (path: unknown) => path is AbsoluteArray_2;
-    isArcCommand: (code: number) => code is 97;
-    isCurveArray: (path: unknown) => path is CurveArray_2;
-    isDigit: (code: number) => code is DigitNumber_2;
-    isDigitStart: (code: number) => code is DigitNumber_2 | 43 | 45 | 46;
-    isMoveCommand: (code: number) => code is 109 | 77;
-    isNormalizedArray: (path: unknown) => path is NormalArray_2;
-    isPathArray: (path: unknown) => path is PathArray;
-    isPathCommand: (code: number) => code is PathCommandNumber_2;
-    isPointInStroke: (pathInput: string | PathArray, point: {
-        x: number;
-        y: number;
-    }) => boolean;
-    isRelativeArray: (path: unknown) => path is RelativeArray_2;
-    isSpace: (ch: number) => ch is SpaceNumber_2;
-    isValidPath: (pathString: string) => boolean;
-    iterate: <T extends PathArray>(path: PathArray, iterator: IteratorCallback_2) => T;
-    lineToCubic: (x1: number, y1: number, x2: number, y2: number) => number[];
-    lineTools: typeof lineTools;
-    midPoint: (a: PointTuple, b: PointTuple, t: number) => PointTuple;
-    normalizePath: (pathInput: string | PathArray) => NormalArray_2;
-    normalizeSegment: (segment: PathSegment_2, params: ParserParams_2) => NormalSegment_2;
-    optimizePath: (pathInput: PathArray, roundOption?: number) => PathArray;
-    paramsCount: {
-        a: number;
-        c: number;
-        h: number;
-        l: number;
-        m: number;
-        r: number;
-        q: number;
-        s: number;
-        t: number;
-        v: number;
-        z: number;
-    };
-    paramsParser: ParserParams_2;
-    parsePathString: <T extends PathArray>(pathInput: string | T) => PathArray;
-    pathParser: typeof default_3;
-    pathToAbsolute: (pathInput: string | PathArray) => AbsoluteArray_2;
-    pathToCurve: (pathInput: string | PathArray) => CurveArray_2;
-    pathToRelative: (pathInput: string | PathArray) => RelativeArray_2;
-    pathToString: (path: PathArray, roundOption?: number | "off") => string;
-    polygonTools: typeof polygonTools;
-    projection2d: (m: default_2, point2D: PointTuple, origin: [number, number, number]) => PointTuple;
-    quadToCubic: (x1: number, y1: number, qx: number, qy: number, x2: number, y2: number) => [number, number, number, number, number, number];
-    quadTools: typeof quadTools;
-    relativizeSegment: (segment: PathSegment_2, index: number, lastX: number, lastY: number) => MSegment_2 | RelativeSegment_2;
-    reverseCurve: (path: CurveArray_2) => CurveArray_2;
-    reversePath: (pathInput: PathArray) => PathArray;
-    rotateVector: (x: number, y: number, rad: number) => {
-        x: number;
-        y: number;
-    };
-    roundPath: (path: PathArray, roundOption?: number | "off") => PathArray;
-    roundSegment: <T extends PathSegment_2>(segment: T, roundOption: number) => T;
-    roundTo: (n: number, round: number) => number;
-    scanFlag: (path: default_3) => void;
-    scanParam: (path: default_3) => void;
-    scanSegment: (path: default_3) => void;
-    segmentToCubic: (segment: PathSegment_2, params: ParserParams_2) => MSegment_2 | CSegment_2;
-    shapeParams: ShapeParams_2;
-    shapeToPath: (element: ShapeTypes_2 | ShapeOps_2, replace?: boolean, ownerDocument?: Document) => SVGPathElement | false;
-    shapeToPathArray: (element: ShapeTypes_2 | ShapeOps_2) => false | PathArray;
-    shortenSegment: (segment: AbsoluteSegment_2, normalSegment: NormalSegment_2, params: ParserParams_2, prevCommand: PathCommand_2) => ShortSegment_2;
-    skipSpaces: (path: default_3) => void;
-    splitCubic: (pts: number[], ratio?: number) => [CubicSegment_2, CubicSegment_2];
-    splitPath: (pathInput: PathArray) => PathArray[];
-    transformPath: (pathInput: PathArray | string, transform?: Partial<TransformObject>) => PathArray;
-};
 
 export declare type IteratorCallback = (segment: PathSegment, index: number, lastX: number, lastY: number) => PathSegment | false | void | undefined;
 

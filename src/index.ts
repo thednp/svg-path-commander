@@ -530,6 +530,7 @@ const index = {
   transformPath,
 };
 
-const defaultExport = Object.assign(SVGPathCommander, index);
+// const defaultExport = Object.assign(SVGPathCommander, index);
 
-export { defaultExport as default, index };
+// export { defaultExport as default, index };
+export default Object.assign(SVGPathCommander, index);

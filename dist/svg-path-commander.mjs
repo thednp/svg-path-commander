@@ -2118,7 +2118,6 @@ const fn = {
   transformPath: It
 }, yn = Object.assign(hn, fn);
 export {
-  yn as default,
-  fn as index
+  yn as default
 };
 //# sourceMappingURL=svg-path-commander.mjs.map
