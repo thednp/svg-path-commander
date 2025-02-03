@@ -28,6 +28,7 @@ export default defineConfig({
       outDir: 'dist',
       copyDtsFiles: true,
       rollupTypes: true,
+
     }),
   ],
   build: {
@@ -38,12 +39,14 @@ export default defineConfig({
       name: NAME,
       formats: ['es', 'cjs', 'iife'],
       fileName: (format: string) => fileName[format],
+      
     },
     sourcemap: true,
     reportCompressedSize: true,
+    
   },
   esbuild: {
-    legalComments: 'none'
+    legalComments: 'none',
   }
 });
 

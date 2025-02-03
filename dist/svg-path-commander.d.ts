@@ -1,35 +1,75 @@
-import { AbsoluteArray as AbsoluteArray_2 } from './types';
-import { AbsoluteSegment as AbsoluteSegment_2 } from './types';
 import * as arcTools from './math/arcTools';
 import * as bezierTools from './math/bezier';
-import { CSegment as CSegment_2 } from './types';
-import { CubicSegment as CubicSegment_2 } from './types';
 import * as cubicTools from './math/cubicTools';
-import { CurveArray as CurveArray_2 } from './types';
+import { default as default_10 } from './math/roundTo';
+import { default as default_11 } from './parser/parsePathString';
+import { default as default_12 } from './parser/finalizeSegment';
+import { default as default_13 } from './parser/invalidPathValue';
+import { default as default_14 } from './parser/isArcCommand';
+import { default as default_15 } from './parser/isDigit';
+import { default as default_16 } from './parser/isDigitStart';
+import { default as default_17 } from './parser/isMoveCommand';
+import { default as default_18 } from './parser/isPathCommand';
+import { default as default_19 } from './parser/isSpace';
 import { default as default_2 } from '@thednp/dommatrix';
-import { default as default_3 } from './parser/pathParser';
-import { DigitNumber as DigitNumber_2 } from './types';
-import { IteratorCallback as IteratorCallback_2 } from './types';
+import { default as default_20 } from './parser/paramsCount';
+import { default as default_21 } from './parser/paramsParser';
+import { default as default_22 } from './parser/pathParser';
+import { default as default_23 } from './parser/scanFlag';
+import { default as default_24 } from './parser/scanParam';
+import { default as default_25 } from './parser/scanSegment';
+import { default as default_26 } from './parser/skipSpaces';
+import { default as default_27 } from './util/distanceEpsilon';
+import { default as default_28 } from './util/getClosestPoint';
+import { default as default_29 } from './util/getDrawDirection';
+import { default as default_3 } from './convert/pathToAbsolute';
+import { default as default_30 } from './util/getPathArea';
+import { default as default_31 } from './util/getPathBBox';
+import { default as default_32 } from './util/getPointAtLength';
+import { default as default_33 } from './util/getPropertiesAtLength';
+import { default as default_34 } from './util/getPropertiesAtPoint';
+import { default as default_35 } from './util/getSegmentAtLength';
+import { default as default_36 } from './util/getSegmentOfPoint';
+import { default as default_37 } from './util/getTotalLength';
+import { default as default_38 } from './util/isAbsoluteArray';
+import { default as default_39 } from './util/isCurveArray';
+import { default as default_4 } from './convert/pathToRelative';
+import { default as default_40 } from './util/isNormalizedArray';
+import { default as default_41 } from './util/isPathArray';
+import { default as default_42 } from './util/isPointInStroke';
+import { default as default_43 } from './util/isRelativeArray';
+import { default as default_44 } from './util/isValidPath';
+import { default as default_45 } from './util/shapeParams';
+import { default as default_46 } from './util/shapeToPath';
+import { default as default_47 } from './util/shapeToPathArray';
+import { default as default_48 } from './process/absolutizeSegment';
+import { default as default_49 } from './process/arcToCubic';
+import { default as default_5 } from './convert/pathToCurve';
+import { default as default_50 } from './process/getSVGMatrix';
+import { default as default_51 } from './process/iterate';
+import { default as default_52 } from './process/lineToCubic';
+import { default as default_53 } from './process/normalizePath';
+import { default as default_54 } from './process/normalizeSegment';
+import { default as default_55 } from './process/optimizePath';
+import { default as default_56 } from './process/projection2d';
+import { default as default_57 } from './process/quadToCubic';
+import { default as default_58 } from './process/relativizeSegment';
+import { default as default_59 } from './process/reverseCurve';
+import { default as default_6 } from './convert/pathToString';
+import { default as default_60 } from './process/reversePath';
+import { default as default_61 } from './process/roundPath';
+import { default as default_62 } from './process/roundSegment';
+import { default as default_63 } from './process/segmentToCubic';
+import { default as default_64 } from './process/shortenSegment';
+import { default as default_65 } from './process/splitCubic';
+import { default as default_66 } from './process/splitPath';
+import { default as default_67 } from './process/transformPath';
+import { default as default_7 } from './math/distanceSquareRoot';
+import { default as default_8 } from './math/midPoint';
+import { default as default_9 } from './math/rotateVector';
 import * as lineTools from './math/lineTools';
-import { MSegment as MSegment_2 } from './types';
-import { NormalArray as NormalArray_2 } from './types';
-import { NormalSegment as NormalSegment_2 } from './types';
-import { ParserParams as ParserParams_2 } from './interface';
-import { PathCommand as PathCommand_2 } from './types';
-import { PathCommandNumber as PathCommandNumber_2 } from './types';
-import { PathSegment as PathSegment_2 } from './types';
-import { Point as Point_2 } from './types';
-import { PointProperties as PointProperties_2 } from './interface';
 import * as polygonTools from './math/polygonTools';
 import * as quadTools from './math/quadTools';
-import { RelativeArray as RelativeArray_2 } from './types';
-import { RelativeSegment as RelativeSegment_2 } from './types';
-import { SegmentProperties as SegmentProperties_2 } from './interface';
-import { ShapeOps as ShapeOps_2 } from './types';
-import { ShapeParams as ShapeParams_2 } from './interface';
-import { ShapeTypes as ShapeTypes_2 } from './types';
-import { ShortSegment as ShortSegment_2 } from './types';
-import { SpaceNumber as SpaceNumber_2 } from './types';
 
 export declare type AbsoluteArray = [MSegment, ...AbsoluteSegment[]];
 
@@ -137,121 +177,8 @@ export declare type CubicSegment = CSegment | cSegment;
 
 export declare type CurveArray = [MSegment, ...CSegment[]];
 
-declare const _default: typeof SVGPathCommander_2 & {
-    absolutizeSegment: (segment: PathSegment_2, index: number, lastX: number, lastY: number) => AbsoluteSegment_2;
-    arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, recursive?: [number, number, number, number]) => number[];
-    arcTools: typeof arcTools;
-    bezierTools: typeof bezierTools;
-    CSSMatrix: typeof default_2;
-    cubicTools: typeof cubicTools;
-    distanceEpsilon: number;
-    distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
-    finalizeSegment: (path: default_3) => void;
-    getClosestPoint: (pathInput: string | PathArray, point: {
-        x: number;
-        y: number;
-    }) => {
-        x: number;
-        y: number;
-    };
-    getDrawDirection: (path: string | PathArray) => boolean;
-    getPathArea: (path: PathArray) => number;
-    getPathBBox: (pathInput: PathArray | string) => {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-        x2: number;
-        y2: number;
-        cx: number;
-        cy: number;
-        cz: number;
-    };
-    getPointAtLength: (pathInput: string | PathArray, distance?: number) => {
-        x: number;
-        y: number;
-    };
-    getPropertiesAtLength: (pathInput: string | PathArray, distance?: number) => SegmentProperties_2;
-    getPropertiesAtPoint: (pathInput: string | PathArray, point: Point_2) => PointProperties_2;
-    getSegmentAtLength: (pathInput: string | PathArray, distance?: number) => PathSegment_2 | undefined;
-    getSegmentOfPoint: (path: string | PathArray, point: {
-        x: number;
-        y: number;
-    }) => SegmentProperties_2 | undefined;
-    getSVGMatrix: (transform: TransformObjectValues) => default_2;
-    getTotalLength: (pathInput: string | PathArray) => number;
-    invalidPathValue: string;
-    isAbsoluteArray: (path: unknown) => path is AbsoluteArray_2;
-    isArcCommand: (code: number) => code is 97;
-    isCurveArray: (path: unknown) => path is CurveArray_2;
-    isDigit: (code: number) => code is DigitNumber_2;
-    isDigitStart: (code: number) => code is DigitNumber_2 | 43 | 45 | 46;
-    isMoveCommand: (code: number) => code is 109 | 77;
-    isNormalizedArray: (path: unknown) => path is NormalArray_2;
-    isPathArray: (path: unknown) => path is PathArray;
-    isPathCommand: (code: number) => code is PathCommandNumber_2;
-    isPointInStroke: (pathInput: string | PathArray, point: {
-        x: number;
-        y: number;
-    }) => boolean;
-    isRelativeArray: (path: unknown) => path is RelativeArray_2;
-    isSpace: (ch: number) => ch is SpaceNumber_2;
-    isValidPath: (pathString: string) => boolean;
-    iterate: <T extends PathArray>(path: PathArray, iterator: IteratorCallback_2) => T;
-    lineToCubic: (x1: number, y1: number, x2: number, y2: number) => number[];
-    lineTools: typeof lineTools;
-    midPoint: (a: PointTuple, b: PointTuple, t: number) => PointTuple;
-    normalizePath: (pathInput: string | PathArray) => NormalArray_2;
-    normalizeSegment: (segment: PathSegment_2, params: ParserParams_2) => NormalSegment_2;
-    optimizePath: (pathInput: PathArray, roundOption?: number) => PathArray;
-    paramsCount: {
-        a: number;
-        c: number;
-        h: number;
-        l: number;
-        m: number;
-        r: number;
-        q: number;
-        s: number;
-        t: number;
-        v: number;
-        z: number;
-    };
-    paramsParser: ParserParams_2;
-    parsePathString: <T extends PathArray>(pathInput: string | T) => PathArray;
-    pathParser: typeof default_3;
-    pathToAbsolute: (pathInput: string | PathArray) => AbsoluteArray_2;
-    pathToCurve: (pathInput: string | PathArray) => CurveArray_2;
-    pathToRelative: (pathInput: string | PathArray) => RelativeArray_2;
-    pathToString: (path: PathArray, roundOption?: number | "off") => string;
-    polygonTools: typeof polygonTools;
-    projection2d: (m: default_2, point2D: PointTuple, origin: [number, number, number]) => PointTuple;
-    quadToCubic: (x1: number, y1: number, qx: number, qy: number, x2: number, y2: number) => [number, number, number, number, number, number];
-    quadTools: typeof quadTools;
-    relativizeSegment: (segment: PathSegment_2, index: number, lastX: number, lastY: number) => MSegment_2 | RelativeSegment_2;
-    reverseCurve: (path: CurveArray_2) => CurveArray_2;
-    reversePath: (pathInput: PathArray) => PathArray;
-    rotateVector: (x: number, y: number, rad: number) => {
-        x: number;
-        y: number;
-    };
-    roundPath: (path: PathArray, roundOption?: number | "off") => PathArray;
-    roundSegment: <T extends PathSegment_2>(segment: T, roundOption: number) => T;
-    roundTo: (n: number, round: number) => number;
-    scanFlag: (path: default_3) => void;
-    scanParam: (path: default_3) => void;
-    scanSegment: (path: default_3) => void;
-    segmentToCubic: (segment: PathSegment_2, params: ParserParams_2) => MSegment_2 | CSegment_2;
-    shapeParams: ShapeParams_2;
-    shapeToPath: (element: ShapeTypes_2 | ShapeOps_2, replace?: boolean, ownerDocument?: Document) => SVGPathElement | false;
-    shapeToPathArray: (element: ShapeTypes_2 | ShapeOps_2) => false | PathArray;
-    shortenSegment: (segment: AbsoluteSegment_2, normalSegment: NormalSegment_2, params: ParserParams_2, prevCommand: PathCommand_2) => ShortSegment_2;
-    skipSpaces: (path: default_3) => void;
-    splitCubic: (pts: number[], ratio?: number) => [CubicSegment_2, CubicSegment_2];
-    splitPath: (pathInput: PathArray) => PathArray[];
-    transformPath: (pathInput: PathArray | string, transform?: Partial<TransformObject>) => PathArray;
-};
-export default _default;
+declare const defaultExport: typeof SVGPathCommander_2 & typeof util;
+export default defaultExport;
 
 export declare type DeriveCallback = (t: number) => Point;
 
@@ -684,6 +611,83 @@ export declare type TransformProps = keyof TransformObject;
 export declare type TSegment = [TCommand, number, number];
 
 export declare type tSegment = [tCommand, number, number];
+
+declare namespace util {
+    export {
+        default_2 as CSSMatrix,
+        arcTools,
+        bezierTools,
+        cubicTools,
+        lineTools,
+        quadTools,
+        polygonTools,
+        default_3 as pathToAbsolute,
+        default_4 as pathToRelative,
+        default_5 as pathToCurve,
+        default_6 as pathToString,
+        default_7 as distanceSquareRoot,
+        default_8 as midPoint,
+        default_9 as rotateVector,
+        default_10 as roundTo,
+        default_11 as parsePathString,
+        default_12 as finalizeSegment,
+        default_13 as invalidPathValue,
+        default_14 as isArcCommand,
+        default_15 as isDigit,
+        default_16 as isDigitStart,
+        default_17 as isMoveCommand,
+        default_18 as isPathCommand,
+        default_19 as isSpace,
+        default_20 as paramsCount,
+        default_21 as paramsParser,
+        default_22 as pathParser,
+        default_23 as scanFlag,
+        default_24 as scanParam,
+        default_25 as scanSegment,
+        default_26 as skipSpaces,
+        default_27 as distanceEpsilon,
+        default_28 as getClosestPoint,
+        default_29 as getDrawDirection,
+        default_30 as getPathArea,
+        default_31 as getPathBBox,
+        default_32 as getPointAtLength,
+        default_33 as getPropertiesAtLength,
+        default_34 as getPropertiesAtPoint,
+        default_35 as getSegmentAtLength,
+        default_36 as getSegmentOfPoint,
+        default_37 as getTotalLength,
+        default_38 as isAbsoluteArray,
+        default_39 as isCurveArray,
+        default_40 as isNormalizedArray,
+        default_41 as isPathArray,
+        default_42 as isPointInStroke,
+        default_43 as isRelativeArray,
+        default_44 as isValidPath,
+        default_45 as shapeParams,
+        default_46 as shapeToPath,
+        default_47 as shapeToPathArray,
+        default_48 as absolutizeSegment,
+        default_49 as arcToCubic,
+        default_50 as getSVGMatrix,
+        default_51 as iterate,
+        default_52 as lineToCubic,
+        default_53 as normalizePath,
+        default_54 as normalizeSegment,
+        default_55 as optimizePath,
+        default_56 as projection2d,
+        default_57 as quadToCubic,
+        default_58 as relativizeSegment,
+        default_59 as reverseCurve,
+        default_60 as reversePath,
+        default_61 as roundPath,
+        default_62 as roundSegment,
+        default_63 as segmentToCubic,
+        default_64 as shortenSegment,
+        default_65 as splitCubic,
+        default_66 as splitPath,
+        default_67 as transformPath
+    }
+}
 
 export declare type VCommand = "V";
 
