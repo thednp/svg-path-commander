@@ -37,7 +37,7 @@
     "build": "pnpm build-vite && pnpm build-util",
     "build-vite": "vite build --config vite.config.mts && pnpm copy-docs",
     "build-util": "vite build --config vite.config-util.mts && pnpm built-util-types",
-    "built-util-types": "tsc src/util.ts --declaration --emitDeclarationOnly --outfile dist/util/util.d.ts --target esnext --moduleResolution bundler",
+    "built-util-types": "npx tsup src/util.ts --dts-only -d dist/util",
     "copy-docs": "cp dist/svg-path-commander.js docs/svg-path-commander.js && cp dist/svg-path-commander.js.map docs/svg-path-commander.js.map",
     "prepublishOnly": "pnpm update && pnpm format && pnpm lint:ts && pnpm build && pnpm badges"
   },

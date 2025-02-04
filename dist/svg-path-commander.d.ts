@@ -177,7 +177,7 @@ export declare type CubicSegment = CSegment | cSegment;
 
 export declare type CurveArray = [MSegment, ...CSegment[]];
 
-declare const defaultExport: typeof SVGPathCommander_2 & typeof util;
+declare const defaultExport: typeof SVGPathCommander & typeof util;
 export default defaultExport;
 
 export declare type DeriveCallback = (t: number) => Point;
@@ -446,7 +446,7 @@ export declare type sSegment = [sCommand, number, number, number, number];
  * @author thednp <https://github.com/thednp/svg-path-commander>
  * @returns a new SVGPathCommander instance
  */
-declare class SVGPathCommander_2 {
+declare class SVGPathCommander {
     segments: PathArray;
     round: number | "off";
     origin: [number, number, number];
@@ -708,6 +708,135 @@ export declare type ZSegment = [ZCommand];
 export declare type zSegment = [zCommand];
 
 export { }
+
+
+declare namespace shapes {
+    let initial: string[];
+    let normalized: string[];
+    let optimized: string[];
+    let relative: string[];
+    let absolute: string[];
+    let curve: string[];
+    let scaled: string[];
+    let translated: string[];
+    let length: number[];
+    let pointAt50: {
+        x: number;
+        y: number;
+    }[];
+}
+
+
+declare namespace simpleShapes {
+    let initial: string[];
+    let normalized: string[];
+    let transformed: string[];
+    let scaled3d: string[];
+    let skewedX: string[];
+    let skewedY: string[];
+    let reversed: string[];
+    let length: number[];
+    let width: number[];
+    let height: number[];
+    let pointAt0: {
+        x: number;
+        y: number;
+    }[];
+    let pointAt400: {
+        x: number;
+        y: number;
+    }[];
+    let pointAt50: {
+        x: number;
+        y: number;
+    }[];
+}
+
+
+declare namespace shapes {
+    let initial: string[];
+    let normalized: string[];
+    let optimized: string[];
+    let relative: string[];
+    let absolute: string[];
+    let curve: string[];
+    let scaled: string[];
+    let translated: string[];
+    let length: number[];
+    let pointAt50: {
+        x: number;
+        y: number;
+    }[];
+}
+
+
+declare namespace simpleShapes {
+    let initial: string[];
+    let normalized: string[];
+    let transformed: string[];
+    let scaled3d: string[];
+    let skewedX: string[];
+    let skewedY: string[];
+    let reversed: string[];
+    let length: number[];
+    let width: number[];
+    let height: number[];
+    let pointAt0: {
+        x: number;
+        y: number;
+    }[];
+    let pointAt400: {
+        x: number;
+        y: number;
+    }[];
+    let pointAt50: {
+        x: number;
+        y: number;
+    }[];
+}
+
+
+declare namespace shapes {
+    let initial: string[];
+    let normalized: string[];
+    let optimized: string[];
+    let relative: string[];
+    let absolute: string[];
+    let curve: string[];
+    let scaled: string[];
+    let translated: string[];
+    let length: number[];
+    let pointAt50: {
+        x: number;
+        y: number;
+    }[];
+}
+
+
+declare namespace simpleShapes {
+    let initial: string[];
+    let normalized: string[];
+    let transformed: string[];
+    let scaled3d: string[];
+    let skewedX: string[];
+    let skewedY: string[];
+    let reversed: string[];
+    let length: number[];
+    let width: number[];
+    let height: number[];
+    let pointAt0: {
+        x: number;
+        y: number;
+    }[];
+    let pointAt400: {
+        x: number;
+        y: number;
+    }[];
+    let pointAt50: {
+        x: number;
+        y: number;
+    }[];
+}
 
 
 declare namespace shapes {
