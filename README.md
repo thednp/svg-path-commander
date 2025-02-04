@@ -137,9 +137,9 @@ SVGPathCommander.isAbsoluteArray([['M', 0, 0], ['L', 50, 0]]);
 // result => true
 ```
 
-Create a custom function to apply a 3D transformation using static methods:
+Use treeshake and create a custom function to apply a 3D transformation using static methods:
 ```ts
-import { parsePathString, getPathBBox, transformPath, pathToString } from 'svg-path-commander';
+import { parsePathString, getPathBBox, transformPath, pathToString } from 'svg-path-commander/util';
 
 function myTransformFn(pathInput: string | PathArray, transformObject: TransformObject) {
   const path = parsePathString(pathInput);
