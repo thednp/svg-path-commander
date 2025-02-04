@@ -1,5 +1,4 @@
 import CSSMatrix from '@thednp/dommatrix';
-export { default as CSSMatrix } from '@thednp/dommatrix';
 
 type SegmentProperties = {
     segment: PathSegment;
@@ -67,6 +66,27 @@ type ShapeParams = {
     polyline: ["points"];
     glyph: ["d"];
 };
+type PathBBox = {
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+    x2: number;
+    y2: number;
+    cx: number;
+    cy: number;
+    cz: number;
+};
+type SegmentLimits = {
+    min: {
+        x: number;
+        y: number;
+    };
+    max: {
+        x: number;
+        y: number;
+    };
+};
 type ParserParams = {
     x1: number;
     y1: number;
@@ -77,6 +97,31 @@ type ParserParams = {
     qx: number | null;
     qy: number | null;
 };
+type LengthFactory = {
+    length: number;
+    point: {
+        x: number;
+        y: number;
+    };
+    min: {
+        x: number;
+        y: number;
+    };
+    max: {
+        x: number;
+        y: number;
+    };
+};
+type Options = {
+    round: "off" | number;
+    origin: number[];
+};
+type PathTransform = {
+    s: PathSegment;
+    c: string;
+    x: number;
+    y: number;
+};
 type TransformObject = {
     translate: number | number[];
     rotate: number | number[];
@@ -84,6 +129,11 @@ type TransformObject = {
     skew: number | number[];
     origin: number[];
 };
+type TransformProps = keyof TransformObject;
+type TransformEntries = [
+    TransformProps,
+    TransformObject[TransformProps]
+][];
 
 type SpaceNumber = 0x1680 | 0x180e | 0x2000 | 0x2001 | 0x2002 | 0x2003 | 0x2004 | 0x2005 | 0x2006 | 0x2007 | 0x2008 | 0x2009 | 0x200a | 0x202f | 0x205f | 0x3000 | 0xfeff | 0x0a | 0x0d | 0x2028 | 0x2029 | 0x20 | 0x09 | 0x0b | 0x0c | 0xa0 | 0x1680;
 type PathCommandNumber = 0x6d | 0x7a | 0x6c | 0x68 | 0x76 | 0x63 | 0x73 | 0x71 | 0x74 | 0x61;
@@ -185,7 +235,10 @@ type AbsoluteArray = [MSegment, ...AbsoluteSegment[]];
 type RelativeArray = [MSegment, ...RelativeSegment[]];
 type NormalArray = [MSegment, ...NormalSegment[]];
 type CurveArray = [MSegment, ...CSegment[]];
+type PolygonArray = [MSegment, ...LSegment[], ZSegment];
+type PolylineArray = [MSegment, ...LSegment[]];
 type ShapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;
+type ShapeTags = "line" | "polyline" | "polygon" | "ellipse" | "circle" | "rect" | "glyph";
 type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
 type TransformObjectValues = Partial<TransformObject> & {
     origin: [number, number, number];
@@ -238,6 +291,18 @@ type CubicCoordinates = [
     number,
     number
 ];
+type ArcCoordinates = [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number
+];
+type LineCoordinates = [number, number, number, number];
 type DeriveCallback = (t: number) => Point;
 type IteratorCallback = (segment: PathSegment, index: number, lastX: number, lastY: number) => PathSegment | false | void | undefined;
 
@@ -1252,4 +1317,227 @@ declare const splitPath: (pathInput: PathArray) => PathArray[];
  */
 declare const transformPath: (pathInput: PathArray | string, transform?: Partial<TransformObject>) => PathArray;
 
-export { absolutizeSegment, arcToCubic, arcTools, bezier as bezierTools, cubicTools, DISTANCE_EPSILON as distanceEpsilon, distanceSquareRoot, finalizeSegment, getClosestPoint, getDrawDirection, getPathArea, getPathBBox, getPointAtLength, getPropertiesAtLength, getPropertiesAtPoint, getSVGMatrix, getSegmentAtLength, getSegmentOfPoint, getTotalLength, invalidPathValue, isAbsoluteArray, isArcCommand, isCurveArray, isDigit, isDigitStart, isMoveCommand, isNormalizedArray, isPathArray, isPathCommand, isPointInStroke, isRelativeArray, isSpace, isValidPath, iterate, lineToCubic, lineTools, midPoint, normalizePath, normalizeSegment, optimizePath, paramsCount, paramsParser, parsePathString, PathParser as pathParser, pathToAbsolute, pathToCurve, pathToRelative, pathToString, polygonTools, projection2d, quadToCubic, quadTools, relativizeSegment, reverseCurve, reversePath, rotateVector, roundPath, roundSegment, roundTo, scanFlag, scanParam, scanSegment, segmentToCubic, shapeParams, shapeToPath, shapeToPathArray, shortenSegment, skipSpaces, splitCubic, splitPath, transformPath };
+declare const util_CSSMatrix: typeof CSSMatrix;
+declare const util_absolutizeSegment: typeof absolutizeSegment;
+declare const util_arcToCubic: typeof arcToCubic;
+declare const util_arcTools: typeof arcTools;
+declare const util_cubicTools: typeof cubicTools;
+declare const util_distanceSquareRoot: typeof distanceSquareRoot;
+declare const util_finalizeSegment: typeof finalizeSegment;
+declare const util_getClosestPoint: typeof getClosestPoint;
+declare const util_getDrawDirection: typeof getDrawDirection;
+declare const util_getPathArea: typeof getPathArea;
+declare const util_getPathBBox: typeof getPathBBox;
+declare const util_getPointAtLength: typeof getPointAtLength;
+declare const util_getPropertiesAtLength: typeof getPropertiesAtLength;
+declare const util_getPropertiesAtPoint: typeof getPropertiesAtPoint;
+declare const util_getSVGMatrix: typeof getSVGMatrix;
+declare const util_getSegmentAtLength: typeof getSegmentAtLength;
+declare const util_getSegmentOfPoint: typeof getSegmentOfPoint;
+declare const util_getTotalLength: typeof getTotalLength;
+declare const util_invalidPathValue: typeof invalidPathValue;
+declare const util_isAbsoluteArray: typeof isAbsoluteArray;
+declare const util_isArcCommand: typeof isArcCommand;
+declare const util_isCurveArray: typeof isCurveArray;
+declare const util_isDigit: typeof isDigit;
+declare const util_isDigitStart: typeof isDigitStart;
+declare const util_isMoveCommand: typeof isMoveCommand;
+declare const util_isNormalizedArray: typeof isNormalizedArray;
+declare const util_isPathArray: typeof isPathArray;
+declare const util_isPathCommand: typeof isPathCommand;
+declare const util_isPointInStroke: typeof isPointInStroke;
+declare const util_isRelativeArray: typeof isRelativeArray;
+declare const util_isSpace: typeof isSpace;
+declare const util_isValidPath: typeof isValidPath;
+declare const util_iterate: typeof iterate;
+declare const util_lineToCubic: typeof lineToCubic;
+declare const util_lineTools: typeof lineTools;
+declare const util_midPoint: typeof midPoint;
+declare const util_normalizePath: typeof normalizePath;
+declare const util_normalizeSegment: typeof normalizeSegment;
+declare const util_optimizePath: typeof optimizePath;
+declare const util_paramsCount: typeof paramsCount;
+declare const util_paramsParser: typeof paramsParser;
+declare const util_parsePathString: typeof parsePathString;
+declare const util_pathToAbsolute: typeof pathToAbsolute;
+declare const util_pathToCurve: typeof pathToCurve;
+declare const util_pathToRelative: typeof pathToRelative;
+declare const util_pathToString: typeof pathToString;
+declare const util_polygonTools: typeof polygonTools;
+declare const util_projection2d: typeof projection2d;
+declare const util_quadToCubic: typeof quadToCubic;
+declare const util_quadTools: typeof quadTools;
+declare const util_relativizeSegment: typeof relativizeSegment;
+declare const util_reverseCurve: typeof reverseCurve;
+declare const util_reversePath: typeof reversePath;
+declare const util_rotateVector: typeof rotateVector;
+declare const util_roundPath: typeof roundPath;
+declare const util_roundSegment: typeof roundSegment;
+declare const util_roundTo: typeof roundTo;
+declare const util_scanFlag: typeof scanFlag;
+declare const util_scanParam: typeof scanParam;
+declare const util_scanSegment: typeof scanSegment;
+declare const util_segmentToCubic: typeof segmentToCubic;
+declare const util_shapeParams: typeof shapeParams;
+declare const util_shapeToPath: typeof shapeToPath;
+declare const util_shapeToPathArray: typeof shapeToPathArray;
+declare const util_shortenSegment: typeof shortenSegment;
+declare const util_skipSpaces: typeof skipSpaces;
+declare const util_splitCubic: typeof splitCubic;
+declare const util_splitPath: typeof splitPath;
+declare const util_transformPath: typeof transformPath;
+declare namespace util {
+  export { util_CSSMatrix as CSSMatrix, util_absolutizeSegment as absolutizeSegment, util_arcToCubic as arcToCubic, util_arcTools as arcTools, bezier as bezierTools, util_cubicTools as cubicTools, DISTANCE_EPSILON as distanceEpsilon, util_distanceSquareRoot as distanceSquareRoot, util_finalizeSegment as finalizeSegment, util_getClosestPoint as getClosestPoint, util_getDrawDirection as getDrawDirection, util_getPathArea as getPathArea, util_getPathBBox as getPathBBox, util_getPointAtLength as getPointAtLength, util_getPropertiesAtLength as getPropertiesAtLength, util_getPropertiesAtPoint as getPropertiesAtPoint, util_getSVGMatrix as getSVGMatrix, util_getSegmentAtLength as getSegmentAtLength, util_getSegmentOfPoint as getSegmentOfPoint, util_getTotalLength as getTotalLength, util_invalidPathValue as invalidPathValue, util_isAbsoluteArray as isAbsoluteArray, util_isArcCommand as isArcCommand, util_isCurveArray as isCurveArray, util_isDigit as isDigit, util_isDigitStart as isDigitStart, util_isMoveCommand as isMoveCommand, util_isNormalizedArray as isNormalizedArray, util_isPathArray as isPathArray, util_isPathCommand as isPathCommand, util_isPointInStroke as isPointInStroke, util_isRelativeArray as isRelativeArray, util_isSpace as isSpace, util_isValidPath as isValidPath, util_iterate as iterate, util_lineToCubic as lineToCubic, util_lineTools as lineTools, util_midPoint as midPoint, util_normalizePath as normalizePath, util_normalizeSegment as normalizeSegment, util_optimizePath as optimizePath, util_paramsCount as paramsCount, util_paramsParser as paramsParser, util_parsePathString as parsePathString, PathParser as pathParser, util_pathToAbsolute as pathToAbsolute, util_pathToCurve as pathToCurve, util_pathToRelative as pathToRelative, util_pathToString as pathToString, util_polygonTools as polygonTools, util_projection2d as projection2d, util_quadToCubic as quadToCubic, util_quadTools as quadTools, util_relativizeSegment as relativizeSegment, util_reverseCurve as reverseCurve, util_reversePath as reversePath, util_rotateVector as rotateVector, util_roundPath as roundPath, util_roundSegment as roundSegment, util_roundTo as roundTo, util_scanFlag as scanFlag, util_scanParam as scanParam, util_scanSegment as scanSegment, util_segmentToCubic as segmentToCubic, util_shapeParams as shapeParams, util_shapeToPath as shapeToPath, util_shapeToPathArray as shapeToPathArray, util_shortenSegment as shortenSegment, util_skipSpaces as skipSpaces, util_splitCubic as splitCubic, util_splitPath as splitPath, util_transformPath as transformPath };
+}
+
+/**
+ * Creates a new SVGPathCommander instance with the following properties:
+ * * segments: `pathArray`
+ * * round: number
+ * * origin: [number, number, number?]
+ *
+ * @class
+ * @author thednp <https://github.com/thednp/svg-path-commander>
+ * @returns a new SVGPathCommander instance
+ */
+declare class SVGPathCommander {
+    segments: PathArray;
+    round: number | "off";
+    origin: [number, number, number];
+    /**
+     * @constructor
+     * @param pathValue the path string
+     * @param config instance options
+     */
+    constructor(pathValue: string, config?: Partial<Options>);
+    get bbox(): {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        x2: number;
+        y2: number;
+        cx: number;
+        cy: number;
+        cz: number;
+    };
+    get length(): number;
+    /**
+     * Returns the path bounding box, equivalent to native `path.getBBox()`.
+     *
+     * @public
+     * @returns the pathBBox
+     */
+    getBBox(): {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        x2: number;
+        y2: number;
+        cx: number;
+        cy: number;
+        cz: number;
+    };
+    /**
+     * Returns the total path length, equivalent to native `path.getTotalLength()`.
+     *
+     * @public
+     * @returns the path total length
+     */
+    getTotalLength(): number;
+    /**
+     * Returns an `{x,y}` point in the path stroke at a given length,
+     * equivalent to the native `path.getPointAtLength()`.
+     *
+     * @public
+     * @param length the length
+     * @returns the requested point
+     */
+    getPointAtLength(length: number): {
+        x: number;
+        y: number;
+    };
+    /**
+     * Convert path to absolute values
+     *
+     * @public
+     */
+    toAbsolute(): this;
+    /**
+     * Convert path to relative values
+     *
+     * @public
+     */
+    toRelative(): this;
+    /**
+     * Convert path to cubic-bezier values. In addition, un-necessary `Z`
+     * segment is removed if previous segment extends to the `M` segment.
+     *
+     * @public
+     */
+    toCurve(): this;
+    /**
+     * Reverse the order of the segments and their values.
+     *
+     * @param onlySubpath option to reverse all sub-paths except first
+     * @public
+     */
+    reverse(onlySubpath?: boolean): this;
+    /**
+     * Normalize path in 2 steps:
+     * * convert `pathArray`(s) to absolute values
+     * * convert shorthand notation to standard notation
+     *
+     * @public
+     */
+    normalize(): this;
+    /**
+     * Optimize `pathArray` values:
+     * * convert segments to absolute and/or relative values
+     * * select segments with shortest resulted string
+     * * round values to the specified `decimals` option value
+     *
+     * @public
+     */
+    optimize(): this;
+    /**
+     * Transform path using values from an `Object` defined as `transformObject`.
+     *
+     * @see TransformObject for a quick refference
+     *
+     * @param source a `transformObject`as described above
+     * @public
+     */
+    transform(source?: Partial<TransformObject>): this;
+    /**
+     * Rotate path 180deg vertically
+     *
+     * @public
+     */
+    flipX(): this;
+    /**
+     * Rotate path 180deg horizontally
+     *
+     * @public
+     */
+    flipY(): this;
+    /**
+     * Export the current path to be used
+     * for the `d` (description) attribute.
+     *
+     * @public
+     * @return the path string
+     */
+    toString(): string;
+    /**
+     * Remove the instance.
+     *
+     * @public
+     * @return void
+     */
+    dispose(): void;
+}
+declare const defaultExport: typeof SVGPathCommander & typeof util;
+
+export { type ACommand, type ASegment, type AbsoluteArray, type AbsoluteCommand, type AbsoluteSegment, type ArcCoordinates, type ArcSegment, type CCommand, type CSegment, type CircleAttr, type CloseSegment, type CubicCoordinates, type CubicPoints, type CubicSegment, type CurveArray, type DeriveCallback, type DerivedCubicPoints, type DerivedPoint, type DerivedQuadPoints, type DigitNumber, type EllipseAttr, type GlyphAttr, type HCommand, type HSegment, type HorLineSegment, type IteratorCallback, type LCommand, type LSegment, type LengthFactory, type LineAttr, type LineCoordinates, type LineSegment, type MCommand, type MSegment, type MoveSegment, type NormalArray, type NormalSegment, type Options, type ParserParams, type PathArray, type PathBBox, type PathCommand, type PathCommandNumber, type PathSegment, type PathTransform, type Point, type PointProperties, type PointTuple, type PolyAttr, type PolygonArray, type PolylineArray, type QCommand, type QSegment, type QuadCoordinates, type QuadPoints, type QuadSegment, type RectAttr, type RelativeArray, type RelativeCommand, type RelativeSegment, type SCommand, type SSegment, type SegmentLimits, type SegmentProperties, type ShapeOps, type ShapeParams, type ShapeTags, type ShapeTypes, type ShortCubicSegment, type ShortQuadSegment, type ShortSegment, type SpaceNumber, type TCommand, type TSegment, type TransformEntries, type TransformObject, type TransformObjectValues, type TransformProps, type VCommand, type VSegment, type VertLineSegment, type ZCommand, type ZSegment, type aCommand, type aSegment, type cCommand, type cSegment, defaultExport as default, type hCommand, type hSegment, type lCommand, type lSegment, type mCommand, type mSegment, type qCommand, type qSegment, type sCommand, type sSegment, type tCommand, type tSegment, type vCommand, type vSegment, type zCommand, type zSegment };
