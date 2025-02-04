@@ -8,6 +8,7 @@ coverage
 test
 src
 tsconfig.json
-vitest.config.mts
-vitest.config-ui.mts
+vite.config.ts
+vitest.config.ts
+vitest.config-ui.ts
 tsup.config.ts
