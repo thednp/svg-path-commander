@@ -29,7 +29,7 @@ export default defineConfig([
   // Util bundle configuration
   {
     entry: ['src/util.ts'],
-    format: ['esm', 'cjs', 'iife'],
+    format: ['esm', 'cjs'],
     dts: true,
     clean: true,
     sourcemap: true,
@@ -41,7 +41,7 @@ export default defineConfig([
     outExtension: ({ format }) => ({
       js: {
         esm: '.mjs',
-        iife: '.js',
+        // iife: '.js',
         cjs: '.cjs'
       }[format]
     }),
