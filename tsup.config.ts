@@ -5,7 +5,7 @@ export default defineConfig([
   // Browser bundle is handled by Vite
   {
     entryPoints: {
-        'svg-path-commander': 'src/index.ts'
+      'svg-path-commander': 'src/index.ts'
     },
     format: ['esm', 'cjs'],
     dts: true,
@@ -37,11 +37,11 @@ export default defineConfig([
     splitting: false,
     outDir: 'dist/util',
     target: 'es2020',
+    treeshake: true,
     globalName: 'SVGPathCommanderUtil',
     outExtension: ({ format }) => ({
       js: {
         esm: '.mjs',
-        // iife: '.js',
         cjs: '.cjs'
       }[format]
     }),
