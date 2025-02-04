@@ -34,7 +34,8 @@
     "fix:ts": "deno lint --fix src",
     "lint:ts": "deno lint src",
     "check:ts": "tsc --noEmit",
-    "build": "tsup",
+    "build": "tsup && pnpm copy-docs",
+    "copy-docs": "cp dist/svg-path-commander.js docs/svg-path-commander.js && cp dist/svg-path-commander.js.map docs/svg-path-commander.js.map",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "pnpm update && pnpm format && pnpm lint:ts && pnpm build && pnpm badges"
   },
