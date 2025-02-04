@@ -10,7 +10,14 @@ import * as cubicTools from "./math/cubicTools";
 import * as lineTools from "./math/lineTools";
 import * as quadTools from "./math/quadTools";
 import * as polygonTools from "./math/polygonTools";
-export { arcTools, bezierTools, cubicTools, lineTools, quadTools, polygonTools };
+export {
+  arcTools,
+  bezierTools,
+  cubicTools,
+  lineTools,
+  polygonTools,
+  quadTools,
+};
 
 // export * from "./math/arcTools";
 // export * from "./math/bezier";

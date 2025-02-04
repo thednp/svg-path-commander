@@ -1,12 +1,13 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig([
-  // Main bundle configuration
+  // Node bundle configuration
+  // Browser bundle is handled by Vite
   {
     entryPoints: {
         'svg-path-commander': 'src/index.ts'
     },
-    format: ['esm', 'cjs', 'iife'],
+    format: ['esm', 'cjs'],
     dts: true,
     clean: true,
     sourcemap: true,
@@ -18,7 +19,6 @@ export default defineConfig([
     outExtension: ({ format }) => ({
       js: {
         esm: '.mjs',
-        iife: '.js',
         cjs: '.cjs'
       }[format]
     }),
@@ -30,6 +30,7 @@ export default defineConfig([
   {
     entry: ['src/util.ts'],
     format: ['esm', 'cjs', 'iife'],
+    dts: true,
     clean: true,
     sourcemap: true,
     minify: true,
