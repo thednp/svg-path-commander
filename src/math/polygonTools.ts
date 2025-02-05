@@ -49,4 +49,4 @@ const polygonTools = {
   polygonLength,
 };
 
-export { polygonTools, polygonArea, polygonLength };
+export { polygonArea, polygonLength, polygonTools };

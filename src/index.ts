@@ -108,7 +108,7 @@ class SVGPathCommander {
 
     if (undefPath || !pathValue.length) {
       throw TypeError(
-        `${error}: "pathValue" is ${undefPath ? "undefined" : "empty"}`
+        `${error}: "pathValue" is ${undefPath ? "undefined" : "empty"}`,
       );
     }
 
@@ -228,11 +228,11 @@ class SVGPathCommander {
 
     const absoluteMultiPath = subPath
       ? subPath.map((x, i) => {
-          if (onlySubpath) {
-            return i ? reversePath(x) : x.slice(0);
-          }
-          return reversePath(x);
-        })
+        if (onlySubpath) {
+          return i ? reversePath(x) : x.slice(0);
+        }
+        return reversePath(x);
+      })
       : segments.slice(0);
 
     let path = [] as unknown as PathArray;
@@ -599,38 +599,15 @@ class SVGPathCommander {
 export default SVGPathCommander;
 
 export {
-  CSSMatrix,
+  absolutizeSegment,
+  arcToCubic,
   arcTools,
   bezierTools,
+  CSSMatrix,
   cubicTools,
-  lineTools,
-  polygonTools,
-  quadTools,
-  pathToAbsolute,
-  pathToRelative,
-  pathToCurve,
-  pathToString,
-  distanceSquareRoot,
-  midPoint,
-  rotateVector,
-  roundTo,
-  parsePathString,
-  finalizeSegment,
-  invalidPathValue,
-  isArcCommand,
-  isDigit,
-  isDigitStart,
-  isMoveCommand,
-  isPathCommand,
-  isSpace,
-  paramsCount,
-  paramsParser,
-  pathParser,
-  scanFlag,
-  scanParam,
-  scanSegment,
-  skipSpaces,
   distanceEpsilon,
+  distanceSquareRoot,
+  finalizeSegment,
   getClosestPoint,
   getDrawDirection,
   getPathArea,
@@ -640,34 +617,57 @@ export {
   getPropertiesAtPoint,
   getSegmentAtLength,
   getSegmentOfPoint,
+  getSVGMatrix,
   getTotalLength,
+  invalidPathValue,
   isAbsoluteArray,
+  isArcCommand,
   isCurveArray,
+  isDigit,
+  isDigitStart,
+  isMoveCommand,
   isNormalizedArray,
   isPathArray,
+  isPathCommand,
   isPointInStroke,
   isRelativeArray,
+  isSpace,
   isValidPath,
-  shapeParams,
-  shapeToPath,
-  shapeToPathArray,
-  absolutizeSegment,
-  arcToCubic,
-  getSVGMatrix,
   iterate,
   lineToCubic,
+  lineTools,
+  midPoint,
   normalizePath,
   normalizeSegment,
   optimizePath,
+  paramsCount,
+  paramsParser,
+  parsePathString,
+  pathParser,
+  pathToAbsolute,
+  pathToCurve,
+  pathToRelative,
+  pathToString,
+  polygonTools,
   projection2d,
   quadToCubic,
+  quadTools,
   relativizeSegment,
   reverseCurve,
   reversePath,
+  rotateVector,
   roundPath,
   roundSegment,
+  roundTo,
+  scanFlag,
+  scanParam,
+  scanSegment,
   segmentToCubic,
+  shapeParams,
+  shapeToPath,
+  shapeToPathArray,
   shortenSegment,
+  skipSpaces,
   splitCubic,
   splitPath,
   transformPath,
