@@ -73,11 +73,6 @@ const lineTools = {
   getLineBBox,
   getLineLength,
   getPointAtLineLength,
-}
-
-export {
-  lineTools,
-  getLineBBox,
-  getLineLength,
-  getPointAtLineLength,
 };
+
+export { getLineBBox, getLineLength, getPointAtLineLength, lineTools };

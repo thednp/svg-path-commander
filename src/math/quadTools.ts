@@ -124,12 +124,12 @@ const quadTools = {
   getPointAtQuadSegmentLength,
   getQuadBBox,
   getQuadLength,
-}
+};
 
 export {
-  quadTools,
   getPointAtQuadLength,
   getPointAtQuadSegmentLength,
   getQuadBBox,
   getQuadLength,
+  quadTools,
 };

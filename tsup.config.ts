@@ -1,6 +1,6 @@
 import { defineConfig } from 'tsup'
 
-export default defineConfig([
+export default defineConfig(
   // Node bundle configuration
   // Browser bundle is handled by Vite
   {
@@ -26,4 +26,4 @@ export default defineConfig([
       options.legalComments = 'none'
     }
   },
-])
+);

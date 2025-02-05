@@ -126,7 +126,8 @@
   </div>
   <script src="./svg-path-commander.js"></script>
 
-  <script>   
+  <script>
+    console.log('SVGPathCommander: ', SVGPathCommander);
     const { pathToCurve, pathToString, roundPath, splitPath, reverseCurve, optimizePath } = SVGPathCommander,
         svg = document.getElementById('test-svg'),
         path = svg.children[0],

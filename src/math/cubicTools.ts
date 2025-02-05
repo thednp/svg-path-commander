@@ -138,7 +138,7 @@ const cubicTools = {
   getCubicLength,
   getPointAtCubicLength,
   getPointAtCubicSegmentLength,
-}
+};
 
 export {
   cubicTools,

@@ -288,11 +288,11 @@ const bezierTools = {
   minmaxC,
   minmaxQ,
   Tvalues,
-}
+};
 
 export {
-  bezierTools,
   bezierLength,
+  bezierTools,
   calculateBezier,
   CBEZIER_MINMAX_EPSILON,
   computeBezier,

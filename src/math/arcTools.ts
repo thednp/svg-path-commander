@@ -438,12 +438,12 @@ const arcTools = {
 };
 
 export {
-  arcTools,
   angleBetween,
   arcLength,
   arcPoint,
+  arcTools,
   getArcBBox,
   getArcLength,
   getArcProps,
   getPointAtArcLength,
-}
+};
