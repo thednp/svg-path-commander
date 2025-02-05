@@ -2,8 +2,6 @@
 
 import SVGPathCommander from "./main";
 
-export default SVGPathCommander;
-
 export { default as CSSMatrix } from "@thednp/dommatrix";
 export { arcTools } from "./math/arcTools";
 export { bezierTools } from "./math/bezier";
@@ -82,3 +80,5 @@ export { default as roundSegment } from "./process/roundSegment";
 export { default as segmentToCubic } from "./process/segmentToCubic";
 export { default as shortenSegment } from "./process/shortenSegment";
 export { default as splitCubic } from "./process/splitCubic";
+
+export default SVGPathCommander;
