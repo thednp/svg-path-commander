@@ -1,11 +1,11 @@
 "use strict";
 import CSSMatrix from "@thednp/dommatrix";
-import * as arcTools from "./math/arcTools";
-import * as bezierTools from "./math/bezier";
-import * as cubicTools from "./math/cubicTools";
-import * as lineTools from "./math/lineTools";
-import * as quadTools from "./math/quadTools";
-import * as polygonTools from "./math/polygonTools";
+import { arcTools } from "./math/arcTools";
+import { bezierTools } from "./math/bezier";
+import { cubicTools } from "./math/cubicTools";
+import { lineTools } from "./math/lineTools";
+import { quadTools } from "./math/quadTools";
+import { polygonTools } from "./math/polygonTools";
 
 import distanceSquareRoot from "./math/distanceSquareRoot";
 import midPoint from "./math/midPoint";
