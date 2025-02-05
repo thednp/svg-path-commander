@@ -307,382 +307,80 @@ type TransformEntries = [
     TransformObject[TransformProps]
 ][];
 
-/**
- * Returns the Arc segment length.
- * @param rx radius along X axis
- * @param ry radius along Y axis
- * @param theta the angle in radians
- * @returns the arc length
- */
-declare const arcLength: (rx: number, ry: number, theta: number) => number;
-/**
- * Find point on ellipse at given angle around ellipse (theta);
- * @param cx the center X
- * @param cy the center Y
- * @param rx the radius X
- * @param ry the radius Y
- * @param alpha the arc rotation angle in radians
- * @param theta the arc sweep angle in radians
- * @returns a point around ellipse at given angle
- */
-declare const arcPoint: (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => PointTuple;
-/**
- * Returns the angle between two points.
- * @param v0 starting point
- * @param v1 ending point
- * @returns the angle in radian
- */
-declare const angleBetween: (v0: Point, v1: Point) => number;
-/**
- * Returns the following properties for an Arc segment: center, start angle,
- * end angle, and radiuses on X and Y axis.
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param RX the radius on X axis
- * @param RY the radius on Y axis
- * @param angle the ellipse rotation in degrees
- * @param LAF the large arc flag
- * @param SF the sweep flag
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @returns properties specific to Arc segments
- */
-declare const getArcProps: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => {
-    rx: number;
-    ry: number;
-    startAngle: number;
-    endAngle: number;
-    center: {
+declare const arcTools: {
+    angleBetween: (v0: Point, v1: Point) => number;
+    arcLength: (rx: number, ry: number, theta: number) => number;
+    arcPoint: (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => PointTuple;
+    getArcBBox: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => [number, number, number, number];
+    getArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => number;
+    getArcProps: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => {
+        rx: number;
+        ry: number;
+        startAngle: number;
+        endAngle: number;
+        center: {
+            x: number;
+            y: number;
+        };
+    };
+    getPointAtArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number, distance?: number) => {
         x: number;
         y: number;
     };
 };
-/**
- * Returns the length of an Arc segment.
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param c1x the first control point X
- * @param c1y the first control point Y
- * @param c2x the second control point X
- * @param c2y the second control point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @returns the length of the Arc segment
- */
-declare const getArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => number;
-/**
- * Returns a point along an Arc segment at a given distance.
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param RX the radius on X axis
- * @param RY the radius on Y axis
- * @param angle the ellipse rotation in degrees
- * @param LAF the large arc flag
- * @param SF the sweep flag
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @param distance a [0-1] ratio
- * @returns a point along the Arc segment
- */
-declare const getPointAtArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number, distance?: number) => {
-    x: number;
-    y: number;
+
+declare const bezierTools: {
+    bezierLength: (derivativeFn: DeriveCallback) => number;
+    calculateBezier: (derivativeFn: DeriveCallback, t: number) => number;
+    CBEZIER_MINMAX_EPSILON: number;
+    computeBezier: (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => DerivedPoint;
+    Cvalues: number[];
+    deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedQuadPoints | DerivedCubicPoints)[];
+    getBezierLength: (curve: CubicCoordinates | QuadCoordinates) => number;
+    minmaxC: ([v1, cp1, cp2, v2]: [number, number, number, number]) => PointTuple;
+    minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;
+    Tvalues: number[];
 };
-/**
- * Returns the extrema for an Arc segment in the following format:
- * [MIN_X, MIN_Y, MAX_X, MAX_Y]
- *
- * @see https://github.com/herrstrietzel/svg-pathdata-getbbox
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param RX the radius on X axis
- * @param RY the radius on Y axis
- * @param angle the ellipse rotation in degrees
- * @param LAF the large arc flag
- * @param SF the sweep flag
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @returns the extrema of the Arc segment
- */
-declare const getArcBBox: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => [number, number, number, number];
 
-declare const arcTools_angleBetween: typeof angleBetween;
-declare const arcTools_arcLength: typeof arcLength;
-declare const arcTools_arcPoint: typeof arcPoint;
-declare const arcTools_getArcBBox: typeof getArcBBox;
-declare const arcTools_getArcLength: typeof getArcLength;
-declare const arcTools_getArcProps: typeof getArcProps;
-declare const arcTools_getPointAtArcLength: typeof getPointAtArcLength;
-declare namespace arcTools {
-  export { arcTools_angleBetween as angleBetween, arcTools_arcLength as arcLength, arcTools_arcPoint as arcPoint, arcTools_getArcBBox as getArcBBox, arcTools_getArcLength as getArcLength, arcTools_getArcProps as getArcProps, arcTools_getPointAtArcLength as getPointAtArcLength };
-}
-
-/**
- * Tools from bezier.js by Mike 'Pomax' Kamermans
- * @see https://github.com/Pomax/bezierjs
- */
-declare const Tvalues: number[];
-declare const Cvalues: number[];
-/**
- * @param points
- * @returns
- */
-declare const deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedQuadPoints | DerivedCubicPoints)[];
-/**
- * @param points
- * @param t
- */
-declare const computeBezier: (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => DerivedPoint;
-declare const calculateBezier: (derivativeFn: DeriveCallback, t: number) => number;
-declare const bezierLength: (derivativeFn: DeriveCallback) => number;
-/**
- * Returns the length of CubicBezier / Quad segment.
- * @param curve cubic / quad bezier segment
- */
-declare const getBezierLength: (curve: CubicCoordinates | QuadCoordinates) => number;
-declare const CBEZIER_MINMAX_EPSILON = 1e-8;
-/**
- * Returns the most extreme points in a Quad Bezier segment.
- * @param A an array which consist of X/Y values
- */
-declare const minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;
-/**
- * Returns the most extreme points in a Cubic Bezier segment.
- * @param A an array which consist of X/Y values
- * @see https://github.com/kpym/SVGPathy/blob/acd1a50c626b36d81969f6e98e8602e128ba4302/lib/box.js#L127
- */
-declare const minmaxC: ([v1, cp1, cp2, v2]: [number, number, number, number]) => PointTuple;
-
-declare const bezierTools_CBEZIER_MINMAX_EPSILON: typeof CBEZIER_MINMAX_EPSILON;
-declare const bezierTools_Cvalues: typeof Cvalues;
-declare const bezierTools_Tvalues: typeof Tvalues;
-declare const bezierTools_bezierLength: typeof bezierLength;
-declare const bezierTools_calculateBezier: typeof calculateBezier;
-declare const bezierTools_computeBezier: typeof computeBezier;
-declare const bezierTools_deriveBezier: typeof deriveBezier;
-declare const bezierTools_getBezierLength: typeof getBezierLength;
-declare const bezierTools_minmaxC: typeof minmaxC;
-declare const bezierTools_minmaxQ: typeof minmaxQ;
-declare namespace bezierTools {
-  export { bezierTools_CBEZIER_MINMAX_EPSILON as CBEZIER_MINMAX_EPSILON, bezierTools_Cvalues as Cvalues, bezierTools_Tvalues as Tvalues, bezierTools_bezierLength as bezierLength, bezierTools_calculateBezier as calculateBezier, bezierTools_computeBezier as computeBezier, bezierTools_deriveBezier as deriveBezier, bezierTools_getBezierLength as getBezierLength, bezierTools_minmaxC as minmaxC, bezierTools_minmaxQ as minmaxQ };
-}
-
-/**
- * Returns a point at a given length of a CubicBezier segment.
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param c1x the first control point X
- * @param c1y the first control point Y
- * @param c2x the second control point X
- * @param c2y the second control point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @param t a [0-1] ratio
- * @returns the point at cubic-bezier segment length
- */
-declare const getPointAtCubicSegmentLength: ([x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates, t: number) => {
-    x: number;
-    y: number;
+declare const cubicTools: {
+    getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => [number, number, number, number];
+    getCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => number;
+    getPointAtCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number, distance?: number) => {
+        x: number;
+        y: number;
+    };
+    getPointAtCubicSegmentLength: ([x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates, t: number) => {
+        x: number;
+        y: number;
+    };
 };
-/**
- * Returns the length of a CubicBezier segment.
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param c1x the first control point X
- * @param c1y the first control point Y
- * @param c2x the second control point X
- * @param c2y the second control point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @returns the CubicBezier segment length
- */
-declare const getCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => number;
-/**
- * Returns the point along a CubicBezier segment at a given distance.
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param c1x the first control point X
- * @param c1y the first control point Y
- * @param c2x the second control point X
- * @param c2y the second control point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @param distance the distance to look at
- * @returns the point at CubicBezier length
- */
-declare const getPointAtCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number, distance?: number) => {
-    x: number;
-    y: number;
+
+declare const lineTools: {
+    getLineBBox: (x1: number, y1: number, x2: number, y2: number) => [number, number, number, number];
+    getLineLength: (x1: number, y1: number, x2: number, y2: number) => number;
+    getPointAtLineLength: (x1: number, y1: number, x2: number, y2: number, distance?: number) => {
+        x: number;
+        y: number;
+    };
 };
-/**
- * Returns the boundig box of a CubicBezier segment in the following format:
- * [MIN_X, MIN_Y, MAX_X, MAX_Y]
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param c1x the first control point X
- * @param c1y the first control point Y
- * @param c2x the second control point X
- * @param c2y the second control point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @returns the extrema of the CubicBezier segment
- */
-declare const getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => [number, number, number, number];
 
-declare const cubicTools_getCubicBBox: typeof getCubicBBox;
-declare const cubicTools_getCubicLength: typeof getCubicLength;
-declare const cubicTools_getPointAtCubicLength: typeof getPointAtCubicLength;
-declare const cubicTools_getPointAtCubicSegmentLength: typeof getPointAtCubicSegmentLength;
-declare namespace cubicTools {
-  export { cubicTools_getCubicBBox as getCubicBBox, cubicTools_getCubicLength as getCubicLength, cubicTools_getPointAtCubicLength as getPointAtCubicLength, cubicTools_getPointAtCubicSegmentLength as getPointAtCubicSegmentLength };
-}
-
-/**
- * Returns length for line segments (MoveTo, LineTo).
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @returns the line segment length
- */
-declare const getLineLength: (x1: number, y1: number, x2: number, y2: number) => number;
-/**
- * Returns a point along the line segments (MoveTo, LineTo).
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @param distance the distance to point in [0-1] range
- * @returns the point at length
- */
-declare const getPointAtLineLength: (x1: number, y1: number, x2: number, y2: number, distance?: number) => {
-    x: number;
-    y: number;
+declare const quadTools: {
+    getPointAtQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number, distance?: number) => {
+        x: number;
+        y: number;
+    };
+    getPointAtQuadSegmentLength: ([x1, y1, cx, cy, x2, y2]: QuadCoordinates, t: number) => {
+        x: number;
+        y: number;
+    };
+    getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => [number, number, number, number];
+    getQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => number;
 };
-/**
- * Returns bounding box for line segments (MoveTo, LineTo).
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @param distance the distance to point in [0-1] range
- * @returns the extrema for line segments
- */
-declare const getLineBBox: (x1: number, y1: number, x2: number, y2: number) => [number, number, number, number];
 
-declare const lineTools_getLineBBox: typeof getLineBBox;
-declare const lineTools_getLineLength: typeof getLineLength;
-declare const lineTools_getPointAtLineLength: typeof getPointAtLineLength;
-declare namespace lineTools {
-  export { lineTools_getLineBBox as getLineBBox, lineTools_getLineLength as getLineLength, lineTools_getPointAtLineLength as getPointAtLineLength };
-}
-
-/**
- * Returns the {x,y} coordinates of a point at a
- * given length of a quadratic-bezier segment.
- *
- * @see https://github.com/substack/point-at-length
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param cx the control point X
- * @param cy the control point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @param t a [0-1] ratio
- * @returns the requested {x,y} coordinates
- */
-declare const getPointAtQuadSegmentLength: ([x1, y1, cx, cy, x2, y2]: QuadCoordinates, t: number) => {
-    x: number;
-    y: number;
+declare const polygonTools: {
+    polygonArea: (polygon: PointTuple[]) => number;
+    polygonLength: (polygon: PointTuple[]) => number;
 };
-/**
- * Returns the length of a QuadraticBezier segment.
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param cx the control point X
- * @param cy the control point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @returns the QuadraticBezier segment length
- */
-declare const getQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => number;
-/**
- * Returns the point along a QuadraticBezier segment at a given distance.
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param cx the control point X
- * @param cy the control point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @param distance the distance to look at
- * @returns the point at QuadraticBezier length
- */
-declare const getPointAtQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number, distance?: number) => {
-    x: number;
-    y: number;
-};
-/**
- * Returns the boundig box of a QuadraticBezier segment in the following format:
- * [MIN_X, MIN_Y, MAX_X, MAX_Y]
- *
- * @param x1 the starting point X
- * @param y1 the starting point Y
- * @param cx the control point X
- * @param cy the control point Y
- * @param x2 the ending point X
- * @param y2 the ending point Y
- * @returns the extrema of the QuadraticBezier segment
- */
-declare const getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => [number, number, number, number];
-
-declare const quadTools_getPointAtQuadLength: typeof getPointAtQuadLength;
-declare const quadTools_getPointAtQuadSegmentLength: typeof getPointAtQuadSegmentLength;
-declare const quadTools_getQuadBBox: typeof getQuadBBox;
-declare const quadTools_getQuadLength: typeof getQuadLength;
-declare namespace quadTools {
-  export { quadTools_getPointAtQuadLength as getPointAtQuadLength, quadTools_getPointAtQuadSegmentLength as getPointAtQuadSegmentLength, quadTools_getQuadBBox as getQuadBBox, quadTools_getQuadLength as getQuadLength };
-}
-
-/**
- * d3-polygon-area
- * https://github.com/d3/d3-polygon
- *
- * Returns the area of a polygon.
- *
- * @param polygon an array of coordinates
- * @returns the polygon area
- */
-declare const polygonArea: (polygon: PointTuple[]) => number;
-/**
- * d3-polygon-length
- * https://github.com/d3/d3-polygon
- *
- * Returns the perimeter of a polygon.
- *
- * @param polygon an array of coordinates
- * @returns the polygon length
- */
-declare const polygonLength: (polygon: PointTuple[]) => number;
-
-declare const polygonTools_polygonArea: typeof polygonArea;
-declare const polygonTools_polygonLength: typeof polygonLength;
-declare namespace polygonTools {
-  export { polygonTools_polygonArea as polygonArea, polygonTools_polygonLength as polygonLength };
-}
 
 /**
  * Returns the square root of the distance
@@ -1466,12 +1164,75 @@ declare class SVGPathCommander {
      */
     dispose(): void;
     static get CSSMatrix(): typeof CSSMatrix;
-    static get arcTools(): typeof arcTools;
-    static get bezierTools(): typeof bezierTools;
-    static get cubicTools(): typeof cubicTools;
-    static get lineTools(): typeof lineTools;
-    static get polygonTools(): typeof polygonTools;
-    static get quadTools(): typeof quadTools;
+    static get arcTools(): {
+        angleBetween: (v0: Point, v1: Point) => number;
+        arcLength: (rx: number, ry: number, theta: number) => number;
+        arcPoint: (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => PointTuple;
+        getArcBBox: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => [number, number, number, number];
+        getArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => number;
+        getArcProps: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => {
+            rx: number;
+            ry: number;
+            startAngle: number;
+            endAngle: number;
+            center: {
+                x: number;
+                y: number;
+            };
+        };
+        getPointAtArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number, distance?: number) => {
+            x: number;
+            y: number;
+        };
+    };
+    static get bezierTools(): {
+        bezierLength: (derivativeFn: DeriveCallback) => number;
+        calculateBezier: (derivativeFn: DeriveCallback, t: number) => number;
+        CBEZIER_MINMAX_EPSILON: number;
+        computeBezier: (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => DerivedPoint;
+        Cvalues: number[];
+        deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedQuadPoints | DerivedCubicPoints)[];
+        getBezierLength: (curve: CubicCoordinates | QuadCoordinates) => number;
+        minmaxC: ([v1, cp1, cp2, v2]: [number, number, number, number]) => PointTuple;
+        minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;
+        Tvalues: number[];
+    };
+    static get cubicTools(): {
+        getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => [number, number, number, number];
+        getCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => number;
+        getPointAtCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number, distance?: number) => {
+            x: number;
+            y: number;
+        };
+        getPointAtCubicSegmentLength: ([x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates, t: number) => {
+            x: number;
+            y: number;
+        };
+    };
+    static get lineTools(): {
+        getLineBBox: (x1: number, y1: number, x2: number, y2: number) => [number, number, number, number];
+        getLineLength: (x1: number, y1: number, x2: number, y2: number) => number;
+        getPointAtLineLength: (x1: number, y1: number, x2: number, y2: number, distance?: number) => {
+            x: number;
+            y: number;
+        };
+    };
+    static get polygonTools(): {
+        polygonArea: (polygon: PointTuple[]) => number;
+        polygonLength: (polygon: PointTuple[]) => number;
+    };
+    static get quadTools(): {
+        getPointAtQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number, distance?: number) => {
+            x: number;
+            y: number;
+        };
+        getPointAtQuadSegmentLength: ([x1, y1, cx, cy, x2, y2]: QuadCoordinates, t: number) => {
+            x: number;
+            y: number;
+        };
+        getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => [number, number, number, number];
+        getQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => number;
+    };
     static get pathToAbsolute(): (pathInput: string | PathArray) => AbsoluteArray;
     static get pathToRelative(): (pathInput: string | PathArray) => RelativeArray;
     static get pathToCurve(): (pathInput: string | PathArray) => CurveArray;
