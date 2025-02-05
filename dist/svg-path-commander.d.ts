@@ -307,118 +307,6 @@ type LineCoordinates = [number, number, number, number];
 type DeriveCallback = (t: number) => Point;
 type IteratorCallback = (segment: PathSegment, index: number, lastX: number, lastY: number) => PathSegment | false | void | undefined;
 
-declare const arcTools: {
-    angleBetween: (v0: Point, v1: Point) => number;
-    arcLength: (rx: number, ry: number, theta: number) => number;
-    arcPoint: (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => PointTuple;
-    getArcBBox: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => [number, number, number, number];
-    getArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => number;
-    getArcProps: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => {
-        rx: number;
-        ry: number;
-        startAngle: number;
-        endAngle: number;
-        center: {
-            x: number;
-            y: number;
-        };
-    };
-    getPointAtArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number, distance?: number) => {
-        x: number;
-        y: number;
-    };
-};
-
-declare const bezierTools: {
-    bezierLength: (derivativeFn: DeriveCallback) => number;
-    calculateBezier: (derivativeFn: DeriveCallback, t: number) => number;
-    CBEZIER_MINMAX_EPSILON: number;
-    computeBezier: (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => DerivedPoint;
-    Cvalues: number[];
-    deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedQuadPoints | DerivedCubicPoints)[];
-    getBezierLength: (curve: CubicCoordinates | QuadCoordinates) => number;
-    minmaxC: ([v1, cp1, cp2, v2]: [number, number, number, number]) => PointTuple;
-    minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;
-    Tvalues: number[];
-};
-
-declare const cubicTools: {
-    getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => [number, number, number, number];
-    getCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => number;
-    getPointAtCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number, distance?: number) => {
-        x: number;
-        y: number;
-    };
-    getPointAtCubicSegmentLength: ([x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates, t: number) => {
-        x: number;
-        y: number;
-    };
-};
-
-declare const lineTools: {
-    getLineBBox: (x1: number, y1: number, x2: number, y2: number) => [number, number, number, number];
-    getLineLength: (x1: number, y1: number, x2: number, y2: number) => number;
-    getPointAtLineLength: (x1: number, y1: number, x2: number, y2: number, distance?: number) => {
-        x: number;
-        y: number;
-    };
-};
-
-declare const quadTools: {
-    getPointAtQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number, distance?: number) => {
-        x: number;
-        y: number;
-    };
-    getPointAtQuadSegmentLength: ([x1, y1, cx, cy, x2, y2]: QuadCoordinates, t: number) => {
-        x: number;
-        y: number;
-    };
-    getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => [number, number, number, number];
-    getQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => number;
-};
-
-declare const polygonTools: {
-    polygonArea: (polygon: PointTuple[]) => number;
-    polygonLength: (polygon: PointTuple[]) => number;
-};
-
-/**
- * Returns the square root of the distance
- * between two given points.
- *
- * @param a the first point coordinates
- * @param b the second point coordinates
- * @returns the distance value
- */
-declare const distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
-
-/**
- * Returns the coordinates of a specified distance
- * ratio between two points.
- *
- * @param a the first point coordinates
- * @param b the second point coordinates
- * @param t the ratio
- * @returns the midpoint coordinates
- */
-declare const midPoint: (a: PointTuple, b: PointTuple, t: number) => PointTuple;
-
-/**
- * Returns an {x,y} vector rotated by a given
- * angle in radian.
- *
- * @param x the initial vector x
- * @param y the initial vector y
- * @param rad the radian vector angle
- * @returns the rotated vector
- */
-declare const rotateVector: (x: number, y: number, rad: number) => {
-    x: number;
-    y: number;
-};
-
-declare const roundTo: (n: number, round: number) => number;
-
 /**
  * Parses a path string value or object and returns an array
  * of segments, all converted to absolute values.
@@ -458,6 +346,8 @@ declare const pathToCurve: (pathInput: string | PathArray) => CurveArray;
  * @returns the concatenated path string
  */
 declare const pathToString: (path: PathArray, roundOption?: number | "off") => string;
+
+declare const error = "SVGPathCommander Error";
 
 /**
  * Parses a path string value and returns an array
@@ -1165,4 +1055,4 @@ declare class SVGPathCommander {
     dispose(): void;
 }
 
-export { type ACommand, type ASegment, type AbsoluteArray, type AbsoluteCommand, type AbsoluteSegment, type ArcCoordinates, type ArcSegment, type CCommand, type CSegment, type CircleAttr, type CloseSegment, type CubicCoordinates, type CubicPoints, type CubicSegment, type CurveArray, type DeriveCallback, type DerivedCubicPoints, type DerivedPoint, type DerivedQuadPoints, type DigitNumber, type EllipseAttr, type GlyphAttr, type HCommand, type HSegment, type HorLineSegment, type IteratorCallback, type LCommand, type LSegment, type LengthFactory, type LineAttr, type LineCoordinates, type LineSegment, type MCommand, type MSegment, type MoveSegment, type NormalArray, type NormalSegment, type Options, type ParserParams, type PathArray, type PathBBox, type PathCommand, type PathCommandNumber, type PathSegment, type PathTransform, type Point, type PointProperties, type PointTuple, type PolyAttr, type PolygonArray, type PolylineArray, type QCommand, type QSegment, type QuadCoordinates, type QuadPoints, type QuadSegment, type RectAttr, type RelativeArray, type RelativeCommand, type RelativeSegment, type SCommand, type SSegment, type SegmentLimits, type SegmentProperties, type ShapeOps, type ShapeParams, type ShapeTags, type ShapeTypes, type ShortCubicSegment, type ShortQuadSegment, type ShortSegment, type SpaceNumber, type TCommand, type TSegment, type TransformEntries, type TransformObject, type TransformObjectValues, type TransformProps, type VCommand, type VSegment, type VertLineSegment, type ZCommand, type ZSegment, type aCommand, type aSegment, absolutizeSegment, arcToCubic, arcTools, bezierTools, type cCommand, type cSegment, cubicTools, SVGPathCommander as default, DISTANCE_EPSILON as distanceEpsilon, distanceSquareRoot, finalizeSegment, getClosestPoint, getDrawDirection, getPathArea, getPathBBox, getPointAtLength, getPropertiesAtLength, getPropertiesAtPoint, getSVGMatrix, getSegmentAtLength, getSegmentOfPoint, getTotalLength, type hCommand, type hSegment, invalidPathValue, isAbsoluteArray, isArcCommand, isCurveArray, isDigit, isDigitStart, isMoveCommand, isNormalizedArray, isPathArray, isPathCommand, isPointInStroke, isRelativeArray, isSpace, isValidPath, iterate, type lCommand, type lSegment, lineToCubic, lineTools, type mCommand, type mSegment, midPoint, normalizePath, normalizeSegment, optimizePath, paramsCount, paramsParser, parsePathString, PathParser as pathParser, pathToAbsolute, pathToCurve, pathToRelative, pathToString, polygonTools, projection2d, type qCommand, type qSegment, quadToCubic, quadTools, relativizeSegment, reverseCurve, reversePath, rotateVector, roundPath, roundSegment, roundTo, type sCommand, type sSegment, scanFlag, scanParam, scanSegment, segmentToCubic, shapeParams, shapeToPath, shapeToPathArray, shortenSegment, skipSpaces, splitCubic, splitPath, type tCommand, type tSegment, transformPath, type vCommand, type vSegment, type zCommand, type zSegment };
+export { type ACommand, type ASegment, type AbsoluteArray, type AbsoluteCommand, type AbsoluteSegment, type ArcCoordinates, type ArcSegment, type CCommand, type CSegment, type CircleAttr, type CloseSegment, type CubicCoordinates, type CubicPoints, type CubicSegment, type CurveArray, type DeriveCallback, type DerivedCubicPoints, type DerivedPoint, type DerivedQuadPoints, type DigitNumber, type EllipseAttr, type GlyphAttr, type HCommand, type HSegment, type HorLineSegment, type IteratorCallback, type LCommand, type LSegment, type LengthFactory, type LineAttr, type LineCoordinates, type LineSegment, type MCommand, type MSegment, type MoveSegment, type NormalArray, type NormalSegment, type Options, type ParserParams, type PathArray, type PathBBox, type PathCommand, type PathCommandNumber, type PathSegment, type PathTransform, type Point, type PointProperties, type PointTuple, type PolyAttr, type PolygonArray, type PolylineArray, type QCommand, type QSegment, type QuadCoordinates, type QuadPoints, type QuadSegment, type RectAttr, type RelativeArray, type RelativeCommand, type RelativeSegment, type SCommand, type SSegment, type SegmentLimits, type SegmentProperties, type ShapeOps, type ShapeParams, type ShapeTags, type ShapeTypes, type ShortCubicSegment, type ShortQuadSegment, type ShortSegment, type SpaceNumber, type TCommand, type TSegment, type TransformEntries, type TransformObject, type TransformObjectValues, type TransformProps, type VCommand, type VSegment, type VertLineSegment, type ZCommand, type ZSegment, type aCommand, type aSegment, absolutizeSegment, arcToCubic, type cCommand, type cSegment, SVGPathCommander as default, DISTANCE_EPSILON as distanceEpsilon, error, finalizeSegment, getClosestPoint, getDrawDirection, getPathArea, getPathBBox, getPointAtLength, getPropertiesAtLength, getPropertiesAtPoint, getSVGMatrix, getSegmentAtLength, getSegmentOfPoint, getTotalLength, type hCommand, type hSegment, invalidPathValue, isAbsoluteArray, isArcCommand, isCurveArray, isDigit, isDigitStart, isMoveCommand, isNormalizedArray, isPathArray, isPathCommand, isPointInStroke, isRelativeArray, isSpace, isValidPath, iterate, type lCommand, type lSegment, lineToCubic, type mCommand, type mSegment, normalizePath, normalizeSegment, optimizePath, paramsCount, paramsParser, parsePathString, PathParser as pathParser, pathToAbsolute, pathToCurve, pathToRelative, pathToString, projection2d, type qCommand, type qSegment, quadToCubic, relativizeSegment, reverseCurve, reversePath, roundPath, roundSegment, type sCommand, type sSegment, scanFlag, scanParam, scanSegment, segmentToCubic, shapeParams, shapeToPath, shapeToPathArray, shortenSegment, skipSpaces, splitCubic, splitPath, type tCommand, type tSegment, transformPath, type vCommand, type vSegment, type zCommand, type zSegment };

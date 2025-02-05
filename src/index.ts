@@ -1,21 +1,22 @@
 "use strict";
-import CSSMatrix from "@thednp/dommatrix";
-import { arcTools } from "./math/arcTools";
-import { bezierTools } from "./math/bezier";
-import { cubicTools } from "./math/cubicTools";
-import { lineTools } from "./math/lineTools";
-import { quadTools } from "./math/quadTools";
-import { polygonTools } from "./math/polygonTools";
+// import CSSMatrix from "@thednp/dommatrix";
+// import { arcTools } from "./math/arcTools";
+// import { bezierTools } from "./math/bezier";
+// import { cubicTools } from "./math/cubicTools";
+// import { lineTools } from "./math/lineTools";
+// import { quadTools } from "./math/quadTools";
+// import { polygonTools } from "./math/polygonTools";
 
-import distanceSquareRoot from "./math/distanceSquareRoot";
-import midPoint from "./math/midPoint";
-import rotateVector from "./math/rotateVector";
-import roundTo from "./math/roundTo";
+// import distanceSquareRoot from "./math/distanceSquareRoot";
+// import midPoint from "./math/midPoint";
+// import rotateVector from "./math/rotateVector";
+// import roundTo from "./math/roundTo";
 
 import type { PathArray, PointTuple, TransformObjectValues } from "./types";
 import type { Options, TransformEntries, TransformObject } from "./interface";
 export * from "./types";
 export * from "./interface";
+
 import defaultOptions from "./options/options";
 
 import pathToAbsolute from "./convert/pathToAbsolute";
@@ -25,62 +26,62 @@ import pathToString from "./convert/pathToString";
 
 import error from "./parser/error";
 import parsePathString from "./parser/parsePathString";
-import finalizeSegment from "./parser/finalizeSegment";
-import invalidPathValue from "./parser/invalidPathValue";
-import isArcCommand from "./parser/isArcCommand";
-import isDigit from "./parser/isDigit";
-import isDigitStart from "./parser/isDigitStart";
-import isMoveCommand from "./parser/isMoveCommand";
-import isPathCommand from "./parser/isPathCommand";
-import isSpace from "./parser/isSpace";
-import paramsCount from "./parser/paramsCount";
-import paramsParser from "./parser/paramsParser";
-import pathParser from "./parser/pathParser";
-import scanFlag from "./parser/scanFlag";
-import scanParam from "./parser/scanParam";
-import scanSegment from "./parser/scanSegment";
-import skipSpaces from "./parser/skipSpaces";
+// import finalizeSegment from "./parser/finalizeSegment";
+// import invalidPathValue from "./parser/invalidPathValue";
+// import isArcCommand from "./parser/isArcCommand";
+// import isDigit from "./parser/isDigit";
+// import isDigitStart from "./parser/isDigitStart";
+// import isMoveCommand from "./parser/isMoveCommand";
+// import isPathCommand from "./parser/isPathCommand";
+// import isSpace from "./parser/isSpace";
+// import paramsCount from "./parser/paramsCount";
+// import paramsParser from "./parser/paramsParser";
+// import pathParser from "./parser/pathParser";
+// import scanFlag from "./parser/scanFlag";
+// import scanParam from "./parser/scanParam";
+// import scanSegment from "./parser/scanSegment";
+// import skipSpaces from "./parser/skipSpaces";
 import getPathBBox from "./util/getPathBBox";
 import getTotalLength from "./util/getTotalLength";
-import distanceEpsilon from "./util/distanceEpsilon";
-import getClosestPoint from "./util/getClosestPoint";
-import getDrawDirection from "./util/getDrawDirection";
-import getPathArea from "./util/getPathArea";
+// import distanceEpsilon from "./util/distanceEpsilon";
+// import getClosestPoint from "./util/getClosestPoint";
+// import getDrawDirection from "./util/getDrawDirection";
+// import getPathArea from "./util/getPathArea";
 import getPointAtLength from "./util/getPointAtLength";
-import getPropertiesAtLength from "./util/getPropertiesAtLength";
-import getPropertiesAtPoint from "./util/getPropertiesAtPoint";
-import getSegmentAtLength from "./util/getSegmentAtLength";
-import getSegmentOfPoint from "./util/getSegmentOfPoint";
-import isAbsoluteArray from "./util/isAbsoluteArray";
-import isCurveArray from "./util/isCurveArray";
-import isNormalizedArray from "./util/isNormalizedArray";
-import isPathArray from "./util/isPathArray";
-import isPointInStroke from "./util/isPointInStroke";
-import isRelativeArray from "./util/isRelativeArray";
-import isValidPath from "./util/isValidPath";
-import shapeParams from "./util/shapeParams";
-import shapeToPath from "./util/shapeToPath";
-import shapeToPathArray from "./util/shapeToPathArray";
+// import getPropertiesAtLength from "./util/getPropertiesAtLength";
+// import getPropertiesAtPoint from "./util/getPropertiesAtPoint";
+// import getSegmentAtLength from "./util/getSegmentAtLength";
+// import getSegmentOfPoint from "./util/getSegmentOfPoint";
+// import isAbsoluteArray from "./util/isAbsoluteArray";
+// import isCurveArray from "./util/isCurveArray";
+// import isNormalizedArray from "./util/isNormalizedArray";
+// import isPathArray from "./util/isPathArray";
+// import isPointInStroke from "./util/isPointInStroke";
+// import isRelativeArray from "./util/isRelativeArray";
+// import isValidPath from "./util/isValidPath";
+// import shapeParams from "./util/shapeParams";
+// import shapeToPath from "./util/shapeToPath";
+// import shapeToPathArray from "./util/shapeToPathArray";
 import normalizePath from "./process/normalizePath";
 import optimizePath from "./process/optimizePath";
 import reversePath from "./process/reversePath";
 import splitPath from "./process/splitPath";
 import transformPath from "./process/transformPath";
-import absolutizeSegment from "./process/absolutizeSegment";
-import arcToCubic from "./process/arcToCubic";
-import getSVGMatrix from "./process/getSVGMatrix";
-import iterate from "./process/iterate";
-import lineToCubic from "./process/lineToCubic";
-import normalizeSegment from "./process/normalizeSegment";
-import projection2d from "./process/projection2d";
-import quadToCubic from "./process/quadToCubic";
-import relativizeSegment from "./process/relativizeSegment";
-import reverseCurve from "./process/reverseCurve";
-import roundPath from "./process/roundPath";
-import roundSegment from "./process/roundSegment";
-import segmentToCubic from "./process/segmentToCubic";
-import shortenSegment from "./process/shortenSegment";
-import splitCubic from "./process/splitCubic";
+// import absolutizeSegment from "./process/absolutizeSegment";
+// import arcToCubic from "./process/arcToCubic";
+// import getSVGMatrix from "./process/getSVGMatrix";
+// import iterate from "./process/iterate";
+// import lineToCubic from "./process/lineToCubic";
+// import normalizeSegment from "./process/normalizeSegment";
+// import projection2d from "./process/projection2d";
+// import quadToCubic from "./process/quadToCubic";
+// import relativizeSegment from "./process/relativizeSegment";
+// import reverseCurve from "./process/reverseCurve";
+// import roundPath from "./process/roundPath";
+// import roundSegment from "./process/roundSegment";
+// import segmentToCubic from "./process/segmentToCubic";
+// import shortenSegment from "./process/shortenSegment";
+// import splitCubic from "./process/splitCubic";
 /**
  * Creates a new SVGPathCommander instance with the following properties:
  * * segments: `pathArray`
@@ -596,80 +597,145 @@ class SVGPathCommander {
   // }
 }
 
-export {
-  absolutizeSegment,
-  arcToCubic,
-  arcTools,
-  bezierTools,
-  CSSMatrix,
-  cubicTools,
-  distanceEpsilon,
-  distanceSquareRoot,
-  finalizeSegment,
-  getClosestPoint,
-  getDrawDirection,
-  getPathArea,
-  getPathBBox,
-  getPointAtLength,
-  getPropertiesAtLength,
-  getPropertiesAtPoint,
-  getSegmentAtLength,
-  getSegmentOfPoint,
-  getSVGMatrix,
-  getTotalLength,
-  invalidPathValue,
-  isAbsoluteArray,
-  isArcCommand,
-  isCurveArray,
-  isDigit,
-  isDigitStart,
-  isMoveCommand,
-  isNormalizedArray,
-  isPathArray,
-  isPathCommand,
-  isPointInStroke,
-  isRelativeArray,
-  isSpace,
-  isValidPath,
-  iterate,
-  lineToCubic,
-  lineTools,
-  midPoint,
-  normalizePath,
-  normalizeSegment,
-  optimizePath,
-  paramsCount,
-  paramsParser,
-  parsePathString,
-  pathParser,
-  pathToAbsolute,
-  pathToCurve,
-  pathToRelative,
-  pathToString,
-  polygonTools,
-  projection2d,
-  quadToCubic,
-  quadTools,
-  relativizeSegment,
-  reverseCurve,
-  reversePath,
-  rotateVector,
-  roundPath,
-  roundSegment,
-  roundTo,
-  scanFlag,
-  scanParam,
-  scanSegment,
-  segmentToCubic,
-  shapeParams,
-  shapeToPath,
-  shapeToPathArray,
-  shortenSegment,
-  skipSpaces,
-  splitCubic,
-  splitPath,
-  transformPath,
-};
+// export {
+//   absolutizeSegment,
+//   arcToCubic,
+//   arcTools,
+//   bezierTools,
+//   CSSMatrix,
+//   cubicTools,
+//   distanceEpsilon,
+//   distanceSquareRoot,
+//   finalizeSegment,
+//   getClosestPoint,
+//   getDrawDirection,
+//   getPathArea,
+//   getPathBBox,
+//   getPointAtLength,
+//   getPropertiesAtLength,
+//   getPropertiesAtPoint,
+//   getSegmentAtLength,
+//   getSegmentOfPoint,
+//   getSVGMatrix,
+//   getTotalLength,
+//   invalidPathValue,
+//   isAbsoluteArray,
+//   isArcCommand,
+//   isCurveArray,
+//   isDigit,
+//   isDigitStart,
+//   isMoveCommand,
+//   isNormalizedArray,
+//   isPathArray,
+//   isPathCommand,
+//   isPointInStroke,
+//   isRelativeArray,
+//   isSpace,
+//   isValidPath,
+//   iterate,
+//   lineToCubic,
+//   lineTools,
+//   midPoint,
+//   normalizePath,
+//   normalizeSegment,
+//   optimizePath,
+//   paramsCount,
+//   paramsParser,
+//   parsePathString,
+//   pathParser,
+//   pathToAbsolute,
+//   pathToCurve,
+//   pathToRelative,
+//   pathToString,
+//   polygonTools,
+//   projection2d,
+//   quadToCubic,
+//   quadTools,
+//   relativizeSegment,
+//   reverseCurve,
+//   reversePath,
+//   rotateVector,
+//   roundPath,
+//   roundSegment,
+//   roundTo,
+//   scanFlag,
+//   scanParam,
+//   scanSegment,
+//   segmentToCubic,
+//   shapeParams,
+//   shapeToPath,
+//   shapeToPathArray,
+//   shortenSegment,
+//   skipSpaces,
+//   splitCubic,
+//   splitPath,
+//   transformPath,
+// };
+
+export { default as CSSMatrix} from "@thednp/dommatrix";
+export { default as pathToAbsolute} from "./convert/pathToAbsolute";
+export { default as pathToRelative} from "./convert/pathToRelative";
+export { default as pathToCurve} from "./convert/pathToCurve";
+export { default as pathToString} from "./convert/pathToString";
+
+export { default as error} from "./parser/error";
+export { default as parsePathString} from "./parser/parsePathString";
+export { default as finalizeSegment} from "./parser/finalizeSegment";
+export { default as invalidPathValue} from "./parser/invalidPathValue";
+export { default as isArcCommand} from "./parser/isArcCommand";
+export { default as isDigit} from "./parser/isDigit";
+export { default as isDigitStart} from "./parser/isDigitStart";
+export { default as isMoveCommand} from "./parser/isMoveCommand";
+export { default as isPathCommand} from "./parser/isPathCommand";
+export { default as isSpace} from "./parser/isSpace";
+export { default as paramsCount} from "./parser/paramsCount";
+export { default as paramsParser} from "./parser/paramsParser";
+export { default as pathParser} from "./parser/pathParser";
+export { default as scanFlag} from "./parser/scanFlag";
+export { default as scanParam} from "./parser/scanParam";
+export { default as scanSegment} from "./parser/scanSegment";
+export { default as skipSpaces} from "./parser/skipSpaces";
+export { default as getPathBBox} from "./util/getPathBBox";
+export { default as getTotalLength} from "./util/getTotalLength";
+export { default as distanceEpsilon} from "./util/distanceEpsilon";
+export { default as getClosestPoint} from "./util/getClosestPoint";
+export { default as getDrawDirection} from "./util/getDrawDirection";
+export { default as getPathArea} from "./util/getPathArea";
+export { default as getPointAtLength} from "./util/getPointAtLength";
+export { default as getPropertiesAtLength} from "./util/getPropertiesAtLength";
+export { default as getPropertiesAtPoint} from "./util/getPropertiesAtPoint";
+export { default as getSegmentAtLength} from "./util/getSegmentAtLength";
+export { default as getSegmentOfPoint} from "./util/getSegmentOfPoint";
+export { default as isAbsoluteArray} from "./util/isAbsoluteArray";
+export { default as isCurveArray} from "./util/isCurveArray";
+export { default as isNormalizedArray} from "./util/isNormalizedArray";
+export { default as isPathArray} from "./util/isPathArray";
+export { default as isPointInStroke} from "./util/isPointInStroke";
+export { default as isRelativeArray} from "./util/isRelativeArray";
+export { default as isValidPath} from "./util/isValidPath";
+export { default as shapeParams} from "./util/shapeParams";
+export { default as shapeToPath} from "./util/shapeToPath";
+export { default as shapeToPathArray} from "./util/shapeToPathArray";
+export { default as normalizePath} from "./process/normalizePath";
+export { default as optimizePath} from "./process/optimizePath";
+export { default as reversePath} from "./process/reversePath";
+export { default as splitPath} from "./process/splitPath";
+export { default as transformPath} from "./process/transformPath";
+export { default as absolutizeSegment} from "./process/absolutizeSegment";
+export { default as arcToCubic} from "./process/arcToCubic";
+export { default as getSVGMatrix} from "./process/getSVGMatrix";
+export { default as iterate} from "./process/iterate";
+export { default as lineToCubic} from "./process/lineToCubic";
+export { default as normalizeSegment} from "./process/normalizeSegment";
+export { default as projection2d} from "./process/projection2d";
+export { default as quadToCubic} from "./process/quadToCubic";
+export { default as relativizeSegment} from "./process/relativizeSegment";
+export { default as reverseCurve} from "./process/reverseCurve";
+export { default as roundPath} from "./process/roundPath";
+export {default as roundSegment} from "./process/roundSegment";
+export { default as segmentToCubic} from "./process/segmentToCubic";
+export {default as shortenSegment } from "./process/shortenSegment";
+export { default as splitCubic} from "./process/splitCubic";
 
 export default SVGPathCommander;
  
