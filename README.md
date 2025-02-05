@@ -6,7 +6,7 @@
 [![jsDeliver](https://img.shields.io/jsdelivr/npm/hw/svg-path-commander)](https://www.jsdelivr.com/package/npm/svg-path-commander)
 [![typescript version](https://img.shields.io/badge/typescript-5.7.3-brightgreen)](https://www.typescriptlang.org/)
 [![vitest version](https://img.shields.io/badge/vitest-3.0.5-brightgreen)](https://vitest.dev/)
-[![vite version](https://img.shields.io/badge/vite-6.0.11-brightgreen)](https://vitejs.dev/)
+[![vite version](https://img.shields.io/badge/vite-6.1.0-brightgreen)](https://vitejs.dev/)
 
 ![image](./docs/assets/SVGPathCommander.svg)
 

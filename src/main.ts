@@ -106,7 +106,7 @@ class SVGPathCommander {
 
     if (undefPath || !pathValue.length) {
       throw TypeError(
-        `${error}: "pathValue" is ${undefPath ? "undefined" : "empty"}`
+        `${error}: "pathValue" is ${undefPath ? "undefined" : "empty"}`,
       );
     }
 
@@ -226,11 +226,11 @@ class SVGPathCommander {
 
     const absoluteMultiPath = subPath
       ? subPath.map((x, i) => {
-          if (onlySubpath) {
-            return i ? reversePath(x) : x.slice(0);
-          }
-          return reversePath(x);
-        })
+        if (onlySubpath) {
+          return i ? reversePath(x) : x.slice(0);
+        }
+        return reversePath(x);
+      })
       : segments.slice(0);
 
     let path = [] as unknown as PathArray;
