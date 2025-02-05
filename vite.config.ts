@@ -26,15 +26,15 @@ export default defineConfig({
     emptyOutDir: false,
     outDir: 'dist',
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: resolve(__dirname, 'src/main.ts'),
       name: NAME,
       formats: ['iife'],
       fileName: (format: string) => fileName[format],
-      
+
     },
     sourcemap: true,
     reportCompressedSize: true,
-    
+
   },
   esbuild: {
     legalComments: 'none',
