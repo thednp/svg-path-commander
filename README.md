@@ -267,6 +267,7 @@ For developer guidelines, and a complete list of static methods, head over to th
 * Eric Eastwood for his excelent [svg-curve-lib](https://github.com/MadLittleMods/svg-curve-lib)
 * PhET Interactive Simulations for their [kite](https://github.com/phetsims/kite)
 * [herrstrietzel](https://github.com/herrstrietzel) for his awesome [svg-pathdata-getbbox](https://github.com/herrstrietzel/svg-pathdata-getbbox)
+* a special thanks goes to @vltansky for fixing tree-shaking in **SVGPathCommander**!
 
 # License
 **SVGPathCommander** is released under [MIT Licence](https://github.com/thednp/svg-path-commander/blob/master/LICENSE).
