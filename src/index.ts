@@ -598,77 +598,152 @@ class SVGPathCommander {
 
 export default SVGPathCommander;
 
-// export {
-//   absolutizeSegment,
-//   arcToCubic,
-//   arcTools,
-//   bezierTools,
-//   CSSMatrix,
-//   cubicTools,
-//   distanceEpsilon,
-//   distanceSquareRoot,
-//   finalizeSegment,
-//   getClosestPoint,
-//   getDrawDirection,
-//   getPathArea,
-//   getPathBBox,
-//   getPointAtLength,
-//   getPropertiesAtLength,
-//   getPropertiesAtPoint,
-//   getSegmentAtLength,
-//   getSegmentOfPoint,
-//   getSVGMatrix,
-//   getTotalLength,
-//   invalidPathValue,
-//   isAbsoluteArray,
-//   isArcCommand,
-//   isCurveArray,
-//   isDigit,
-//   isDigitStart,
-//   isMoveCommand,
-//   isNormalizedArray,
-//   isPathArray,
-//   isPathCommand,
-//   isPointInStroke,
-//   isRelativeArray,
-//   isSpace,
-//   isValidPath,
-//   iterate,
-//   lineToCubic,
-//   lineTools,
-//   midPoint,
-//   normalizePath,
-//   normalizeSegment,
-//   optimizePath,
-//   paramsCount,
-//   paramsParser,
-//   parsePathString,
-//   pathParser,
-//   pathToAbsolute,
-//   pathToCurve,
-//   pathToRelative,
-//   pathToString,
-//   polygonTools,
-//   projection2d,
-//   quadToCubic,
-//   quadTools,
-//   relativizeSegment,
-//   reverseCurve,
-//   reversePath,
-//   rotateVector,
-//   roundPath,
-//   roundSegment,
-//   roundTo,
-//   scanFlag,
-//   scanParam,
-//   scanSegment,
-//   segmentToCubic,
-//   shapeParams,
-//   shapeToPath,
-//   shapeToPathArray,
-//   shortenSegment,
-//   skipSpaces,
-//   splitCubic,
-//   splitPath,
-//   transformPath,
-// };
+declare namespace SVGPathCommander {
+  export interface SVGPathCommander {
+    new (pathValue: string, config?: Partial<Options>): SVGPathCommander;
+
+    CSSMatrix: typeof CSSMatrix;
+    arcTools: typeof arcTools;
+    bezierTools: typeof bezierTools;
+    cubicTools: typeof cubicTools;
+    lineTools: typeof lineTools;
+    polygonTools: typeof polygonTools;
+    quadTools: typeof quadTools;
+    pathToAbsolute: typeof pathToAbsolute;
+    pathToCurve: typeof pathToCurve;
+    pathToRelative: typeof pathToRelative;
+    pathToString: typeof pathToString;
+    distanceSquareRoot: typeof distanceSquareRoot;
+    midPoint: typeof midPoint;
+    rotateVector: typeof rotateVector;
+    roundTo: typeof roundTo;
+    parsePathString: typeof parsePathString;
+    finalizeSegment: typeof finalizeSegment;
+    invalidPathValue: typeof invalidPathValue;
+    isArcCommand: typeof isArcCommand;
+    isCurveArray: typeof isCurveArray;
+    isPathArray: typeof isPathArray;
+    isPathCommand: typeof isPathCommand;
+    isPointInStroke: typeof isPointInStroke;
+    isValidPath: typeof isValidPath;
+    scanParam: typeof scanParam;
+    scanSegment: typeof scanSegment;
+    skipSpaces: typeof skipSpaces;
+    distanceEpsilon: typeof distanceEpsilon;
+    getClosestPoint: typeof getClosestPoint;
+    getDrawDirection: typeof getDrawDirection;
+    getPathArea: typeof getPathArea;
+    getPathBBox: typeof getPathBBox;
+    getPointAtLength: typeof getPointAtLength;
+    getPropertiesAtLength: typeof getPropertiesAtLength;
+    getPropertiesAtPoint: typeof getPropertiesAtPoint;
+    getSegmentAtLength: typeof getSegmentAtLength;
+    getSegmentOfPoint: typeof getSegmentOfPoint;
+    getTotalLength: typeof getTotalLength;
+    isAbsoluteArray: typeof isAbsoluteArray;
+    isDigit: typeof isDigit;
+    isDigitStart: typeof isDigitStart;
+    isMoveCommand: typeof isMoveCommand;
+    isNormalizedArray: typeof isNormalizedArray;
+    isRelativeArray: typeof isRelativeArray;
+    isSpace: typeof isSpace;
+    shapeParams: typeof shapeParams;
+    shapeToPath: typeof shapeToPath;
+    shapeToPathArray: typeof shapeToPathArray;
+    absolutizeSegment: typeof absolutizeSegment;
+    arcToCubic: typeof arcToCubic;
+    getSVGMatrix: typeof getSVGMatrix;
+    iterate: typeof iterate;
+    lineToCubic: typeof lineToCubic;
+    normalizePath: typeof normalizePath;
+    normalizeSegment: typeof normalizeSegment;
+    optimizePath: typeof optimizePath;
+    projection2d: typeof projection2d;
+    quadToCubic: typeof quadToCubic;
+    relativizeSegment: typeof relativizeSegment;
+    reverseCurve: typeof reverseCurve;
+    reversePath: typeof reversePath;
+    roundPath: typeof roundPath;
+    roundSegment: typeof roundSegment;
+    segmentToCubic: typeof segmentToCubic;
+    shortenSegment: typeof shortenSegment;
+    splitCubic: typeof splitCubic;
+    splitPath: typeof splitPath;
+    transformPath: typeof transformPath;
+  }
+}
+
+  // {
+    // absolutizeSegment,
+    // arcToCubic,
+    // arcTools,
+    // bezierTools,
+    // CSSMatrix,
+    // cubicTools,
+    // distanceEpsilon,
+    // distanceSquareRoot,
+    // finalizeSegment,
+    // getClosestPoint,
+    // getDrawDirection,
+    // getPathArea,
+    // getPathBBox,
+    // getPointAtLength,
+    // getPropertiesAtLength,
+    // getPropertiesAtPoint,
+    // getSegmentAtLength,
+    // getSegmentOfPoint,
+    // getSVGMatrix,
+    // getTotalLength,
+    // invalidPathValue,
+    // isAbsoluteArray,
+    // isArcCommand,
+    // isCurveArray,
+    // isDigit,
+    // isDigitStart,
+    // isMoveCommand,
+    // isNormalizedArray,
+    // isPathArray,
+    // isPathCommand,
+    // isPointInStroke,
+    // isRelativeArray,
+    // isSpace,
+    // isValidPath,
+    // iterate,
+    // lineToCubic,
+    // lineTools,
+    // midPoint,
+    // normalizePath,
+    // normalizeSegment,
+    // optimizePath,
+    // paramsCount,
+    // paramsParser,
+    // parsePathString,
+    // pathParser,
+    // pathToAbsolute,
+    // pathToCurve,
+    // pathToRelative,
+    // pathToString,
+    // polygonTools,
+    // projection2d,
+    // quadToCubic,
+    // quadTools,
+    // relativizeSegment,
+    // reverseCurve,
+    // reversePath,
+    // rotateVector,
+    // roundPath,
+    // roundSegment,
+    // roundTo,
+    // scanFlag,
+    // scanParam,
+    // scanSegment,
+    // segmentToCubic,
+    // shapeParams,
+    // shapeToPath,
+    // shapeToPathArray,
+    // shortenSegment,
+    // skipSpaces,
+    // splitCubic,
+    // splitPath,
+    // transformPath,
+  // }
