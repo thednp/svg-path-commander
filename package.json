@@ -15,11 +15,6 @@
       "types": "./dist/svg-path-commander.d.ts",
       "require": "./dist/svg-path-commander.cjs",
       "import": "./dist/svg-path-commander.mjs"
-    },
-    "./util": {
-      "types": "./dist/util/util.d.ts",
-      "require": "./dist/util/util.cjs",
-      "import": "./dist/util/util.mjs"
     }
   },
   "scripts": {
