@@ -26,27 +26,4 @@ export default defineConfig([
       options.legalComments = 'none'
     }
   },
-  // Util bundle configuration
-  {
-    entry: ['src/util.ts'],
-    format: ['esm', 'cjs'],
-    dts: true,
-    clean: true,
-    sourcemap: true,
-    minify: true,
-    splitting: false,
-    outDir: 'dist/util',
-    target: 'es2020',
-    treeshake: true,
-    globalName: 'SVGPathCommanderUtil',
-    outExtension: ({ format }) => ({
-      js: {
-        esm: '.mjs',
-        cjs: '.cjs'
-      }[format]
-    }),
-    esbuildOptions(options) {
-      options.legalComments = 'none'
-    }
-  }
 ])

@@ -44,5 +44,9 @@ const polygonLength = (polygon: PointTuple[]) => {
     return 0;
   }, 0);
 };
+const polygonTools = {
+  polygonArea,
+  polygonLength,
+};
 
-export { polygonArea, polygonLength };
+export { polygonTools, polygonArea, polygonLength };

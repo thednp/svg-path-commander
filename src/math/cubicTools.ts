@@ -133,7 +133,15 @@ const getCubicBBox = (
   ];
 };
 
+const cubicTools = {
+  getCubicBBox,
+  getCubicLength,
+  getPointAtCubicLength,
+  getPointAtCubicSegmentLength,
+}
+
 export {
+  cubicTools,
   getCubicBBox,
   getCubicLength,
   getPointAtCubicLength,

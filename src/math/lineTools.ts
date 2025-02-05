@@ -69,4 +69,15 @@ const getLineBBox = (x1: number, y1: number, x2: number, y2: number) => {
   ];
 };
 
-export { getLineBBox, getLineLength, getPointAtLineLength };
+const lineTools = {
+  getLineBBox,
+  getLineLength,
+  getPointAtLineLength,
+}
+
+export {
+  lineTools,
+  getLineBBox,
+  getLineLength,
+  getPointAtLineLength,
+};

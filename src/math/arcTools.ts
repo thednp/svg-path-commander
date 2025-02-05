@@ -427,7 +427,7 @@ const getArcBBox = (
   return [xMin, yMin, xMax, yMax] as [number, number, number, number];
 };
 
-export {
+const arcTools = {
   angleBetween,
   arcLength,
   arcPoint,
@@ -436,3 +436,14 @@ export {
   getArcProps,
   getPointAtArcLength,
 };
+
+export {
+  arcTools,
+  angleBetween,
+  arcLength,
+  arcPoint,
+  getArcBBox,
+  getArcLength,
+  getArcProps,
+  getPointAtArcLength,
+}

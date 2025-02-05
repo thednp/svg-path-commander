@@ -119,8 +119,15 @@ const getQuadBBox = (
     number,
   ];
 };
+const quadTools = {
+  getPointAtQuadLength,
+  getPointAtQuadSegmentLength,
+  getQuadBBox,
+  getQuadLength,
+}
 
 export {
+  quadTools,
   getPointAtQuadLength,
   getPointAtQuadSegmentLength,
   getQuadBBox,

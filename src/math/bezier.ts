@@ -277,8 +277,21 @@ const minmaxC = ([v1, cp1, cp2, v2]: [number, number, number, number]) => {
 
   return [min, max] as PointTuple;
 };
+const bezierTools = {
+  bezierLength,
+  calculateBezier,
+  CBEZIER_MINMAX_EPSILON,
+  computeBezier,
+  Cvalues,
+  deriveBezier,
+  getBezierLength,
+  minmaxC,
+  minmaxQ,
+  Tvalues,
+}
 
 export {
+  bezierTools,
   bezierLength,
   calculateBezier,
   CBEZIER_MINMAX_EPSILON,
