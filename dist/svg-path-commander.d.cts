@@ -1,139 +1,5 @@
 import CSSMatrix from '@thednp/dommatrix';
-
-type SegmentProperties = {
-    segment: PathSegment;
-    index: number;
-    length: number;
-    lengthAtSegment: number;
-};
-type PointProperties = {
-    closest: {
-        x: number;
-        y: number;
-    };
-    distance: number;
-    segment?: SegmentProperties;
-};
-type LineAttr = {
-    type: "line";
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-    [key: string]: string | number;
-};
-type PolyAttr = {
-    type: "polygon" | "polyline";
-    points: string;
-    [key: string]: string | number;
-};
-type CircleAttr = {
-    type: "circle";
-    cx: number;
-    cy: number;
-    r: number;
-    [key: string]: string | number;
-};
-type EllipseAttr = {
-    type: "ellipse";
-    cx: number;
-    cy: number;
-    rx: number;
-    ry?: number;
-    [key: string]: string | number | undefined;
-};
-type RectAttr = {
-    type: "rect";
-    width: number;
-    height: number;
-    x: number;
-    y: number;
-    rx?: number;
-    ry?: number;
-    [key: string]: string | number | undefined;
-};
-type GlyphAttr = {
-    type: "glyph";
-    d: string;
-    [key: string]: string | number;
-};
-type ShapeParams = {
-    line: ["x1", "y1", "x2", "y2"];
-    circle: ["cx", "cy", "r"];
-    ellipse: ["cx", "cy", "rx", "ry"];
-    rect: ["width", "height", "x", "y", "rx", "ry"];
-    polygon: ["points"];
-    polyline: ["points"];
-    glyph: ["d"];
-};
-type PathBBox = {
-    width: number;
-    height: number;
-    x: number;
-    y: number;
-    x2: number;
-    y2: number;
-    cx: number;
-    cy: number;
-    cz: number;
-};
-type SegmentLimits = {
-    min: {
-        x: number;
-        y: number;
-    };
-    max: {
-        x: number;
-        y: number;
-    };
-};
-type ParserParams = {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-    x: number;
-    y: number;
-    qx: number | null;
-    qy: number | null;
-};
-type LengthFactory = {
-    length: number;
-    point: {
-        x: number;
-        y: number;
-    };
-    min: {
-        x: number;
-        y: number;
-    };
-    max: {
-        x: number;
-        y: number;
-    };
-};
-type Options = {
-    round: "off" | number;
-    origin: number[];
-};
-type PathTransform = {
-    s: PathSegment;
-    c: string;
-    x: number;
-    y: number;
-};
-type TransformObject = {
-    translate: number | number[];
-    rotate: number | number[];
-    scale: number | number[];
-    skew: number | number[];
-    origin: number[];
-};
-type TransformProps = keyof TransformObject;
-type TransformEntries = [
-    TransformProps,
-    TransformObject[TransformProps]
-][];
+export { default as CSSMatrix } from '@thednp/dommatrix';
 
 type SpaceNumber = 0x1680 | 0x180e | 0x2000 | 0x2001 | 0x2002 | 0x2003 | 0x2004 | 0x2005 | 0x2006 | 0x2007 | 0x2008 | 0x2009 | 0x200a | 0x202f | 0x205f | 0x3000 | 0xfeff | 0x0a | 0x0d | 0x2028 | 0x2029 | 0x20 | 0x09 | 0x0b | 0x0c | 0xa0 | 0x1680;
 type PathCommandNumber = 0x6d | 0x7a | 0x6c | 0x68 | 0x76 | 0x63 | 0x73 | 0x71 | 0x74 | 0x61;
@@ -306,6 +172,141 @@ type LineCoordinates = [number, number, number, number];
 type DeriveCallback = (t: number) => Point;
 type IteratorCallback = (segment: PathSegment, index: number, lastX: number, lastY: number) => PathSegment | false | void | undefined;
 
+type SegmentProperties = {
+    segment: PathSegment;
+    index: number;
+    length: number;
+    lengthAtSegment: number;
+};
+type PointProperties = {
+    closest: {
+        x: number;
+        y: number;
+    };
+    distance: number;
+    segment?: SegmentProperties;
+};
+type LineAttr = {
+    type: "line";
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    [key: string]: string | number;
+};
+type PolyAttr = {
+    type: "polygon" | "polyline";
+    points: string;
+    [key: string]: string | number;
+};
+type CircleAttr = {
+    type: "circle";
+    cx: number;
+    cy: number;
+    r: number;
+    [key: string]: string | number;
+};
+type EllipseAttr = {
+    type: "ellipse";
+    cx: number;
+    cy: number;
+    rx: number;
+    ry?: number;
+    [key: string]: string | number | undefined;
+};
+type RectAttr = {
+    type: "rect";
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+    rx?: number;
+    ry?: number;
+    [key: string]: string | number | undefined;
+};
+type GlyphAttr = {
+    type: "glyph";
+    d: string;
+    [key: string]: string | number;
+};
+type ShapeParams = {
+    line: ["x1", "y1", "x2", "y2"];
+    circle: ["cx", "cy", "r"];
+    ellipse: ["cx", "cy", "rx", "ry"];
+    rect: ["width", "height", "x", "y", "rx", "ry"];
+    polygon: ["points"];
+    polyline: ["points"];
+    glyph: ["d"];
+};
+type PathBBox = {
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+    x2: number;
+    y2: number;
+    cx: number;
+    cy: number;
+    cz: number;
+};
+type SegmentLimits = {
+    min: {
+        x: number;
+        y: number;
+    };
+    max: {
+        x: number;
+        y: number;
+    };
+};
+type ParserParams = {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    x: number;
+    y: number;
+    qx: number | null;
+    qy: number | null;
+};
+type LengthFactory = {
+    length: number;
+    point: {
+        x: number;
+        y: number;
+    };
+    min: {
+        x: number;
+        y: number;
+    };
+    max: {
+        x: number;
+        y: number;
+    };
+};
+type Options = {
+    round: "off" | number;
+    origin: number[];
+};
+type PathTransform = {
+    s: PathSegment;
+    c: string;
+    x: number;
+    y: number;
+};
+type TransformObject = {
+    translate: number | number[];
+    rotate: number | number[];
+    scale: number | number[];
+    skew: number | number[];
+    origin: number[];
+};
+type TransformProps = keyof TransformObject;
+type TransformEntries = [
+    TransformProps,
+    TransformObject[TransformProps]
+][];
+
 /**
  * Returns the Arc segment length.
  * @param rx radius along X axis
@@ -456,18 +457,18 @@ declare const minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;
  */
 declare const minmaxC: ([v1, cp1, cp2, v2]: [number, number, number, number]) => PointTuple;
 
-declare const bezier_CBEZIER_MINMAX_EPSILON: typeof CBEZIER_MINMAX_EPSILON;
-declare const bezier_Cvalues: typeof Cvalues;
-declare const bezier_Tvalues: typeof Tvalues;
-declare const bezier_bezierLength: typeof bezierLength;
-declare const bezier_calculateBezier: typeof calculateBezier;
-declare const bezier_computeBezier: typeof computeBezier;
-declare const bezier_deriveBezier: typeof deriveBezier;
-declare const bezier_getBezierLength: typeof getBezierLength;
-declare const bezier_minmaxC: typeof minmaxC;
-declare const bezier_minmaxQ: typeof minmaxQ;
-declare namespace bezier {
-  export { bezier_CBEZIER_MINMAX_EPSILON as CBEZIER_MINMAX_EPSILON, bezier_Cvalues as Cvalues, bezier_Tvalues as Tvalues, bezier_bezierLength as bezierLength, bezier_calculateBezier as calculateBezier, bezier_computeBezier as computeBezier, bezier_deriveBezier as deriveBezier, bezier_getBezierLength as getBezierLength, bezier_minmaxC as minmaxC, bezier_minmaxQ as minmaxQ };
+declare const bezierTools_CBEZIER_MINMAX_EPSILON: typeof CBEZIER_MINMAX_EPSILON;
+declare const bezierTools_Cvalues: typeof Cvalues;
+declare const bezierTools_Tvalues: typeof Tvalues;
+declare const bezierTools_bezierLength: typeof bezierLength;
+declare const bezierTools_calculateBezier: typeof calculateBezier;
+declare const bezierTools_computeBezier: typeof computeBezier;
+declare const bezierTools_deriveBezier: typeof deriveBezier;
+declare const bezierTools_getBezierLength: typeof getBezierLength;
+declare const bezierTools_minmaxC: typeof minmaxC;
+declare const bezierTools_minmaxQ: typeof minmaxQ;
+declare namespace bezierTools {
+  export { bezierTools_CBEZIER_MINMAX_EPSILON as CBEZIER_MINMAX_EPSILON, bezierTools_Cvalues as Cvalues, bezierTools_Tvalues as Tvalues, bezierTools_bezierLength as bezierLength, bezierTools_calculateBezier as calculateBezier, bezierTools_computeBezier as computeBezier, bezierTools_deriveBezier as deriveBezier, bezierTools_getBezierLength as getBezierLength, bezierTools_minmaxC as minmaxC, bezierTools_minmaxQ as minmaxQ };
 }
 
 /**
@@ -684,6 +685,43 @@ declare namespace polygonTools {
 }
 
 /**
+ * Returns the square root of the distance
+ * between two given points.
+ *
+ * @param a the first point coordinates
+ * @param b the second point coordinates
+ * @returns the distance value
+ */
+declare const distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
+
+/**
+ * Returns the coordinates of a specified distance
+ * ratio between two points.
+ *
+ * @param a the first point coordinates
+ * @param b the second point coordinates
+ * @param t the ratio
+ * @returns the midpoint coordinates
+ */
+declare const midPoint: (a: PointTuple, b: PointTuple, t: number) => PointTuple;
+
+/**
+ * Returns an {x,y} vector rotated by a given
+ * angle in radian.
+ *
+ * @param x the initial vector x
+ * @param y the initial vector y
+ * @param rad the radian vector angle
+ * @returns the rotated vector
+ */
+declare const rotateVector: (x: number, y: number, rad: number) => {
+    x: number;
+    y: number;
+};
+
+declare const roundTo: (n: number, round: number) => number;
+
+/**
  * Parses a path string value or object and returns an array
  * of segments, all converted to absolute values.
  *
@@ -722,43 +760,6 @@ declare const pathToCurve: (pathInput: string | PathArray) => CurveArray;
  * @returns the concatenated path string
  */
 declare const pathToString: (path: PathArray, roundOption?: number | "off") => string;
-
-/**
- * Returns the square root of the distance
- * between two given points.
- *
- * @param a the first point coordinates
- * @param b the second point coordinates
- * @returns the distance value
- */
-declare const distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
-
-/**
- * Returns the coordinates of a specified distance
- * ratio between two points.
- *
- * @param a the first point coordinates
- * @param b the second point coordinates
- * @param t the ratio
- * @returns the midpoint coordinates
- */
-declare const midPoint: (a: PointTuple, b: PointTuple, t: number) => PointTuple;
-
-/**
- * Returns an {x,y} vector rotated by a given
- * angle in radian.
- *
- * @param x the initial vector x
- * @param y the initial vector y
- * @param rad the radian vector angle
- * @returns the rotated vector
- */
-declare const rotateVector: (x: number, y: number, rad: number) => {
-    x: number;
-    y: number;
-};
-
-declare const roundTo: (n: number, round: number) => number;
 
 /**
  * Parses a path string value and returns an array
@@ -895,6 +896,26 @@ declare const scanSegment: (path: PathParser) => void;
  */
 declare const skipSpaces: (path: PathParser) => void;
 
+declare const getPathBBox: (pathInput: PathArray | string) => {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    x2: number;
+    y2: number;
+    cx: number;
+    cy: number;
+    cz: number;
+};
+
+/**
+ * Returns the shape total length, or the equivalent to `shape.getTotalLength()`.
+ *
+ * @param pathInput the target `pathArray`
+ * @returns the shape total length
+ */
+declare const getTotalLength: (pathInput: string | PathArray) => number;
+
 declare const DISTANCE_EPSILON = 0.00001;
 
 /**
@@ -932,18 +953,6 @@ declare const getDrawDirection: (path: string | PathArray) => boolean;
  * @returns the length of the cubic-bezier segment
  */
 declare const getPathArea: (path: PathArray) => number;
-
-declare const getPathBBox: (pathInput: PathArray | string) => {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    x2: number;
-    y2: number;
-    cx: number;
-    cy: number;
-    cz: number;
-};
 
 /**
  * Returns [x,y] coordinates of a point at a given length of a shape.
@@ -999,14 +1008,6 @@ declare const getSegmentOfPoint: (path: string | PathArray, point: {
     x: number;
     y: number;
 }) => SegmentProperties | undefined;
-
-/**
- * Returns the shape total length, or the equivalent to `shape.getTotalLength()`.
- *
- * @param pathInput the target `pathArray`
- * @returns the shape total length
- */
-declare const getTotalLength: (pathInput: string | PathArray) => number;
 
 /**
  * Iterates an array to check if it's a `pathArray`
@@ -1112,6 +1113,59 @@ declare const shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean, o
 declare const shapeToPathArray: (element: ShapeTypes | ShapeOps) => false | PathArray;
 
 /**
+ * Normalizes a `pathArray` object for further processing:
+ * * convert segments to absolute values
+ * * convert shorthand path commands to their non-shorthand notation
+ *
+ * @param pathInput the string to be parsed or 'pathArray'
+ * @returns the normalized `pathArray`
+ */
+declare const normalizePath: (pathInput: string | PathArray) => NormalArray;
+
+/**
+ * Optimizes a `pathArray` object:
+ * * convert segments to shorthand if possible
+ * * select shortest segments from absolute and relative `pathArray`s
+ *
+ * @param pathInput a string or `pathArray`
+ * @param roundOption the amount of decimals to round values to
+ * @returns the optimized `pathArray`
+ */
+declare const optimizePath: (pathInput: PathArray, roundOption?: number) => PathArray;
+
+/**
+ * Reverses all segments of a `pathArray` and returns a new `pathArray` instance
+ * with absolute values.
+ *
+ * @param pathInput the source `pathArray`
+ * @returns the reversed `pathArray`
+ */
+declare const reversePath: (pathInput: PathArray) => PathArray;
+
+/**
+ * Split a path into an `Array` of sub-path strings.
+ *
+ * In the process, values are converted to absolute
+ * for visual consistency.
+ *
+ * @param pathInput the source `pathArray`
+ * @return an array with all sub-path strings
+ */
+declare const splitPath: (pathInput: PathArray) => PathArray[];
+
+/**
+ * Apply a 2D / 3D transformation to a `pathArray` instance.
+ *
+ * Since *SVGElement* doesn't support 3D transformation, this function
+ * creates a 2D projection of the <path> element.
+ *
+ * @param path the `pathArray` to apply transformation
+ * @param transform the transform functions `Object`
+ * @returns the resulted `pathArray`
+ */
+declare const transformPath: (pathInput: PathArray | string, transform?: Partial<TransformObject>) => PathArray;
+
+/**
  * Returns an absolute segment of a `PathArray` object.
  *
  * @param segment the segment object
@@ -1166,16 +1220,6 @@ declare const iterate: <T extends PathArray>(path: PathArray, iterator: Iterator
 declare const lineToCubic: (x1: number, y1: number, x2: number, y2: number) => number[];
 
 /**
- * Normalizes a `pathArray` object for further processing:
- * * convert segments to absolute values
- * * convert shorthand path commands to their non-shorthand notation
- *
- * @param pathInput the string to be parsed or 'pathArray'
- * @returns the normalized `pathArray`
- */
-declare const normalizePath: (pathInput: string | PathArray) => NormalArray;
-
-/**
  * Normalizes a single segment of a `pathArray` object.
  *
  * @param segment the segment object
@@ -1183,17 +1227,6 @@ declare const normalizePath: (pathInput: string | PathArray) => NormalArray;
  * @returns the normalized segment
  */
 declare const normalizeSegment: (segment: PathSegment, params: ParserParams) => NormalSegment;
-
-/**
- * Optimizes a `pathArray` object:
- * * convert segments to shorthand if possible
- * * select shortest segments from absolute and relative `pathArray`s
- *
- * @param pathInput a string or `pathArray`
- * @param roundOption the amount of decimals to round values to
- * @returns the optimized `pathArray`
- */
-declare const optimizePath: (pathInput: PathArray, roundOption?: number) => PathArray;
 
 /**
  * Returns the [x,y] projected coordinates for a given an [x,y] point
@@ -1245,15 +1278,6 @@ declare const relativizeSegment: (segment: PathSegment, index: number, lastX: nu
 declare const reverseCurve: (path: CurveArray) => CurveArray;
 
 /**
- * Reverses all segments of a `pathArray` and returns a new `pathArray` instance
- * with absolute values.
- *
- * @param pathInput the source `pathArray`
- * @returns the reversed `pathArray`
- */
-declare const reversePath: (pathInput: PathArray) => PathArray;
-
-/**
  * Rounds the values of a `pathArray` instance to
  * a specified amount of decimals and returns it.
  *
@@ -1293,102 +1317,6 @@ declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSe
  * @return two new cubic-bezier segments
  */
 declare const splitCubic: (pts: number[], ratio?: number) => [CubicSegment, CubicSegment];
-
-/**
- * Split a path into an `Array` of sub-path strings.
- *
- * In the process, values are converted to absolute
- * for visual consistency.
- *
- * @param pathInput the source `pathArray`
- * @return an array with all sub-path strings
- */
-declare const splitPath: (pathInput: PathArray) => PathArray[];
-
-/**
- * Apply a 2D / 3D transformation to a `pathArray` instance.
- *
- * Since *SVGElement* doesn't support 3D transformation, this function
- * creates a 2D projection of the <path> element.
- *
- * @param path the `pathArray` to apply transformation
- * @param transform the transform functions `Object`
- * @returns the resulted `pathArray`
- */
-declare const transformPath: (pathInput: PathArray | string, transform?: Partial<TransformObject>) => PathArray;
-
-declare const util_CSSMatrix: typeof CSSMatrix;
-declare const util_absolutizeSegment: typeof absolutizeSegment;
-declare const util_arcToCubic: typeof arcToCubic;
-declare const util_arcTools: typeof arcTools;
-declare const util_cubicTools: typeof cubicTools;
-declare const util_distanceSquareRoot: typeof distanceSquareRoot;
-declare const util_finalizeSegment: typeof finalizeSegment;
-declare const util_getClosestPoint: typeof getClosestPoint;
-declare const util_getDrawDirection: typeof getDrawDirection;
-declare const util_getPathArea: typeof getPathArea;
-declare const util_getPathBBox: typeof getPathBBox;
-declare const util_getPointAtLength: typeof getPointAtLength;
-declare const util_getPropertiesAtLength: typeof getPropertiesAtLength;
-declare const util_getPropertiesAtPoint: typeof getPropertiesAtPoint;
-declare const util_getSVGMatrix: typeof getSVGMatrix;
-declare const util_getSegmentAtLength: typeof getSegmentAtLength;
-declare const util_getSegmentOfPoint: typeof getSegmentOfPoint;
-declare const util_getTotalLength: typeof getTotalLength;
-declare const util_invalidPathValue: typeof invalidPathValue;
-declare const util_isAbsoluteArray: typeof isAbsoluteArray;
-declare const util_isArcCommand: typeof isArcCommand;
-declare const util_isCurveArray: typeof isCurveArray;
-declare const util_isDigit: typeof isDigit;
-declare const util_isDigitStart: typeof isDigitStart;
-declare const util_isMoveCommand: typeof isMoveCommand;
-declare const util_isNormalizedArray: typeof isNormalizedArray;
-declare const util_isPathArray: typeof isPathArray;
-declare const util_isPathCommand: typeof isPathCommand;
-declare const util_isPointInStroke: typeof isPointInStroke;
-declare const util_isRelativeArray: typeof isRelativeArray;
-declare const util_isSpace: typeof isSpace;
-declare const util_isValidPath: typeof isValidPath;
-declare const util_iterate: typeof iterate;
-declare const util_lineToCubic: typeof lineToCubic;
-declare const util_lineTools: typeof lineTools;
-declare const util_midPoint: typeof midPoint;
-declare const util_normalizePath: typeof normalizePath;
-declare const util_normalizeSegment: typeof normalizeSegment;
-declare const util_optimizePath: typeof optimizePath;
-declare const util_paramsCount: typeof paramsCount;
-declare const util_paramsParser: typeof paramsParser;
-declare const util_parsePathString: typeof parsePathString;
-declare const util_pathToAbsolute: typeof pathToAbsolute;
-declare const util_pathToCurve: typeof pathToCurve;
-declare const util_pathToRelative: typeof pathToRelative;
-declare const util_pathToString: typeof pathToString;
-declare const util_polygonTools: typeof polygonTools;
-declare const util_projection2d: typeof projection2d;
-declare const util_quadToCubic: typeof quadToCubic;
-declare const util_quadTools: typeof quadTools;
-declare const util_relativizeSegment: typeof relativizeSegment;
-declare const util_reverseCurve: typeof reverseCurve;
-declare const util_reversePath: typeof reversePath;
-declare const util_rotateVector: typeof rotateVector;
-declare const util_roundPath: typeof roundPath;
-declare const util_roundSegment: typeof roundSegment;
-declare const util_roundTo: typeof roundTo;
-declare const util_scanFlag: typeof scanFlag;
-declare const util_scanParam: typeof scanParam;
-declare const util_scanSegment: typeof scanSegment;
-declare const util_segmentToCubic: typeof segmentToCubic;
-declare const util_shapeParams: typeof shapeParams;
-declare const util_shapeToPath: typeof shapeToPath;
-declare const util_shapeToPathArray: typeof shapeToPathArray;
-declare const util_shortenSegment: typeof shortenSegment;
-declare const util_skipSpaces: typeof skipSpaces;
-declare const util_splitCubic: typeof splitCubic;
-declare const util_splitPath: typeof splitPath;
-declare const util_transformPath: typeof transformPath;
-declare namespace util {
-  export { util_CSSMatrix as CSSMatrix, util_absolutizeSegment as absolutizeSegment, util_arcToCubic as arcToCubic, util_arcTools as arcTools, bezier as bezierTools, util_cubicTools as cubicTools, DISTANCE_EPSILON as distanceEpsilon, util_distanceSquareRoot as distanceSquareRoot, util_finalizeSegment as finalizeSegment, util_getClosestPoint as getClosestPoint, util_getDrawDirection as getDrawDirection, util_getPathArea as getPathArea, util_getPathBBox as getPathBBox, util_getPointAtLength as getPointAtLength, util_getPropertiesAtLength as getPropertiesAtLength, util_getPropertiesAtPoint as getPropertiesAtPoint, util_getSVGMatrix as getSVGMatrix, util_getSegmentAtLength as getSegmentAtLength, util_getSegmentOfPoint as getSegmentOfPoint, util_getTotalLength as getTotalLength, util_invalidPathValue as invalidPathValue, util_isAbsoluteArray as isAbsoluteArray, util_isArcCommand as isArcCommand, util_isCurveArray as isCurveArray, util_isDigit as isDigit, util_isDigitStart as isDigitStart, util_isMoveCommand as isMoveCommand, util_isNormalizedArray as isNormalizedArray, util_isPathArray as isPathArray, util_isPathCommand as isPathCommand, util_isPointInStroke as isPointInStroke, util_isRelativeArray as isRelativeArray, util_isSpace as isSpace, util_isValidPath as isValidPath, util_iterate as iterate, util_lineToCubic as lineToCubic, util_lineTools as lineTools, util_midPoint as midPoint, util_normalizePath as normalizePath, util_normalizeSegment as normalizeSegment, util_optimizePath as optimizePath, util_paramsCount as paramsCount, util_paramsParser as paramsParser, util_parsePathString as parsePathString, PathParser as pathParser, util_pathToAbsolute as pathToAbsolute, util_pathToCurve as pathToCurve, util_pathToRelative as pathToRelative, util_pathToString as pathToString, util_polygonTools as polygonTools, util_projection2d as projection2d, util_quadToCubic as quadToCubic, util_quadTools as quadTools, util_relativizeSegment as relativizeSegment, util_reverseCurve as reverseCurve, util_reversePath as reversePath, util_rotateVector as rotateVector, util_roundPath as roundPath, util_roundSegment as roundSegment, util_roundTo as roundTo, util_scanFlag as scanFlag, util_scanParam as scanParam, util_scanSegment as scanSegment, util_segmentToCubic as segmentToCubic, util_shapeParams as shapeParams, util_shapeToPath as shapeToPath, util_shapeToPathArray as shapeToPathArray, util_shortenSegment as shortenSegment, util_skipSpaces as skipSpaces, util_splitCubic as splitCubic, util_splitPath as splitPath, util_transformPath as transformPath };
-}
 
 /**
  * Creates a new SVGPathCommander instance with the following properties:
@@ -1537,7 +1465,118 @@ declare class SVGPathCommander {
      * @return void
      */
     dispose(): void;
+    static get CSSMatrix(): typeof CSSMatrix;
+    static get arcTools(): typeof arcTools;
+    static get bezierTools(): typeof bezierTools;
+    static get cubicTools(): typeof cubicTools;
+    static get lineTools(): typeof lineTools;
+    static get polygonTools(): typeof polygonTools;
+    static get quadTools(): typeof quadTools;
+    static get pathToAbsolute(): (pathInput: string | PathArray) => AbsoluteArray;
+    static get pathToRelative(): (pathInput: string | PathArray) => RelativeArray;
+    static get pathToCurve(): (pathInput: string | PathArray) => CurveArray;
+    static get pathToString(): (path: PathArray, roundOption?: number | "off") => string;
+    static get distanceSquareRoot(): (a: PointTuple, b: PointTuple) => number;
+    static get midPoint(): (a: PointTuple, b: PointTuple, t: number) => PointTuple;
+    static get rotateVector(): (x: number, y: number, rad: number) => {
+        x: number;
+        y: number;
+    };
+    static get roundTo(): (n: number, round: number) => number;
+    static get parsePathString(): <T extends PathArray>(pathInput: string | T) => PathArray;
+    static get finalizeSegment(): (path: PathParser) => void;
+    static get invalidPathValue(): string;
+    static get isArcCommand(): (code: number) => code is 97;
+    static get isDigit(): (code: number) => code is DigitNumber;
+    static get isDigitStart(): (code: number) => code is DigitNumber | 43 | 45 | 46;
+    static get isMoveCommand(): (code: number) => code is 109 | 77;
+    static get isPathCommand(): (code: number) => code is PathCommandNumber;
+    static get isSpace(): (ch: number) => ch is SpaceNumber;
+    static get paramsCount(): {
+        a: number;
+        c: number;
+        h: number;
+        l: number;
+        m: number;
+        r: number;
+        q: number;
+        s: number;
+        t: number;
+        v: number;
+        z: number;
+    };
+    static get paramsParser(): ParserParams;
+    static get pathParser(): typeof PathParser;
+    static get scanFlag(): (path: PathParser) => void;
+    static get scanParam(): (path: PathParser) => void;
+    static get scanSegment(): (path: PathParser) => void;
+    static get skipSpaces(): (path: PathParser) => void;
+    static get distanceEpsilon(): number;
+    static get getClosestPoint(): (pathInput: string | PathArray, point: {
+        x: number;
+        y: number;
+    }) => {
+        x: number;
+        y: number;
+    };
+    static get getDrawDirection(): (path: string | PathArray) => boolean;
+    static get getPathArea(): (path: PathArray) => number;
+    static get getPathBBox(): (pathInput: PathArray | string) => {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        x2: number;
+        y2: number;
+        cx: number;
+        cy: number;
+        cz: number;
+    };
+    static get getPointAtLength(): (pathInput: string | PathArray, distance?: number) => {
+        x: number;
+        y: number;
+    };
+    static get getPropertiesAtLength(): (pathInput: string | PathArray, distance?: number) => SegmentProperties;
+    static get getPropertiesAtPoint(): (pathInput: string | PathArray, point: Point) => PointProperties;
+    static get getSegmentAtLength(): (pathInput: string | PathArray, distance?: number) => PathSegment | undefined;
+    static get getSegmentOfPoint(): (path: string | PathArray, point: {
+        x: number;
+        y: number;
+    }) => SegmentProperties | undefined;
+    static get getTotalLength(): (pathInput: string | PathArray) => number;
+    static get isAbsoluteArray(): (path: unknown) => path is AbsoluteArray;
+    static get isCurveArray(): (path: unknown) => path is CurveArray;
+    static get isNormalizedArray(): (path: unknown) => path is NormalArray;
+    static get isPathArray(): (path: unknown) => path is PathArray;
+    static get isPointInStroke(): (pathInput: string | PathArray, point: {
+        x: number;
+        y: number;
+    }) => boolean;
+    static get isRelativeArray(): (path: unknown) => path is RelativeArray;
+    static get isValidPath(): (pathString: string) => boolean;
+    static get shapeParams(): ShapeParams;
+    static get shapeToPath(): (element: ShapeTypes | ShapeOps, replace?: boolean, ownerDocument?: Document) => SVGPathElement | false;
+    static get shapeToPathArray(): (element: ShapeTypes | ShapeOps) => false | PathArray;
+    static get absolutizeSegment(): (segment: PathSegment, index: number, lastX: number, lastY: number) => AbsoluteSegment;
+    static get arcToCubic(): (X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, recursive?: [number, number, number, number]) => number[];
+    static get getSVGMatrix(): (transform: TransformObjectValues) => CSSMatrix;
+    static get iterate(): <T extends PathArray>(path: PathArray, iterator: IteratorCallback) => T;
+    static get lineToCubic(): (x1: number, y1: number, x2: number, y2: number) => number[];
+    static get normalizePath(): (pathInput: string | PathArray) => NormalArray;
+    static get normalizeSegment(): (segment: PathSegment, params: ParserParams) => NormalSegment;
+    static get optimizePath(): (pathInput: PathArray, roundOption?: number) => PathArray;
+    static get projection2d(): (m: CSSMatrix, point2D: PointTuple, origin: [number, number, number]) => PointTuple;
+    static get quadToCubic(): (x1: number, y1: number, qx: number, qy: number, x2: number, y2: number) => [number, number, number, number, number, number];
+    static get relativizeSegment(): (segment: PathSegment, index: number, lastX: number, lastY: number) => MSegment | RelativeSegment;
+    static get reverseCurve(): (path: CurveArray) => CurveArray;
+    static get reversePath(): (pathInput: PathArray) => PathArray;
+    static get roundPath(): (path: PathArray, roundOption?: number | "off") => PathArray;
+    static get roundSegment(): <T extends PathSegment>(segment: T, roundOption: number) => T;
+    static get segmentToCubic(): (segment: PathSegment, params: ParserParams) => MSegment | CSegment;
+    static get shortenSegment(): (segment: AbsoluteSegment, normalSegment: NormalSegment, params: ParserParams, prevCommand: PathCommand) => ShortSegment;
+    static get splitCubic(): (pts: number[], ratio?: number) => [CubicSegment, CubicSegment];
+    static get splitPath(): (pathInput: PathArray) => PathArray[];
+    static get transformPath(): (pathInput: PathArray | string, transform?: Partial<TransformObject>) => PathArray;
 }
-declare const defaultExport: typeof SVGPathCommander & typeof util;
 
-export { type ACommand, type ASegment, type AbsoluteArray, type AbsoluteCommand, type AbsoluteSegment, type ArcCoordinates, type ArcSegment, type CCommand, type CSegment, type CircleAttr, type CloseSegment, type CubicCoordinates, type CubicPoints, type CubicSegment, type CurveArray, type DeriveCallback, type DerivedCubicPoints, type DerivedPoint, type DerivedQuadPoints, type DigitNumber, type EllipseAttr, type GlyphAttr, type HCommand, type HSegment, type HorLineSegment, type IteratorCallback, type LCommand, type LSegment, type LengthFactory, type LineAttr, type LineCoordinates, type LineSegment, type MCommand, type MSegment, type MoveSegment, type NormalArray, type NormalSegment, type Options, type ParserParams, type PathArray, type PathBBox, type PathCommand, type PathCommandNumber, type PathSegment, type PathTransform, type Point, type PointProperties, type PointTuple, type PolyAttr, type PolygonArray, type PolylineArray, type QCommand, type QSegment, type QuadCoordinates, type QuadPoints, type QuadSegment, type RectAttr, type RelativeArray, type RelativeCommand, type RelativeSegment, type SCommand, type SSegment, type SegmentLimits, type SegmentProperties, type ShapeOps, type ShapeParams, type ShapeTags, type ShapeTypes, type ShortCubicSegment, type ShortQuadSegment, type ShortSegment, type SpaceNumber, type TCommand, type TSegment, type TransformEntries, type TransformObject, type TransformObjectValues, type TransformProps, type VCommand, type VSegment, type VertLineSegment, type ZCommand, type ZSegment, type aCommand, type aSegment, type cCommand, type cSegment, defaultExport as default, type hCommand, type hSegment, type lCommand, type lSegment, type mCommand, type mSegment, type qCommand, type qSegment, type sCommand, type sSegment, type tCommand, type tSegment, type vCommand, type vSegment, type zCommand, type zSegment };
+export { type ACommand, type ASegment, type AbsoluteArray, type AbsoluteCommand, type AbsoluteSegment, type ArcCoordinates, type ArcSegment, type CCommand, type CSegment, type CircleAttr, type CloseSegment, type CubicCoordinates, type CubicPoints, type CubicSegment, type CurveArray, type DeriveCallback, type DerivedCubicPoints, type DerivedPoint, type DerivedQuadPoints, type DigitNumber, type EllipseAttr, type GlyphAttr, type HCommand, type HSegment, type HorLineSegment, type IteratorCallback, type LCommand, type LSegment, type LengthFactory, type LineAttr, type LineCoordinates, type LineSegment, type MCommand, type MSegment, type MoveSegment, type NormalArray, type NormalSegment, type Options, type ParserParams, type PathArray, type PathBBox, type PathCommand, type PathCommandNumber, type PathSegment, type PathTransform, type Point, type PointProperties, type PointTuple, type PolyAttr, type PolygonArray, type PolylineArray, type QCommand, type QSegment, type QuadCoordinates, type QuadPoints, type QuadSegment, type RectAttr, type RelativeArray, type RelativeCommand, type RelativeSegment, type SCommand, type SSegment, type SegmentLimits, type SegmentProperties, type ShapeOps, type ShapeParams, type ShapeTags, type ShapeTypes, type ShortCubicSegment, type ShortQuadSegment, type ShortSegment, type SpaceNumber, type TCommand, type TSegment, type TransformEntries, type TransformObject, type TransformObjectValues, type TransformProps, type VCommand, type VSegment, type VertLineSegment, type ZCommand, type ZSegment, type aCommand, type aSegment, absolutizeSegment, arcToCubic, arcTools, bezierTools, type cCommand, type cSegment, cubicTools, SVGPathCommander as default, DISTANCE_EPSILON as distanceEpsilon, distanceSquareRoot, finalizeSegment, getClosestPoint, getDrawDirection, getPathArea, getPathBBox, getPointAtLength, getPropertiesAtLength, getPropertiesAtPoint, getSVGMatrix, getSegmentAtLength, getSegmentOfPoint, getTotalLength, type hCommand, type hSegment, invalidPathValue, isAbsoluteArray, isArcCommand, isCurveArray, isDigit, isDigitStart, isMoveCommand, isNormalizedArray, isPathArray, isPathCommand, isPointInStroke, isRelativeArray, isSpace, isValidPath, iterate, type lCommand, type lSegment, lineToCubic, lineTools, type mCommand, type mSegment, midPoint, normalizePath, normalizeSegment, optimizePath, paramsCount, paramsParser, parsePathString, PathParser as pathParser, pathToAbsolute, pathToCurve, pathToRelative, pathToString, polygonTools, projection2d, type qCommand, type qSegment, quadToCubic, quadTools, relativizeSegment, reverseCurve, reversePath, rotateVector, roundPath, roundSegment, roundTo, type sCommand, type sSegment, scanFlag, scanParam, scanSegment, segmentToCubic, shapeParams, shapeToPath, shapeToPathArray, shortenSegment, skipSpaces, splitCubic, splitPath, type tCommand, type tSegment, transformPath, type vCommand, type vSegment, type zCommand, type zSegment };
