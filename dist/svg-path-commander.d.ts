@@ -801,6 +801,8 @@ declare const pathToCurve: (pathInput: string | PathArray) => CurveArray;
  */
 declare const pathToString: (path: PathArray, roundOption?: number | "off") => string;
 
+declare const error = "SVGPathCommander Error";
+
 /**
  * Parses a path string value and returns an array
  * of segments we like to call `pathArray`.
