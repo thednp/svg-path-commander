@@ -377,373 +377,299 @@ class SVGPathCommander {
     Object.keys(this).forEach((key) => delete this[key as keyof typeof this]);
   }
 
-  static get CSSMatrix() {
-    return CSSMatrix;
-  }
-  static get arcTools() {
-    return arcTools;
-  }
-  static get bezierTools() {
-    return bezierTools;
-  }
+  // static get CSSMatrix() {
+  //   return CSSMatrix;
+  // }
+  // static get arcTools() {
+  //   return arcTools;
+  // }
+  // static get bezierTools() {
+  //   return bezierTools;
+  // }
 
-  static get cubicTools() {
-    return cubicTools;
-  }
-  static get lineTools() {
-    return lineTools;
-  }
-  static get polygonTools() {
-    return polygonTools;
-  }
-  static get quadTools() {
-    return quadTools;
-  }
-  static get pathToAbsolute() {
-    return pathToAbsolute;
-  }
-  static get pathToRelative() {
-    return pathToRelative;
-  }
-  static get pathToCurve() {
-    return pathToCurve;
-  }
-  static get pathToString() {
-    return pathToString;
-  }
-  static get distanceSquareRoot() {
-    return distanceSquareRoot;
-  }
-  static get midPoint() {
-    return midPoint;
-  }
-  static get rotateVector() {
-    return rotateVector;
-  }
-  static get roundTo() {
-    return roundTo;
-  }
-  static get parsePathString() {
-    return parsePathString;
-  }
-  static get finalizeSegment() {
-    return finalizeSegment;
-  }
-  static get invalidPathValue() {
-    return invalidPathValue;
-  }
-  static get isArcCommand() {
-    return isArcCommand;
-  }
-  static get isDigit() {
-    return isDigit;
-  }
-  static get isDigitStart() {
-    return isDigitStart;
-  }
-  static get isMoveCommand() {
-    return isMoveCommand;
-  }
-  static get isPathCommand() {
-    return isPathCommand;
-  }
-  static get isSpace() {
-    return isSpace;
-  }
-  static get paramsCount() {
-    return paramsCount;
-  }
-  static get paramsParser() {
-    return paramsParser;
-  }
-  static get pathParser() {
-    return pathParser;
-  }
-  static get scanFlag() {
-    return scanFlag;
-  }
-  static get scanParam() {
-    return scanParam;
-  }
-  static get scanSegment() {
-    return scanSegment;
-  }
-  static get skipSpaces() {
-    return skipSpaces;
-  }
-  static get distanceEpsilon() {
-    return distanceEpsilon;
-  }
-  static get getClosestPoint() {
-    return getClosestPoint;
-  }
-  static get getDrawDirection() {
-    return getDrawDirection;
-  }
-  static get getPathArea() {
-    return getPathArea;
-  }
-  static get getPathBBox() {
-    return getPathBBox;
-  }
-  static get getPointAtLength() {
-    return getPointAtLength;
-  }
-  static get getPropertiesAtLength() {
-    return getPropertiesAtLength;
-  }
-  static get getPropertiesAtPoint() {
-    return getPropertiesAtPoint;
-  }
-  static get getSegmentAtLength() {
-    return getSegmentAtLength;
-  }
-  static get getSegmentOfPoint() {
-    return getSegmentOfPoint;
-  }
-  static get getTotalLength() {
-    return getTotalLength;
-  }
-  static get isAbsoluteArray() {
-    return isAbsoluteArray;
-  }
-  static get isCurveArray() {
-    return isCurveArray;
-  }
-  static get isNormalizedArray() {
-    return isNormalizedArray;
-  }
-  static get isPathArray() {
-    return isPathArray;
-  }
-  static get isPointInStroke() {
-    return isPointInStroke;
-  }
-  static get isRelativeArray() {
-    return isRelativeArray;
-  }
-  static get isValidPath() {
-    return isValidPath;
-  }
-  static get shapeParams() {
-    return shapeParams;
-  }
-  static get shapeToPath() {
-    return shapeToPath;
-  }
-  static get shapeToPathArray() {
-    return shapeToPathArray;
-  }
-  static get absolutizeSegment() {
-    return absolutizeSegment;
-  }
-  static get arcToCubic() {
-    return arcToCubic;
-  }
-  static get getSVGMatrix() {
-    return getSVGMatrix;
-  }
-  static get iterate() {
-    return iterate;
-  }
-  static get lineToCubic() {
-    return lineToCubic;
-  }
-  static get normalizePath() {
-    return normalizePath;
-  }
-  static get normalizeSegment() {
-    return normalizeSegment;
-  }
-  static get optimizePath() {
-    return optimizePath;
-  }
-  static get projection2d() {
-    return projection2d;
-  }
-  static get quadToCubic() {
-    return quadToCubic;
-  }
-  static get relativizeSegment() {
-    return relativizeSegment;
-  }
-  static get reverseCurve() {
-    return reverseCurve;
-  }
-  static get reversePath() {
-    return reversePath;
-  }
-  static get roundPath() {
-    return roundPath;
-  }
-  static get roundSegment() {
-    return roundSegment;
-  }
-  static get segmentToCubic() {
-    return segmentToCubic;
-  }
-  static get shortenSegment() {
-    return shortenSegment;
-  }
-  static get splitCubic() {
-    return splitCubic;
-  }
-  static get splitPath() {
-    return splitPath;
-  }
-  static get transformPath() {
-    return transformPath;
-  }
+  // static get cubicTools() {
+  //   return cubicTools;
+  // }
+  // static get lineTools() {
+  //   return lineTools;
+  // }
+  // static get polygonTools() {
+  //   return polygonTools;
+  // }
+  // static get quadTools() {
+  //   return quadTools;
+  // }
+  // static get pathToAbsolute() {
+  //   return pathToAbsolute;
+  // }
+  // static get pathToRelative() {
+  //   return pathToRelative;
+  // }
+  // static get pathToCurve() {
+  //   return pathToCurve;
+  // }
+  // static get pathToString() {
+  //   return pathToString;
+  // }
+  // static get distanceSquareRoot() {
+  //   return distanceSquareRoot;
+  // }
+  // static get midPoint() {
+  //   return midPoint;
+  // }
+  // static get rotateVector() {
+  //   return rotateVector;
+  // }
+  // static get roundTo() {
+  //   return roundTo;
+  // }
+  // static get parsePathString() {
+  //   return parsePathString;
+  // }
+  // static get finalizeSegment() {
+  //   return finalizeSegment;
+  // }
+  // static get invalidPathValue() {
+  //   return invalidPathValue;
+  // }
+  // static get isArcCommand() {
+  //   return isArcCommand;
+  // }
+  // static get isDigit() {
+  //   return isDigit;
+  // }
+  // static get isDigitStart() {
+  //   return isDigitStart;
+  // }
+  // static get isMoveCommand() {
+  //   return isMoveCommand;
+  // }
+  // static get isPathCommand() {
+  //   return isPathCommand;
+  // }
+  // static get isSpace() {
+  //   return isSpace;
+  // }
+  // static get paramsCount() {
+  //   return paramsCount;
+  // }
+  // static get paramsParser() {
+  //   return paramsParser;
+  // }
+  // static get pathParser() {
+  //   return pathParser;
+  // }
+  // static get scanFlag() {
+  //   return scanFlag;
+  // }
+  // static get scanParam() {
+  //   return scanParam;
+  // }
+  // static get scanSegment() {
+  //   return scanSegment;
+  // }
+  // static get skipSpaces() {
+  //   return skipSpaces;
+  // }
+  // static get distanceEpsilon() {
+  //   return distanceEpsilon;
+  // }
+  // static get getClosestPoint() {
+  //   return getClosestPoint;
+  // }
+  // static get getDrawDirection() {
+  //   return getDrawDirection;
+  // }
+  // static get getPathArea() {
+  //   return getPathArea;
+  // }
+  // static get getPathBBox() {
+  //   return getPathBBox;
+  // }
+  // static get getPointAtLength() {
+  //   return getPointAtLength;
+  // }
+  // static get getPropertiesAtLength() {
+  //   return getPropertiesAtLength;
+  // }
+  // static get getPropertiesAtPoint() {
+  //   return getPropertiesAtPoint;
+  // }
+  // static get getSegmentAtLength() {
+  //   return getSegmentAtLength;
+  // }
+  // static get getSegmentOfPoint() {
+  //   return getSegmentOfPoint;
+  // }
+  // static get getTotalLength() {
+  //   return getTotalLength;
+  // }
+  // static get isAbsoluteArray() {
+  //   return isAbsoluteArray;
+  // }
+  // static get isCurveArray() {
+  //   return isCurveArray;
+  // }
+  // static get isNormalizedArray() {
+  //   return isNormalizedArray;
+  // }
+  // static get isPathArray() {
+  //   return isPathArray;
+  // }
+  // static get isPointInStroke() {
+  //   return isPointInStroke;
+  // }
+  // static get isRelativeArray() {
+  //   return isRelativeArray;
+  // }
+  // static get isValidPath() {
+  //   return isValidPath;
+  // }
+  // static get shapeParams() {
+  //   return shapeParams;
+  // }
+  // static get shapeToPath() {
+  //   return shapeToPath;
+  // }
+  // static get shapeToPathArray() {
+  //   return shapeToPathArray;
+  // }
+  // static get absolutizeSegment() {
+  //   return absolutizeSegment;
+  // }
+  // static get arcToCubic() {
+  //   return arcToCubic;
+  // }
+  // static get getSVGMatrix() {
+  //   return getSVGMatrix;
+  // }
+  // static get iterate() {
+  //   return iterate;
+  // }
+  // static get lineToCubic() {
+  //   return lineToCubic;
+  // }
+  // static get normalizePath() {
+  //   return normalizePath;
+  // }
+  // static get normalizeSegment() {
+  //   return normalizeSegment;
+  // }
+  // static get optimizePath() {
+  //   return optimizePath;
+  // }
+  // static get projection2d() {
+  //   return projection2d;
+  // }
+  // static get quadToCubic() {
+  //   return quadToCubic;
+  // }
+  // static get relativizeSegment() {
+  //   return relativizeSegment;
+  // }
+  // static get reverseCurve() {
+  //   return reverseCurve;
+  // }
+  // static get reversePath() {
+  //   return reversePath;
+  // }
+  // static get roundPath() {
+  //   return roundPath;
+  // }
+  // static get roundSegment() {
+  //   return roundSegment;
+  // }
+  // static get segmentToCubic() {
+  //   return segmentToCubic;
+  // }
+  // static get shortenSegment() {
+  //   return shortenSegment;
+  // }
+  // static get splitCubic() {
+  //   return splitCubic;
+  // }
+  // static get splitPath() {
+  //   return splitPath;
+  // }
+  // static get transformPath() {
+  //   return transformPath;
+  // }
 }
+
+export {
+  absolutizeSegment,
+  arcToCubic,
+  arcTools,
+  bezierTools,
+  CSSMatrix,
+  cubicTools,
+  distanceEpsilon,
+  distanceSquareRoot,
+  finalizeSegment,
+  getClosestPoint,
+  getDrawDirection,
+  getPathArea,
+  getPathBBox,
+  getPointAtLength,
+  getPropertiesAtLength,
+  getPropertiesAtPoint,
+  getSegmentAtLength,
+  getSegmentOfPoint,
+  getSVGMatrix,
+  getTotalLength,
+  invalidPathValue,
+  isAbsoluteArray,
+  isArcCommand,
+  isCurveArray,
+  isDigit,
+  isDigitStart,
+  isMoveCommand,
+  isNormalizedArray,
+  isPathArray,
+  isPathCommand,
+  isPointInStroke,
+  isRelativeArray,
+  isSpace,
+  isValidPath,
+  iterate,
+  lineToCubic,
+  lineTools,
+  midPoint,
+  normalizePath,
+  normalizeSegment,
+  optimizePath,
+  paramsCount,
+  paramsParser,
+  parsePathString,
+  pathParser,
+  pathToAbsolute,
+  pathToCurve,
+  pathToRelative,
+  pathToString,
+  polygonTools,
+  projection2d,
+  quadToCubic,
+  quadTools,
+  relativizeSegment,
+  reverseCurve,
+  reversePath,
+  rotateVector,
+  roundPath,
+  roundSegment,
+  roundTo,
+  scanFlag,
+  scanParam,
+  scanSegment,
+  segmentToCubic,
+  shapeParams,
+  shapeToPath,
+  shapeToPathArray,
+  shortenSegment,
+  skipSpaces,
+  splitCubic,
+  splitPath,
+  transformPath,
+};
 
 export default SVGPathCommander;
-
-declare namespace SVGPathCommander {
-  export interface SVGPathCommander {
-    new (pathValue: string, config?: Partial<Options>): SVGPathCommander;
-
-    CSSMatrix: typeof CSSMatrix;
-    arcTools: typeof arcTools;
-    bezierTools: typeof bezierTools;
-    cubicTools: typeof cubicTools;
-    lineTools: typeof lineTools;
-    polygonTools: typeof polygonTools;
-    quadTools: typeof quadTools;
-    pathToAbsolute: typeof pathToAbsolute;
-    pathToCurve: typeof pathToCurve;
-    pathToRelative: typeof pathToRelative;
-    pathToString: typeof pathToString;
-    distanceSquareRoot: typeof distanceSquareRoot;
-    midPoint: typeof midPoint;
-    rotateVector: typeof rotateVector;
-    roundTo: typeof roundTo;
-    parsePathString: typeof parsePathString;
-    finalizeSegment: typeof finalizeSegment;
-    invalidPathValue: typeof invalidPathValue;
-    isArcCommand: typeof isArcCommand;
-    isCurveArray: typeof isCurveArray;
-    isPathArray: typeof isPathArray;
-    isPathCommand: typeof isPathCommand;
-    isPointInStroke: typeof isPointInStroke;
-    isValidPath: typeof isValidPath;
-    scanParam: typeof scanParam;
-    scanSegment: typeof scanSegment;
-    skipSpaces: typeof skipSpaces;
-    distanceEpsilon: typeof distanceEpsilon;
-    getClosestPoint: typeof getClosestPoint;
-    getDrawDirection: typeof getDrawDirection;
-    getPathArea: typeof getPathArea;
-    getPathBBox: typeof getPathBBox;
-    getPointAtLength: typeof getPointAtLength;
-    getPropertiesAtLength: typeof getPropertiesAtLength;
-    getPropertiesAtPoint: typeof getPropertiesAtPoint;
-    getSegmentAtLength: typeof getSegmentAtLength;
-    getSegmentOfPoint: typeof getSegmentOfPoint;
-    getTotalLength: typeof getTotalLength;
-    isAbsoluteArray: typeof isAbsoluteArray;
-    isDigit: typeof isDigit;
-    isDigitStart: typeof isDigitStart;
-    isMoveCommand: typeof isMoveCommand;
-    isNormalizedArray: typeof isNormalizedArray;
-    isRelativeArray: typeof isRelativeArray;
-    isSpace: typeof isSpace;
-    shapeParams: typeof shapeParams;
-    shapeToPath: typeof shapeToPath;
-    shapeToPathArray: typeof shapeToPathArray;
-    absolutizeSegment: typeof absolutizeSegment;
-    arcToCubic: typeof arcToCubic;
-    getSVGMatrix: typeof getSVGMatrix;
-    iterate: typeof iterate;
-    lineToCubic: typeof lineToCubic;
-    normalizePath: typeof normalizePath;
-    normalizeSegment: typeof normalizeSegment;
-    optimizePath: typeof optimizePath;
-    projection2d: typeof projection2d;
-    quadToCubic: typeof quadToCubic;
-    relativizeSegment: typeof relativizeSegment;
-    reverseCurve: typeof reverseCurve;
-    reversePath: typeof reversePath;
-    roundPath: typeof roundPath;
-    roundSegment: typeof roundSegment;
-    segmentToCubic: typeof segmentToCubic;
-    shortenSegment: typeof shortenSegment;
-    splitCubic: typeof splitCubic;
-    splitPath: typeof splitPath;
-    transformPath: typeof transformPath;
-  }
-}
-
-  // {
-    // absolutizeSegment,
-    // arcToCubic,
-    // arcTools,
-    // bezierTools,
-    // CSSMatrix,
-    // cubicTools,
-    // distanceEpsilon,
-    // distanceSquareRoot,
-    // finalizeSegment,
-    // getClosestPoint,
-    // getDrawDirection,
-    // getPathArea,
-    // getPathBBox,
-    // getPointAtLength,
-    // getPropertiesAtLength,
-    // getPropertiesAtPoint,
-    // getSegmentAtLength,
-    // getSegmentOfPoint,
-    // getSVGMatrix,
-    // getTotalLength,
-    // invalidPathValue,
-    // isAbsoluteArray,
-    // isArcCommand,
-    // isCurveArray,
-    // isDigit,
-    // isDigitStart,
-    // isMoveCommand,
-    // isNormalizedArray,
-    // isPathArray,
-    // isPathCommand,
-    // isPointInStroke,
-    // isRelativeArray,
-    // isSpace,
-    // isValidPath,
-    // iterate,
-    // lineToCubic,
-    // lineTools,
-    // midPoint,
-    // normalizePath,
-    // normalizeSegment,
-    // optimizePath,
-    // paramsCount,
-    // paramsParser,
-    // parsePathString,
-    // pathParser,
-    // pathToAbsolute,
-    // pathToCurve,
-    // pathToRelative,
-    // pathToString,
-    // polygonTools,
-    // projection2d,
-    // quadToCubic,
-    // quadTools,
-    // relativizeSegment,
-    // reverseCurve,
-    // reversePath,
-    // rotateVector,
-    // roundPath,
-    // roundSegment,
-    // roundTo,
-    // scanFlag,
-    // scanParam,
-    // scanSegment,
-    // segmentToCubic,
-    // shapeParams,
-    // shapeToPath,
-    // shapeToPathArray,
-    // shortenSegment,
-    // skipSpaces,
-    // splitCubic,
-    // splitPath,
-    // transformPath,
-  // }
+ 
