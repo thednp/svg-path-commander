@@ -375,6 +375,9 @@ class SVGPathCommander {
     Object.keys(this).forEach((key) => delete this[key as keyof typeof this]);
   }
 
+  static get options() {
+    return defaultOptions;
+  }
   static get CSSMatrix() {
     return CSSMatrix;
   }

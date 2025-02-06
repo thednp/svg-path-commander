@@ -1,6 +1,7 @@
 "use strict";
 
 import SVGPathCommander from "./main";
+export { default as options } from "./options/options";
 
 export { default as CSSMatrix } from "@thednp/dommatrix";
 export { arcTools } from "./math/arcTools";
