@@ -4,7 +4,6 @@
   "license": "MIT",
   "version": "2.1.10",
   "description": "🛹 Modern TypeScript tools for SVG",
-  "source": "./src/index.ts",
   "browser": "./dist/svg-path-commander.js",
   "commonjs": "./dist/svg-path-commander.cjs",
   "module": "./dist/svg-path-commander.mjs",
