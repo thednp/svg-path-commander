@@ -241,7 +241,7 @@ const getArcLength = (
  * @param SF the sweep flag
  * @param x2 the ending point X
  * @param y2 the ending point Y
- * @param distance a [0-1] ratio
+ * @param distance the distance along the arc
  * @returns a point along the Arc segment
  */
 const getPointAtArcLength = (
