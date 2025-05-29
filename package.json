@@ -2,7 +2,7 @@
   "name": "svg-path-commander",
   "author": "thednp",
   "license": "MIT",
-  "version": "2.1.10",
+  "version": "2.1.11",
   "description": "🛹 Modern TypeScript tools for SVG",
   "main": "./dist/svg-path-commander.js",
   "browser": "./dist/svg-path-commander.js",
@@ -32,7 +32,7 @@
     "build": "tsup && pnpm build-iife && pnpm copy-docs",
     "build-iife": "vite build --config vite.config.ts",
     "copy-docs": "cp dist/svg-path-commander.js docs/svg-path-commander.js && cp dist/svg-path-commander.js.map docs/svg-path-commander.js.map",
-    "prepublishOnly": "pnpm update && pnpm format && pnpm lint:ts && pnpm build && pnpm badges"
+    "prepublishOnly": "pnpm update --latest && pnpm format && pnpm lint:ts && pnpm build && pnpm badges"
   },
   "repository": {
     "type": "git",
@@ -58,18 +58,18 @@
   },
   "homepage": "http://thednp.github.io/svg-path-commander",
   "devDependencies": {
-    "@types/node": "^22.13.1",
-    "@vitest/browser": "^3.0.5",
-    "@vitest/coverage-istanbul": "^3.0.5",
-    "@vitest/ui": "^3.0.5",
-    "playwright": "^1.50.1",
-    "tsup": "^8.3.6",
-    "typescript": "5.7.3",
-    "vite": "^6.1.0",
-    "vitest": "^3.0.5"
+    "@types/node": "^22.15.24",
+    "@vitest/browser": "^3.1.4",
+    "@vitest/coverage-istanbul": "^3.1.4",
+    "@vitest/ui": "^3.1.4",
+    "playwright": "^1.52.0",
+    "tsup": "^8.5.0",
+    "typescript": "5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.4"
   },
   "dependencies": {
-    "@thednp/dommatrix": "^2.0.11"
+    "@thednp/dommatrix": "^2.0.12"
   },
   "packageManager": "pnpm@8.6.12",
   "engines": {
