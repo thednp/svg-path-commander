@@ -1,18 +1,18 @@
-import paramsCount from "./paramsCount";
-import PathParser from "./pathParser";
+import { paramsCounts } from "./paramsCount";
+import { PathParser } from "./pathParser";
 import type { PathCommand, PathSegment, RelativeCommand } from "../types";
 
 /**
  * Breaks the parsing of a pathString once a segment is finalized.
  *
- * @param path the `PathParser` instance
+ * @param path - The PathParser instance
  */
-const finalizeSegment = (path: PathParser) => {
+export const finalizeSegment = (path: PathParser) => {
   let pathCommand = path.pathValue[path.segmentStart] as PathCommand;
   let relativeCommand = pathCommand.toLowerCase() as RelativeCommand;
   const { data } = path;
 
-  while (data.length >= paramsCount[relativeCommand]) {
+  while (data.length >= paramsCounts[relativeCommand]) {
     // overloaded `moveTo`
     // https://github.com/rveciana/svg-path-properties/blob/master/src/parse.ts
     if (relativeCommand === "m" && data.length > 2) {
@@ -26,14 +26,13 @@ const finalizeSegment = (path: PathParser) => {
     } else {
       path.segments.push(
         [pathCommand as PathCommand | number].concat(
-          data.splice(0, paramsCount[relativeCommand]) as number[],
+          data.splice(0, paramsCounts[relativeCommand]) as number[],
         ) as PathSegment,
       );
     }
 
-    if (!paramsCount[relativeCommand]) {
+    if (!paramsCounts[relativeCommand]) {
       break;
     }
   }
 };
-export default finalizeSegment;

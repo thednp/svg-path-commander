@@ -1,18 +1,25 @@
-import scanSegment from "./scanSegment";
-import skipSpaces from "./skipSpaces";
-import PathParser from "./pathParser";
+import { scanSegment } from "./scanSegment";
+import { skipSpaces } from "./skipSpaces";
+import { PathParser } from "./pathParser";
 import type { PathArray } from "../types";
 
 /**
  * Parses a path string value and returns an array
- * of segments we like to call `pathArray`.
+ * of segments we like to call `PathArray`.
+ *
+ * If parameter value is already a `PathArray`,
+ * return a clone of it.
+
+ * @example
+ * parsePathString("M 0 0L50 50")
+ * // => [["M",0,0],["L",50,50]]
  *
  * @param pathInput the string to be parsed
  * @returns the resulted `pathArray` or error string
  */
-const parsePathString = <T extends PathArray>(pathInput: string | T) => {
+export const parsePathString = <T extends PathArray>(pathInput: string | T) => {
   if (typeof pathInput !== "string") {
-    return pathInput.slice(0) as typeof pathInput;
+    return pathInput.slice(0) as T;
   }
 
   const path = new PathParser(pathInput);
@@ -40,5 +47,3 @@ const parsePathString = <T extends PathArray>(pathInput: string | T) => {
 
   return path.segments as PathArray;
 };
-
-export default parsePathString;

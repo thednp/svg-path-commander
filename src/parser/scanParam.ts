@@ -1,15 +1,15 @@
-import isDigit from "./isDigit";
-import invalidPathValue from "./invalidPathValue";
-import error from "./error";
-import type PathParser from "./pathParser";
+import { isDigit } from "./isDigit";
+import { invalidPathValue } from "./invalidPathValue";
+import { error } from "../util/error";
+import type { PathParser } from "./pathParser";
 
 /**
  * Validates every character of the path string,
  * every path command, negative numbers or floating point numbers.
  *
- * @param path the `PathParser` instance
+ * @param path - The PathParser instance
  */
-const scanParam = (path: PathParser) => {
+export const scanParam = (path: PathParser) => {
   const { max, pathValue, index: start } = path;
   let index = start;
   let zeroFirst = false;
@@ -108,4 +108,3 @@ const scanParam = (path: PathParser) => {
   path.index = index;
   path.param = +path.pathValue.slice(start, index);
 };
-export default scanParam;

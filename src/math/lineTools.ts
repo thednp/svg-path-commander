@@ -1,5 +1,5 @@
-import midPoint from "./midPoint";
-import distanceSquareRoot from "./distanceSquareRoot";
+import { midPoint } from "./midPoint";
+import { distanceSquareRoot } from "./distanceSquareRoot";
 
 /**
  * Returns length for line segments (MoveTo, LineTo).
@@ -55,8 +55,7 @@ const getPointAtLineLength = (
  * @param y1 the starting point Y
  * @param x2 the ending point X
  * @param y2 the ending point Y
- * @param distance the distance to point in [0-1] range
- * @returns the extrema for line segments
+ * @returns the bounding box for line segments
  */
 const getLineBBox = (x1: number, y1: number, x2: number, y2: number) => {
   const { min, max } = Math;

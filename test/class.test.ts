@@ -1,7 +1,7 @@
 import { expect, test, describe, beforeEach, vi } from 'vitest';
 import SVGPathCommander from '~/index';
-import invalidPathValue from '../src/parser/invalidPathValue';
-import error from '../src/parser/error';
+import {invalidPathValue} from '../src/parser/invalidPathValue';
+import {error} from '../src/util/error';
 
 import getMarkup from './fixtures/getMarkup';
 import shapes from './fixtures/shapes';
@@ -523,7 +523,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(SVGPathCommander.paramsCount).toBeDefined();
     expect(SVGPathCommander.shapeParams).toBeDefined();
     expect(SVGPathCommander.paramsParser).toBeDefined();
-    expect(SVGPathCommander.pathParser).toBeDefined();
+    expect(SVGPathCommander.PathParser).toBeDefined();
     expect(SVGPathCommander.shapeToPath).toBeDefined();
     expect(SVGPathCommander.shapeToPathArray).toBeDefined();
     expect(SVGPathCommander.scanFlag).toBeDefined();
@@ -552,7 +552,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(SVGPathCommander.roundSegment).toBeDefined();
     expect(SVGPathCommander.segmentToCubic).toBeDefined();
     expect(SVGPathCommander.shortenSegment).toBeDefined();
-    expect(SVGPathCommander.splitCubic).toBeDefined();
+    expect(SVGPathCommander.splitCubicSegment).toBeDefined();
     expect(SVGPathCommander.splitPath).toBeDefined();
     expect(SVGPathCommander.transformPath).toBeDefined();
 

@@ -1,6 +1,6 @@
-import defaultOptions from "../options/options";
+import { defaultOptions } from "../options/options";
 import type { ParserParams } from "../interface";
-import roundTo from "../math/roundTo";
+import { roundTo } from "../math/roundTo";
 import type {
   AbsoluteSegment,
   NormalSegment,
@@ -19,7 +19,7 @@ import type {
  * @param prevCommand the path command of the previous segment
  * @returns the shortened segment
  */
-const shortenSegment = (
+export const shortenSegment = (
   segment: AbsoluteSegment,
   normalSegment: NormalSegment,
   params: ParserParams,
@@ -84,5 +84,3 @@ const shortenSegment = (
   // ['V', 'H', 'S', 'T', 'Z'].includes(pathCommand)
   return result as ShortSegment;
 };
-
-export default shortenSegment;

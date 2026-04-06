@@ -10,7 +10,7 @@ import { type PointTuple } from "../types";
  *
  * @param cssm CSSMatrix instance
  * @param v Tuple
- * @return the resulting Tuple
+ * @returns the resulting Tuple
  */
 const translatePoint = (
   cssm: CSSMatrix,
@@ -38,7 +38,7 @@ const translatePoint = (
  * @param origin the [x,y,z] transform origin
  * @returns the projected [x,y] coordinates
  */
-const projection2d = (
+export const projection2d = (
   m: CSSMatrix,
   point2D: PointTuple,
   origin: [number, number, number],
@@ -58,4 +58,3 @@ const projection2d = (
     originY,
   ];
 };
-export default projection2d;

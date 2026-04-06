@@ -4,7 +4,7 @@
  * @param code the character to check
  * @returns check result
  */
-const isMoveCommand = (code: number): code is 0x6d | 0x4d => {
+export const isMoveCommand = (code: number): code is 0x6d | 0x4d => {
   // eslint-disable-next-line no-bitwise -- Impossible to satisfy
   switch (code | 0x20) {
     case 0x6d /* m */:
@@ -14,4 +14,3 @@ const isMoveCommand = (code: number): code is 0x6d | 0x4d => {
       return false;
   }
 };
-export default isMoveCommand;

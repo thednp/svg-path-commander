@@ -1,15 +1,25 @@
 import { expect, test, describe, beforeEach, vi } from 'vitest';
-import SVGPathCommander, { type PathArray, type CurveArray, type ShapeTypes } from '~/index';
+import SVGPathCommander, { type PathArray, type CurveArray, type ShapeTypes, PolylineArray } from '~/index';
 // import SVGPathCommanderUtil from '~/util';
-import invalidPathValue from '../src/parser/invalidPathValue';
-import error from '../src/parser/error';
+import {invalidPathValue} from '../src/parser/invalidPathValue';
+import {error} from '../src/util/error';
+import {getRotatedPath} from '../src/morph/getRotatedPath';
+import {samplePolygon} from '../src/morph/samplePolygon';
+import {getPathSplits} from '../src/morph/getPathSplits';
+import {pathToPolyline} from '../src/morph/pathToPolyline';
+import {splitCurvePathToCount} from '../src/morph/splitCurvePathToCount';
+import {splitLinePathToCount} from '../src/morph/splitLinePathToCount';
+import {matchPaths} from '../src/morph/matchPaths';
+import type { PathFeature } from '../src/types';
 
 import getMarkup from './fixtures/getMarkup';
 import simpleShapes from './fixtures/simpleShapes';
 import shapes from './fixtures/shapes';
 import shapeObjects from './fixtures/shapeObjects';
+import { intersectionFixtures, equalizeFixtures } from './fixtures/intersectionEqualize';
 
 import "../docs/assets/style.css";
+import { defaultOptions } from '../src/options/options';
 
 describe('SVGPathCommander Static Methods', () => {
   const wrapper = document.createElement('div');
@@ -36,10 +46,10 @@ describe('SVGPathCommander Static Methods', () => {
   test(`Throws error when invalid path value`, () => {
     const { parsePathString } = SVGPathCommander;
     try {
-      const path = parsePathString('10 50q15 -25');
-      console.log(path);
+      parsePathString('10 50q15 -25');
+      // console.log(path);
     } catch (e) {
-      console.log(e)
+      // console.log(e)
       expect(e).to.be.instanceOf(TypeError);
       expect(e).to.have.property('message', `${error}: Invalid path value "1" is not a path command at index 0`);
     }
@@ -272,11 +282,11 @@ describe('SVGPathCommander Static Methods', () => {
     expect(getDrawDirection(simpleShapes.initial[1])).to.be.false;
   });
 
-  test(`Can do splitCubic`, () => {
-    const { splitCubic } = SVGPathCommander;
-    expect(splitCubic([70, 60, 70, 80, 110, 80, 110, 60])).to.deep.equal([
-      ['C', 70, 70, 80, 75, 90, 75],
-      ['C', 100, 75, 110, 70, 110, 60],
+  test(`Can do splitCubicSegment`, () => {
+    const { splitCubicSegment } = SVGPathCommander;
+    expect(splitCubicSegment(70, 60, 70, 80, 110, 80, 110, 60, 0.5)).to.deep.equal([
+      [70, 60, 70, 70, 80, 75, 90, 75],
+      [90, 75, 100, 75, 110, 70, 110, 60],
     ]);
   });
 
@@ -288,6 +298,14 @@ describe('SVGPathCommander Static Methods', () => {
   test(`Can do polygonArea`, () => {
     const { polygonTools } = SVGPathCommander;
     expect(polygonTools.polygonArea([[107.4, 13], [113.7, 28.8], [127.9, 31.3], [117.6, 43.5], [120.1, 60.8], [107.4, 52.6], [94.6, 60.8], [97.1, 43.5], [86.8, 31.3], [101, 28.8]])).to.equal(-836.69);
+  });
+
+  test(`Can do polygonCentroid`, () => {
+    const { polygonTools } = SVGPathCommander;
+    expect(
+      polygonTools.polygonCentroid([[107.4, 13], [113.7, 28.8], [127.9, 31.3], [117.6, 43.5], [120.1, 60.8], [107.4, 52.6], [94.6, 60.8], [97.1, 43.5], [86.8, 31.3], [101, 28.8]]).map(c => Math.round(c * 100) / 100)
+    ).to.deep.equal([107.36, 39.44]);
+    expect(polygonTools.polygonCentroid([])).to.deep.equal([0, 0]);
   });
 
   test(`Can do transformPath with empty object`, () => {
@@ -317,8 +335,413 @@ describe('SVGPathCommander Static Methods', () => {
 
   });
 
+  describe(`Can do paths intersection`, () => {
+    const { pathsIntersection } = SVGPathCommander;
+
+    intersectionFixtures.intersecting.forEach(({ path1, path2, expectedCount }, i) => {
+      test(`Can do intersecting paths #${i} (count)`, () => {
+        expect(pathsIntersection(path1, path2, true)).to.equal(expectedCount);
+      });
+
+      test(`Can do intersecting paths #${i} (points)`, () => {
+        const points = pathsIntersection(path1, path2, false) as { x: number; y: number; t1: number; t2: number }[];
+        expect(points).to.have.length(expectedCount);
+        points.forEach(pt => {
+          expect(pt).to.have.property('x');
+          expect(pt).to.have.property('y');
+          expect(pt).to.have.property('t1');
+          expect(pt).to.have.property('t2');
+        });
+      });
+    });
+
+    intersectionFixtures.nonIntersecting.forEach(({ path1, path2, expectedCount }, i) => {
+      test(`Can do non-intersecting paths #${i}`, () => {
+        expect(pathsIntersection(path1, path2, true)).to.equal(expectedCount);
+        expect(pathsIntersection(path1, path2, false)).to.have.length(0);
+      });
+    });
+
+    test(`Can do isPointInsideBBox`, () => {
+      const { isPointInsideBBox } = SVGPathCommander;
+      const bbox: [number, number, number, number] = [0, 0, 100, 100];
+      expect(isPointInsideBBox(bbox, [50, 50])).to.be.true;
+      expect(isPointInsideBBox(bbox, [0, 0])).to.be.true;
+      expect(isPointInsideBBox(bbox, [100, 100])).to.be.true;
+      expect(isPointInsideBBox(bbox, [-1, 50])).to.be.false;
+      expect(isPointInsideBBox(bbox, [101, 50])).to.be.false;
+      expect(isPointInsideBBox(bbox, [50, -1])).to.be.false;
+      expect(isPointInsideBBox(bbox, [50, 101])).to.be.false;
+    });
+
+    test(`Can do boundingBoxIntersect`, () => {
+      const { boundingBoxIntersect } = SVGPathCommander;
+      const a: [number, number, number, number] = [0, 0, 100, 100];
+      const b: [number, number, number, number] = [50, 50, 150, 150];
+      const c: [number, number, number, number] = [200, 200, 300, 300];
+      expect(boundingBoxIntersect(a, b)).to.be.true;
+      expect(boundingBoxIntersect(b, a)).to.be.true;
+      expect(boundingBoxIntersect(a, c)).to.be.false;
+      expect(boundingBoxIntersect(c, a)).to.be.false;
+    });
+
+    test(`Can do intersecting paths with line segments (Z closing line)`, () => {
+      const path1 = 'M0 0L50 0L50 50L0 50Z';
+      const path2 = 'M25 -10L25 60';
+      const count = pathsIntersection(path1, path2, true);
+      expect(count).to.be.greaterThan(0);
+      const points = pathsIntersection(path1, path2, false) as { x: number; y: number }[];
+      expect(points.length).to.be.greaterThan(0);
+    });
+
+    test(`Can do intersecting paths with mixed line and curve segments`, () => {
+      const path1 = 'M0 0L100 0L100 100L0 100Z';
+      const path2 = 'M50 0L50 100';
+      const count = pathsIntersection(path1, path2, true);
+      expect(count).to.be.greaterThan(0);
+    });
+
+    test(`Can do intersecting paths with Z-to-Z closing lines`, () => {
+      const path1 = 'M0 0L100 0L100 50L0 50Z';
+      const path2 = 'M-10 25L110 25';
+      const count = pathsIntersection(path1, path2);
+      expect(count).to.be.greaterThan(0);
+    });
+
+    test(`Can do pathsIntersection with PathArray input`, () => {
+      const { parsePathString } = SVGPathCommander;
+      const p1 = parsePathString('M0 0L100 0L100 100L0 100Z');
+      const p2 = parsePathString('M50 0L50 100');
+      const count = pathsIntersection(p1, p2);
+      expect(count).to.be.greaterThan(0);
+    });
+  })
+
+  describe(`Can do equalizeSegments`, () => {
+    const { equalizeSegments, pathToString, reversePath, parsePathString, pathToCurve, roundPath, normalizePath } = SVGPathCommander;
+
+    test(`Can do equalizeSegments simple shapes`, () => {
+      const [eq1, eq2] = equalizeSegments(equalizeFixtures.simple.triangle, equalizeFixtures.simple.square);
+      expect(eq1.length).to.equal(eq2.length);
+      expect(eq1[0][0]).to.equal('M');
+      expect(eq2[0][0]).to.equal('M');
+    });
+
+    test(`Can do equalizeSegments getRotatedPath throw error`, () => {
+      const p1 = parsePathString(equalizeFixtures.simple.triangle);
+      const p2 = parsePathString(equalizeFixtures.simple.square);
+
+      try {
+        // @ts-expect-error -  testing an error
+        getRotatedPath(p1, p2)
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+        expect(e).to.have.property('message', `${error}: paths must have the same number of segments after equalization`);
+      }
+    });
+
+    test(`Can do equalizeSegments splitCurvePathToCount edge cases`, () => {
+      const p1 = roundPath(pathToCurve("M0 0H50"), 2);
+
+      expect(splitCurvePathToCount(p1, 1)).to.deep.equal([[ 'M', 0, 0 ], ['C', 16.67, 0, 33.33, 0, 50, 0]])
+      expect(splitCurvePathToCount([["M", 0, 0]], 5)).to.deep.equal([["M", 0, 0]])
+    });
+
+    test(`Can do equalizeSegments splitLinePathToCount edge cases`, () => {
+      const p1 = roundPath(normalizePath("M0 0H50")as PolylineArray, 2);
+
+      expect(splitLinePathToCount(p1, 1)).to.deep.equal([[ 'M', 0, 0 ], ['L', 50, 0]])
+      expect(splitLinePathToCount([["M", 0, 0]], 5)).to.deep.equal([["M", 0, 0]])
+    });
+
+    test(`Can do equalizeSegments getPathSplits edge cases`, () => {
+      const path: PolylineArray = [[ 'M', 0, 0 ], ['L', 0, 0]];
+      const path2: PolylineArray = [[ 'M', 0, 0 ], ['L', 50, 0], ['L', 50, 150]];
+
+      expect(getPathSplits(path, 2)).to.deep.equal([1, 1]);
+      expect(getPathSplits(path2, 20)).to.deep.equal([1, 4, 15]);
+      expect(getPathSplits(path2, 30)).to.deep.equal([1, 7, 22]);
+      expect(getPathSplits(path2, 50)).to.deep.equal([1, 12, 37]);
+
+      try {
+        expect(getPathSplits(path, 1))
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+        expect(e).to.have.property('message', `${error}: target must be >= 2`);
+      }
+    });
+
+    test(`Can do equalizeSegments pathToPolyline edge cases`, () => {
+      const parsed1 = parsePathString("M0 0C0 0 0 0 5 5");
+      const parsed2 = parsePathString("M0 0H50") as PolylineArray;
+      const parsed3 = parsePathString("M0 0H50Z") as PolylineArray;
+      // const normalized2 = normalizePath(parsed2);
+
+      expect(pathToPolyline(parsed2)).to.deep.equal([[ 'M', 0, 0 ], ['L', 50, 0]])
+      expect(pathToPolyline(parsed3)).to.deep.equal([[ 'M', 0, 0 ], ['L', 50, 0], [ 'L', 0, 0 ]])
+
+      try {
+        // @ts-expect-error -  testing an error
+        pathToPolyline(parsed1)
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+        expect(e).to.have.property('message', `${error}: pathValue is not a polyline/polygon`);
+      }
+    });
+
+    test(`Can do equalizeSegments samplePolygon throw error`, () => {
+      const p1 = parsePathString("M0 0H50");
+
+      try {
+        // @ts-expect-error -  testing an error
+        samplePolygon(p1)
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+        expect(e).to.have.property('message', `${error}: path command "H" is not supported`);
+      }
+    });
+
+    test(`Can do equalizeSegments curves`, () => {
+      const [eq1, eq2] = equalizeSegments(equalizeFixtures.curves.circle, equalizeFixtures.curves.ellipse);
+      expect(eq1.length).to.equal(eq2.length);
+      expect(eq1.every(s => s[0] === 'M' || s[0] === 'C')).to.be.true;
+      expect(eq2.every(s => s[0] === 'M' || s[0] === 'C')).to.be.true;
+    });
+
+    test(`Can do equalizeSegments complex shapes`, () => {
+      const reverseHeart = reversePath(parsePathString(equalizeFixtures.complex.heart))
+      const [eq1, eq2] = equalizeSegments(equalizeFixtures.complex.star, reverseHeart);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizeSegments with incorrect target option`, () => {
+      const [eq1, eq2] = equalizeSegments(equalizeFixtures.complex.star, equalizeFixtures.complex.heart, {target: 1});
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizeSegments with close option`, () => {
+      const [eq1, eq2] = equalizeSegments(equalizeFixtures.simple.triangle, equalizeFixtures.simple.square, { close: true });
+      expect(eq1[eq1.length - 1][0]).to.equal('Z');
+      expect(eq2[eq2.length - 1][0]).to.equal('Z');
+    });
+
+    test(`Can do equalizeSegments with roundValues option`, () => {
+      const [eq1, eq2] = equalizeSegments(equalizeFixtures.simple.triangle, equalizeFixtures.simple.square, { roundValues: 2 });
+      const s1 = pathToString(eq1, 2);
+      const s2 = pathToString(eq2, 2);
+      expect(s1).to.be.a('string');
+      expect(s2).to.be.a('string');
+    });
+
+    test(`Can do equalizeSegments with target option`, () => {
+      const [eq1, eq2] = equalizeSegments(equalizeFixtures.simple.triangle, equalizeFixtures.simple.square, { target: 20 });
+      expect(eq1.length).to.be.at.least(20);
+      expect(eq2.length).to.be.at.least(20);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizeSegments with mode "curve"`, () => {
+      const tri = 'M0 0L100 0L50 100Z';
+      const sq = 'M0 0L100 0L100 100L0 100Z';
+      const [eq1, eq2] = equalizeSegments(tri, sq, { mode: 'curve' });
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizeSegments with reverse false`, () => {
+      const [eq1, eq2] = equalizeSegments(equalizeFixtures.simple.triangle, equalizeFixtures.simple.square, { reverse: false });
+      expect(eq1.length).to.equal(eq2.length);
+    });
+  })
+
+  describe(`Can do equalizePaths`, () => {
+    const { equalizePaths, pathToString } = SVGPathCommander;
+
+    test(`Can do equalizePaths single subpath`, () => {
+      const [eq1, eq2] = equalizePaths(equalizeFixtures.simple.triangle, equalizeFixtures.simple.square);
+      expect(eq1.length).to.equal(eq2.length);
+      expect(eq1[0][0]).to.equal('M');
+    });
+
+    test(`Can do equalizePaths curves`, () => {
+      const [eq1, eq2] = equalizePaths(equalizeFixtures.curves.circle, equalizeFixtures.curves.ellipse);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizePaths complex shapes`, () => {
+      const [eq1, eq2] = equalizePaths(equalizeFixtures.complex.star, equalizeFixtures.complex.heart);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizePaths multi-subpath`, () => {
+      const [eq1, eq2] = equalizePaths(equalizeFixtures.multiSubpath.twoRects1, equalizeFixtures.multiSubpath.twoRects2);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizePaths with close option`, () => {
+      const [eq1, eq2] = equalizePaths(equalizeFixtures.simple.triangle, equalizeFixtures.simple.square, { close: true });
+      expect(eq1.some(s => s[0] === 'Z')).to.be.true;
+      expect(eq2.some(s => s[0] === 'Z')).to.be.true;
+    });
+
+    test(`Can do equalizePaths with roundValues option`, () => {
+      const [eq1, eq2] = equalizePaths(equalizeFixtures.simple.triangle, equalizeFixtures.simple.square, { roundValues: 2 });
+      const s1 = pathToString(eq1, 2);
+      const s2 = pathToString(eq2, 2);
+      expect(s1).to.be.a('string');
+      expect(s2).to.be.a('string');
+    });
+
+    test(`Can do equalizePaths with mode "auto"`, () => {
+      const [eq1, eq2] = equalizePaths(equalizeFixtures.simple.triangle, equalizeFixtures.simple.square);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizePaths with mode "curve"`, () => {
+      const [eq1, eq2] = equalizePaths(equalizeFixtures.simple.triangle, equalizeFixtures.simple.square, { mode: 'curve' });
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizePaths with string input`, () => {
+      const [eq1, eq2] = equalizePaths('M0 0L100 0L50 100Z', 'M0 0L100 0L100 100L0 100Z');
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizePaths with PathArray input`, () => {
+      const { parsePathString } = SVGPathCommander;
+      const p1 = parsePathString('M0 0L100 0L50 100Z');
+      const p2 = parsePathString('M0 0L100 0L100 100L0 100Z');
+      const [eq1, eq2] = equalizePaths(p1, p2);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizePaths with multipaths #1`, () => {
+      const p1 = shapes.initial[0];
+      const p2 = shapes.initial[1];
+      const [eq1, eq2] = equalizePaths(p1, p2);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizePaths with multipaths #2`, () => {
+      const p1 = shapes.initial[1];
+      const p2 = shapes.initial[3];
+      const [eq1, eq2] = equalizePaths(p1, p2);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+  });
+
+  describe(`Can do matchPaths`, () => {
+    const { getPathBBox, normalizePath } = SVGPathCommander;
+
+    function makeFeature(path: string): PathFeature {
+      const p = normalizePath(path);
+      const bbox = getPathBBox(path);
+      return {
+        path: p,
+        bbox,
+        size: bbox.width * bbox.height,
+        signedArea: 0,
+        area: 0,
+        isPoly: false,
+      };
+    }
+
+    test(`Can do matchPaths with overlapping inners`, () => {
+      const target = makeFeature('M40 40L60 40L60 60L40 60Z');
+      const candidate1 = makeFeature('M35 35L65 35L65 65L35 65Z');
+      const candidate2 = makeFeature('M0 0L10 0L10 10L0 10Z');
+
+      const fromFeatures = [target];
+      const toFeatures = [candidate1, candidate2];
+
+      const pairs = matchPaths(fromFeatures, toFeatures);
+      expect(pairs.length).to.equal(2);
+      expect(pairs[0][0]).to.deep.equal(target.path);
+      expect(pairs[0][1]).to.deep.equal(candidate1.path);
+    });
+
+    test(`Can do matchPaths picks closest when multiple overlap`, () => {
+      const target = makeFeature('M50 50L60 50L60 60L50 60Z');
+      const closer = makeFeature('M45 45L65 45L65 65L45 65Z');
+      const farther = makeFeature('M0 0L100 0L100 100L0 100Z');
+
+      const fromFeatures = [target];
+      const toFeatures = [farther, closer];
+
+      const pairs = matchPaths(fromFeatures, toFeatures);
+      expect(pairs.length).to.equal(2);
+      expect(pairs[0][1]).to.deep.equal(closer.path);
+    });
+
+    test(`Can do matchPaths with no overlap returns placeholder`, () => {
+      const target = makeFeature('M0 0L10 0L10 10L0 10Z');
+      const candidate = makeFeature('M100 100L110 100L110 110L100 110Z');
+
+      const fromFeatures = [target];
+      const toFeatures = [candidate];
+
+      const pairs = matchPaths(fromFeatures, toFeatures);
+      expect(pairs.length).to.equal(2);
+      expect(pairs[0][0]).to.deep.equal(target.path);
+      expect(pairs[0][1][0][0]).to.equal('M');
+    });
+
+    test(`Can do matchPaths with more from paths than to paths`, () => {
+      const from1 = makeFeature('M0 0L100 0L100 100L0 100Z');
+      const from2 = makeFeature('M200 200L210 200L210 210L200 210Z');
+      const to1 = makeFeature('M0 0L100 0L100 100L0 100Z');
+
+      const fromFeatures = [from1, from2];
+      const toFeatures = [to1];
+
+      const pairs = matchPaths(fromFeatures, toFeatures);
+      expect(pairs.length).to.equal(2);
+      expect(pairs[0][0]).to.deep.equal(from1.path);
+      expect(pairs[0][1]).to.deep.equal(to1.path);
+      expect(pairs[1][0]).to.deep.equal(from2.path);
+      expect(pairs[1][1][0][0]).to.equal('M');
+    });
+
+    test(`Can do matchPaths with more to paths than from paths`, () => {
+      const from1 = makeFeature('M0 0L100 0L100 100L0 100Z');
+      const to1 = makeFeature('M0 0L100 0L100 100L0 100Z');
+      const to2 = makeFeature('M200 200L210 200L210 210L200 210Z');
+
+      const fromFeatures = [from1];
+      const toFeatures = [to1, to2];
+
+      const pairs = matchPaths(fromFeatures, toFeatures);
+      expect(pairs.length).to.equal(2);
+      expect(pairs[0][0]).to.deep.equal(from1.path);
+      expect(pairs[0][1]).to.deep.equal(to1.path);
+      expect(pairs[1][0][0][0]).to.equal('M');
+      expect(pairs[1][1]).to.deep.equal(to2.path);
+    });
+
+    test(`Can do matchPaths with empty arrays`, () => {
+      const pairs = matchPaths([], []);
+      expect(pairs).to.deep.equal([]);
+    });
+
+    test(`Can do matchPaths sorts by size descending`, () => {
+      const small = makeFeature('M0 0L10 0L10 10L0 10Z');
+      const large = makeFeature('M0 0L100 0L100 100L0 100Z');
+      const smallTarget = makeFeature('M5 5L15 5L15 15L5 15Z');
+      const largeTarget = makeFeature('M0 0L100 0L100 100L0 100Z');
+
+      const fromFeatures = [smallTarget, largeTarget];
+      const toFeatures = [small, large];
+
+      const pairs = matchPaths(fromFeatures, toFeatures);
+      expect(pairs.length).to.equal(2);
+      expect(pairs[0][0]).to.deep.equal(largeTarget.path);
+      expect(pairs[0][1]).to.deep.equal(large.path);
+      expect(pairs[1][0]).to.deep.equal(smallTarget.path);
+      expect(pairs[1][1]).to.deep.equal(small.path);
+    });
+  });
+
   test(`Can cover all remaining branches`, () => {
-    const { splitPath, pathToString, optimizePath, parsePathString, getPathBBox, getPointAtLength, getTotalLength } = SVGPathCommander;
+    const { isMultiPath, roundPath, paramsParser, shortenSegment, splitPath, pathToString, optimizePath, parsePathString, getPathBBox, getPointAtLength, getTotalLength } = SVGPathCommander;
     expect(getPointAtLength(simpleShapes.normalized[3], 24.057395479452424)).to.deep.equal({ x: 14, y: 10 });
     expect(getPointAtLength(simpleShapes.normalized[0], 0)).to.deep.equal({ x: 10, y: 10 });
     expect(getPointAtLength(simpleShapes.normalized[3], undefined)).to.deep.equal({ x: 6, y: 10 });
@@ -334,10 +757,34 @@ describe('SVGPathCommander Static Methods', () => {
       "x": 10, "y": 10, "x2": 170,"y2": 90,
     });
     expect(splitPath(parsePathString(shapes.relative[1])).length).to.equal(7);
+    expect(isMultiPath("M10 50Q25 25 40 50")).to.eq(false);
+    expect(isMultiPath("1")).to.eq(false);
+
+    try {
+    // @ts-expect-error - testing weird value
+      isMultiPath(false)
+    } catch (e) {
+      expect(e).to.be.instanceOf(TypeError);
+      expect(e).to.have.property('message', `${error}: expected string or PathArray`);
+    }
+
+
     expect(pathToString(optimizePath(parsePathString(
       // 'M10 50q15 -25 30 0Q55 75 70 50Q85 25 100 50T130 50Q145 25 160 50t30 0'
       simpleShapes.normalized[2]
     ), 2))).to.equal(simpleShapes.initial[2]);
+
+    // @ts-expect-error - testing weird default round value
+    defaultOptions.round = "-1";
+    expect(shortenSegment(['L', 0, 0], ['L', 0, 0], {...paramsParser}, "A")).to.deep.equal([ 'V', 0])
+    expect(optimizePath([['M', 0, 0], ['L', 0, 0]])).to.deep.equal([['M', 0, 0], ['v', 0]])
+    expect(roundPath([['M', 0, 0], ['L', 0, 0]])).to.deep.equal([['M', 0, 0], ['L', 0, 0]])
+
+    expect(pathToString(parsePathString(
+      // 'M10 50q15 -25 30 0Q55 75 70 50Q85 25 100 50T130 50Q145 25 160 50t30 0'
+      simpleShapes.normalized[2]
+    ), -2)).to.equal("M10 50Q25 25 40 50Q55 75 70 50Q85 25 100 50Q115 75 130 50Q145 25 160 50Q175 75 190 50"); // coverage
     // M10 50q15 -25 30 0t30 0t30 0t30 0t30 0t30 0
-  });
+    defaultOptions.round = 4;
+  })
 });

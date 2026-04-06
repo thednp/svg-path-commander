@@ -6,7 +6,7 @@ import type { PathCommandNumber } from "../types";
  * @param code the character to check
  * @returns check result
  */
-const isPathCommand = (code: number): code is PathCommandNumber => {
+export const isPathCommand = (code: number): code is PathCommandNumber => {
   // eslint-disable-next-line no-bitwise -- Impossible to satisfy
   switch (code | 0x20) {
     case 0x6d /* m */:
@@ -25,4 +25,3 @@ const isPathCommand = (code: number): code is PathCommandNumber => {
       return false;
   }
 };
-export default isPathCommand;

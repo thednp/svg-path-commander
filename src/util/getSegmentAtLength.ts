@@ -1,5 +1,5 @@
 import type { PathArray, PathSegment } from "../types";
-import getPropertiesAtLength from "./getPropertiesAtLength";
+import { getPropertiesAtLength } from "./getPropertiesAtLength";
 
 /**
  * Returns the segment at a given length.
@@ -8,11 +8,9 @@ import getPropertiesAtLength from "./getPropertiesAtLength";
  * @param distance the distance in path to look at
  * @returns the requested segment
  */
-const getSegmentAtLength = (
-  pathInput: string | PathArray,
+export const getSegmentAtLength = <T extends PathArray>(
+  pathInput: string | T,
   distance?: number,
 ): PathSegment | undefined => {
   return getPropertiesAtLength(pathInput, distance).segment;
 };
-
-export default getSegmentAtLength;

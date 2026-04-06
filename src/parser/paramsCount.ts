@@ -1,5 +1,6 @@
 /** Segment params length */
-const paramsCount = {
+
+export const paramsCounts = {
   a: 7,
   c: 6,
   h: 1,
@@ -12,5 +13,3 @@ const paramsCount = {
   v: 1,
   z: 0,
 };
-
-export default paramsCount;

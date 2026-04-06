@@ -8,17 +8,23 @@ import type {
   ShapeParams,
 } from "../interface";
 import type { PathArray, PathSegment, ShapeOps, ShapeTypes } from "../types";
-import error from "../parser/error";
-import parsePathString from "../parser/parsePathString";
-import shapeParams from "./shapeParams";
-import isPathArray from "./isPathArray";
-import isElement from "./isElement";
+import { error } from "./error";
+import { parsePathString } from "../parser/parsePathString";
+import { shapeParams } from "./shapeParams";
+import { isPathArray } from "./isPathArray";
+import { isElement } from "./isElement";
 
 /**
- * Returns a new `pathArray` from line attributes.
+ * Returns a new PathArray from line attributes.
  *
- * @param attr shape configuration
- * @returns a new line `pathArray`
+ * @param attr - Shape configuration with x1, y1, x2, y2
+ * @returns A new line PathArray
+ *
+ * @example
+ * ```ts
+ * getLinePath({ x1: 0, y1: 0, x2: 100, y2: 100 })
+ * // => [['M', 0, 0], ['L', 100, 100]]
+ * ```
  */
 export const getLinePath = (attr: LineAttr): PathArray => {
   let { x1, y1, x2, y2 } = attr;
@@ -30,10 +36,16 @@ export const getLinePath = (attr: LineAttr): PathArray => {
 };
 
 /**
- * Returns a new `pathArray` like from polyline/polygon attributes.
+ * Returns a new PathArray from polyline/polygon attributes.
  *
- * @param attr shape configuration
- * @return a new polygon/polyline `pathArray`
+ * @param attr - Shape configuration with points string
+ * @returns A new polygon/polyline PathArray
+ *
+ * @example
+ * ```ts
+ * getPolyPath({ type: 'polygon', points: '0,0 100,0 100,100 0,100' })
+ * // => [['M', 0, 0], ['L', 100, 0], ['L', 100, 100], ['L', 0, 100], ['z']]
+ * ```
  */
 export const getPolyPath = (attr: PolyAttr): PathArray => {
   const pathArray = [] as PathSegment[];
@@ -48,16 +60,22 @@ export const getPolyPath = (attr: PolyAttr): PathArray => {
     index += 2;
   }
 
-  return (attr.type === "polygon"
-    ? [...pathArray, ["z"]]
-    : pathArray) as PathArray;
+  return (
+    attr.type === "polygon" ? [...pathArray, ["z"]] : pathArray
+  ) as PathArray;
 };
 
 /**
- * Returns a new `pathArray` from circle attributes.
+ * Returns a new PathArray from circle attributes.
  *
- * @param attr shape configuration
- * @return a circle `pathArray`
+ * @param attr - Shape configuration with cx, cy, r
+ * @returns A circle PathArray
+ *
+ * @example
+ * ```ts
+ * getCirclePath({ cx: 50, cy: 50, r: 25 })
+ * // => [['M', 25, 50], ['a', 25, 25, 0, 1, 0, 50, 0], ['a', 25, 25, 0, 1, 0, -50, 0]]
+ * ```
  */
 export const getCirclePath = (attr: CircleAttr): PathArray => {
   let { cx, cy, r } = attr;
@@ -71,10 +89,16 @@ export const getCirclePath = (attr: CircleAttr): PathArray => {
 };
 
 /**
- * Returns a new `pathArray` from ellipse attributes.
+ * Returns a new PathArray from ellipse attributes.
  *
- * @param attr shape configuration
- * @return an ellipse `pathArray`
+ * @param attr - Shape configuration with cx, cy, rx, ry
+ * @returns An ellipse PathArray
+ *
+ * @example
+ * ```ts
+ * getEllipsePath({ cx: 50, cy: 50, rx: 30, ry: 20 })
+ * // => [['M', 20, 50], ['a', 30, 20, 0, 1, 0, 60, 0], ['a', 30, 20, 0, 1, 0, -60, 0]]
+ * ```
  */
 export const getEllipsePath = (attr: EllipseAttr): PathArray => {
   let { cx, cy } = attr;
@@ -90,10 +114,16 @@ export const getEllipsePath = (attr: EllipseAttr): PathArray => {
 };
 
 /**
- * Returns a new `pathArray` like from rect attributes.
+ * Returns a new PathArray from rect attributes.
  *
- * @param attr object with properties above
- * @return a new `pathArray` from `<rect>` attributes
+ * @param attr - Object with x, y, width, height, and optional rx/ry
+ * @returns A new PathArray from `<rect>` attributes
+ *
+ * @example
+ * ```ts
+ * getRectanglePath({ x: 0, y: 0, width: 100, height: 50, ry: 10 })
+ * // => [['M', 10, 0], ['h', 80], ['a', 10, 10, 0, 0, 1, 10, 10], ...]
+ * ```
  */
 export const getRectanglePath = (attr: RectAttr): PathArray => {
   const x = +attr.x || 0;
@@ -137,11 +167,9 @@ export const getRectanglePath = (attr: RectAttr): PathArray => {
  * @see ShapeOps
  *
  * @param element target shape
- * @return the newly created `<path>` element
+ * @returns the newly created `<path>` element
  */
-const shapeToPathArray = (
-  element: ShapeTypes | ShapeOps,
-) => {
+export const shapeToPathArray = (element: ShapeTypes | ShapeOps) => {
   const supportedShapes = Object.keys(shapeParams) as (keyof ShapeParams)[];
   const targetIsElement = isElement(element);
   const tagName = targetIsElement ? element.tagName : null;
@@ -150,10 +178,9 @@ const shapeToPathArray = (
     throw TypeError(`${error}: "${tagName}" is not SVGElement`);
   }
 
-  const type =
-    (targetIsElement ? tagName : (element as ShapeOps).type) as ShapeOps[
-      "type"
-    ];
+  const type = (
+    targetIsElement ? tagName : (element as ShapeOps).type
+  ) as ShapeOps["type"];
   const shapeAttrs = shapeParams[type] as string[];
   const config = { type } as Record<string, string>;
 
@@ -193,4 +220,3 @@ const shapeToPathArray = (
   }
   return false;
 };
-export default shapeToPathArray;

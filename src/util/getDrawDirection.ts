@@ -1,5 +1,5 @@
-import getPathArea from "./getPathArea";
-import pathToCurve from "../convert/pathToCurve";
+import { getPathArea } from "./getPathArea";
+import { pathToCurve } from "../convert/pathToCurve";
 import type { PathArray } from "../types";
 
 /**
@@ -9,8 +9,6 @@ import type { PathArray } from "../types";
  * @param path the path string or `pathArray`
  * @returns true when clockwise or false if not
  */
-const getDrawDirection = (path: string | PathArray) => {
+export const getDrawDirection = (path: string | PathArray) => {
   return getPathArea(pathToCurve(path)) >= 0;
 };
-
-export default getDrawDirection;

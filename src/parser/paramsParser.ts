@@ -1,6 +1,12 @@
 import type { ParserParams } from "../interface";
 
-const paramsParser: ParserParams = {
+/**
+ * Default parser parameters object used to track position state
+ * while iterating through path segments.
+ */
+export const paramsParser: ParserParams = {
+  mx: 0,
+  my: 0,
   x1: 0,
   y1: 0,
   x2: 0,
@@ -10,5 +16,3 @@ const paramsParser: ParserParams = {
   qx: null,
   qy: null,
 };
-
-export default paramsParser;

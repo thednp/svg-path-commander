@@ -1,12 +1,12 @@
 import type { ShapeParams } from "../interface";
 import type { ShapeOps, ShapeTypes } from "../types";
-import pathToString from "../convert/pathToString";
-import defaultOptions from "../options/options";
-import error from "../parser/error";
-import isValidPath from "./isValidPath";
-import isElement from "./isElement";
-import shapeToPathArray from "./shapeToPathArray";
-import shapeParams from "./shapeParams";
+import { pathToString } from "../convert/pathToString";
+import { defaultOptions } from "../options/options";
+import { error } from "./error";
+import { isValidPath } from "./isValidPath";
+import { isElement } from "./isElement";
+import { shapeToPathArray } from "./shapeToPathArray";
+import { shapeParams } from "./shapeParams";
 
 /**
  * Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`,
@@ -21,12 +21,23 @@ import shapeParams from "./shapeParams";
  * The newly created `<path>` element keeps all non-specific
  * attributes like `class`, `fill`, etc.
  *
- * @param element target shape
- * @param replace option to replace target
- * @param ownerDocument document for create element
- * @return the newly created `<path>` element
+ * @param element - Target shape element or shape options object
+ * @param replace - Option to replace target element
+ * @param ownerDocument - Document for creating the element
+ * @returns The newly created `<path>` element, or false if the path is invalid
+ *
+ * @example
+ * ```ts
+ * const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+ * circle.setAttribute('cx', '50')
+ * circle.setAttribute('cy', '50')
+ * circle.setAttribute('r', '25')
+ * const path = shapeToPath(circle)
+ * path.getAttribute('d')
+ * // => 'M50 25A25 25 0 1 1 50 75A25 25 0 1 1 50 25Z'
+ * ```
  */
-const shapeToPath = (
+export const shapeToPath = (
   element: ShapeTypes | ShapeOps,
   replace?: boolean,
   ownerDocument?: Document,
@@ -63,9 +74,12 @@ const shapeToPath = (
       config[p] = element.getAttribute(p) as string;
     });
     // set no-specific shape attributes: fill, stroke, etc
-    Object.values(element.attributes).forEach(({ name, value }) => {
-      if (!shapeAttrs.includes(name)) path.setAttribute(name, value);
-    });
+    for (let i = 0; i < element.attributes.length; i++) {
+      const attr = element.attributes[i];
+      if (attr && !shapeAttrs.includes(attr.name)) {
+        path.setAttribute(attr.name, attr.value);
+      }
+    }
   } else {
     Object.assign(config, element);
     // set no-specific shape attributes: fill, stroke, etc
@@ -90,5 +104,3 @@ const shapeToPath = (
   }
   return false;
 };
-
-export default shapeToPath;

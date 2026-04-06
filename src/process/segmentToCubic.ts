@@ -1,6 +1,6 @@
-import arcToCubic from "./arcToCubic";
-import quadToCubic from "./quadToCubic";
-import lineToCubic from "./lineToCubic";
+import { arcToCubic } from "./arcToCubic";
+import { quadToCubic } from "./quadToCubic";
+import { lineToCubic } from "./lineToCubic";
 import type { CSegment, MSegment, PathSegment } from "../types";
 import type { ParserParams } from "../interface";
 
@@ -11,12 +11,13 @@ import type { ParserParams } from "../interface";
  * @param params the source segment parameters
  * @returns the cubic-bezier segment
  */
-const segmentToCubic = (segment: PathSegment, params: ParserParams) => {
-  const [pathCommand] = segment;
+export const segmentToCubic = (segment: PathSegment, params: ParserParams) => {
+  const pathCommand = segment[0];
   const values = segment.slice(1).map(Number);
   const [x, y] = values;
   // let args;
-  const { x1: px1, y1: py1, x: px, y: py } = params;
+  // const { x1: px1, y1: py1, x: px, y: py } = params;
+  const { x1: px1, y1: py1 } = params;
 
   if (!"TQ".includes(pathCommand)) {
     params.qx = null;
@@ -24,6 +25,8 @@ const segmentToCubic = (segment: PathSegment, params: ParserParams) => {
   }
 
   if (pathCommand === "M") {
+    params.mx = x;
+    params.my = y;
     params.x = x;
     params.y = y;
     return segment;
@@ -53,10 +56,9 @@ const segmentToCubic = (segment: PathSegment, params: ParserParams) => {
     ) as CSegment;
   } else if (pathCommand === "Z") {
     return ["C" as string | number].concat(
-      lineToCubic(px1, py1, px, py),
+      lineToCubic(px1, py1, params.mx, params.my),
     ) as CSegment;
   }
 
   return segment as MSegment | CSegment;
 };
-export default segmentToCubic;

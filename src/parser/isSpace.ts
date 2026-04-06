@@ -7,7 +7,7 @@ import type { SpaceNumber } from "../types";
  * @returns check result
  */
 
-const isSpace = (ch: number): ch is SpaceNumber => {
+export const isSpace = (ch: number): ch is SpaceNumber => {
   const allSpaces = [
     // Special spaces
     0x1680,
@@ -42,4 +42,3 @@ const isSpace = (ch: number): ch is SpaceNumber => {
 
   return allSpaces.includes(ch);
 };
-export default isSpace;

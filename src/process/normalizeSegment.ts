@@ -20,7 +20,10 @@ import type {
  * @param params the normalization parameters
  * @returns the normalized segment
  */
-const normalizeSegment = (segment: PathSegment, params: ParserParams) => {
+export const normalizeSegment = (
+  segment: PathSegment,
+  params: ParserParams,
+) => {
   const [pathCommand] = segment;
   const absCommand = pathCommand.toUpperCase();
   const isRelative = pathCommand !== absCommand;
@@ -92,4 +95,3 @@ const normalizeSegment = (segment: PathSegment, params: ParserParams) => {
   // istanbul ignore next @preserve
   return segment as NormalSegment;
 };
-export default normalizeSegment;

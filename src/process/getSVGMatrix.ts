@@ -10,7 +10,7 @@ import type { TransformObjectValues } from "../types";
  * @param transform the `transformObject`
  * @returns a new transformation matrix
  */
-const getSVGMatrix = (transform: TransformObjectValues): CSSMatrix => {
+export const getSVGMatrix = (transform: TransformObjectValues): CSSMatrix => {
   let matrix = new CSSMatrix();
   const { origin } = transform;
   const [originX, originY] = origin as [number, number, number];
@@ -75,4 +75,3 @@ const getSVGMatrix = (transform: TransformObjectValues): CSSMatrix => {
 
   return matrix;
 };
-export default getSVGMatrix;

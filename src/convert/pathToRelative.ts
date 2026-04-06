@@ -1,18 +1,25 @@
 import type { PathArray, RelativeArray } from "../types";
-import parsePathString from "../parser/parsePathString";
-import iterate from "../process/iterate";
-import relativizeSegment from "../process/relativizeSegment";
+import { parsePathString } from "../parser/parsePathString";
+import { iterate } from "../process/iterate";
+import { relativizeSegment } from "../process/relativizeSegment";
 
 /**
  * Parses a path string value or object and returns an array
  * of segments, all converted to relative values.
  *
- * @param pathInput the path string | object
- * @returns the resulted `pathArray` with relative values
+ * @param pathInput - The path string or PathArray
+ * @returns The resulted PathArray with relative values
+ *
+ * @example
+ * ```ts
+ * pathToRelative('M10 10L90 90')
+ * // => [['M', 10, 10], ['l', 80, 80]]
+ * ```
  */
-const pathToRelative = (pathInput: string | PathArray): RelativeArray => {
+export const pathToRelative = <T extends PathArray>(
+  pathInput: string | T,
+): RelativeArray => {
   const path = parsePathString(pathInput);
 
-  return iterate<RelativeArray>(path, relativizeSegment);
+  return iterate(path, relativizeSegment) as RelativeArray;
 };
-export default pathToRelative;

@@ -1,4 +1,4 @@
-import pathToCurve from "../convert/pathToCurve";
+import { pathToCurve } from "../convert/pathToCurve";
 import type { PathArray, PointTuple } from "../types";
 
 /**
@@ -39,16 +39,22 @@ const getCubicSegArea = (
 };
 
 /**
- * Returns the area of a shape.
+ * Returns the signed area of a shape.
  *
  * @author Jürg Lehni & Jonathan Puckey
  *
  * @see https://github.com/paperjs/paper.js/blob/develop/src/path/Path.js
  *
- * @param path the shape `pathArray`
- * @returns the length of the cubic-bezier segment
+ * @param path - The shape PathArray
+ * @returns The signed area of the shape (positive for clockwise, negative for counter-clockwise)
+ *
+ * @example
+ * ```ts
+ * getPathArea([['M', 0, 0], ['L', 100, 0], ['L', 100, 100], ['L', 0, 100], ['Z']])
+ * // => -10000 (counter-clockwise square)
+ * ```
  */
-const getPathArea = (path: PathArray) => {
+export const getPathArea = <T extends PathArray>(path: T) => {
   let x = 0;
   let y = 0;
   let len = 0;
@@ -76,4 +82,3 @@ const getPathArea = (path: PathArray) => {
     })
     .reduce((a, b) => a + b, 0);
 };
-export default getPathArea;

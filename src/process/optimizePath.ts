@@ -1,27 +1,41 @@
-import type { AbsoluteSegment, PathArray, PathCommand } from "../types";
-import pathToAbsolute from "../convert/pathToAbsolute";
-import shortenSegment from "./shortenSegment";
-import paramsParser from "../parser/paramsParser";
-import iterate from "./iterate";
-import normalizeSegment from "./normalizeSegment";
-import relativizeSegment from "./relativizeSegment";
-import roundSegment from "./roundSegment";
+import type {
+  AbsoluteSegment,
+  PathArray,
+  PathCommand,
+  PathSegment,
+} from "../types";
+import { pathToAbsolute } from "../convert/pathToAbsolute";
+import { shortenSegment } from "./shortenSegment";
+import { paramsParser } from "../parser/paramsParser";
+import { iterate } from "./iterate";
+import { normalizeSegment } from "./normalizeSegment";
+import { relativizeSegment } from "./relativizeSegment";
+import { roundSegment } from "./roundSegment";
 
 /**
- * Optimizes a `pathArray` object:
- * * convert segments to shorthand if possible
- * * select shortest segments from absolute and relative `pathArray`s
+ * Optimizes a PathArray:
+ * * converts segments to shorthand if possible
+ * * selects shortest representation from absolute and relative forms
  *
- * @param pathInput a string or `pathArray`
- * @param roundOption the amount of decimals to round values to
- * @returns the optimized `pathArray`
+ * @param pathInput - A path string or PathArray
+ * @param roundOption - Number of decimal places for rounding
+ * @returns The optimized PathArray
+ *
+ * @example
+ * ```ts
+ * optimizePath('M10 10L10 10L90 90', 2)
+ * // => [['M', 10, 10], ['l', 0, 0], ['l', 80, 80]]
+ * ```
  */
-const optimizePath = (pathInput: PathArray, roundOption?: number) => {
+export const optimizePath = <T extends PathArray>(
+  pathInput: T,
+  roundOption?: number,
+): PathArray => {
   const path = pathToAbsolute(pathInput);
   // allow for ZERO decimals or use an aggressive value of 2
   const round = typeof roundOption === "number" && roundOption >= 0
     ? roundOption
-    : /* istanbul ignore next @preserve */ 2;
+    : 2;
   // this utility overrides the iterator params
   const optimParams = { ...paramsParser };
 
@@ -33,8 +47,8 @@ const optimizePath = (pathInput: PathArray, roundOption?: number) => {
     optimParams.x = lastX;
     optimParams.y = lastY;
     const normalizedSegment = normalizeSegment(seg, optimParams);
-    let result = seg;
-    [pathCommand] = seg;
+    let result: PathSegment = seg;
+    pathCommand = seg[0];
 
     // Save current path command
     allPathCommands[i] = pathCommand;
@@ -64,5 +78,3 @@ const optimizePath = (pathInput: PathArray, roundOption?: number) => {
     return result;
   });
 };
-
-export default optimizePath;

@@ -3,17 +3,23 @@ import { getLineLength } from "../math/lineTools";
 import { getArcLength } from "../math/arcTools";
 import { getCubicLength } from "../math/cubicTools";
 import { getQuadLength } from "../math/quadTools";
-import iterate from "../process/iterate";
-import parsePathString from "../parser/parsePathString";
-import absolutizeSegment from "../process/absolutizeSegment";
+import { iterate } from "../process/iterate";
+import { parsePathString } from "../parser/parsePathString";
+import { absolutizeSegment } from "../process/absolutizeSegment";
 
 /**
- * Returns the shape total length, or the equivalent to `shape.getTotalLength()`.
+ * Returns the total length of a path, equivalent to `shape.getTotalLength()`.
  *
- * @param pathInput the target `pathArray`
- * @returns the shape total length
+ * @param pathInput - The target path string or PathArray
+ * @returns The total length of the path
+ *
+ * @example
+ * ```ts
+ * getTotalLength('M0 0L100 0L100 100L0 100Z')
+ * // => 300
+ * ```
  */
-const getTotalLength = (pathInput: string | PathArray) => {
+export const getTotalLength = <T extends PathArray>(pathInput: string | T) => {
   const path = parsePathString(pathInput);
   let paramX1 = 0;
   let paramY1 = 0;
@@ -135,5 +141,3 @@ const getTotalLength = (pathInput: string | PathArray) => {
 
   return totalLength;
 };
-
-export default getTotalLength;

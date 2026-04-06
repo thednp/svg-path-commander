@@ -3,10 +3,11 @@ import type {
   EllipseAttr,
   GlyphAttr,
   LineAttr,
+  PathBBox,
   PolyAttr,
   RectAttr,
   TransformObject,
-} from "./interface";
+} from "./interface.ts";
 
 export type SpaceNumber =
   | 0x1680
@@ -248,8 +249,14 @@ export type AbsoluteArray = [MSegment, ...AbsoluteSegment[]];
 export type RelativeArray = [MSegment, ...RelativeSegment[]];
 export type NormalArray = [MSegment, ...NormalSegment[]];
 export type CurveArray = [MSegment, ...CSegment[]];
+export type ClosedCurveArray = [MSegment, ...CSegment[], ZSegment];
 export type PolygonArray = [MSegment, ...LSegment[], ZSegment];
 export type PolylineArray = [MSegment, ...LSegment[]];
+export type MorphPathArray =
+  | PolygonArray
+  | PolylineArray
+  | CurveArray
+  | ClosedCurveArray;
 
 export type ShapeTypes =
   | SVGPolylineElement
@@ -344,9 +351,62 @@ export type LineCoordinates = [number, number, number, number];
 
 export type DeriveCallback = (t: number) => Point;
 
-export type IteratorCallback = (
-  segment: PathSegment,
+export type IteratorCallback<
+  T extends PathArray,
+  K extends keyof T = number,
+> = (
+  segment: PathSegment & T[K],
   index: number,
   lastX: number,
   lastY: number,
-) => PathSegment | false | void | undefined;
+) => PathSegment | T[K] | false | void | undefined;
+
+export type BBoxMaxima = [
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+];
+export type PointAtLength = { x: number; y: number; t: number };
+export type IntersectionPoint = {
+  x: number;
+  y: number;
+  t1: number;
+  t2: number;
+};
+export interface IntersectionOptions {
+  justCount?: boolean;
+  epsilon?: number;
+}
+
+export interface PathEqualizationOptions {
+  /** @default "auto" */
+  mode?: "line" | "curve" | "auto";
+  sampleSize?: number; // for line option
+  roundValues?: number; // 4 decimals
+  close?: boolean;
+}
+
+export interface EqualizationOptions {
+  /** @default "auto" */
+  mode?: "curve" | "auto";
+  sampleSize?: number; // for line option
+  roundValues?: number; // 4 decimals
+  reverse?: boolean;
+  close?: boolean;
+  target?: number;
+}
+
+export type PathsEqualizationOptions = Omit<
+  EqualizationOptions,
+  "reverse" | "target"
+>;
+
+export interface PathFeature {
+  isPoly: boolean;
+  path: NormalArray;
+  size: number;
+  area: number;
+  signedArea: number;
+  bbox: PathBBox;
+}

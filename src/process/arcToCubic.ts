@@ -1,4 +1,4 @@
-import rotateVector from "../math/rotateVector";
+import { rotateVector } from "../math/rotateVector";
 
 /**
  * Converts A (arc-to) segments to C (cubic-bezier-to).
@@ -16,9 +16,9 @@ import rotateVector from "../math/rotateVector";
  * @param X2 the ending x position
  * @param Y2 the ending y position
  * @param recursive the parameters needed to split arc into 2 segments
- * @return the resulting cubic-bezier segment(s)
+ * @returns the resulting cubic-bezier segment(s)
  */
-const arcToCubic = (
+export const arcToCubic = (
   X1: number,
   Y1: number,
   RX: number,
@@ -135,4 +135,3 @@ const arcToCubic = (
   }
   return newres;
 };
-export default arcToCubic;

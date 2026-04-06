@@ -22,7 +22,7 @@ import type {
  * @param lastY the last known Y value
  * @returns the absolute segment
  */
-const absolutizeSegment = (
+export const absolutizeSegment = (
   segment: PathSegment,
   index: number,
   lastX: number,
@@ -73,4 +73,3 @@ const absolutizeSegment = (
       | CSegment;
   }
 };
-export default absolutizeSegment;

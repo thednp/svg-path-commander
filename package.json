@@ -2,37 +2,35 @@
   "name": "svg-path-commander",
   "author": "thednp",
   "license": "MIT",
-  "version": "2.1.11",
+  "version": "2.2.0",
   "description": "🛹 Modern TypeScript tools for SVG",
-  "main": "./dist/svg-path-commander.js",
-  "browser": "./dist/svg-path-commander.js",
-  "commonjs": "./dist/svg-path-commander.cjs",
-  "module": "./dist/svg-path-commander.mjs",
+  "main": "./dist/index.js",
+  "browser": "./dist/index.min.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "sideEffects": false,
   "type": "module",
   "exports": {
-    ".": {
-      "types": "./dist/svg-path-commander.d.ts",
-      "require": "./dist/svg-path-commander.cjs",
-      "import": "./dist/svg-path-commander.mjs"
-    }
+    ".": "./dist/index.js",
+    "./util": "./dist/util.js",
+    "./package.json": "./package.json"
   },
   "scripts": {
     "pre-test": "pnpm clean-coverage",
-    "badges": "npx -p dependency-version-badge update-badge typescript vitest vite",
     "dev": "vite serve docs --port 3000",
-    "test": "pnpm pre-test && vitest --config vitest.config.ts",
-    "test-ui": "pnpm pre-test && vitest --config vitest.config-ui.ts",
+    "test": "vitest",
+    "test-ui": "vitest --ui",
     "clean-coverage": "rm -rf coverage .nyc_output",
     "format": "deno fmt src",
     "lint": "pnpm lint:ts && pnpm check:ts",
     "fix:ts": "deno lint --fix src",
     "lint:ts": "deno lint src",
     "check:ts": "tsc --noEmit",
-    "build": "tsup && pnpm build-iife && pnpm copy-docs",
+    "build_": "tsdown && pnpm build-iife && pnpm copy-docs",
+    "build": "tsdown && pnpm copy-docs",
     "build-iife": "vite build --config vite.config.ts",
-    "copy-docs": "cp dist/svg-path-commander.js docs/svg-path-commander.js && cp dist/svg-path-commander.js.map docs/svg-path-commander.js.map",
-    "prepublishOnly": "pnpm update --latest && pnpm format && pnpm lint:ts && pnpm build && pnpm badges"
+    "copy-docs": "cp dist/index.min.js docs/index.min.js && cp dist/index.min.js.map docs/index.min.js.map",
+    "prepublishOnly": "pnpm update --latest && pnpm format && pnpm lint:ts && pnpm build"
   },
   "repository": {
     "type": "git",
@@ -58,22 +56,27 @@
   },
   "homepage": "http://thednp.github.io/svg-path-commander",
   "devDependencies": {
-    "@types/node": "^22.15.24",
-    "@vitest/browser": "^3.1.4",
-    "@vitest/coverage-istanbul": "^3.1.4",
-    "@vitest/ui": "^3.1.4",
-    "playwright": "^1.52.0",
-    "tsup": "^8.5.0",
-    "typescript": "5.8.3",
-    "vite": "^6.3.5",
-    "vitest": "^3.1.4"
+    "@types/node": "^25.5.2",
+    "@vitest/browser": "^4.1.2",
+    "@vitest/coverage-istanbul": "^4.1.2",
+    "@vitest/ui": "^4.1.2",
+    "happy-dom": "^20.8.9",
+    "playwright": "^1.59.1",
+    "tsdown": "0.21.7",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.4",
+    "vite-plugin-strip-comments": "^0.0.10",
+    "vitest": "^4.1.2"
   },
   "dependencies": {
-    "@thednp/dommatrix": "^2.0.12"
+    "@thednp/dommatrix": "^3.0.4"
   },
-  "packageManager": "pnpm@8.6.12",
   "engines": {
     "node": ">=16",
     "pnpm": ">=8.6.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "inlinedDependencies": {
+    "@thednp/dommatrix": "3.0.4"
   }
 }

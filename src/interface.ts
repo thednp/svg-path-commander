@@ -1,4 +1,4 @@
-import type { PathSegment } from "./types";
+import type { PathSegment } from "./types.ts";
 
 export type SegmentProperties = {
   segment: PathSegment;
@@ -89,6 +89,8 @@ export type SegmentLimits = {
 };
 
 export type ParserParams = {
+  mx: number;
+  my: number;
   x1: number;
   y1: number;
   x2: number;

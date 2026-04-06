@@ -91,7 +91,7 @@ const getPointAtQuadLength = (
 };
 
 /**
- * Returns the boundig box of a QuadraticBezier segment in the following format:
+ * Returns the bounding box of a QuadraticBezier segment in the following format:
  * [MIN_X, MIN_Y, MAX_X, MAX_Y]
  *
  * @param x1 the starting point X

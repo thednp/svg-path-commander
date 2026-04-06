@@ -22,7 +22,7 @@ import type {
  * @param lastY the last known Y value
  * @returns the relative segment
  */
-const relativizeSegment = (
+export const relativizeSegment = (
   segment: PathSegment,
   index: number,
   lastX: number,
@@ -72,5 +72,3 @@ const relativizeSegment = (
       | cSegment;
   }
 };
-
-export default relativizeSegment;

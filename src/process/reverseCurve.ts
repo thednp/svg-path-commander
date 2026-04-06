@@ -7,7 +7,7 @@ import type { CSegment, CurveArray, MSegment, PathCommand } from "../types";
  * @param path the source `pathArray`
  * @returns the reversed `pathArray`
  */
-const reverseCurve = (path: CurveArray) => {
+export const reverseCurve = (path: CurveArray) => {
   const rotatedCurve = path
     .slice(1)
     .map((x, i, curveOnly) =>
@@ -23,5 +23,3 @@ const reverseCurve = (path: CurveArray) => {
       rotatedCurve.map((x) => ["C" as PathCommand | number].concat(x.slice(2))),
     ) as CurveArray;
 };
-
-export default reverseCurve;

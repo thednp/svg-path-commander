@@ -9,7 +9,7 @@
  * @param y2 curve end y
  * @returns the cubic-bezier segment
  */
-const quadToCubic = (
+export const quadToCubic = (
   x1: number,
   y1: number,
   qx: number,
@@ -28,4 +28,3 @@ const quadToCubic = (
     y2, // x,y
   ];
 };
-export default quadToCubic;

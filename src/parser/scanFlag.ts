@@ -1,13 +1,13 @@
-import error from "./error";
-import type PathParser from "./pathParser";
+import { error } from "../util/error";
+import type { PathParser } from "./pathParser";
 
 /**
  * Validates an A (arc-to) specific path command value.
  * Usually a `large-arc-flag` or `sweep-flag`.
  *
- * @param path the `PathParser` instance
+ * @param path - The PathParser instance
  */
-const scanFlag = (path: PathParser) => {
+export const scanFlag = (path: PathParser) => {
   const { index, pathValue } = path;
   const code = pathValue.charCodeAt(index);
 
@@ -27,5 +27,3 @@ const scanFlag = (path: PathParser) => {
     pathValue[index]
   }", expecting 0 or 1 at index ${index}`;
 };
-
-export default scanFlag;

@@ -1,4 +1,4 @@
-import midPoint from "../math/midPoint";
+import { midPoint } from "../math/midPoint";
 
 /**
  * Converts an L (line-to) segment to C (cubic-bezier).
@@ -9,9 +9,8 @@ import midPoint from "../math/midPoint";
  * @param y2 line end y
  * @returns the cubic-bezier segment
  */
-const lineToCubic = (x1: number, y1: number, x2: number, y2: number) => {
+export const lineToCubic = (x1: number, y1: number, x2: number, y2: number) => {
   const c1 = midPoint([x1, y1], [x2, y2], 1.0 / 3.0);
   const c2 = midPoint([x1, y1], [x2, y2], 2.0 / 3.0);
   return [c1[0], c1[1], c2[0], c2[1], x2, y2];
 };
-export default lineToCubic;

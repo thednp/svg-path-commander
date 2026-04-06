@@ -1,14 +1,26 @@
-import iterate from "../process/iterate";
+import { iterate } from "../process/iterate";
 import { PathBBox } from "../interface";
 import { LSegment, MSegment, PathArray, PointTuple } from "../types";
 import { getLineBBox } from "../math/lineTools";
 import { getArcBBox } from "../math/arcTools";
 import { getCubicBBox } from "../math/cubicTools";
 import { getQuadBBox } from "../math/quadTools";
-import parsePathString from "../parser/parsePathString";
-import absolutizeSegment from "../process/absolutizeSegment";
+import { parsePathString } from "../parser/parsePathString";
+import { absolutizeSegment } from "../process/absolutizeSegment";
 
-const getPathBBox = (pathInput: PathArray | string) => {
+/**
+ * Calculates the bounding box of a path.
+ *
+ * @param pathInput - The path string or PathArray
+ * @returns An object with width, height, x, y, x2, y2, cx, cy, cz properties
+ *
+ * @example
+ * ```ts
+ * getPathBBox('M0 0L100 0L100 100L0 100Z')
+ * // => { x: 0, y: 0, width: 100, height: 100, x2: 100, y2: 100, cx: 50, cy: 50, cz: 150 }
+ * ```
+ */
+export const getPathBBox = <T extends PathArray>(pathInput: T | string) => {
   if (!pathInput) {
     return {
       x: 0,
@@ -174,5 +186,3 @@ const getPathBBox = (pathInput: PathArray | string) => {
     cz: Math.max(width, height) + Math.min(width, height) / 2,
   } satisfies PathBBox;
 };
-
-export default getPathBBox;

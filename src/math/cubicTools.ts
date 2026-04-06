@@ -1,5 +1,5 @@
 import { getBezierLength, minmaxC } from "./bezier";
-import { type CubicCoordinates } from "../types";
+import { BBoxMaxima, type CubicCoordinates } from "../types";
 
 /**
  * Returns a point at a given length of a CubicBezier segment.
@@ -99,7 +99,7 @@ const getPointAtCubicLength = (
 };
 
 /**
- * Returns the boundig box of a CubicBezier segment in the following format:
+ * Returns the bounding box of a CubicBezier segment in the following format:
  * [MIN_X, MIN_Y, MAX_X, MAX_Y]
  *
  * @param x1 the starting point X
@@ -121,16 +121,11 @@ const getCubicBBox = (
   c2y: number,
   x2: number,
   y2: number,
-) => {
+): BBoxMaxima => {
   const cxMinMax = minmaxC([x1, c1x, c2x, x2]);
   const cyMinMax = minmaxC([y1, c1y, c2y, y2]);
 
-  return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]] as [
-    number,
-    number,
-    number,
-    number,
-  ];
+  return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]];
 };
 
 const cubicTools = {

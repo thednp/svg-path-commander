@@ -1,24 +1,32 @@
 import DISTANCE_EPSILON from "./distanceEpsilon";
 import type { MSegment, PathArray, PointTuple } from "../types";
-import iterate from "../process/iterate";
+import { iterate } from "../process/iterate";
 import { getLineLength, getPointAtLineLength } from "../math/lineTools";
 import { getArcLength, getPointAtArcLength } from "../math/arcTools";
 import { getCubicLength, getPointAtCubicLength } from "../math/cubicTools";
 import { getPointAtQuadLength, getQuadLength } from "../math/quadTools";
-import normalizePath from "../process/normalizePath";
+import { normalizePath } from "../process/normalizePath";
 
 /**
- * Returns [x,y] coordinates of a point at a given length of a shape.
+ * Returns [x,y] coordinates of a point at a given length along a path.
  *
- * @param pathInput the `pathArray` to look into
- * @param distance the length of the shape to look at
- * @returns the requested {x, y} point coordinates
+ * @param pathInput - The PathArray or path string to look into
+ * @param distance - The distance along the path
+ * @returns The requested {x, y} point coordinates
+ *
+ * @example
+ * ```ts
+ * getPointAtLength('M0 0L100 0L100 100Z', 50)
+ * // => { x: 50, y: 0 }
+ * ```
  */
-const getPointAtLength = (pathInput: string | PathArray, distance?: number) => {
+export const getPointAtLength = <T extends PathArray>(
+  pathInput: string | T,
+  distance?: number,
+) => {
   const path = normalizePath(pathInput);
   let isM = false;
   let data = [] as number[];
-  let pathCommand = "M";
   let x = 0;
   let y = 0;
   let [mx, my] = path[0].slice(1) as PointTuple;
@@ -30,9 +38,8 @@ const getPointAtLength = (pathInput: string | PathArray, distance?: number) => {
 
   if (!distanceIsNumber || distance < DISTANCE_EPSILON) return point;
 
-  // for (let i = 0; i < pathLen; i += 1) {
   iterate(path, (seg, _, lastX, lastY) => {
-    [pathCommand] = seg;
+    const pathCommand = seg[0];
     isM = pathCommand === "M";
     data = !isM ? [lastX, lastY].concat(seg.slice(1) as number[]) : data;
 
@@ -146,5 +153,3 @@ const getPointAtLength = (pathInput: string | PathArray, distance?: number) => {
 
   return POINT;
 };
-
-export default getPointAtLength;

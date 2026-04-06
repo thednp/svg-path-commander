@@ -1,12 +1,11 @@
 # SVGPathCommander
+
 [![Coverage Status](https://coveralls.io/repos/github/thednp/svg-path-commander/badge.svg)](https://coveralls.io/github/thednp/svg-path-commander)
 [![ci](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml/badge.svg)](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml)
 [![NPM Version](https://img.shields.io/npm/v/svg-path-commander.svg)](https://www.npmjs.com/package/svg-path-commander)
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg)](http://npm-stat.com/charts.html?svg-path-commander)
 [![jsDeliver](https://img.shields.io/jsdelivr/npm/hw/svg-path-commander)](https://www.jsdelivr.com/package/npm/svg-path-commander)
-[![typescript version](https://img.shields.io/badge/typescript-5.8.3-brightgreen)](https://www.typescriptlang.org/)
-[![vitest version](https://img.shields.io/badge/vitest-3.1.4-brightgreen)](https://vitest.dev/)
-[![vite version](https://img.shields.io/badge/vite-6.3.5-brightgreen)](https://vitejs.dev/)
+
 
 ![image](./docs/assets/SVGPathCommander.svg)
 
@@ -40,10 +39,17 @@ This library is available on [CDN](https://www.jsdelivr.com/package/npm/svg-path
 
 ```
 npm install svg-path-commander
+# or pnpm/bun/deno add svg-path-commander
 ```
 
 
 # CDN
+Version 2.2.0+
+```html
+<script src="https://cdn.jsdelivr.net/npm/svg-path-commander/dist/index.min.js">
+```
+
+Versions before 2.2.0
 ```html
 <script src="https://cdn.jsdelivr.net/npm/svg-path-commander/dist/svg-path-commander.js">
 ```
@@ -228,6 +234,42 @@ Get the path bounding box:
 ```js
 const myPathBBox = SVGPathCommander.getPathBBox('M0 0L50 0L25 50z');
 // result => {width: 50, height: 50, x: 0, y: 0, x2: 50, y2: 50, cx: 25, cy: 25, cz: 75}
+```
+
+Find intersection points between two paths:
+```js
+const count = SVGPathCommander.pathsIntersection(
+  'M0 50C0 0,100 0,100 50',
+  'M50 0C100 0,100 100,50 100',
+  true
+);
+// result => 1
+
+const points = SVGPathCommander.pathsIntersection(
+  'M0 50C0 0,100 0,100 50',
+  'M50 0C100 0,100 100,50 100',
+  false
+);
+// result => [{ x: 50, y: 25, t1: 0.5, t2: 0.5 }]
+```
+
+Equalize two paths for morphing (single subpath):
+```js
+const [eq1, eq2] = SVGPathCommander.equalizeSegments(
+  'M0 0L100 0L50 100Z',
+  'M0 0L100 0L100 100L0 100Z'
+);
+// eq1.length === eq2.length — ready for morphing
+```
+
+Equalize two paths for morphing (single or multi subpath):
+```js
+const [eq1, eq2] = SVGPathCommander.equalizePaths(
+  'M0 0L100 0L50 100Z',
+  'M0 0L100 0L100 100L0 100Z',
+  { close: true }
+);
+// Both paths now have the same number of segments
 ```
 
 # WIKI

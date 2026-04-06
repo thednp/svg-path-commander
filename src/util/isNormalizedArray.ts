@@ -1,16 +1,15 @@
 import type { NormalArray } from "../types";
-import isAbsoluteArray from "./isAbsoluteArray";
+import { isAbsoluteArray } from "./isAbsoluteArray";
 
 /**
  * Iterates an array to check if it's a `pathArray`
- * with all segments are in non-shorthand notation
+ * with all segments in non-shorthand notation
  * with absolute values.
  *
- * @param {string | SVGPath.pathArray} path the `pathArray` to be checked
- * @returns {boolean} iteration result
+ * @param path - the array to be checked
+ * @returns true if the array is a normalized path array
  */
-const isNormalizedArray = (path: unknown): path is NormalArray => {
+export const isNormalizedArray = (path: unknown): path is NormalArray => {
   // `isAbsoluteArray` also checks if it's `Array`
   return isAbsoluteArray(path) && path.every(([pc]) => "ACLMQZ".includes(pc));
 };
-export default isNormalizedArray;

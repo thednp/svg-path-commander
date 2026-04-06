@@ -1,29 +1,29 @@
-import finalizeSegment from "./finalizeSegment";
-import paramCounts from "./paramsCount";
-import scanFlag from "./scanFlag";
-import scanParam from "./scanParam";
-import skipSpaces from "./skipSpaces";
-import isPathCommand from "./isPathCommand";
-import isDigitStart from "./isDigitStart";
-import isArcCommand from "./isArcCommand";
-import isMoveCommand from "./isMoveCommand";
-import invalidPathValue from "./invalidPathValue";
-import error from "./error";
+import { finalizeSegment } from "./finalizeSegment";
+import { paramsCounts } from "./paramsCount";
+import { scanFlag } from "./scanFlag";
+import { scanParam } from "./scanParam";
+import { skipSpaces } from "./skipSpaces";
+import { isPathCommand } from "./isPathCommand";
+import { isDigitStart } from "./isDigitStart";
+import { isArcCommand } from "./isArcCommand";
+import { isMoveCommand } from "./isMoveCommand";
+import { invalidPathValue } from "./invalidPathValue";
+import { error } from "../util/error";
 
-import type PathParser from "./pathParser";
+import { type PathParser } from "./pathParser";
 import type { PathSegment, RelativeCommand } from "../types";
 
 /**
  * Scans every character in the path string to determine
  * where a segment starts and where it ends.
  *
- * @param path the `PathParser` instance
+ * @param path - The PathParser instance
  */
-const scanSegment = (path: PathParser) => {
+export const scanSegment = (path: PathParser) => {
   const { max, pathValue, index, segments } = path;
   const cmdCode = pathValue.charCodeAt(index);
   const reqParams =
-    paramCounts[pathValue[index].toLowerCase() as RelativeCommand];
+    paramsCounts[pathValue[index].toLowerCase() as RelativeCommand];
 
   path.segmentStart = index;
 
@@ -38,7 +38,8 @@ const scanSegment = (path: PathParser) => {
   // after a Z segment, we only expect a MoveTo path command
   const lastSegment = segments[segments.length - 1] as PathSegment | undefined;
   if (
-    !isMoveCommand(cmdCode) && lastSegment?.[0]?.toLocaleLowerCase() === "z"
+    !isMoveCommand(cmdCode) &&
+    lastSegment?.[0]?.toLocaleLowerCase() === "z"
   ) {
     path.err = `${error}: ${invalidPathValue} "${
       pathValue[index]
@@ -71,7 +72,8 @@ const scanSegment = (path: PathParser) => {
 
       // after ',' param is mandatory
       if (
-        path.index < max && pathValue.charCodeAt(path.index) === 0x2c /* , */
+        path.index < max &&
+        pathValue.charCodeAt(path.index) === 0x2c /* , */
       ) {
         path.index += 1;
         skipSpaces(path);
@@ -90,4 +92,3 @@ const scanSegment = (path: PathParser) => {
 
   finalizeSegment(path);
 };
-export default scanSegment;

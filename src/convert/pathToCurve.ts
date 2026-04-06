@@ -1,28 +1,39 @@
-import segmentToCubic from "../process/segmentToCubic";
+import { segmentToCubic } from "../process/segmentToCubic";
 import { AbsoluteCommand, CSegment, CurveArray, PathArray } from "../types";
-import iterate from "../process/iterate";
-import parsePathString from "../parser/parsePathString";
-import normalizeSegment from "../process/normalizeSegment";
-import paramsParser from "../parser/paramsParser";
+import { iterate } from "../process/iterate";
+import { parsePathString } from "../parser/parsePathString";
+import { normalizeSegment } from "../process/normalizeSegment";
+import { paramsParser } from "../parser/paramsParser";
 
 /**
- * Parses a path string value or 'pathArray' and returns a new one
+ * Parses a path string or PathArray and returns a new one
  * in which all segments are converted to cubic-bezier.
  *
- * In addition, un-necessary `Z` segment is removed if previous segment
- * extends to the `M` segment.
+ * @param pathInput - The path string or PathArray
+ * @returns The resulted CurveArray with all segments as cubic beziers
  *
- * @param pathInput the string to be parsed or 'pathArray'
- * @returns the resulted `pathArray` converted to cubic-bezier
+ * @example
+ * ```ts
+ * pathToCurve('M10 50q15 -25 30 0')
+ * // => [['M', 10, 50], ['C', 25, 25, 40, 50, 40, 50]]
+ * ```
  */
-const pathToCurve = (pathInput: string | PathArray): CurveArray => {
+export const pathToCurve = <T extends PathArray>(
+  pathInput: string | T,
+): CurveArray => {
   const params = { ...paramsParser };
   const path = parsePathString(pathInput);
+  // let mx = 0;
+  // let my = 0;
 
-  return iterate<CurveArray>(path, (seg, index, lastX, lastY) => {
+  return iterate(path, (seg, index, lastX, lastY) => {
     params.x = lastX;
     params.y = lastY;
     const normalSegment = normalizeSegment(seg, params);
+    if (normalSegment[0] === "M") {
+      params.mx = normalSegment[1];
+      params.my = normalSegment[2];
+    }
     let result = segmentToCubic(normalSegment, params);
     const isLongArc = result[0] === "C" && result.length > 7;
 
@@ -42,6 +53,5 @@ const pathToCurve = (pathInput: string | PathArray): CurveArray => {
     params.y2 = +result[seglen - 3] || params.y1;
 
     return result;
-  });
+  }) as CurveArray;
 };
-export default pathToCurve;

@@ -4,9 +4,9 @@ import type { PathArray, PathSegment } from "../types";
  * The `PathParser` is used by the `parsePathString` static method
  * to generate a `pathArray`.
  *
- * @param pathString
+ * @param pathString - The SVG path string to parse
  */
-export default class PathParser {
+export class PathParser {
   declare segments: PathArray | PathSegment[];
   declare pathValue: string;
   declare max: number;

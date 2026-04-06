@@ -1,5 +1,5 @@
 import type { PathArray } from "../types";
-import getPropertiesAtPoint from "./getPropertiesAtPoint";
+import { getPropertiesAtPoint } from "./getPropertiesAtPoint";
 import DISTANCE_EPSILON from "./distanceEpsilon";
 
 /**
@@ -9,11 +9,10 @@ import DISTANCE_EPSILON from "./distanceEpsilon";
  * @param point the given `{x,y}` point
  * @returns the query result
  */
-const isPointInStroke = (
-  pathInput: string | PathArray,
+export const isPointInStroke = <T extends PathArray>(
+  pathInput: string | T,
   point: { x: number; y: number },
 ) => {
   const { distance } = getPropertiesAtPoint(pathInput, point);
   return Math.abs(distance) < DISTANCE_EPSILON; // 0.01 might be more permissive
 };
-export default isPointInStroke;
