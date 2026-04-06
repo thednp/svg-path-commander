@@ -1,11 +1,11 @@
 /*!
-* SVGPathCommander v2.2.0 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.2.1 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 import CSSMatrix from "@thednp/dommatrix";
 //#region package.json
-var version = "2.2.0";
+var version = "2.2.1";
 //#endregion
 //#region src/math/midPoint.ts
 /**
@@ -3893,18 +3893,7 @@ const equalizeSegments = (path1, path2, initialCfg = {}) => {
 	return [equalP1, equalP2];
 };
 //#endregion
-//#region src/util/pathIntersection.ts
-const intersect = (x1, y1, x2, y2, x3, y3, x4, y4) => {
-	if (Math.max(x1, x2) < Math.min(x3, x4) || Math.min(x1, x2) > Math.max(x3, x4) || Math.max(y1, y2) < Math.min(y3, y4) || Math.min(y1, y2) > Math.max(y3, y4)) return;
-	const nx = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4), ny = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4), denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-	if (!denominator) return;
-	const px = nx / denominator, py = ny / denominator, px2 = roundTo(px, 2), py2 = roundTo(py, 2);
-	if (px2 < roundTo(Math.min(x1, x2), 2) || px2 > roundTo(Math.max(x1, x2), 2) || px2 < roundTo(Math.min(x3, x4), 2) || px2 > roundTo(Math.max(x3, x4), 2) || py2 < roundTo(Math.min(y1, y2), 2) || py2 > roundTo(Math.max(y1, y2), 2) || py2 < roundTo(Math.min(y3, y4), 2) || py2 > roundTo(Math.max(y3, y4), 2)) return;
-	return {
-		x: px,
-		y: py
-	};
-};
+//#region src/intersect/isPointInsideBBox.ts
 /**
 * Checks if a point is inside a bounding box.
 *
@@ -3916,6 +3905,8 @@ const isPointInsideBBox = (bbox, [x, y]) => {
 	const [minX, minY, maxX, maxY] = bbox;
 	return x >= minX && x <= maxX && y >= minY && y <= maxY;
 };
+//#endregion
+//#region src/intersect/boundingBoxIntersect.ts
 /**
 * Checks if two bounding boxes intersect.
 *
@@ -3927,154 +3918,6 @@ const boundingBoxIntersect = (a, b) => {
 	const [ax1, ay1, ax2, ay2] = a;
 	const [bx1, by1, bx2, by2] = b;
 	return isPointInsideBBox(b, [ax1, ay1]) || isPointInsideBBox(b, [ax2, ay1]) || isPointInsideBBox(b, [ax1, ay2]) || isPointInsideBBox(b, [ax2, ay2]) || isPointInsideBBox(a, [bx1, by1]) || isPointInsideBBox(a, [bx2, by1]) || isPointInsideBBox(a, [bx1, by2]) || isPointInsideBBox(a, [bx2, by2]) || (ax1 < bx2 && ax1 > bx1 || bx1 < ax2 && bx1 > ax1) && (ay1 < by2 && ay1 > by1 || by1 < ay2 && by1 > ay1);
-};
-const interHelper = (bez1, bez2, config) => {
-	const bbox1 = getCubicBBox(...bez1);
-	const bbox2 = getCubicBBox(...bez2);
-	const { justCount, epsilon } = Object.assign({
-		justCount: true,
-		epsilon: DISTANCE_EPSILON
-	}, config);
-	if (!boundingBoxIntersect(bbox1, bbox2)) return justCount ? 0 : [];
-	const l1 = getCubicLength(...bez1), l2 = getCubicLength(...bez2), n1 = Math.max(l1 / 5 >> 0, 1), n2 = Math.max(l2 / 5 >> 0, 1), points1 = [], points2 = [], xy = {};
-	let res = justCount ? 0 : [];
-	for (let i = 0; i < n1 + 1; i++) {
-		const p = getPointAtCubicLength(...bez1, i / n1 * l1);
-		points1.push({
-			x: p.x,
-			y: p.y,
-			t: i / n1
-		});
-	}
-	for (let i = 0; i < n2 + 1; i++) {
-		const p = getPointAtCubicLength(...bez2, i / n2 * l2);
-		points2.push({
-			x: p.x,
-			y: p.y,
-			t: i / n2
-		});
-	}
-	for (let i = 0; i < n1; i++) for (let j = 0; j < n2; j++) {
-		const maxLimit = 1 + epsilon, di = points1[i], di1 = points1[i + 1], dj = points2[j], dj1 = points2[j + 1], ci = Math.abs(di1.x - di.x) < .001 ? "y" : "x", cj = Math.abs(dj1.x - dj.x) < .001 ? "y" : "x", is = intersect(di.x, di.y, di1.x, di1.y, dj.x, dj.y, dj1.x, dj1.y);
-		if (is) {
-			if (xy[is.x.toFixed(4)] == is.y.toFixed(4)) continue;
-			xy[is.x.toFixed(4)] = is.y.toFixed(4);
-			const t1 = di.t + Math.abs((is[ci] - di[ci]) / (di1[ci] - di[ci])) * (di1.t - di.t), t2 = dj.t + Math.abs((is[cj] - dj[cj]) / (dj1[cj] - dj[cj])) * (dj1.t - dj.t);
-			if (t1 >= 0 && t1 <= maxLimit && t2 >= 0 && t2 <= maxLimit) if (justCount) res++;
-			else res.push({
-				x: is.x,
-				y: is.y,
-				t1: Math.min(t1, 1),
-				t2: Math.min(t2, 1)
-			});
-		}
-	}
-	return res;
-};
-/**
-* Finds intersection points between two paths.
-*
-* @param pathInput1 - First path string or PathArray
-* @param pathInput2 - Second path string or PathArray
-* @param justCount - If true, returns the count of intersections; if false, returns the intersection points
-* @returns The number of intersections (when justCount is true) or an array of IntersectionPoint objects
-*
-* @example
-* ```ts
-* pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', true)
-* // => 1
-* pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', false)
-* // => [{ x: 50, y: 25, t1: 0.5, t2: 0.5 }]
-* ```
-*/
-const pathsIntersection = (pathInput1, pathInput2, justCount = true) => {
-	const path1 = pathToCurve(pathInput1);
-	const path2 = pathToCurve(pathInput2);
-	let x1 = 0, y1 = 0, x2 = 0, y2 = 0, x1m = 0, y1m = 0, x2m = 0, y2m = 0, bez1 = [
-		x1,
-		y1,
-		x1,
-		y1,
-		x1m,
-		y1m,
-		x1m,
-		y1m
-	], bez2 = [
-		x2,
-		y2,
-		x2,
-		y2,
-		x2m,
-		y2m,
-		x2m,
-		y2m
-	], countResult = 0;
-	const pointsResult = [];
-	const pathLen1 = path1.length;
-	const pathLen2 = path2.length;
-	for (let i = 0; i < pathLen1; i++) {
-		const seg1 = path1[i];
-		if (seg1[0] == "M") {
-			x1 = seg1[1];
-			y1 = seg1[2];
-			x1m = x1;
-			y1m = y1;
-		} else {
-			if (seg1[0] == "C") {
-				bez1 = [
-					x1,
-					y1,
-					seg1[1],
-					seg1[2],
-					seg1[3],
-					seg1[4],
-					seg1[5],
-					seg1[6]
-				];
-				x1 = bez1[6];
-				y1 = bez1[7];
-			} else {
-				bez1 = [
-					x1,
-					y1,
-					x1,
-					y1,
-					x1m,
-					y1m,
-					x1m,
-					y1m
-				];
-				x1 = x1m;
-				y1 = y1m;
-			}
-			for (let j = 0; j < pathLen2; j++) {
-				const seg2 = path2[j];
-				if (seg2[0] == "M") {
-					x2 = seg2[1];
-					y2 = seg2[2];
-					x2m = x2;
-					y2m = y2;
-				} else if (seg2[0] == "C") {
-					bez2 = [
-						x2,
-						y2,
-						seg2[1],
-						seg2[2],
-						seg2[3],
-						seg2[4],
-						seg2[5],
-						seg2[6]
-					];
-					x2 = bez2[6];
-					y2 = bez2[7];
-				}
-				const intr = interHelper(bez1, bez2, { justCount });
-				if (justCount) countResult += intr;
-				else pointsResult.push(...intr);
-			}
-		}
-	}
-	return justCount ? countResult : pointsResult;
 };
 //#endregion
 //#region src/morph/createPlaceholder.ts
@@ -4273,6 +4116,169 @@ const equalizePaths = (pathInput1, pathInput2, initialCfg = {}) => {
 		equalizedPairs.push([eqFrom, eqTo]);
 	}
 	return [equalizedPairs.map((p) => p[0]).flat(), equalizedPairs.map((p) => p[1]).flat()];
+};
+//#endregion
+//#region src/intersect/interHelper.ts
+const intersect = (x1, y1, x2, y2, x3, y3, x4, y4) => {
+	if (Math.max(x1, x2) < Math.min(x3, x4) || Math.min(x1, x2) > Math.max(x3, x4) || Math.max(y1, y2) < Math.min(y3, y4) || Math.min(y1, y2) > Math.max(y3, y4)) return;
+	const nx = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4), ny = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4), denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+	if (!denominator) return;
+	const px = nx / denominator, py = ny / denominator, px2 = roundTo(px, 2), py2 = roundTo(py, 2);
+	if (px2 < roundTo(Math.min(x1, x2), 2) || px2 > roundTo(Math.max(x1, x2), 2) || px2 < roundTo(Math.min(x3, x4), 2) || px2 > roundTo(Math.max(x3, x4), 2) || py2 < roundTo(Math.min(y1, y2), 2) || py2 > roundTo(Math.max(y1, y2), 2) || py2 < roundTo(Math.min(y3, y4), 2) || py2 > roundTo(Math.max(y3, y4), 2)) return;
+	return {
+		x: px,
+		y: py
+	};
+};
+const interHelper = (bez1, bez2, config) => {
+	const bbox1 = getCubicBBox(...bez1);
+	const bbox2 = getCubicBBox(...bez2);
+	const { justCount, epsilon } = Object.assign({
+		justCount: true,
+		epsilon: DISTANCE_EPSILON
+	}, config);
+	if (!boundingBoxIntersect(bbox1, bbox2)) return justCount ? 0 : [];
+	const l1 = getCubicLength(...bez1), l2 = getCubicLength(...bez2), n1 = Math.max(l1 / 5 >> 0, 1), n2 = Math.max(l2 / 5 >> 0, 1), points1 = [], points2 = [], xy = {};
+	let res = justCount ? 0 : [];
+	for (let i = 0; i < n1 + 1; i++) {
+		const p = getPointAtCubicLength(...bez1, i / n1 * l1);
+		points1.push({
+			x: p.x,
+			y: p.y,
+			t: i / n1
+		});
+	}
+	for (let i = 0; i < n2 + 1; i++) {
+		const p = getPointAtCubicLength(...bez2, i / n2 * l2);
+		points2.push({
+			x: p.x,
+			y: p.y,
+			t: i / n2
+		});
+	}
+	for (let i = 0; i < n1; i++) for (let j = 0; j < n2; j++) {
+		const maxLimit = 1 + epsilon, di = points1[i], di1 = points1[i + 1], dj = points2[j], dj1 = points2[j + 1], ci = Math.abs(di1.x - di.x) < .001 ? "y" : "x", cj = Math.abs(dj1.x - dj.x) < .001 ? "y" : "x", is = intersect(di.x, di.y, di1.x, di1.y, dj.x, dj.y, dj1.x, dj1.y);
+		if (is) {
+			if (xy[is.x.toFixed(4)] == is.y.toFixed(4)) continue;
+			xy[is.x.toFixed(4)] = is.y.toFixed(4);
+			const t1 = di.t + Math.abs((is[ci] - di[ci]) / (di1[ci] - di[ci])) * (di1.t - di.t), t2 = dj.t + Math.abs((is[cj] - dj[cj]) / (dj1[cj] - dj[cj])) * (dj1.t - dj.t);
+			if (t1 >= 0 && t1 <= maxLimit && t2 >= 0 && t2 <= maxLimit) if (justCount) res++;
+			else res.push({
+				x: is.x,
+				y: is.y,
+				t1: Math.min(t1, 1),
+				t2: Math.min(t2, 1)
+			});
+		}
+	}
+	return res;
+};
+//#endregion
+//#region src/intersect/pathIntersection.ts
+/**
+* Finds intersection points between two paths.
+*
+* @param pathInput1 - First path string or PathArray
+* @param pathInput2 - Second path string or PathArray
+* @param justCount - If true, returns the count of intersections; if false, returns the intersection points
+* @returns The number of intersections (when justCount is true) or an array of IntersectionPoint objects
+*
+* @example
+* ```ts
+* pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', true)
+* // => 1
+* pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', false)
+* // => [{ x: 50, y: 25, t1: 0.5, t2: 0.5 }]
+* ```
+*/
+const pathsIntersection = (pathInput1, pathInput2, justCount = true) => {
+	const path1 = pathToCurve(pathInput1);
+	const path2 = pathToCurve(pathInput2);
+	let x1 = 0, y1 = 0, x2 = 0, y2 = 0, x1m = 0, y1m = 0, x2m = 0, y2m = 0, bez1 = [
+		x1,
+		y1,
+		x1,
+		y1,
+		x1m,
+		y1m,
+		x1m,
+		y1m
+	], bez2 = [
+		x2,
+		y2,
+		x2,
+		y2,
+		x2m,
+		y2m,
+		x2m,
+		y2m
+	], countResult = 0;
+	const pointsResult = [];
+	const pathLen1 = path1.length;
+	const pathLen2 = path2.length;
+	for (let i = 0; i < pathLen1; i++) {
+		const seg1 = path1[i];
+		if (seg1[0] == "M") {
+			x1 = seg1[1];
+			y1 = seg1[2];
+			x1m = x1;
+			y1m = y1;
+		} else {
+			if (seg1[0] == "C") {
+				bez1 = [
+					x1,
+					y1,
+					seg1[1],
+					seg1[2],
+					seg1[3],
+					seg1[4],
+					seg1[5],
+					seg1[6]
+				];
+				x1 = bez1[6];
+				y1 = bez1[7];
+			} else {
+				bez1 = [
+					x1,
+					y1,
+					x1,
+					y1,
+					x1m,
+					y1m,
+					x1m,
+					y1m
+				];
+				x1 = x1m;
+				y1 = y1m;
+			}
+			for (let j = 0; j < pathLen2; j++) {
+				const seg2 = path2[j];
+				if (seg2[0] == "M") {
+					x2 = seg2[1];
+					y2 = seg2[2];
+					x2m = x2;
+					y2m = y2;
+				} else if (seg2[0] == "C") {
+					bez2 = [
+						x2,
+						y2,
+						seg2[1],
+						seg2[2],
+						seg2[3],
+						seg2[4],
+						seg2[5],
+						seg2[6]
+					];
+					x2 = bez2[6];
+					y2 = bez2[7];
+				}
+				const intr = interHelper(bez1, bez2, { justCount });
+				if (justCount) countResult += intr;
+				else pointsResult.push(...intr);
+			}
+		}
+	}
+	return justCount ? countResult : pointsResult;
 };
 //#endregion
 //#region src/main.ts

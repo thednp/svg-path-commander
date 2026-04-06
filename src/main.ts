@@ -93,11 +93,9 @@ import { fixPath } from "./morph/fixPath.ts";
 import { splitCubicSegment } from "./morph/splitCubicSegment.ts";
 import { equalizeSegments } from "./morph/equalizeSegments.ts";
 import { equalizePaths } from "./morph/equalizePaths.ts";
-import {
-  boundingBoxIntersect,
-  isPointInsideBBox,
-  pathsIntersection,
-} from "./util/pathIntersection.ts";
+import { pathsIntersection } from "./intersect/pathIntersection.ts";
+import { boundingBoxIntersect } from "./intersect/boundingBoxIntersect.ts";
+import { isPointInsideBBox } from "./intersect/isPointInsideBBox.ts";
 import distanceEpsilon from "./util/distanceEpsilon.ts";
 
 /**

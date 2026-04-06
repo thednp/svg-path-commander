@@ -83,8 +83,6 @@ export { splitCubicSegment } from "./morph/splitCubicSegment.ts";
 export { equalizeSegments } from "./morph/equalizeSegments.ts";
 export { equalizePaths } from "./morph/equalizePaths.ts";
 
-export {
-  boundingBoxIntersect,
-  isPointInsideBBox,
-  pathsIntersection,
-} from "./util/pathIntersection.ts";
+export { pathsIntersection } from "./intersect/pathIntersection.ts";
+export { boundingBoxIntersect } from "./intersect/boundingBoxIntersect.ts";
+export { isPointInsideBBox } from "./intersect/isPointInsideBBox.ts";

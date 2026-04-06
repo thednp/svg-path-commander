@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v2.2.0 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.2.1 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -229,7 +229,7 @@ declare const bezierTools: {
   CBEZIER_MINMAX_EPSILON: number;
   computeBezier: (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => DerivedPoint;
   Cvalues: number[];
-  deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedQuadPoints | DerivedCubicPoints)[];
+  deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedCubicPoints | DerivedQuadPoints)[];
   getBezierLength: (curve: CubicCoordinates | QuadCoordinates) => number;
   minmaxC: ([v1, cp1, cp2, v2]: [number, number, number, number]) => PointTuple;
   minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;
@@ -1222,23 +1222,7 @@ declare const equalizeSegments: (path1: PathArray | string, path2: PathArray | s
  */
 declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: {}) => [MorphPathArray, MorphPathArray];
 //#endregion
-//#region src/util/pathIntersection.d.ts
-/**
- * Checks if a point is inside a bounding box.
- *
- * @param bbox - The bounding box as [minX, minY, maxX, maxY]
- * @param point - The point as [x, y]
- * @returns True if the point is inside or on the edge of the bounding box
- */
-declare const isPointInsideBBox: (bbox: BBoxMaxima, [x, y]: PointTuple) => boolean;
-/**
- * Checks if two bounding boxes intersect.
- *
- * @param a - First bounding box as [minX, minY, maxX, maxY]
- * @param b - Second bounding box as [minX, minY, maxX, maxY]
- * @returns True if the bounding boxes overlap
- */
-declare const boundingBoxIntersect: (a: BBoxMaxima, b: BBoxMaxima) => boolean;
+//#region src/intersect/pathIntersection.d.ts
 /**
  * Finds intersection points between two paths.
  *
@@ -1256,6 +1240,26 @@ declare const boundingBoxIntersect: (a: BBoxMaxima, b: BBoxMaxima) => boolean;
  * ```
  */
 declare const pathsIntersection: <T extends string | PathArray>(pathInput1: T, pathInput2: T, justCount?: boolean) => number | IntersectionPoint[];
+//#endregion
+//#region src/intersect/boundingBoxIntersect.d.ts
+/**
+ * Checks if two bounding boxes intersect.
+ *
+ * @param a - First bounding box as [minX, minY, maxX, maxY]
+ * @param b - Second bounding box as [minX, minY, maxX, maxY]
+ * @returns True if the bounding boxes overlap
+ */
+declare const boundingBoxIntersect: (a: BBoxMaxima, b: BBoxMaxima) => boolean;
+//#endregion
+//#region src/intersect/isPointInsideBBox.d.ts
+/**
+ * Checks if a point is inside a bounding box.
+ *
+ * @param bbox - The bounding box as [minX, minY, maxX, maxY]
+ * @param point - The point as [x, y]
+ * @returns True if the point is inside or on the edge of the bounding box
+ */
+declare const isPointInsideBBox: (bbox: BBoxMaxima, [x, y]: PointTuple) => boolean;
 //#endregion
 export { PathParser, absolutizeSegment, arcToCubic, arcTools, bezierTools, boundingBoxIntersect, cubicTools, DISTANCE_EPSILON as distanceEpsilon, distanceSquareRoot, equalizePaths, equalizeSegments, finalizeSegment, fixPath, getClosestPoint, getDrawDirection, getPathArea, getPathBBox, getPointAtLength, getPropertiesAtLength, getPropertiesAtPoint, getSVGMatrix, getSegmentAtLength, getSegmentOfPoint, getTotalLength, invalidPathValue, isAbsoluteArray, isArcCommand, isClosedPath, isCurveArray, isDigit, isDigitStart, isMoveCommand, isMultiPath, isNormalizedArray, isPathArray, isPathCommand, isPointInStroke, isPointInsideBBox, isPolygonArray, isPolylineArray, isRelativeArray, isSpace, isValidPath, iterate, lineToCubic, lineTools, midPoint, normalizePath, normalizeSegment, optimizePath, paramsCounts, paramsParser, parsePathString, pathToAbsolute, pathToCurve, pathToRelative, pathToString, pathsIntersection, polygonTools, projection2d, quadToCubic, quadTools, relativizeSegment, reverseCurve, reversePath, rotateVector, roundPath, roundSegment, roundTo, scanFlag, scanParam, scanSegment, segmentToCubic, shapeParams, shapeToPath, shapeToPathArray, shortenSegment, skipSpaces, splitCubicSegment, splitPath, transformPath };
 //# sourceMappingURL=util.d.ts.map
