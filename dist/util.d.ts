@@ -1155,7 +1155,7 @@ declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSe
 //#region src/morph/fixPath.d.ts
 /**
  * Checks a `PathArray` for an unnecessary `Z` segment
- * and returns a new `PathArray` without it.
+ * and removes it. The `PathArray` is modified in place.
  * In short, if the segment before `Z` extends to `M`,
  * the `Z` segment must be removed.
  *

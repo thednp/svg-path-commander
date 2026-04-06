@@ -4,6 +4,38 @@
   "license": "MIT",
   "version": "2.2.0",
   "description": "🛹 Modern TypeScript tools for SVG",
+  "homepage": "http://thednp.github.io/svg-path-commander",
+  "bugs": {
+    "url": "https://github.com/thednp/svg-path-commander/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thednp/svg-path-commander.git"
+  },
+  "keywords": [
+    "svg",
+    "path",
+    "commander",
+    "parse",
+    "normalize",
+    "optimize",
+    "reverse",
+    "intersect",
+    "convert",
+    "absolute",
+    "relative",
+    "curve",
+    "transform3d",
+    "typescript"
+  ],
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.js",
   "browser": "./dist/index.min.js",
   "module": "./dist/index.js",
@@ -26,35 +58,10 @@
     "fix:ts": "deno lint --fix src",
     "lint:ts": "deno lint src",
     "check:ts": "tsc --noEmit",
-    "build_": "tsdown && pnpm build-iife && pnpm copy-docs",
     "build": "tsdown && pnpm copy-docs",
-    "build-iife": "vite build --config vite.config.ts",
     "copy-docs": "cp dist/index.min.js docs/index.min.js && cp dist/index.min.js.map docs/index.min.js.map",
     "prepublishOnly": "pnpm update --latest && pnpm format && pnpm lint:ts && pnpm build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/thednp/svg-path-commander.git"
-  },
-  "keywords": [
-    "svg",
-    "path",
-    "commander",
-    "parse",
-    "normalize",
-    "optimize",
-    "reverse",
-    "convert",
-    "absolute",
-    "relative",
-    "curve",
-    "transform3d",
-    "typescript"
-  ],
-  "bugs": {
-    "url": "https://github.com/thednp/svg-path-commander/issues"
-  },
-  "homepage": "http://thednp.github.io/svg-path-commander",
   "devDependencies": {
     "@types/node": "^25.5.2",
     "@vitest/browser": "^4.1.2",
