@@ -2,12 +2,8 @@
   // https://janessagarrow.com/blog/typescript-and-esbuild/
  "compilerOptions": {
    "lib": ["DOM", "ESNext", "DOM.Iterable"],
-  //  "types": ["vite", "vite/client", "vitest", "node", "@thednp/dommatrix"],
-  //  "types": ["@thednp/dommatrix"],
-   "rootDir": "./",
-   "baseUrl": "./",
-   "module": "ES2020",
-   "target": "ES2020",
+   "module": "esnext",
+   "target": "ES2022",
    "moduleResolution": "Bundler",
    "allowJs": true,
    "forceConsistentCasingInFileNames": true,
@@ -26,7 +22,7 @@
    "noEmit": true,
    "paths": {
     "~/*": [
-      "src"
+      "./src"
     ],
   }
  },
