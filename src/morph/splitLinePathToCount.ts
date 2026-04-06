@@ -48,7 +48,7 @@ export function splitLinePathToCount<T extends PolylineArray>(
   }
 
   // Final safety: if somehow still wrong, log it
-  // istanbul ignore if - this might possibly be impossible
+  // istanbul ignore if - this might possibly be impossible to test
   if (newPath.length !== target) {
     console.warn(
       `${error}: requested ${target} segments, got ${newPath.length}. Adjusted on last segment.`,

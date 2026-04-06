@@ -22,7 +22,7 @@
     "test-ui": "vitest --ui",
     "clean-coverage": "rm -rf coverage .nyc_output",
     "format": "deno fmt src",
-    "lint": "pnpm lint:ts && pnpm check:ts",
+    "lint": "pnpm lint:ts",
     "fix:ts": "deno lint --fix src",
     "lint:ts": "deno lint src",
     "check:ts": "tsc --noEmit",

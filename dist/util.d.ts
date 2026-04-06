@@ -229,7 +229,7 @@ declare const bezierTools: {
   CBEZIER_MINMAX_EPSILON: number;
   computeBezier: (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => DerivedPoint;
   Cvalues: number[];
-  deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedCubicPoints | DerivedQuadPoints)[];
+  deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedQuadPoints | DerivedCubicPoints)[];
   getBezierLength: (curve: CubicCoordinates | QuadCoordinates) => number;
   minmaxC: ([v1, cp1, cp2, v2]: [number, number, number, number]) => PointTuple;
   minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;

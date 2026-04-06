@@ -1,4 +1,4 @@
-import { defineConfig } from "tsdown";
+import { defineConfig, type UserConfig } from "tsdown";
 import stripComments from "vite-plugin-strip-comments";
 const pkg = await import("./package.json", { with: { type: "json" } }).then(
   (m) => m.default,
@@ -12,12 +12,13 @@ const banner = `/*!
 */`;
 const miniBanner = `/*! SVGPathCommander $package v${pkg.version} | ${pkg.author} © ${year} | ${pkg.license}-License */`;
 
-const config = {
+const config: UserConfig = {
   exports: true,
   dts: true,
   clean: true,
   sourcemap: true,
   // skipNodeModulesBundle: true,
+  // outDir: "dist"
   // plugins: [stripComments({ type: "keep-jsdoc" })],
   globalName: "SVGPathCommander",
 };
@@ -51,7 +52,10 @@ export default defineConfig([
     deps: {
       skipNodeModulesBundle: true,
       neverBundle: ["@thednp/dommatrix"],
-    }
+    },
+    outputOptions: {
+      dir: "dist",
+    },
   },
   { // UTIL
     ...config,
@@ -64,5 +68,8 @@ export default defineConfig([
     treeshake: true,
     plugins: [stripComments({ type: "keep-jsdoc" })],
     banner: banner.replace("$package", "UTIL"),
+    outputOptions: {
+      dir: "dist",
+    },
   },
 ]);

@@ -1,5 +1,5 @@
 import { expect, test, describe, beforeEach, vi } from 'vitest';
-import SVGPathCommander from '~/index';
+import SVGPathCommander from '../src/index';
 import {invalidPathValue} from '../src/parser/invalidPathValue';
 import {error} from '../src/util/error';
 

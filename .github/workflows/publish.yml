@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22" # Or 'lts/*'
+          node-version: "24" # Or 'lts/*'
           registry-url: "https://registry.npmjs.org" # Optional if using trusted publishing
 
       - name: PNPM setup
