@@ -1,5 +1,5 @@
 // src/morph/splitCubicPathToCount.ts
-import type { CSegment, CurveArray, PointTuple } from "../types";
+import type { CSegment, CurveArray, PointTuple } from "../types.ts";
 import { splitCubicToCount } from "./splitCubicToCount.ts";
 import { getPathSplits } from "./getPathSplits.ts";
 import { error } from "../util/error.ts";

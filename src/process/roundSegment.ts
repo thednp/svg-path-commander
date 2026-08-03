@@ -1,5 +1,5 @@
-import type { PathCommand, PathSegment } from "../types";
-import { roundTo } from "../math/roundTo";
+import type { PathCommand, PathSegment } from "../types.ts";
+import { roundTo } from "../math/roundTo.ts";
 
 /**
  * Rounds the numeric values of a path segment to the specified precision.
@@ -11,7 +11,7 @@ import { roundTo } from "../math/roundTo";
 export const roundSegment = <T extends PathSegment>(
   segment: T,
   roundOption: number,
-) => {
+): T => {
   const values = (segment.slice(1) as number[]).map((n) =>
     roundTo(n, roundOption)
   );

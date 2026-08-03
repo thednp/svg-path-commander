@@ -1,12 +1,17 @@
 // src/morph/getPathSplits.ts
 
-import type { CSegment, CurveArray, PointTuple, PolylineArray } from "../types";
-import { getLineLength } from "../math/lineTools";
-import { getCubicLength } from "../math/cubicTools";
-import { getTotalLength } from "../util/getTotalLength";
-import { isPolylineArray } from "../util/isPolylineArray";
-import { error } from "../util/error";
-import { iterate } from "../process/iterate";
+import type {
+  CSegment,
+  CurveArray,
+  PointTuple,
+  PolylineArray,
+} from "../types.ts";
+import { getLineLength } from "../math/lineTools.ts";
+import { getCubicLength } from "../math/cubicTools.ts";
+import { getTotalLength } from "../util/getTotalLength.ts";
+import { isPolylineArray } from "../util/isPolylineArray.ts";
+import { error } from "../util/error.ts";
+import { iterate } from "../process/iterate.ts";
 
 /**
  * Determine the right amount of splits for each segment in a given PathArray

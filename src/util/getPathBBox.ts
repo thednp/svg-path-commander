@@ -1,12 +1,12 @@
-import { iterate } from "../process/iterate";
-import { PathBBox } from "../interface";
-import { LSegment, MSegment, PathArray, PointTuple } from "../types";
-import { getLineBBox } from "../math/lineTools";
-import { getArcBBox } from "../math/arcTools";
-import { getCubicBBox } from "../math/cubicTools";
-import { getQuadBBox } from "../math/quadTools";
-import { parsePathString } from "../parser/parsePathString";
-import { absolutizeSegment } from "../process/absolutizeSegment";
+import { iterate } from "../process/iterate.ts";
+import type { PathBBox } from "../interface.ts";
+import type { LSegment, MSegment, PathArray, PointTuple } from "../types.ts";
+import { getLineBBox } from "../math/lineTools.ts";
+import { getArcBBox } from "../math/arcTools.ts";
+import { getCubicBBox } from "../math/cubicTools.ts";
+import { getQuadBBox } from "../math/quadTools.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { absolutizeSegment } from "../process/absolutizeSegment.ts";
 
 /**
  * Calculates the bounding box of a path.
@@ -20,7 +20,19 @@ import { absolutizeSegment } from "../process/absolutizeSegment";
  * // => { x: 0, y: 0, width: 100, height: 100, x2: 100, y2: 100, cx: 50, cy: 50, cz: 150 }
  * ```
  */
-export const getPathBBox = <T extends PathArray>(pathInput: T | string) => {
+export const getPathBBox = <T extends PathArray>(
+  pathInput: T | string,
+): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  x2: number;
+  y2: number;
+  cx: number;
+  cy: number;
+  cz: number;
+} => {
   if (!pathInput) {
     return {
       x: 0,

@@ -11,7 +11,7 @@ import type {
   sSegment,
   tSegment,
   vSegment,
-} from "../types";
+} from "../types.ts";
 
 /**
  * Returns a relative segment of a `PathArray` object.
@@ -27,7 +27,7 @@ export const relativizeSegment = (
   index: number,
   lastX: number,
   lastY: number,
-) => {
+): MSegment | RelativeSegment => {
   const [pathCommand] = segment;
   const relCommand = pathCommand.toLowerCase() as RelativeCommand;
   const isRelative = pathCommand === relCommand;

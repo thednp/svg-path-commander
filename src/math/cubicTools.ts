@@ -1,5 +1,5 @@
-import { getBezierLength, minmaxC } from "./bezier";
-import { BBoxMaxima, type CubicCoordinates } from "../types";
+import { getBezierLength, getTAtBezierLength, minmaxC } from "./bezier.ts";
+import type { BBoxMaxima, CubicCoordinates } from "../types.ts";
 
 /**
  * Returns a point at a given length of a CubicBezier segment.
@@ -18,7 +18,7 @@ import { BBoxMaxima, type CubicCoordinates } from "../types";
 const getPointAtCubicSegmentLength = (
   [x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates,
   t: number,
-) => {
+): { x: number; y: number } => {
   const t1 = 1 - t;
   return {
     x: t1 ** 3 * x1 + 3 * t1 ** 2 * t * c1x + 3 * t1 * t ** 2 * c2x +
@@ -50,7 +50,7 @@ const getCubicLength = (
   c2y: number,
   x2: number,
   y2: number,
-) => {
+): number => {
   return getBezierLength([x1, y1, c1x, c1y, c2x, c2y, x2, y2]);
 };
 
@@ -78,21 +78,20 @@ const getPointAtCubicLength = (
   x2: number,
   y2: number,
   distance?: number,
-) => {
+): { x: number; y: number } => {
   const distanceIsNumber = typeof distance === "number";
   let point = { x: x1, y: y1 };
   /* istanbul ignore else @preserve */
   if (distanceIsNumber) {
-    const currentLength = getBezierLength([x1, y1, c1x, c1y, c2x, c2y, x2, y2]);
+    const coords = [x1, y1, c1x, c1y, c2x, c2y, x2, y2] as CubicCoordinates;
+    const currentLength = getBezierLength(coords);
     if (distance <= 0) {
       // first point already defined
     } else if (distance >= currentLength) {
       point = { x: x2, y: y2 };
     } else {
-      point = getPointAtCubicSegmentLength(
-        [x1, y1, c1x, c1y, c2x, c2y, x2, y2],
-        distance / currentLength,
-      );
+      const t = getTAtBezierLength(coords, distance);
+      point = getPointAtCubicSegmentLength(coords, t);
     }
   }
   return point;

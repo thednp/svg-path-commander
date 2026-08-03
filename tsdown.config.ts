@@ -13,14 +13,21 @@ const banner = `/*!
 const miniBanner = `/*! SVGPathCommander $package v${pkg.version} | ${pkg.author} © ${year} | ${pkg.license}-License */`;
 
 const config: UserConfig = {
-  exports: true,
-  dts: true,
-  clean: true,
+  exports: {
+    inlinedDependencies: false,
+    packageJson: true,
+  },
+  dts: {
+    sourcemap: true,
+    sideEffects: false,
+  },
+  // clean: true,
   sourcemap: true,
   // skipNodeModulesBundle: true,
-  // outDir: "dist"
+  // outDir: "dist",
   // plugins: [stripComments({ type: "keep-jsdoc" })],
   globalName: "SVGPathCommander",
+  
 };
 
 export default defineConfig([
@@ -28,6 +35,7 @@ export default defineConfig([
     ...config,
     entry: "src/index.ts",
     format: "umd",
+    clean: true,
     minify: true,
     target: "esnext",
     platform: "browser",
@@ -35,7 +43,9 @@ export default defineConfig([
     plugins: [stripComments({ type: "none" })],
     deps: {
       alwaysBundle: ["@thednp/dommatrix"],
+      onlyBundle: false
     },
+    dts: false,
     outputOptions: {
       file: "dist/index.min.js",
     },
@@ -50,12 +60,12 @@ export default defineConfig([
     plugins: [stripComments({ type: "keep-jsdoc" })],
     banner: banner.replace("$package", "ESM"),
     deps: {
-      skipNodeModulesBundle: true,
+      // skipNodeModulesBundle: true,
       neverBundle: ["@thednp/dommatrix"],
     },
-    outputOptions: {
-      dir: "dist",
-    },
+    // outputOptions: {
+    //   dir: "dist",
+    // },
   },
   { // UTIL
     ...config,
@@ -68,8 +78,8 @@ export default defineConfig([
     treeshake: true,
     plugins: [stripComments({ type: "keep-jsdoc" })],
     banner: banner.replace("$package", "UTIL"),
-    outputOptions: {
-      dir: "dist",
-    },
+    // outputOptions: {
+    //   dir: "dist",
+    // },
   },
 ]);

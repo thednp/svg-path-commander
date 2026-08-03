@@ -1,5 +1,5 @@
-import type { PathArray, PathSegment, RelativeCommand } from "../types";
-import { paramsCounts } from "../parser/paramsCount";
+import type { PathArray, PathSegment, RelativeCommand } from "../types.ts";
+import { paramsCounts } from "../parser/paramsCount.ts";
 
 /**
  * Iterates an array to check if it's an actual `pathArray`.

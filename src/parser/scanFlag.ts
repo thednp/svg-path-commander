@@ -1,5 +1,5 @@
-import { error } from "../util/error";
-import type { PathParser } from "./pathParser";
+import { error } from "../util/error.ts";
+import type { PathParser } from "./pathParser.ts";
 
 /**
  * Validates an A (arc-to) specific path command value.

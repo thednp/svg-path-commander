@@ -1,6 +1,6 @@
-import { getSVGMatrix } from "./getSVGMatrix";
-import { projection2d } from "./projection2d";
-import { defaultOptions } from "../options/options";
+import { getSVGMatrix } from "./getSVGMatrix.ts";
+import { projection2d } from "./projection2d.ts";
+import { defaultOptions } from "../options/options.ts";
 import type {
   AbsoluteArray,
   AbsoluteSegment,
@@ -8,12 +8,12 @@ import type {
   LSegment,
   PathArray,
   TransformObjectValues,
-} from "../types";
-import type { TransformObject } from "../interface";
-import { iterate } from "./iterate";
-import { parsePathString } from "../parser/parsePathString";
-import { absolutizeSegment } from "./absolutizeSegment";
-import { arcToCubic } from "./arcToCubic";
+} from "../types.ts";
+import type { TransformObject } from "../interface.ts";
+import { iterate } from "./iterate.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { absolutizeSegment } from "./absolutizeSegment.ts";
+import { arcToCubic } from "./arcToCubic.ts";
 
 /**
  * Apply a 2D / 3D transformation to a PathArray.

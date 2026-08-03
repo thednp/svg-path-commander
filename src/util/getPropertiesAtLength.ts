@@ -1,7 +1,7 @@
-import type { PathArray, PathSegment } from "../types";
-import type { SegmentProperties } from "../interface";
-import { parsePathString } from "../parser/parsePathString";
-import { getTotalLength } from "./getTotalLength";
+import type { PathArray, PathSegment } from "../types.ts";
+import type { SegmentProperties } from "../interface.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { getTotalLength } from "./getTotalLength.ts";
 
 /**
  * Returns the segment, its index and length as well as

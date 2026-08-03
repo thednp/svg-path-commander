@@ -1,8 +1,9 @@
 /*!
-* SVGPathCommander v2.2.1 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.2.2 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
+import CSSMatrix from "@thednp/dommatrix";
 //#region src/interface.d.ts
 type SegmentProperties = {
   segment: PathSegment;
@@ -200,85 +201,435 @@ interface EqualizationOptions {
 }
 //#endregion
 //#region src/math/arcTools.d.ts
-declare const arcTools: {
-  angleBetween: (v0: Point, v1: Point) => number;
-  arcLength: (rx: number, ry: number, theta: number) => number;
-  arcPoint: (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => PointTuple;
-  getArcBBox: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => [number, number, number, number];
-  getArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => number;
-  getArcProps: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => {
-    rx: number;
-    ry: number;
-    startAngle: number;
-    endAngle: number;
-    center: {
-      x: number;
-      y: number;
-    };
-  };
-  getPointAtArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number, distance?: number) => {
+/**
+ * Returns the signed arc length of an ellipse segment from angle `0` up to
+ * the given `theta` angle, by integrating the curve speed
+ * `|sqrt(rx^2 * sin^2(phi) + ry^2 * cos^2(phi))|` over the `[0, theta]`
+ * interval with Gauss-Legendre quadrature.
+ *
+ * @param rx radius along X axis
+ * @param ry radius along Y axis
+ * @param theta the angle in radians
+ * @returns the signed arc length
+ */
+declare const arcLengthAtAngle: (rx: number, ry: number, theta: number) => number;
+/**
+ * Returns the signed arc length of an ellipse segment between two angles.
+ * @param rx radius along X axis
+ * @param ry radius along Y axis
+ * @param from the start angle in radians
+ * @param to the end angle in radians
+ * @returns the signed arc length
+ */
+declare const arcLengthBetween: (rx: number, ry: number, from: number, to: number) => number;
+/**
+ * Returns the Arc segment length.
+ * @param rx radius along X axis
+ * @param ry radius along Y axis
+ * @param theta the angle in radians
+ * @returns the arc length
+ */
+declare const arcLength: (rx: number, ry: number, theta: number) => number;
+/**
+ * Find point on ellipse at given angle around ellipse (theta);
+ * @param cx the center X
+ * @param cy the center Y
+ * @param rx the radius X
+ * @param ry the radius Y
+ * @param alpha the arc rotation angle in radians
+ * @param theta the arc sweep angle in radians
+ * @returns a point around ellipse at given angle
+ */
+declare const arcPoint: (cx: number, cy: number, rx: number, ry: number, alpha: number, theta: number) => PointTuple;
+/**
+ * Returns the angle between two points.
+ * @param v0 starting point
+ * @param v1 ending point
+ * @returns the angle in radian
+ */
+declare const angleBetween: (v0: Point, v1: Point) => number;
+/**
+ * Returns the following properties for an Arc segment: center, start angle,
+ * end angle, and radiuses on X and Y axis.
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param RX the radius on X axis
+ * @param RY the radius on Y axis
+ * @param angle the ellipse rotation in degrees
+ * @param LAF the large arc flag
+ * @param SF the sweep flag
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @returns properties specific to Arc segments
+ */
+declare const getArcProps: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => {
+  rx: number;
+  ry: number;
+  startAngle: number;
+  endAngle: number;
+  center: {
     x: number;
     y: number;
   };
 };
+/**
+ * Returns the length of an Arc segment.
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param c1x the first control point X
+ * @param c1y the first control point Y
+ * @param c2x the second control point X
+ * @param c2y the second control point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @returns the length of the Arc segment
+ */
+declare const getArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => number;
+/**
+ * Returns a point along an Arc segment at a given distance.
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param RX the radius on X axis
+ * @param RY the radius on Y axis
+ * @param angle the ellipse rotation in degrees
+ * @param LAF the large arc flag
+ * @param SF the sweep flag
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @param distance the distance along the arc
+ * @returns a point along the Arc segment
+ */
+declare const getPointAtArcLength: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number, distance?: number) => {
+  x: number;
+  y: number;
+};
+/**
+ * Returns the extrema for an Arc segment in the following format:
+ * [MIN_X, MIN_Y, MAX_X, MAX_Y]
+ *
+ * @see https://github.com/herrstrietzel/svg-pathdata-getbbox
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param RX the radius on X axis
+ * @param RY the radius on Y axis
+ * @param angle the ellipse rotation in degrees
+ * @param LAF the large arc flag
+ * @param SF the sweep flag
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @returns the extrema of the Arc segment
+ */
+declare const getArcBBox: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => [number, number, number, number];
+declare const arcTools: {
+  angleBetween: typeof angleBetween;
+  arcLength: typeof arcLength;
+  arcLengthAtAngle: typeof arcLengthAtAngle;
+  arcLengthBetween: typeof arcLengthBetween;
+  arcPoint: typeof arcPoint;
+  getArcBBox: typeof getArcBBox;
+  getArcLength: typeof getArcLength;
+  getArcProps: typeof getArcProps;
+  getPointAtArcLength: typeof getPointAtArcLength;
+};
 //#endregion
 //#region src/math/bezier.d.ts
+/**
+ * @param points
+ * @returns
+ */
+declare const deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedQuadPoints | DerivedCubicPoints)[];
+/**
+ * @param points
+ * @param t
+ */
+declare const computeBezier: (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => DerivedPoint;
+declare const calculateBezier: (derivativeFn: DeriveCallback, t: number) => number;
+declare const bezierLength: (derivativeFn: DeriveCallback) => number;
+/**
+ * Returns the arc length of a Bezier segment from its start point
+ * up to a given `t` ratio, by integrating the curve speed `|B'(t)|`
+ * over the `[0, t]` interval with Gauss-Legendre quadrature.
+ *
+ * @param derivativeFn the curve derivative function
+ * @param t the sampled point ratio in `[0-1]`
+ * @returns the arc length up to parameter `t`
+ */
+declare const bezierLengthAtT: (derivativeFn: DeriveCallback, t: number) => number;
+/**
+ * Builds the Bezier points array from a curve coordinates array.
+ * @param curve cubic / quad bezier segment
+ */
+declare const getBezierPoints: (curve: CubicCoordinates | QuadCoordinates) => CubicPoints | QuadPoints;
+/**
+ * Returns the arc length of a Bezier segment from its start point
+ * up to a given `t` ratio, for the segment given by its coordinates.
+ *
+ * @param curve cubic / quad bezier segment
+ * @param t the sampled point ratio in `[0-1]`
+ * @returns the arc length up to parameter `t`
+ */
+declare const getBezierLengthAtT: (curve: CubicCoordinates | QuadCoordinates, t: number) => number;
+/**
+ * Returns the `t` parameter of a Bezier segment at which the cumulative
+ * arc length equals the given `distance`, found by interval bisection.
+ *
+ * @param curve cubic / quad bezier segment
+ * @param distance the distance along the segment in `[0, length]`
+ * @returns the `t` parameter in `[0-1]`
+ */
+declare const getTAtBezierLength: (curve: CubicCoordinates | QuadCoordinates, distance: number) => number;
+/**
+ * Returns the length of CubicBezier / Quad segment.
+ * @param curve cubic / quad bezier segment
+ */
+declare const getBezierLength: (curve: CubicCoordinates | QuadCoordinates) => number;
+/**
+ * Returns the most extreme points in a Quad Bezier segment.
+ * @param A an array which consist of X/Y values
+ */
+declare const minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;
+/**
+ * Returns the most extreme points in a Cubic Bezier segment.
+ * @param A an array which consist of X/Y values
+ * @see https://github.com/kpym/SVGPathy/blob/acd1a50c626b36d81969f6e98e8602e128ba4302/lib/box.js#L127
+ */
+declare const minmaxC: ([v1, cp1, cp2, v2]: [number, number, number, number]) => PointTuple;
 declare const bezierTools: {
-  bezierLength: (derivativeFn: DeriveCallback) => number;
-  calculateBezier: (derivativeFn: DeriveCallback, t: number) => number;
+  bezierLength: typeof bezierLength;
+  bezierLengthAtT: typeof bezierLengthAtT;
+  calculateBezier: typeof calculateBezier;
   CBEZIER_MINMAX_EPSILON: number;
-  computeBezier: (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => DerivedPoint;
+  computeBezier: typeof computeBezier;
   Cvalues: number[];
-  deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedCubicPoints | DerivedQuadPoints)[];
-  getBezierLength: (curve: CubicCoordinates | QuadCoordinates) => number;
-  minmaxC: ([v1, cp1, cp2, v2]: [number, number, number, number]) => PointTuple;
-  minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;
+  deriveBezier: typeof deriveBezier;
+  getBezierLength: typeof getBezierLength;
+  getBezierLengthAtT: typeof getBezierLengthAtT;
+  getBezierPoints: typeof getBezierPoints;
+  getTAtBezierLength: typeof getTAtBezierLength;
+  minmaxC: typeof minmaxC;
+  minmaxQ: typeof minmaxQ;
   Tvalues: number[];
 };
 //#endregion
 //#region src/math/cubicTools.d.ts
+/**
+ * Returns a point at a given length of a CubicBezier segment.
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param c1x the first control point X
+ * @param c1y the first control point Y
+ * @param c2x the second control point X
+ * @param c2y the second control point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @param t a [0-1] ratio
+ * @returns the point at cubic-bezier segment length
+ */
+declare const getPointAtCubicSegmentLength: ([x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates, t: number) => {
+  x: number;
+  y: number;
+};
+/**
+ * Returns the length of a CubicBezier segment.
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param c1x the first control point X
+ * @param c1y the first control point Y
+ * @param c2x the second control point X
+ * @param c2y the second control point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @returns the CubicBezier segment length
+ */
+declare const getCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => number;
+/**
+ * Returns the point along a CubicBezier segment at a given distance.
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param c1x the first control point X
+ * @param c1y the first control point Y
+ * @param c2x the second control point X
+ * @param c2y the second control point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @param distance the distance to look at
+ * @returns the point at CubicBezier length
+ */
+declare const getPointAtCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number, distance?: number) => {
+  x: number;
+  y: number;
+};
+/**
+ * Returns the bounding box of a CubicBezier segment in the following format:
+ * [MIN_X, MIN_Y, MAX_X, MAX_Y]
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param c1x the first control point X
+ * @param c1y the first control point Y
+ * @param c2x the second control point X
+ * @param c2y the second control point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @returns the extrema of the CubicBezier segment
+ */
+declare const getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => BBoxMaxima;
 declare const cubicTools: {
-  getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => BBoxMaxima;
-  getCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => number;
-  getPointAtCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number, distance?: number) => {
-    x: number;
-    y: number;
-  };
-  getPointAtCubicSegmentLength: ([x1, y1, c1x, c1y, c2x, c2y, x2, y2]: CubicCoordinates, t: number) => {
-    x: number;
-    y: number;
-  };
+  getCubicBBox: typeof getCubicBBox;
+  getCubicLength: typeof getCubicLength;
+  getPointAtCubicLength: typeof getPointAtCubicLength;
+  getPointAtCubicSegmentLength: typeof getPointAtCubicSegmentLength;
 };
 //#endregion
 //#region src/math/lineTools.d.ts
+/**
+ * Returns length for line segments (MoveTo, LineTo).
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @returns the line segment length
+ */
+declare const getLineLength: (x1: number, y1: number, x2: number, y2: number) => number;
+/**
+ * Returns a point along the line segments (MoveTo, LineTo).
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @param distance the distance to point in [0-1] range
+ * @returns the point at length
+ */
+declare const getPointAtLineLength: (x1: number, y1: number, x2: number, y2: number, distance?: number) => {
+  x: number;
+  y: number;
+};
+/**
+ * Returns bounding box for line segments (MoveTo, LineTo).
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @returns the bounding box for line segments
+ */
+declare const getLineBBox: (x1: number, y1: number, x2: number, y2: number) => [number, number, number, number];
 declare const lineTools: {
-  getLineBBox: (x1: number, y1: number, x2: number, y2: number) => [number, number, number, number];
-  getLineLength: (x1: number, y1: number, x2: number, y2: number) => number;
-  getPointAtLineLength: (x1: number, y1: number, x2: number, y2: number, distance?: number) => {
-    x: number;
-    y: number;
-  };
+  getLineBBox: typeof getLineBBox;
+  getLineLength: typeof getLineLength;
+  getPointAtLineLength: typeof getPointAtLineLength;
 };
 //#endregion
 //#region src/math/quadTools.d.ts
+/**
+ * Returns the {x,y} coordinates of a point at a
+ * given length of a quadratic-bezier segment.
+ *
+ * @see https://github.com/substack/point-at-length
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param cx the control point X
+ * @param cy the control point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @param t a [0-1] ratio
+ * @returns the requested {x,y} coordinates
+ */
+declare const getPointAtQuadSegmentLength: ([x1, y1, cx, cy, x2, y2]: QuadCoordinates, t: number) => {
+  x: number;
+  y: number;
+};
+/**
+ * Returns the length of a QuadraticBezier segment.
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param cx the control point X
+ * @param cy the control point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @returns the QuadraticBezier segment length
+ */
+declare const getQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => number;
+/**
+ * Returns the point along a QuadraticBezier segment at a given distance.
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param cx the control point X
+ * @param cy the control point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @param distance the distance to look at
+ * @returns the point at QuadraticBezier length
+ */
+declare const getPointAtQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number, distance?: number) => {
+  x: number;
+  y: number;
+};
+/**
+ * Returns the bounding box of a QuadraticBezier segment in the following format:
+ * [MIN_X, MIN_Y, MAX_X, MAX_Y]
+ *
+ * @param x1 the starting point X
+ * @param y1 the starting point Y
+ * @param cx the control point X
+ * @param cy the control point Y
+ * @param x2 the ending point X
+ * @param y2 the ending point Y
+ * @returns the extrema of the QuadraticBezier segment
+ */
+declare const getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => [number, number, number, number];
 declare const quadTools: {
-  getPointAtQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number, distance?: number) => {
-    x: number;
-    y: number;
-  };
-  getPointAtQuadSegmentLength: ([x1, y1, cx, cy, x2, y2]: QuadCoordinates, t: number) => {
-    x: number;
-    y: number;
-  };
-  getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => [number, number, number, number];
-  getQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => number;
+  getPointAtQuadLength: typeof getPointAtQuadLength;
+  getPointAtQuadSegmentLength: typeof getPointAtQuadSegmentLength;
+  getQuadBBox: typeof getQuadBBox;
+  getQuadLength: typeof getQuadLength;
 };
 //#endregion
 //#region src/math/polygonTools.d.ts
+/**
+ * d3-polygon-area
+ * @see https://github.com/d3/d3-polygon
+ *
+ * Returns the area of a polygon.
+ *
+ * @param polygon Array of [x, y]
+ * @returns Signed area
+ */
+declare const polygonArea: (polygon: PointTuple[]) => number;
+/**
+ * d3-polygon-length
+ * https://github.com/d3/d3-polygon
+ *
+ * Returns the perimeter of a polygon.
+ *
+ * @param polygon an array of coordinates
+ * @returns the polygon length
+ */
+declare const polygonLength: (polygon: PointTuple[]) => number;
+/**
+ * Computes the centroid (geometric center) of a polygon.
+ * Uses average of all endpoint coordinates (robust for polygons and curves).
+ *
+ * @param polygon A polygon with consists of [x, y] tuples
+ * @returns [x, y] centroid
+ */
+declare const polygonCentroid: (polygon: PointTuple[]) => PointTuple;
 declare const polygonTools: {
-  polygonArea: (polygon: PointTuple[]) => number;
-  polygonLength: (polygon: PointTuple[]) => number;
-  polygonCentroid: (polygon: PointTuple[]) => PointTuple;
+  polygonArea: typeof polygonArea;
+  polygonLength: typeof polygonLength;
+  polygonCentroid: typeof polygonCentroid;
 };
 //#endregion
 //#region src/math/distanceSquareRoot.d.ts
@@ -401,7 +752,6 @@ declare const pathToString: <T extends PathArray>(path: T, roundOption?: number 
  *
  * If parameter value is already a `PathArray`,
  * return a clone of it.
-
  * @example
  * parsePathString("M 0 0L50 50")
  * // => [["M",0,0],["L",50,50]]
@@ -644,7 +994,7 @@ declare const getDrawDirection: (path: string | PathArray) => boolean;
  * // => -10000 (counter-clockwise square)
  * ```
  */
-declare const getPathArea: <T extends PathArray>(path: T) => number;
+declare const getPathArea: <T extends PathArray | string>(path: T) => number;
 //#endregion
 //#region src/util/getPointAtLength.d.ts
 /**
@@ -884,7 +1234,7 @@ declare const shapeToPathArray: (element: ShapeTypes | ShapeOps) => false | Path
  * // => [['M', 10, 90], ['C', 30, 90, 25, 10, 50, 10], ['C', 75, 10, 70, 90, 90, 90]]
  * ```
  */
-declare const normalizePath: (pathInput: string | PathArray) => NormalArray;
+declare const normalizePath: <T extends string | PathArray>(pathInput: T) => NormalArray;
 //#endregion
 //#region src/process/optimizePath.d.ts
 /**
@@ -902,7 +1252,7 @@ declare const normalizePath: (pathInput: string | PathArray) => NormalArray;
  * // => [['M', 10, 10], ['l', 0, 0], ['l', 80, 80]]
  * ```
  */
-declare const optimizePath: <T extends PathArray>(pathInput: T, roundOption?: number) => PathArray;
+declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOption?: number) => PathArray;
 //#endregion
 //#region src/process/reversePath.d.ts
 /**

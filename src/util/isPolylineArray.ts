@@ -1,5 +1,5 @@
-import { isNormalizedArray } from "./isNormalizedArray";
-import { PathArray, PolylineArray } from "../types";
+import { isNormalizedArray } from "./isNormalizedArray.ts";
+import type { PathArray, PolylineArray } from "../types.ts";
 /**
  * Checks if a path is a polyline (only M, L, H, V commands).
  * @param pathArray PathArray (pre-normalize if needed)

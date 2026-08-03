@@ -1,5 +1,5 @@
-import { isNormalizedArray } from "./isNormalizedArray";
-import { PathArray, PolygonArray } from "../types";
+import { isNormalizedArray } from "./isNormalizedArray.ts";
+import type { PathArray, PolygonArray } from "../types.ts";
 /**
  * Checks if a path is a polygon (only M, L, H, V, Z commands).
  * @param pathArray PathArray (pre-normalize if needed)

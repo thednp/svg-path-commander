@@ -1,6 +1,6 @@
-import { scanSegment } from "../parser/scanSegment";
-import { skipSpaces } from "../parser/skipSpaces";
-import { PathParser } from "../parser/pathParser";
+import { scanSegment } from "../parser/scanSegment.ts";
+import { skipSpaces } from "../parser/skipSpaces.ts";
+import { PathParser } from "../parser/pathParser.ts";
 
 /**
  * Parses a path string value to determine its validity
@@ -9,7 +9,7 @@ import { PathParser } from "../parser/pathParser";
  * @param pathString the path string to be parsed
  * @returns the path string validity
  */
-export const isValidPath = (pathString: string) => {
+export const isValidPath = (pathString: string): boolean => {
   if (typeof pathString !== "string" || !pathString.length) {
     return false;
   }

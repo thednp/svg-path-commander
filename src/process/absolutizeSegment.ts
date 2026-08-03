@@ -11,7 +11,7 @@ import type {
   SSegment,
   TSegment,
   VSegment,
-} from "../types";
+} from "../types.ts";
 
 /**
  * Returns an absolute segment of a `PathArray` object.
@@ -27,7 +27,7 @@ export const absolutizeSegment = (
   index: number,
   lastX: number,
   lastY: number,
-) => {
+): AbsoluteSegment => {
   const [pathCommand] = segment;
   const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
   const isAbsolute = absCommand === pathCommand;

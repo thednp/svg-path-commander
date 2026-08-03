@@ -1,0 +1,2 @@
+minimumReleaseAgeExclude:
+  - '@thednp/dommatrix@3.0.6'

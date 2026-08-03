@@ -1,4 +1,4 @@
-import { DigitNumber } from "../types";
+import type { DigitNumber } from "../types.ts";
 
 /**
  * Checks if a character is a digit.

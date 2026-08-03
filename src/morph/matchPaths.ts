@@ -1,7 +1,7 @@
 import type { NormalArray, PathFeature, PointTuple } from "../types.ts";
 import { isPointInsideBBox } from "../intersect/isPointInsideBBox.ts";
 import { boundingBoxIntersect } from "../intersect/boundingBoxIntersect.ts";
-import { createPlaceholder } from "./createPlaceholder";
+import { createPlaceholder } from "./createPlaceholder.ts";
 
 interface CandidateScore {
   index: number;

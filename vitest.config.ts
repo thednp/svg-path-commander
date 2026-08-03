@@ -1,11 +1,12 @@
 import { defineConfig } from "vitest/config";
 import { resolve } from 'node:path';
-// import { playwright } from '@vitest/browser-playwright';
+import process from 'node:process';
+import { playwright } from '@vitest/browser-playwright';
 
 export default defineConfig({
   resolve: {
     alias: {
-      "~": resolve(__dirname, "src"),
+      "~": resolve(process.cwd(), "src"),
     },
   },
 
@@ -15,24 +16,28 @@ export default defineConfig({
     include: [
       "test/**.test.ts"
     ],
-    environment: "happy-dom",
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/coverage/**",
+    ],
     coverage: {
       provider: "istanbul",
       reporter: ["html", "text", "lcov"],
       enabled: true,
-      include: ["src/**/*.{ts,tsx}"],
+      include: ["src/**/*.{ts,js}"],
     },
-    // browser: {
-    //   provider: playwright(),
-    //   enabled: true,
-    //   headless: true,
-    //   instances: [
-    //     {
-    //       name: 'chromium',
-    //       browser: 'chromium',
-    //       headless: true,
-    //     },
-    //   ]
-    // },
+    browser: {
+      provider: playwright(),
+      enabled: true,
+      headless: true,
+      instances: [
+        {
+          name: 'chromium',
+          browser: 'chromium',
+          headless: true,
+        },
+      ]
+    },
   },
 });

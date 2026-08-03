@@ -1,5 +1,62 @@
-import { getPointAtLineLength } from "./lineTools";
-import type { Point, PointTuple } from "../types";
+import { getPointAtLineLength } from "./lineTools.ts";
+import { Cvalues, Tvalues } from "./bezier.ts";
+import type { Point, PointTuple } from "../types.ts";
+
+/**
+ * Returns the signed arc length of an ellipse segment from angle `0` up to
+ * the given `theta` angle, by integrating the curve speed
+ * `|sqrt(rx^2 * sin^2(phi) + ry^2 * cos^2(phi))|` over the `[0, theta]`
+ * interval with Gauss-Legendre quadrature.
+ *
+ * @param rx radius along X axis
+ * @param ry radius along Y axis
+ * @param theta the angle in radians
+ * @returns the signed arc length
+ */
+const arcLengthAtAngle = (rx: number, ry: number, theta: number): number => {
+  const sign = theta < 0 ? -1 : 1;
+  const absTheta = Math.abs(theta);
+  const step = Math.PI / 2;
+
+  let total = 0;
+  let remaining = absTheta;
+  let offset = 0;
+
+  while (remaining > 0) {
+    const span = Math.min(step, remaining);
+    const z = span / 2;
+
+    let sum = 0;
+    for (let i = 0, len = Tvalues.length; i < len; i += 1) {
+      const phi = offset + z * Tvalues[i] + z;
+      sum += Cvalues[i] * Math.sqrt(
+        (rx * Math.sin(phi)) ** 2 +
+          (ry * Math.cos(phi)) ** 2,
+      );
+    }
+    total += z * sum;
+    offset += span;
+    remaining -= span;
+  }
+  return sign * total;
+};
+
+/**
+ * Returns the signed arc length of an ellipse segment between two angles.
+ * @param rx radius along X axis
+ * @param ry radius along Y axis
+ * @param from the start angle in radians
+ * @param to the end angle in radians
+ * @returns the signed arc length
+ */
+const arcLengthBetween = (
+  rx: number,
+  ry: number,
+  from: number,
+  to: number,
+): number => {
+  return arcLengthAtAngle(rx, ry, to) - arcLengthAtAngle(rx, ry, from);
+};
 
 /**
  * Returns the Arc segment length.
@@ -8,14 +65,8 @@ import type { Point, PointTuple } from "../types";
  * @param theta the angle in radians
  * @returns the arc length
  */
-const arcLength = (rx: number, ry: number, theta: number) => {
-  const halfTheta = theta / 2;
-  const sinHalfTheta = Math.sin(halfTheta);
-  const cosHalfTheta = Math.cos(halfTheta);
-  const term1 = rx ** 2 * sinHalfTheta ** 2;
-  const term2 = ry ** 2 * cosHalfTheta ** 2;
-  const length = Math.sqrt(term1 + term2) * theta;
-  return Math.abs(length);
+const arcLength = (rx: number, ry: number, theta: number): number => {
+  return Math.abs(arcLengthAtAngle(rx, ry, theta));
 };
 
 /**
@@ -35,7 +86,7 @@ const arcPoint = (
   ry: number,
   alpha: number,
   theta: number,
-) => {
+): PointTuple => {
   const { sin, cos } = Math;
   // theta is angle in radians around arc
   // alpha is angle of rotation of ellipse in radians
@@ -53,7 +104,7 @@ const arcPoint = (
  * @param v1 ending point
  * @returns the angle in radian
  */
-const angleBetween = (v0: Point, v1: Point) => {
+const angleBetween = (v0: Point, v1: Point): number => {
   const { x: v0x, y: v0y } = v0;
   const { x: v1x, y: v1y } = v1;
   const p = v0x * v1x + v0y * v1y;
@@ -87,7 +138,13 @@ const getArcProps = (
   SF: number,
   x: number,
   y: number,
-) => {
+): {
+  rx: number;
+  ry: number;
+  startAngle: number;
+  endAngle: number;
+  center: { x: number; y: number };
+} => {
   const { abs, sin, cos, sqrt, PI } = Math;
   let rx = abs(RX);
   let ry = abs(RY);
@@ -214,7 +271,7 @@ const getArcLength = (
   SF: number,
   x: number,
   y: number,
-) => {
+): number => {
   const { rx, ry, startAngle, endAngle } = getArcProps(
     x1,
     y1,
@@ -226,7 +283,7 @@ const getArcLength = (
     x,
     y,
   );
-  return arcLength(rx, ry, endAngle - startAngle);
+  return Math.abs(arcLengthBetween(rx, ry, startAngle, endAngle));
 };
 
 /**
@@ -255,7 +312,7 @@ const getPointAtArcLength = (
   x: number,
   y: number,
   distance?: number,
-) => {
+): { x: number; y: number } => {
   let point = { x: x1, y: y1 };
   const { center, rx, ry, startAngle, endAngle } = getArcProps(
     x1,
@@ -271,7 +328,8 @@ const getPointAtArcLength = (
 
   /* istanbul ignore else @preserve */
   if (typeof distance === "number") {
-    const length = arcLength(rx, ry, endAngle - startAngle);
+    const sweepAngle = endAngle - startAngle;
+    const length = Math.abs(arcLengthBetween(rx, ry, startAngle, endAngle));
     if (distance <= 0) {
       point = { x: x1, y: y1 };
     } else if (distance >= length) {
@@ -286,10 +344,24 @@ const getPointAtArcLength = (
         return getPointAtLineLength(x1, y1, x, y, distance);
       }
       const { PI, cos, sin } = Math;
-      const sweepAngle = endAngle - startAngle;
       const xRot = ((angle % 360) + 360) % 360;
       const xRotRad = xRot * (PI / 180);
-      const alpha = startAngle + sweepAngle * (distance / length);
+
+      let lo = 0;
+      let hi = 1;
+      for (let i = 0; i < 25; i += 1) {
+        const mid = (lo + hi) / 2;
+        if (
+          Math.abs(
+            arcLengthBetween(rx, ry, startAngle, startAngle + sweepAngle * mid),
+          ) < distance
+        ) {
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+      const alpha = startAngle + sweepAngle * ((lo + hi) / 2);
       const ellipseComponentX = rx * cos(alpha);
       const ellipseComponentY = ry * sin(alpha);
 
@@ -332,7 +404,7 @@ const getArcBBox = (
   SF: number,
   x: number,
   y: number,
-) => {
+): [number, number, number, number] => {
   const { center, rx, ry, startAngle, endAngle } = getArcProps(
     x1,
     y1,
@@ -430,6 +502,8 @@ const getArcBBox = (
 const arcTools = {
   angleBetween,
   arcLength,
+  arcLengthAtAngle,
+  arcLengthBetween,
   arcPoint,
   getArcBBox,
   getArcLength,
@@ -440,6 +514,8 @@ const arcTools = {
 export {
   angleBetween,
   arcLength,
+  arcLengthAtAngle,
+  arcLengthBetween,
   arcPoint,
   arcTools,
   getArcBBox,

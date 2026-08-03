@@ -5,21 +5,21 @@ import type {
   MorphPathArray,
   PathArray,
   PolylineArray,
-} from "../types";
-import { pathToCurve } from "../convert/pathToCurve";
-import { pathToPolyline } from "./pathToPolyline";
-import { reversePath } from "../process/reversePath";
-import { normalizePath } from "../process/normalizePath";
-import { splitLinePathToCount } from "./splitLinePathToCount";
-import { splitCurvePathToCount } from "./splitCurvePathToCount";
-import { samplePolygon } from "./samplePolygon";
-import { polygonArea } from "../math/polygonTools";
-import { getRotatedPath } from "./getRotatedPath";
-import { fixPath } from "./fixPath";
-import { isPolygonArray } from "../util/isPolygonArray";
-import { isPolylineArray } from "../util/isPolylineArray";
-import { getTotalLength } from "../util/getTotalLength";
-import { roundPath } from "../process/roundPath";
+} from "../types.ts";
+import { pathToCurve } from "../convert/pathToCurve.ts";
+import { pathToPolyline } from "./pathToPolyline.ts";
+import { reversePath } from "../process/reversePath.ts";
+import { normalizePath } from "../process/normalizePath.ts";
+import { splitLinePathToCount } from "./splitLinePathToCount.ts";
+import { splitCurvePathToCount } from "./splitCurvePathToCount.ts";
+import { samplePolygon } from "./samplePolygon.ts";
+import { polygonArea } from "../math/polygonTools.ts";
+import { getRotatedPath } from "./getRotatedPath.ts";
+import { fixPath } from "./fixPath.ts";
+import { isPolygonArray } from "../util/isPolygonArray.ts";
+import { isPolylineArray } from "../util/isPolylineArray.ts";
+import { getTotalLength } from "../util/getTotalLength.ts";
+import { roundPath } from "../process/roundPath.ts";
 
 const equalizeSegmentsDefaults: EqualizationOptions = {
   mode: "auto", // "line" | "curve" | "auto"

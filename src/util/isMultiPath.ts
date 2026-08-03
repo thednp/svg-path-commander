@@ -1,6 +1,6 @@
-import { type PathArray } from "../types";
-import { error } from "./error";
-import { isPathArray } from "./isPathArray";
+import type { PathArray } from "../types.ts";
+import { error } from "./error.ts";
+import { isPathArray } from "./isPathArray.ts";
 
 /**
  * Determines if an SVG path contains multiple subpaths.

@@ -1,10 +1,10 @@
-import type { PathArray, Point } from "../types";
-import type { PointProperties } from "../interface";
-import { getPointAtLength } from "./getPointAtLength";
-import { getPropertiesAtLength } from "./getPropertiesAtLength";
-import { getTotalLength } from "./getTotalLength";
-import { parsePathString } from "../parser/parsePathString";
-import { normalizePath } from "../process/normalizePath";
+import type { PathArray, Point } from "../types.ts";
+import type { PointProperties } from "../interface.ts";
+import { getPointAtLength } from "./getPointAtLength.ts";
+import { getPropertiesAtLength } from "./getPropertiesAtLength.ts";
+import { getTotalLength } from "./getTotalLength.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { normalizePath } from "../process/normalizePath.ts";
 
 /**
  * Returns the point and segment in path closest to a given point as well as

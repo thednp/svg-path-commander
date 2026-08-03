@@ -1,5 +1,5 @@
-import { midPoint } from "./midPoint";
-import { distanceSquareRoot } from "./distanceSquareRoot";
+import { midPoint } from "./midPoint.ts";
+import { distanceSquareRoot } from "./distanceSquareRoot.ts";
 
 /**
  * Returns length for line segments (MoveTo, LineTo).
@@ -10,7 +10,12 @@ import { distanceSquareRoot } from "./distanceSquareRoot";
  * @param y2 the ending point Y
  * @returns the line segment length
  */
-const getLineLength = (x1: number, y1: number, x2: number, y2: number) => {
+const getLineLength = (
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): number => {
   return distanceSquareRoot([x1, y1], [x2, y2]);
 };
 
@@ -30,7 +35,7 @@ const getPointAtLineLength = (
   x2: number,
   y2: number,
   distance?: number,
-) => {
+): { x: number; y: number } => {
   let point = { x: x1, y: y1 };
 
   /* istanbul ignore else @preserve */
@@ -57,7 +62,12 @@ const getPointAtLineLength = (
  * @param y2 the ending point Y
  * @returns the bounding box for line segments
  */
-const getLineBBox = (x1: number, y1: number, x2: number, y2: number) => {
+const getLineBBox = (
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): [number, number, number, number] => {
   const { min, max } = Math;
 
   return [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)] as [

@@ -1,6 +1,6 @@
 import CSSMatrix from "@thednp/dommatrix";
-// import type { TransformObject } from '../interface';
-import type { TransformObjectValues } from "../types";
+// import type { TransformObject } from "../interface.ts";
+import type { TransformObjectValues } from "../types.ts";
 
 /**
  * Returns a transformation matrix to apply to `<path>` elements.

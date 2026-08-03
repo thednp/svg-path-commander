@@ -1,7 +1,7 @@
 // src/morph/splitCubicSegment.ts
 
-import { midPoint } from "../math/midPoint";
-import { CubicCoordinates } from "../types";
+import { midPoint } from "../math/midPoint.ts";
+import type { CubicCoordinates } from "../types.ts";
 
 /**
  * Split a cubic Bézier into two cubics at parameter t [0–1].

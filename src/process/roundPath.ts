@@ -1,7 +1,7 @@
-import type { PathArray } from "../types";
-import { defaultOptions } from "../options/options";
-import { iterate } from "./iterate";
-import { roundSegment } from "./roundSegment";
+import type { PathArray } from "../types.ts";
+import { defaultOptions } from "../options/options.ts";
+import { iterate } from "./iterate.ts";
+import { roundSegment } from "./roundSegment.ts";
 
 /**
  * Rounds the values of a `pathArray` instance to

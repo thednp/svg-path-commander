@@ -1,5 +1,5 @@
-import { getBezierLength, minmaxQ } from "./bezier";
-import { type QuadCoordinates } from "../types";
+import { getBezierLength, getTAtBezierLength, minmaxQ } from "./bezier.ts";
+import type { QuadCoordinates } from "../types.ts";
 
 /**
  * Returns the {x,y} coordinates of a point at a
@@ -19,7 +19,7 @@ import { type QuadCoordinates } from "../types";
 const getPointAtQuadSegmentLength = (
   [x1, y1, cx, cy, x2, y2]: QuadCoordinates,
   t: number,
-) => {
+): { x: number; y: number } => {
   const t1 = 1 - t;
   return {
     x: t1 ** 2 * x1 + 2 * t1 * t * cx + t ** 2 * x2,
@@ -45,7 +45,7 @@ const getQuadLength = (
   cy: number,
   x2: number,
   y2: number,
-) => {
+): number => {
   return getBezierLength([x1, y1, cx, cy, x2, y2]);
 };
 
@@ -69,22 +69,21 @@ const getPointAtQuadLength = (
   x2: number,
   y2: number,
   distance?: number,
-) => {
+): { x: number; y: number } => {
   const distanceIsNumber = typeof distance === "number";
   let point = { x: x1, y: y1 };
 
   /* istanbul ignore else @preserve */
   if (distanceIsNumber) {
-    const currentLength = getBezierLength([x1, y1, cx, cy, x2, y2]);
+    const coords = [x1, y1, cx, cy, x2, y2] as QuadCoordinates;
+    const currentLength = getBezierLength(coords);
     if (distance <= 0) {
       // first point already defined
     } else if (distance >= currentLength) {
       point = { x: x2, y: y2 };
     } else {
-      point = getPointAtQuadSegmentLength(
-        [x1, y1, cx, cy, x2, y2],
-        distance / currentLength,
-      );
+      const t = getTAtBezierLength(coords, distance);
+      point = getPointAtQuadSegmentLength(coords, t);
     }
   }
   return point;
@@ -109,7 +108,7 @@ const getQuadBBox = (
   cy: number,
   x2: number,
   y2: number,
-) => {
+): [number, number, number, number] => {
   const cxMinMax = minmaxQ([x1, cx, x2]);
   const cyMinMax = minmaxQ([y1, cy, y2]);
   return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]] as [

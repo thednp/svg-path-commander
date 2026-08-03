@@ -1,6 +1,6 @@
 // src/morph/getRotatedPath.ts
 
-import {
+import type {
   CSegment,
   // CurveArray,
   LSegment,

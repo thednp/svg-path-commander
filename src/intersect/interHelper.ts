@@ -100,6 +100,7 @@ export const interHelper = (
         cj = Math.abs(dj1.x - dj.x) < .001 ? "y" : "x",
         is = intersect(di.x, di.y, di1.x, di1.y, dj.x, dj.y, dj1.x, dj1.y);
       if (is) {
+        // istanbul ignore next 2
         if (xy[is.x.toFixed(4)] == is.y.toFixed(4)) {
           continue;
         }

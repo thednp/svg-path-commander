@@ -1,11 +1,11 @@
-import DISTANCE_EPSILON from "./distanceEpsilon";
-import type { MSegment, PathArray, PointTuple } from "../types";
-import { iterate } from "../process/iterate";
-import { getLineLength, getPointAtLineLength } from "../math/lineTools";
-import { getArcLength, getPointAtArcLength } from "../math/arcTools";
-import { getCubicLength, getPointAtCubicLength } from "../math/cubicTools";
-import { getPointAtQuadLength, getQuadLength } from "../math/quadTools";
-import { normalizePath } from "../process/normalizePath";
+import DISTANCE_EPSILON from "./distanceEpsilon.ts";
+import type { MSegment, PathArray, PointTuple } from "../types.ts";
+import { iterate } from "../process/iterate.ts";
+import { getLineLength, getPointAtLineLength } from "../math/lineTools.ts";
+import { getArcLength, getPointAtArcLength } from "../math/arcTools.ts";
+import { getCubicLength, getPointAtCubicLength } from "../math/cubicTools.ts";
+import { getPointAtQuadLength, getQuadLength } from "../math/quadTools.ts";
+import { normalizePath } from "../process/normalizePath.ts";
 
 /**
  * Returns [x,y] coordinates of a point at a given length along a path.
@@ -23,12 +23,10 @@ import { normalizePath } from "../process/normalizePath";
 export const getPointAtLength = <T extends PathArray>(
   pathInput: string | T,
   distance?: number,
-) => {
+): { x: number; y: number } => {
   const path = normalizePath(pathInput);
   let isM = false;
   let data = [] as number[];
-  let x = 0;
-  let y = 0;
   let [mx, my] = path[0].slice(1) as PointTuple;
   const distanceIsNumber = typeof distance === "number";
   let point = { x: mx, y: my };
@@ -125,12 +123,16 @@ export const getPointAtLength = <T extends PathArray>(
       );
     } else if (pathCommand === "Z") {
       data = [lastX, lastY, mx, my];
-      point = { x: mx, y: my };
+      point = getPointAtLineLength(
+        data[0],
+        data[1],
+        data[2],
+        data[3],
+        distance - totalLength,
+      );
 
       length = getLineLength(data[0], data[1], data[2], data[3]);
     }
-
-    [x, y] = data.slice(-2);
 
     if (totalLength < distance) {
       POINT = point;
@@ -146,10 +148,9 @@ export const getPointAtLength = <T extends PathArray>(
   });
 
   // native `getPointAtLength` behavior when the given distance
-  // is higher than total length
-  if (distance > totalLength - DISTANCE_EPSILON) {
-    return { x, y };
-  }
-
+  // is higher than total length: clamp to the last point on path
+  // (captured by POINT in the last processed segment; using x, y
+  // would erroneously reflect the start of the *next* segment at
+  // interior segment boundaries — see #61).
   return POINT;
 };

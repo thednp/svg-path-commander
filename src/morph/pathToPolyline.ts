@@ -5,12 +5,12 @@ import type {
   PolygonArray,
   PolylineArray,
   // PathArray,
-} from "../types";
-import { normalizePath } from "../process/normalizePath";
-import { isPolygonArray } from "../util/isPolygonArray";
-import { isPolylineArray } from "../util/isPolylineArray";
-import { isClosedPath } from "../util/isClosedPath";
-import { error } from "../util/error";
+} from "../types.ts";
+import { normalizePath } from "../process/normalizePath.ts";
+import { isPolygonArray } from "../util/isPolygonArray.ts";
+import { isPolylineArray } from "../util/isPolylineArray.ts";
+import { isClosedPath } from "../util/isClosedPath.ts";
+import { error } from "../util/error.ts";
 
 /**
  * Converts any `PolyLineArray`/`PolygonArray` path (closed or open) to an explicit polyline (M + L*).

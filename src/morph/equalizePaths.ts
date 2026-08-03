@@ -3,14 +3,14 @@ import type {
   PathArray,
   PathsEqualizationOptions,
 } from "../types.ts";
-import { isMultiPath } from "../util/isMultiPath";
-import { splitPath } from "../process/splitPath";
-import { equalizeSegments } from "./equalizeSegments";
-import { matchPaths } from "./matchPaths";
-import { normalizePath } from "../process/normalizePath";
-import { reversePath } from "../process/reversePath";
-import { polygonArea } from "../math/polygonTools";
-import { samplePolygon } from "./samplePolygon";
+import { isMultiPath } from "../util/isMultiPath.ts";
+import { splitPath } from "../process/splitPath.ts";
+import { equalizeSegments } from "./equalizeSegments.ts";
+import { matchPaths } from "./matchPaths.ts";
+import { normalizePath } from "../process/normalizePath.ts";
+import { reversePath } from "../process/reversePath.ts";
+import { polygonArea } from "../math/polygonTools.ts";
+import { samplePolygon } from "./samplePolygon.ts";
 import { classifyPaths } from "./classifyPaths.ts";
 
 const equalizePathsDefaults: PathsEqualizationOptions = {
@@ -39,7 +39,7 @@ export const equalizePaths = (
   pathInput1: string | PathArray,
   pathInput2: string | PathArray,
   initialCfg = {},
-) => {
+): [MorphPathArray, MorphPathArray] => {
   const cfg = Object.assign(equalizePathsDefaults, initialCfg);
   const p1 = normalizePath(pathInput1);
   const p2 = normalizePath(pathInput2);

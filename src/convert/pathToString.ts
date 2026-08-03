@@ -1,6 +1,6 @@
-import type { PathArray, PathSegment } from "../types";
-import { defaultOptions } from "../options/options";
-import { roundTo } from "../math/roundTo";
+import type { PathArray, PathSegment } from "../types.ts";
+import { defaultOptions } from "../options/options.ts";
+import { roundTo } from "../math/roundTo.ts";
 
 /**
  * Returns a valid `d` attribute string value created

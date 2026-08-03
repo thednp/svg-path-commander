@@ -1,4 +1,4 @@
-import type { CSegment, CurveArray, MSegment, PathCommand } from "../types";
+import type { CSegment, CurveArray, MSegment, PathCommand } from "../types.ts";
 
 /**
  * Reverses all segments of a `pathArray`
@@ -7,7 +7,7 @@ import type { CSegment, CurveArray, MSegment, PathCommand } from "../types";
  * @param path the source `pathArray`
  * @returns the reversed `pathArray`
  */
-export const reverseCurve = (path: CurveArray) => {
+export const reverseCurve = (path: CurveArray): CurveArray => {
   const rotatedCurve = path
     .slice(1)
     .map((x, i, curveOnly) =>

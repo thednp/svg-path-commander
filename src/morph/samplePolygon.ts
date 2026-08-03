@@ -1,8 +1,8 @@
 // src/morph/samplePolygon.ts
 
-import { error } from "../util/error";
-import { iterate } from "../process/iterate";
-import type { NormalArray, PointTuple } from "../types";
+import { error } from "../util/error.ts";
+import { iterate } from "../process/iterate.ts";
+import type { NormalArray, PointTuple } from "../types.ts";
 
 /**
  * Samples points from a path to form a polygon approximation.

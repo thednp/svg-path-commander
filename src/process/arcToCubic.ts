@@ -1,4 +1,4 @@
-import { rotateVector } from "../math/rotateVector";
+import { rotateVector } from "../math/rotateVector.ts";
 
 /**
  * Converts A (arc-to) segments to C (cubic-bezier-to).

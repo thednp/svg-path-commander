@@ -26,7 +26,7 @@ export const pathsIntersection = <T extends string | PathArray>(
   pathInput1: T,
   pathInput2: T,
   justCount = /* istanbul ignore next */ true,
-) => {
+): number | IntersectionPoint[] => {
   const path1 = pathToCurve(pathInput1);
   const path2 = pathToCurve(pathInput2);
   let x1 = 0,

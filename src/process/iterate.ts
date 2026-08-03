@@ -1,5 +1,5 @@
-// import paramsParser from '../parser/paramsParser';
-import type { AbsoluteCommand, IteratorCallback, PathArray } from "../types";
+// import paramsParser from "../parser/paramsParser.ts";
+import type { AbsoluteCommand, IteratorCallback, PathArray } from "../types.ts";
 
 /**
  * Iterates over a `PathArray`, executing a callback for each segment.
@@ -31,7 +31,7 @@ import type { AbsoluteCommand, IteratorCallback, PathArray } from "../types";
 export const iterate = <T extends PathArray>(
   path: T,
   iterator: IteratorCallback<T>,
-) => {
+): T => {
   let x = 0;
   let y = 0;
   let mx = 0;

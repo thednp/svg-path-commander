@@ -1,5 +1,5 @@
-import { isSpace } from "./isSpace";
-import type { PathParser } from "./pathParser";
+import { isSpace } from "./isSpace.ts";
+import type { PathParser } from "./pathParser.ts";
 
 /**
  * Points the parser to the next character in the
@@ -8,7 +8,7 @@ import type { PathParser } from "./pathParser";
  *
  * @param path - The PathParser instance
  */
-export const skipSpaces = (path: PathParser) => {
+export const skipSpaces = (path: PathParser): void => {
   const { pathValue, max } = path;
   while (path.index < max && isSpace(pathValue.charCodeAt(path.index))) {
     path.index += 1;

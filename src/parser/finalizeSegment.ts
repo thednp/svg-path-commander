@@ -1,13 +1,13 @@
-import { paramsCounts } from "./paramsCount";
-import { PathParser } from "./pathParser";
-import type { PathCommand, PathSegment, RelativeCommand } from "../types";
+import { paramsCounts } from "./paramsCount.ts";
+import type { PathParser } from "./pathParser.ts";
+import type { PathCommand, PathSegment, RelativeCommand } from "../types.ts";
 
 /**
  * Breaks the parsing of a pathString once a segment is finalized.
  *
  * @param path - The PathParser instance
  */
-export const finalizeSegment = (path: PathParser) => {
+export const finalizeSegment = (path: PathParser): void => {
   let pathCommand = path.pathValue[path.segmentStart] as PathCommand;
   let relativeCommand = pathCommand.toLowerCase() as RelativeCommand;
   const { data } = path;

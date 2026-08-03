@@ -1,4 +1,4 @@
-import type { ParserParams } from "../interface";
+import type { ParserParams } from "../interface.ts";
 
 /**
  * Default parser parameters object used to track position state

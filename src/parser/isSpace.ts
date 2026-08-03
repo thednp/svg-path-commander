@@ -1,4 +1,4 @@
-import type { SpaceNumber } from "../types";
+import type { SpaceNumber } from "../types.ts";
 
 /**
  * Checks if the character is a space.

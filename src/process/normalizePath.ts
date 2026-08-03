@@ -1,8 +1,8 @@
-import type { NormalArray, PathArray } from "../types";
-import { normalizeSegment } from "./normalizeSegment";
-import { parsePathString } from "../parser/parsePathString";
-import { paramsParser } from "../parser/paramsParser";
-import { iterate } from "./iterate";
+import type { NormalArray, PathArray } from "../types.ts";
+import { normalizeSegment } from "./normalizeSegment.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { paramsParser } from "../parser/paramsParser.ts";
+import { iterate } from "./iterate.ts";
 
 /**
  * Parses a path string or PathArray, then iterates the result for:
@@ -18,7 +18,9 @@ import { iterate } from "./iterate";
  * // => [['M', 10, 90], ['C', 30, 90, 25, 10, 50, 10], ['C', 75, 10, 70, 90, 90, 90]]
  * ```
  */
-export const normalizePath = (pathInput: string | PathArray): NormalArray => {
+export const normalizePath = <T extends string | PathArray>(
+  pathInput: T,
+): NormalArray => {
   const path = parsePathString(pathInput);
   const params = { ...paramsParser };
 

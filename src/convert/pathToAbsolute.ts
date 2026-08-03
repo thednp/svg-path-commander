@@ -1,7 +1,7 @@
-import type { AbsoluteArray, PathArray } from "../types";
-import { parsePathString } from "../parser/parsePathString";
-import { absolutizeSegment } from "../process/absolutizeSegment";
-import { iterate } from "../process/iterate";
+import type { AbsoluteArray, PathArray } from "../types.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { absolutizeSegment } from "../process/absolutizeSegment.ts";
+import { iterate } from "../process/iterate.ts";
 
 /**
  * Parses a path string value or object and returns an array
@@ -16,7 +16,9 @@ import { iterate } from "../process/iterate";
  * // => [['M', 10, 10], ['L', 90, 90]]
  * ```
  */
-export const pathToAbsolute = <T extends PathArray>(pathInput: string | T) => {
+export const pathToAbsolute = <T extends PathArray>(
+  pathInput: string | T,
+): AbsoluteArray => {
   const path = parsePathString(pathInput);
 
   return iterate(path, absolutizeSegment) as AbsoluteArray;

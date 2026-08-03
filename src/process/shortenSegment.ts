@@ -1,6 +1,6 @@
-import { defaultOptions } from "../options/options";
-import type { ParserParams } from "../interface";
-import { roundTo } from "../math/roundTo";
+import { defaultOptions } from "../options/options.ts";
+import type { ParserParams } from "../interface.ts";
+import { roundTo } from "../math/roundTo.ts";
 import type {
   AbsoluteSegment,
   NormalSegment,
@@ -8,7 +8,7 @@ import type {
   ShortSegment,
   SSegment,
   TSegment,
-} from "../types";
+} from "../types.ts";
 
 /**
  * Shorten a single segment of a `pathArray` object.

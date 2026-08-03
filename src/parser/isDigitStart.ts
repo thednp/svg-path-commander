@@ -1,5 +1,5 @@
-import { isDigit } from "./isDigit";
-import type { DigitNumber } from "../types";
+import { isDigit } from "./isDigit.ts";
+import type { DigitNumber } from "../types.ts";
 
 /**
  * Checks if the character is or belongs to a number.

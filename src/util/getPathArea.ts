@@ -1,5 +1,5 @@
-import { pathToCurve } from "../convert/pathToCurve";
-import type { PathArray, PointTuple } from "../types";
+import { pathToCurve } from "../convert/pathToCurve.ts";
+import type { PathArray, PointTuple } from "../types.ts";
 
 /**
  * Returns the area of a single cubic-bezier segment.
@@ -54,7 +54,7 @@ const getCubicSegArea = (
  * // => -10000 (counter-clockwise square)
  * ```
  */
-export const getPathArea = <T extends PathArray>(path: T) => {
+export const getPathArea = <T extends PathArray | string>(path: T): number => {
   let x = 0;
   let y = 0;
   let len = 0;

@@ -1,5 +1,5 @@
-import type { PathArray, PathSegment } from "../types";
-import { getPropertiesAtLength } from "./getPropertiesAtLength";
+import type { PathArray, PathSegment } from "../types.ts";
+import { getPropertiesAtLength } from "./getPropertiesAtLength.ts";
 
 /**
  * Returns the segment at a given length.

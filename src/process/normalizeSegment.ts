@@ -1,4 +1,4 @@
-import type { ParserParams } from "../interface";
+import type { ParserParams } from "../interface.ts";
 import type {
   ASegment,
   CSegment,
@@ -11,7 +11,7 @@ import type {
   PointTuple,
   QSegment,
   VSegment,
-} from "../types";
+} from "../types.ts";
 
 /**
  * Normalizes a single segment of a `pathArray` object.
@@ -23,7 +23,7 @@ import type {
 export const normalizeSegment = (
   segment: PathSegment,
   params: ParserParams,
-) => {
+): NormalSegment => {
   const [pathCommand] = segment;
   const absCommand = pathCommand.toUpperCase();
   const isRelative = pathCommand !== absCommand;

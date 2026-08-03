@@ -3,6 +3,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/thednp/svg-path-commander/badge.svg)](https://coveralls.io/github/thednp/svg-path-commander)
 [![ci](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml/badge.svg)](https://github.com/thednp/svg-path-commander/actions/workflows/ci.yml)
 [![NPM Version](https://img.shields.io/npm/v/svg-path-commander.svg)](https://www.npmjs.com/package/svg-path-commander)
+[![JSR Version](https://img.shields.io/jsr/v/@thednp/svg-path-commander.svg)](https://jsr.io/@thednp/svg-path-commander)
 [![NPM Downloads](https://img.shields.io/npm/dm/svg-path-commander.svg)](http://npm-stat.com/charts.html?svg-path-commander)
 [![jsDeliver](https://img.shields.io/jsdelivr/npm/hw/svg-path-commander)](https://www.jsdelivr.com/package/npm/svg-path-commander)
 
@@ -32,14 +33,24 @@ There are a couple of good reasons for this implementation:
 * we can actually apply a [3D transformation](https://github.com/ndebeiss/svg3d) matrix to SVG path commands, by calculating a 2D projection of the actual shape in 3D coordinates;
 * when most tools available will be rendered absolete, we are ready for new challenges.
 
-This library is available on [CDN](https://www.jsdelivr.com/package/npm/svg-path-commander) and [npm](https://www.npmjs.com/package/svg-path-commander). 
+This library is available on [CDN](https://www.jsdelivr.com/package/npm/svg-path-commander), [npm](https://www.npmjs.com/package/svg-path-commander) and [JSR](https://jsr.io/@thednp/svg-path-commander). 
 
 
 # Install
 
-```
+```sh
 npm install svg-path-commander
-# or pnpm/bun/deno add svg-path-commander
+# or pnpm add svg-path-commander
+# or bun add svg-path-commander
+# or deno add npm:svg-path-commander
+# or deno add jsr:@thednp/svg-path-commander
+# or npx jsr add @thednp/svg-path-commander
+```
+
+Install from [JSR](https://jsr.io/@thednp/svg-path-commander) and import the raw TypeScript source:
+
+```ts
+import SVGPathCommander from "jsr:@thednp/svg-path-commander";
 ```
 
 
@@ -290,6 +301,7 @@ For developer guidelines, and a complete list of static methods, head over to th
 * all tools processing path segments will never round float values, however `pathToString`, `optimizePath` and especially `roundPath` will always round values to the default of 4 decimals; EG: 0.56676 => 0.567, 0.50 => 0.5; you can change the default option with `SVGPathCommander.options.round = 2` or remove the value rounding all together with `SVGPathCommander.options.round = false`; you can also control this feature via instance options;
 * the `getSVGMatrix` utility we developed will always compute the matrix by applying the transform functions in the following order: `translate`, `rotate`, `skew` and `scale`, which is the default composition/recomposition order specified in the W3C draft;
 * all 3d transformations as well as skews will convert `A` (arc) path commands to `C` (cubic bezier) due to the lack of resources;
+* while converting `A` segments to `C` segments is the shipped behavior, a validated arc-preserving alternative exists: an affine-transformed elliptical arc is still an exact elliptical arc, so `A` segments can be transformed directly via the singular value decomposition of the transformed ellipse shape matrix (radii and rotation from the eigenvalues/eigenvectors of the Gram matrix, sweep flag flipped for negative-determinant matrices). This works for any 2D matrix, and even for 3D matrices whenever the projection is orthographic (default `origin: [0,0,0]` — the `z = 0` plane is untouched by the matrix's z rows/columns, so only the 2x2 submatrix matters); the conversion to `C` is only mathematically required for perspective projections (non-zero `origin` z value or a matrix with perspective), where the arc image is a general conic. See `experiments/transformArc-tested.ts` for the implementation and rationale;
 * most tools included with **SVGPathCommander** should work in your Node.js apps, but feel free to report any issue;
 * other path commands like `R` (catmulRomBezier), `O`, `U` (ellipse and shorthand ellipse) are not present in the current draft and are not supported;
 * normalization can mean many things to many people and our library is developed to convert path command values to absolute and shorthand to longhand commands to provide a solid foundation for the main processing tools of our library;

@@ -1,4 +1,4 @@
-import { type PointTuple } from "../types";
+import type { PointTuple } from "../types.ts";
 
 /**
  * Returns the square root of the distance
@@ -8,7 +8,7 @@ import { type PointTuple } from "../types";
  * @param b the second point coordinates
  * @returns the distance value
  */
-export const distanceSquareRoot = (a: PointTuple, b: PointTuple) => {
+export const distanceSquareRoot = (a: PointTuple, b: PointTuple): number => {
   return Math.sqrt(
     (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]),
   );

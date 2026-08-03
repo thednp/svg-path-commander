@@ -1,7 +1,7 @@
-import type { PathArray, RelativeArray } from "../types";
-import { parsePathString } from "../parser/parsePathString";
-import { iterate } from "../process/iterate";
-import { relativizeSegment } from "../process/relativizeSegment";
+import type { PathArray, RelativeArray } from "../types.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { iterate } from "../process/iterate.ts";
+import { relativizeSegment } from "../process/relativizeSegment.ts";
 
 /**
  * Parses a path string value or object and returns an array

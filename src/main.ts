@@ -1,5 +1,5 @@
 "use strict";
-import { version } from "../package.json";
+import pkg from "../package.json" with { type: "json" };
 import CSSMatrix from "@thednp/dommatrix";
 import { arcTools } from "./math/arcTools.ts";
 import { bezierTools } from "./math/bezier.ts";
@@ -159,10 +159,20 @@ class SVGPathCommander {
 
     return this;
   }
-  get bbox() {
+  get bbox(): {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    x2: number;
+    y2: number;
+    cx: number;
+    cy: number;
+    cz: number;
+  } {
     return getPathBBox(this.segments);
   }
-  get length() {
+  get length(): number {
     return getTotalLength(this.segments);
   }
 
@@ -172,7 +182,17 @@ class SVGPathCommander {
    * @public
    * @returns the pathBBox
    */
-  getBBox() {
+  getBBox(): {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    x2: number;
+    y2: number;
+    cx: number;
+    cy: number;
+    cz: number;
+  } {
     return this.bbox;
   }
 
@@ -182,7 +202,7 @@ class SVGPathCommander {
    * @public
    * @returns the path total length
    */
-  getTotalLength() {
+  getTotalLength(): number {
     return this.length;
   }
 
@@ -194,7 +214,7 @@ class SVGPathCommander {
    * @param length the length
    * @returns the requested point
    */
-  getPointAtLength(length: number) {
+  getPointAtLength(length: number): { x: number; y: number } {
     return getPointAtLength(this.segments, length);
   }
 
@@ -210,7 +230,7 @@ class SVGPathCommander {
    * @returns this for chaining
    * @public
    */
-  toAbsolute() {
+  toAbsolute(): this {
     const { segments } = this;
     this.segments = pathToAbsolute(segments);
     return this;
@@ -228,7 +248,7 @@ class SVGPathCommander {
    * @returns this for chaining
    * @public
    */
-  toRelative() {
+  toRelative(): this {
     const { segments } = this;
     this.segments = pathToRelative(segments);
     return this;
@@ -247,7 +267,7 @@ class SVGPathCommander {
    * @returns this for chaining
    * @public
    */
-  toCurve() {
+  toCurve(): this {
     const { segments } = this;
     this.segments = pathToCurve(segments);
     return this;
@@ -266,7 +286,7 @@ class SVGPathCommander {
    * @returns this for chaining
    * @public
    */
-  reverse(onlySubpath?: boolean) {
+  reverse(onlySubpath?: boolean): this {
     const { segments } = this;
     const split = splitPath(segments);
     const subPath = split.length > 1 ? split : false;
@@ -305,7 +325,7 @@ class SVGPathCommander {
    * @returns this for chaining
    * @public
    */
-  normalize() {
+  normalize(): this {
     const { segments } = this;
     this.segments = normalizePath(segments);
     return this;
@@ -326,7 +346,7 @@ class SVGPathCommander {
    * @returns this for chaining
    * @public
    */
-  optimize() {
+  optimize(): this {
     const { segments } = this;
     const round = this.round === "off" ? 2 : this.round;
 
@@ -343,7 +363,7 @@ class SVGPathCommander {
    * @returns this for chaining
    * @public
    */
-  transform(source?: Partial<TransformObject>) {
+  transform(source?: Partial<TransformObject>): this {
     if (
       !source ||
       typeof source !== "object" ||
@@ -406,7 +426,7 @@ class SVGPathCommander {
    * @returns this for chaining
    * @public
    */
-  flipX() {
+  flipX(): this {
     const { cx, cy } = this.bbox;
     this.transform({ rotate: [0, 180, 0], origin: [cx, cy, 0] });
     return this;
@@ -424,7 +444,7 @@ class SVGPathCommander {
    * @returns this for chaining
    * @public
    */
-  flipY() {
+  flipY(): this {
     const { cx, cy } = this.bbox;
     this.transform({ rotate: [180, 0, 0], origin: [cx, cy, 0] });
     return this;
@@ -437,7 +457,7 @@ class SVGPathCommander {
    * @public
    * @returns the path string
    */
-  toString() {
+  toString(): string {
     return pathToString(this.segments, this.round);
   }
 
@@ -545,7 +565,7 @@ class SVGPathCommander {
   static isMultiPath = isMultiPath;
   static isClosedPath = isClosedPath;
   static isPolylineArray = isPolylineArray;
-  static version = version;
+  static version = pkg.version;
 }
 
 export default SVGPathCommander;

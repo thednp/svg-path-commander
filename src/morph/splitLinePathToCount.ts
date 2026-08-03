@@ -1,9 +1,9 @@
 // src/morph/splitLinePathToCount.ts
 
-import type { PointTuple, PolylineArray } from "../types";
-import splitLineToCount from "./splitLineToCount";
-import { getPathSplits } from "./getPathSplits";
-import { error } from "../util/error";
+import type { PointTuple, PolylineArray } from "../types.ts";
+import splitLineToCount from "./splitLineToCount.ts";
+import { getPathSplits } from "./getPathSplits.ts";
+import { error } from "../util/error.ts";
 
 /**
  * Splits a PolylineArray so that it has exactly `target` line segments.

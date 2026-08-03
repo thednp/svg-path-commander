@@ -1,9 +1,14 @@
-import { segmentToCubic } from "../process/segmentToCubic";
-import { AbsoluteCommand, CSegment, CurveArray, PathArray } from "../types";
-import { iterate } from "../process/iterate";
-import { parsePathString } from "../parser/parsePathString";
-import { normalizeSegment } from "../process/normalizeSegment";
-import { paramsParser } from "../parser/paramsParser";
+import { segmentToCubic } from "../process/segmentToCubic.ts";
+import type {
+  AbsoluteCommand,
+  CSegment,
+  CurveArray,
+  PathArray,
+} from "../types.ts";
+import { iterate } from "../process/iterate.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { normalizeSegment } from "../process/normalizeSegment.ts";
+import { paramsParser } from "../parser/paramsParser.ts";
 
 /**
  * Parses a path string or PathArray and returns a new one

@@ -1,6 +1,6 @@
-import type { PathArray } from "../types";
-import { getPropertiesAtPoint } from "./getPropertiesAtPoint";
-import DISTANCE_EPSILON from "./distanceEpsilon";
+import type { PathArray } from "../types.ts";
+import { getPropertiesAtPoint } from "./getPropertiesAtPoint.ts";
+import DISTANCE_EPSILON from "./distanceEpsilon.ts";
 
 /**
  * Checks if a given point is in the stroke of a path.
@@ -12,7 +12,7 @@ import DISTANCE_EPSILON from "./distanceEpsilon";
 export const isPointInStroke = <T extends PathArray>(
   pathInput: string | T,
   point: { x: number; y: number },
-) => {
+): boolean => {
   const { distance } = getPropertiesAtPoint(pathInput, point);
   return Math.abs(distance) < DISTANCE_EPSILON; // 0.01 might be more permissive
 };

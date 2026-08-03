@@ -1,11 +1,11 @@
 /*!
-* SVGPathCommander v2.2.1 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.2.2 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 import CSSMatrix from "@thednp/dommatrix";
 //#region package.json
-var version = "2.2.1";
+var version = "2.2.2";
 //#endregion
 //#region src/math/midPoint.ts
 /**
@@ -104,295 +104,6 @@ const lineTools = {
 	getLineBBox,
 	getLineLength,
 	getPointAtLineLength
-};
-//#endregion
-//#region src/math/arcTools.ts
-/**
-* Returns the Arc segment length.
-* @param rx radius along X axis
-* @param ry radius along Y axis
-* @param theta the angle in radians
-* @returns the arc length
-*/
-const arcLength = (rx, ry, theta) => {
-	const halfTheta = theta / 2;
-	const sinHalfTheta = Math.sin(halfTheta);
-	const cosHalfTheta = Math.cos(halfTheta);
-	const term1 = rx ** 2 * sinHalfTheta ** 2;
-	const term2 = ry ** 2 * cosHalfTheta ** 2;
-	const length = Math.sqrt(term1 + term2) * theta;
-	return Math.abs(length);
-};
-/**
-* Find point on ellipse at given angle around ellipse (theta);
-* @param cx the center X
-* @param cy the center Y
-* @param rx the radius X
-* @param ry the radius Y
-* @param alpha the arc rotation angle in radians
-* @param theta the arc sweep angle in radians
-* @returns a point around ellipse at given angle
-*/
-const arcPoint = (cx, cy, rx, ry, alpha, theta) => {
-	const { sin, cos } = Math;
-	const cosA = cos(alpha);
-	const sinA = sin(alpha);
-	const x = rx * cos(theta);
-	const y = ry * sin(theta);
-	return [cx + cosA * x - sinA * y, cy + sinA * x + cosA * y];
-};
-/**
-* Returns the angle between two points.
-* @param v0 starting point
-* @param v1 ending point
-* @returns the angle in radian
-*/
-const angleBetween = (v0, v1) => {
-	const { x: v0x, y: v0y } = v0;
-	const { x: v1x, y: v1y } = v1;
-	const p = v0x * v1x + v0y * v1y;
-	const n = Math.sqrt((v0x ** 2 + v0y ** 2) * (v1x ** 2 + v1y ** 2));
-	return (v0x * v1y - v0y * v1x < 0 ? -1 : 1) * Math.acos(p / n);
-};
-/**
-* Returns the following properties for an Arc segment: center, start angle,
-* end angle, and radiuses on X and Y axis.
-*
-* @param x1 the starting point X
-* @param y1 the starting point Y
-* @param RX the radius on X axis
-* @param RY the radius on Y axis
-* @param angle the ellipse rotation in degrees
-* @param LAF the large arc flag
-* @param SF the sweep flag
-* @param x2 the ending point X
-* @param y2 the ending point Y
-* @returns properties specific to Arc segments
-*/
-const getArcProps = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
-	const { abs, sin, cos, sqrt, PI } = Math;
-	let rx = abs(RX);
-	let ry = abs(RY);
-	const xRotRad = (angle % 360 + 360) % 360 * (PI / 180);
-	if (x1 === x && y1 === y) return {
-		rx,
-		ry,
-		startAngle: 0,
-		endAngle: 0,
-		center: {
-			x,
-			y
-		}
-	};
-	if (rx === 0 || ry === 0) return {
-		rx,
-		ry,
-		startAngle: 0,
-		endAngle: 0,
-		center: {
-			x: (x + x1) / 2,
-			y: (y + y1) / 2
-		}
-	};
-	const dx = (x1 - x) / 2;
-	const dy = (y1 - y) / 2;
-	const transformedPoint = {
-		x: cos(xRotRad) * dx + sin(xRotRad) * dy,
-		y: -sin(xRotRad) * dx + cos(xRotRad) * dy
-	};
-	const radiiCheck = transformedPoint.x ** 2 / rx ** 2 + transformedPoint.y ** 2 / ry ** 2;
-	if (radiiCheck > 1) {
-		rx *= sqrt(radiiCheck);
-		ry *= sqrt(radiiCheck);
-	}
-	let cRadicand = (rx ** 2 * ry ** 2 - rx ** 2 * transformedPoint.y ** 2 - ry ** 2 * transformedPoint.x ** 2) / (rx ** 2 * transformedPoint.y ** 2 + ry ** 2 * transformedPoint.x ** 2);
-	cRadicand = cRadicand < 0 ? 0 : cRadicand;
-	const cCoef = (LAF !== SF ? 1 : -1) * sqrt(cRadicand);
-	const transformedCenter = {
-		x: cCoef * (rx * transformedPoint.y / ry),
-		y: cCoef * (-(ry * transformedPoint.x) / rx)
-	};
-	const center = {
-		x: cos(xRotRad) * transformedCenter.x - sin(xRotRad) * transformedCenter.y + (x1 + x) / 2,
-		y: sin(xRotRad) * transformedCenter.x + cos(xRotRad) * transformedCenter.y + (y1 + y) / 2
-	};
-	const startVector = {
-		x: (transformedPoint.x - transformedCenter.x) / rx,
-		y: (transformedPoint.y - transformedCenter.y) / ry
-	};
-	const startAngle = angleBetween({
-		x: 1,
-		y: 0
-	}, startVector);
-	let sweepAngle = angleBetween(startVector, {
-		x: (-transformedPoint.x - transformedCenter.x) / rx,
-		y: (-transformedPoint.y - transformedCenter.y) / ry
-	});
-	if (!SF && sweepAngle > 0) sweepAngle -= 2 * PI;
-	else if (SF && sweepAngle < 0) sweepAngle += 2 * PI;
-	sweepAngle %= 2 * PI;
-	return {
-		center,
-		startAngle,
-		endAngle: startAngle + sweepAngle,
-		rx,
-		ry
-	};
-};
-/**
-* Returns the length of an Arc segment.
-*
-* @param x1 the starting point X
-* @param y1 the starting point Y
-* @param c1x the first control point X
-* @param c1y the first control point Y
-* @param c2x the second control point X
-* @param c2y the second control point Y
-* @param x2 the ending point X
-* @param y2 the ending point Y
-* @returns the length of the Arc segment
-*/
-const getArcLength = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
-	const { rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
-	return arcLength(rx, ry, endAngle - startAngle);
-};
-/**
-* Returns a point along an Arc segment at a given distance.
-*
-* @param x1 the starting point X
-* @param y1 the starting point Y
-* @param RX the radius on X axis
-* @param RY the radius on Y axis
-* @param angle the ellipse rotation in degrees
-* @param LAF the large arc flag
-* @param SF the sweep flag
-* @param x2 the ending point X
-* @param y2 the ending point Y
-* @param distance the distance along the arc
-* @returns a point along the Arc segment
-*/
-const getPointAtArcLength = (x1, y1, RX, RY, angle, LAF, SF, x, y, distance) => {
-	let point = {
-		x: x1,
-		y: y1
-	};
-	const { center, rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
-	if (typeof distance === "number") {
-		const length = arcLength(rx, ry, endAngle - startAngle);
-		if (distance <= 0) point = {
-			x: x1,
-			y: y1
-		};
-		else if (distance >= length) point = {
-			x,
-			y
-		};
-		else {
-			if (x1 === x && y1 === y) return {
-				x,
-				y
-			};
-			if (rx === 0 || ry === 0) return getPointAtLineLength(x1, y1, x, y, distance);
-			const { PI, cos, sin } = Math;
-			const sweepAngle = endAngle - startAngle;
-			const xRotRad = (angle % 360 + 360) % 360 * (PI / 180);
-			const alpha = startAngle + sweepAngle * (distance / length);
-			const ellipseComponentX = rx * cos(alpha);
-			const ellipseComponentY = ry * sin(alpha);
-			point = {
-				x: cos(xRotRad) * ellipseComponentX - sin(xRotRad) * ellipseComponentY + center.x,
-				y: sin(xRotRad) * ellipseComponentX + cos(xRotRad) * ellipseComponentY + center.y
-			};
-		}
-	}
-	return point;
-};
-/**
-* Returns the extrema for an Arc segment in the following format:
-* [MIN_X, MIN_Y, MAX_X, MAX_Y]
-*
-* @see https://github.com/herrstrietzel/svg-pathdata-getbbox
-*
-* @param x1 the starting point X
-* @param y1 the starting point Y
-* @param RX the radius on X axis
-* @param RY the radius on Y axis
-* @param angle the ellipse rotation in degrees
-* @param LAF the large arc flag
-* @param SF the sweep flag
-* @param x2 the ending point X
-* @param y2 the ending point Y
-* @returns the extrema of the Arc segment
-*/
-const getArcBBox = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
-	const { center, rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
-	const deltaAngle = endAngle - startAngle;
-	const { min, max, tan, atan2, PI } = Math;
-	const { x: cx, y: cy } = center;
-	const alpha = angle * PI / 180;
-	const tangent = tan(alpha);
-	/**
-	* find min/max from zeroes of directional derivative along x and y
-	* along x axis
-	*/
-	const theta = atan2(-ry * tangent, rx);
-	const angle1 = theta;
-	const angle2 = theta + PI;
-	const angle3 = atan2(ry, rx * tangent);
-	const angle4 = angle3 + PI;
-	const xArray = [x];
-	const yArray = [y];
-	let xMin = min(x1, x);
-	let xMax = max(x1, x);
-	let yMin = min(y1, y);
-	let yMax = max(y1, y);
-	const pP2 = arcPoint(cx, cy, rx, ry, alpha, endAngle - deltaAngle * 1e-5);
-	const pP3 = arcPoint(cx, cy, rx, ry, alpha, endAngle - deltaAngle * .99999);
-	/**
-	* expected extremes
-	* if leaving inner bounding box
-	* (between segment start and end point)
-	* otherwise exclude elliptic extreme points
-	*/
-	if (pP2[0] > xMax || pP3[0] > xMax) {
-		const p1 = arcPoint(cx, cy, rx, ry, alpha, angle1);
-		xArray.push(p1[0]);
-		yArray.push(p1[1]);
-	}
-	if (pP2[0] < xMin || pP3[0] < xMin) {
-		const p2 = arcPoint(cx, cy, rx, ry, alpha, angle2);
-		xArray.push(p2[0]);
-		yArray.push(p2[1]);
-	}
-	if (pP2[1] < yMin || pP3[1] < yMin) {
-		const p4 = arcPoint(cx, cy, rx, ry, alpha, angle4);
-		xArray.push(p4[0]);
-		yArray.push(p4[1]);
-	}
-	if (pP2[1] > yMax || pP3[1] > yMax) {
-		const p3 = arcPoint(cx, cy, rx, ry, alpha, angle3);
-		xArray.push(p3[0]);
-		yArray.push(p3[1]);
-	}
-	xMin = min.apply([], xArray);
-	yMin = min.apply([], yArray);
-	xMax = max.apply([], xArray);
-	yMax = max.apply([], yArray);
-	return [
-		xMin,
-		yMin,
-		xMax,
-		yMax
-	];
-};
-const arcTools = {
-	angleBetween,
-	arcLength,
-	arcPoint,
-	getArcBBox,
-	getArcLength,
-	getArcProps,
-	getPointAtArcLength
 };
 //#endregion
 //#region src/math/bezier.ts
@@ -532,25 +243,81 @@ const calculateBezier = (derivativeFn, t) => {
 	return Math.sqrt(l);
 };
 const bezierLength = (derivativeFn) => {
-	const z = .5;
+	return bezierLengthAtT(derivativeFn, 1);
+};
+/**
+* Returns the arc length of a Bezier segment from its start point
+* up to a given `t` ratio, by integrating the curve speed `|B'(t)|`
+* over the `[0, t]` interval with Gauss-Legendre quadrature.
+*
+* @param derivativeFn the curve derivative function
+* @param t the sampled point ratio in `[0-1]`
+* @returns the arc length up to parameter `t`
+*/
+const bezierLengthAtT = (derivativeFn, t) => {
+	const z = t / 2;
 	const len = Tvalues.length;
 	let sum = 0;
-	for (let i = 0, t; i < len; i++) {
-		t = z * Tvalues[i] + z;
-		sum += Cvalues[i] * calculateBezier(derivativeFn, t);
+	for (let i = 0, tMid; i < len; i++) {
+		tMid = z * Tvalues[i] + z;
+		sum += Cvalues[i] * calculateBezier(derivativeFn, tMid);
 	}
 	return z * sum;
+};
+/**
+* Builds the Bezier points array from a curve coordinates array.
+* @param curve cubic / quad bezier segment
+*/
+const getBezierPoints = (curve) => {
+	const points = [];
+	for (let idx = 0, len = curve.length, step = 2; idx < len; idx += step) points.push({
+		x: curve[idx],
+		y: curve[idx + 1]
+	});
+	return points;
+};
+/**
+* Returns the arc length of a Bezier segment from its start point
+* up to a given `t` ratio, for the segment given by its coordinates.
+*
+* @param curve cubic / quad bezier segment
+* @param t the sampled point ratio in `[0-1]`
+* @returns the arc length up to parameter `t`
+*/
+const getBezierLengthAtT = (curve, t) => {
+	const dpoints = deriveBezier(getBezierPoints(curve));
+	return bezierLengthAtT((ratio) => {
+		return computeBezier(dpoints[0], ratio);
+	}, t);
+};
+/**
+* Returns the `t` parameter of a Bezier segment at which the cumulative
+* arc length equals the given `distance`, found by interval bisection.
+*
+* @param curve cubic / quad bezier segment
+* @param distance the distance along the segment in `[0, length]`
+* @returns the `t` parameter in `[0-1]`
+*/
+const getTAtBezierLength = (curve, distance) => {
+	const dpoints = deriveBezier(getBezierPoints(curve));
+	const derivativeFn = (ratio) => {
+		return computeBezier(dpoints[0], ratio);
+	};
+	let lo = 0;
+	let hi = 1;
+	for (let i = 0; i < 25; i += 1) {
+		const mid = (lo + hi) / 2;
+		if (bezierLengthAtT(derivativeFn, mid) < distance) lo = mid;
+		else hi = mid;
+	}
+	return (lo + hi) / 2;
 };
 /**
 * Returns the length of CubicBezier / Quad segment.
 * @param curve cubic / quad bezier segment
 */
 const getBezierLength = (curve) => {
-	const points = [];
-	for (let idx = 0, len = curve.length, step = 2; idx < len; idx += step) points.push({
-		x: curve[idx],
-		y: curve[idx + 1]
-	});
+	const points = getBezierPoints(curve);
 	const dpoints = deriveBezier(points);
 	return bezierLength((t) => {
 		return computeBezier(dpoints[0], t);
@@ -598,15 +365,357 @@ const minmaxC = ([v1, cp1, cp2, v2]) => {
 };
 const bezierTools = {
 	bezierLength,
+	bezierLengthAtT,
 	calculateBezier,
 	CBEZIER_MINMAX_EPSILON,
 	computeBezier,
 	Cvalues,
 	deriveBezier,
 	getBezierLength,
+	getBezierLengthAtT,
+	getBezierPoints,
+	getTAtBezierLength,
 	minmaxC,
 	minmaxQ,
 	Tvalues
+};
+//#endregion
+//#region src/math/arcTools.ts
+/**
+* Returns the signed arc length of an ellipse segment from angle `0` up to
+* the given `theta` angle, by integrating the curve speed
+* `|sqrt(rx^2 * sin^2(phi) + ry^2 * cos^2(phi))|` over the `[0, theta]`
+* interval with Gauss-Legendre quadrature.
+*
+* @param rx radius along X axis
+* @param ry radius along Y axis
+* @param theta the angle in radians
+* @returns the signed arc length
+*/
+const arcLengthAtAngle = (rx, ry, theta) => {
+	const sign = theta < 0 ? -1 : 1;
+	const absTheta = Math.abs(theta);
+	const step = Math.PI / 2;
+	let total = 0;
+	let remaining = absTheta;
+	let offset = 0;
+	while (remaining > 0) {
+		const span = Math.min(step, remaining);
+		const z = span / 2;
+		let sum = 0;
+		for (let i = 0, len = Tvalues.length; i < len; i += 1) {
+			const phi = offset + z * Tvalues[i] + z;
+			sum += Cvalues[i] * Math.sqrt((rx * Math.sin(phi)) ** 2 + (ry * Math.cos(phi)) ** 2);
+		}
+		total += z * sum;
+		offset += span;
+		remaining -= span;
+	}
+	return sign * total;
+};
+/**
+* Returns the signed arc length of an ellipse segment between two angles.
+* @param rx radius along X axis
+* @param ry radius along Y axis
+* @param from the start angle in radians
+* @param to the end angle in radians
+* @returns the signed arc length
+*/
+const arcLengthBetween = (rx, ry, from, to) => {
+	return arcLengthAtAngle(rx, ry, to) - arcLengthAtAngle(rx, ry, from);
+};
+/**
+* Returns the Arc segment length.
+* @param rx radius along X axis
+* @param ry radius along Y axis
+* @param theta the angle in radians
+* @returns the arc length
+*/
+const arcLength = (rx, ry, theta) => {
+	return Math.abs(arcLengthAtAngle(rx, ry, theta));
+};
+/**
+* Find point on ellipse at given angle around ellipse (theta);
+* @param cx the center X
+* @param cy the center Y
+* @param rx the radius X
+* @param ry the radius Y
+* @param alpha the arc rotation angle in radians
+* @param theta the arc sweep angle in radians
+* @returns a point around ellipse at given angle
+*/
+const arcPoint = (cx, cy, rx, ry, alpha, theta) => {
+	const { sin, cos } = Math;
+	const cosA = cos(alpha);
+	const sinA = sin(alpha);
+	const x = rx * cos(theta);
+	const y = ry * sin(theta);
+	return [cx + cosA * x - sinA * y, cy + sinA * x + cosA * y];
+};
+/**
+* Returns the angle between two points.
+* @param v0 starting point
+* @param v1 ending point
+* @returns the angle in radian
+*/
+const angleBetween = (v0, v1) => {
+	const { x: v0x, y: v0y } = v0;
+	const { x: v1x, y: v1y } = v1;
+	const p = v0x * v1x + v0y * v1y;
+	const n = Math.sqrt((v0x ** 2 + v0y ** 2) * (v1x ** 2 + v1y ** 2));
+	return (v0x * v1y - v0y * v1x < 0 ? -1 : 1) * Math.acos(p / n);
+};
+/**
+* Returns the following properties for an Arc segment: center, start angle,
+* end angle, and radiuses on X and Y axis.
+*
+* @param x1 the starting point X
+* @param y1 the starting point Y
+* @param RX the radius on X axis
+* @param RY the radius on Y axis
+* @param angle the ellipse rotation in degrees
+* @param LAF the large arc flag
+* @param SF the sweep flag
+* @param x2 the ending point X
+* @param y2 the ending point Y
+* @returns properties specific to Arc segments
+*/
+const getArcProps = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
+	const { abs, sin, cos, sqrt, PI } = Math;
+	let rx = abs(RX);
+	let ry = abs(RY);
+	const xRotRad = (angle % 360 + 360) % 360 * (PI / 180);
+	if (x1 === x && y1 === y) return {
+		rx,
+		ry,
+		startAngle: 0,
+		endAngle: 0,
+		center: {
+			x,
+			y
+		}
+	};
+	if (rx === 0 || ry === 0) return {
+		rx,
+		ry,
+		startAngle: 0,
+		endAngle: 0,
+		center: {
+			x: (x + x1) / 2,
+			y: (y + y1) / 2
+		}
+	};
+	const dx = (x1 - x) / 2;
+	const dy = (y1 - y) / 2;
+	const transformedPoint = {
+		x: cos(xRotRad) * dx + sin(xRotRad) * dy,
+		y: -sin(xRotRad) * dx + cos(xRotRad) * dy
+	};
+	const radiiCheck = transformedPoint.x ** 2 / rx ** 2 + transformedPoint.y ** 2 / ry ** 2;
+	if (radiiCheck > 1) {
+		rx *= sqrt(radiiCheck);
+		ry *= sqrt(radiiCheck);
+	}
+	let cRadicand = (rx ** 2 * ry ** 2 - rx ** 2 * transformedPoint.y ** 2 - ry ** 2 * transformedPoint.x ** 2) / (rx ** 2 * transformedPoint.y ** 2 + ry ** 2 * transformedPoint.x ** 2);
+	cRadicand = cRadicand < 0 ? 0 : cRadicand;
+	const cCoef = (LAF !== SF ? 1 : -1) * sqrt(cRadicand);
+	const transformedCenter = {
+		x: cCoef * (rx * transformedPoint.y / ry),
+		y: cCoef * (-(ry * transformedPoint.x) / rx)
+	};
+	const center = {
+		x: cos(xRotRad) * transformedCenter.x - sin(xRotRad) * transformedCenter.y + (x1 + x) / 2,
+		y: sin(xRotRad) * transformedCenter.x + cos(xRotRad) * transformedCenter.y + (y1 + y) / 2
+	};
+	const startVector = {
+		x: (transformedPoint.x - transformedCenter.x) / rx,
+		y: (transformedPoint.y - transformedCenter.y) / ry
+	};
+	const startAngle = angleBetween({
+		x: 1,
+		y: 0
+	}, startVector);
+	const endVector = {
+		x: (-transformedPoint.x - transformedCenter.x) / rx,
+		y: (-transformedPoint.y - transformedCenter.y) / ry
+	};
+	let sweepAngle = angleBetween(startVector, endVector);
+	if (!SF && sweepAngle > 0) sweepAngle -= 2 * PI;
+	else if (SF && sweepAngle < 0) sweepAngle += 2 * PI;
+	sweepAngle %= 2 * PI;
+	return {
+		center,
+		startAngle,
+		endAngle: startAngle + sweepAngle,
+		rx,
+		ry
+	};
+};
+/**
+* Returns the length of an Arc segment.
+*
+* @param x1 the starting point X
+* @param y1 the starting point Y
+* @param c1x the first control point X
+* @param c1y the first control point Y
+* @param c2x the second control point X
+* @param c2y the second control point Y
+* @param x2 the ending point X
+* @param y2 the ending point Y
+* @returns the length of the Arc segment
+*/
+const getArcLength = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
+	const { rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
+	return Math.abs(arcLengthBetween(rx, ry, startAngle, endAngle));
+};
+/**
+* Returns a point along an Arc segment at a given distance.
+*
+* @param x1 the starting point X
+* @param y1 the starting point Y
+* @param RX the radius on X axis
+* @param RY the radius on Y axis
+* @param angle the ellipse rotation in degrees
+* @param LAF the large arc flag
+* @param SF the sweep flag
+* @param x2 the ending point X
+* @param y2 the ending point Y
+* @param distance the distance along the arc
+* @returns a point along the Arc segment
+*/
+const getPointAtArcLength = (x1, y1, RX, RY, angle, LAF, SF, x, y, distance) => {
+	let point = {
+		x: x1,
+		y: y1
+	};
+	const { center, rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
+	if (typeof distance === "number") {
+		const sweepAngle = endAngle - startAngle;
+		const length = Math.abs(arcLengthBetween(rx, ry, startAngle, endAngle));
+		if (distance <= 0) point = {
+			x: x1,
+			y: y1
+		};
+		else if (distance >= length) point = {
+			x,
+			y
+		};
+		else {
+			if (x1 === x && y1 === y) return {
+				x,
+				y
+			};
+			if (rx === 0 || ry === 0) return getPointAtLineLength(x1, y1, x, y, distance);
+			const { PI, cos, sin } = Math;
+			const xRotRad = (angle % 360 + 360) % 360 * (PI / 180);
+			let lo = 0;
+			let hi = 1;
+			for (let i = 0; i < 25; i += 1) {
+				const mid = (lo + hi) / 2;
+				if (Math.abs(arcLengthBetween(rx, ry, startAngle, startAngle + sweepAngle * mid)) < distance) lo = mid;
+				else hi = mid;
+			}
+			const alpha = startAngle + sweepAngle * ((lo + hi) / 2);
+			const ellipseComponentX = rx * cos(alpha);
+			const ellipseComponentY = ry * sin(alpha);
+			point = {
+				x: cos(xRotRad) * ellipseComponentX - sin(xRotRad) * ellipseComponentY + center.x,
+				y: sin(xRotRad) * ellipseComponentX + cos(xRotRad) * ellipseComponentY + center.y
+			};
+		}
+	}
+	return point;
+};
+/**
+* Returns the extrema for an Arc segment in the following format:
+* [MIN_X, MIN_Y, MAX_X, MAX_Y]
+*
+* @see https://github.com/herrstrietzel/svg-pathdata-getbbox
+*
+* @param x1 the starting point X
+* @param y1 the starting point Y
+* @param RX the radius on X axis
+* @param RY the radius on Y axis
+* @param angle the ellipse rotation in degrees
+* @param LAF the large arc flag
+* @param SF the sweep flag
+* @param x2 the ending point X
+* @param y2 the ending point Y
+* @returns the extrema of the Arc segment
+*/
+const getArcBBox = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
+	const { center, rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
+	const deltaAngle = endAngle - startAngle;
+	const { min, max, tan, atan2, PI } = Math;
+	const { x: cx, y: cy } = center;
+	const alpha = angle * PI / 180;
+	const tangent = tan(alpha);
+	/**
+	* find min/max from zeroes of directional derivative along x and y
+	* along x axis
+	*/
+	const theta = atan2(-ry * tangent, rx);
+	const angle1 = theta;
+	const angle2 = theta + PI;
+	const angle3 = atan2(ry, rx * tangent);
+	const angle4 = angle3 + PI;
+	const xArray = [x];
+	const yArray = [y];
+	let xMin = min(x1, x);
+	let xMax = max(x1, x);
+	let yMin = min(y1, y);
+	let yMax = max(y1, y);
+	const angleAfterStart = endAngle - deltaAngle * 1e-5;
+	const pP2 = arcPoint(cx, cy, rx, ry, alpha, angleAfterStart);
+	const angleBeforeEnd = endAngle - deltaAngle * .99999;
+	const pP3 = arcPoint(cx, cy, rx, ry, alpha, angleBeforeEnd);
+	/**
+	* expected extremes
+	* if leaving inner bounding box
+	* (between segment start and end point)
+	* otherwise exclude elliptic extreme points
+	*/
+	if (pP2[0] > xMax || pP3[0] > xMax) {
+		const p1 = arcPoint(cx, cy, rx, ry, alpha, angle1);
+		xArray.push(p1[0]);
+		yArray.push(p1[1]);
+	}
+	if (pP2[0] < xMin || pP3[0] < xMin) {
+		const p2 = arcPoint(cx, cy, rx, ry, alpha, angle2);
+		xArray.push(p2[0]);
+		yArray.push(p2[1]);
+	}
+	if (pP2[1] < yMin || pP3[1] < yMin) {
+		const p4 = arcPoint(cx, cy, rx, ry, alpha, angle4);
+		xArray.push(p4[0]);
+		yArray.push(p4[1]);
+	}
+	if (pP2[1] > yMax || pP3[1] > yMax) {
+		const p3 = arcPoint(cx, cy, rx, ry, alpha, angle3);
+		xArray.push(p3[0]);
+		yArray.push(p3[1]);
+	}
+	xMin = min.apply([], xArray);
+	yMin = min.apply([], yArray);
+	xMax = max.apply([], xArray);
+	yMax = max.apply([], yArray);
+	return [
+		xMin,
+		yMin,
+		xMax,
+		yMax
+	];
+};
+const arcTools = {
+	angleBetween,
+	arcLength,
+	arcLengthAtAngle,
+	arcLengthBetween,
+	arcPoint,
+	getArcBBox,
+	getArcLength,
+	getArcProps,
+	getPointAtArcLength
 };
 //#endregion
 //#region src/math/cubicTools.ts
@@ -677,7 +786,7 @@ const getPointAtCubicLength = (x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) => 
 		y: y1
 	};
 	if (distanceIsNumber) {
-		const currentLength = getBezierLength([
+		const coords = [
 			x1,
 			y1,
 			c1x,
@@ -686,21 +795,16 @@ const getPointAtCubicLength = (x1, y1, c1x, c1y, c2x, c2y, x2, y2, distance) => 
 			c2y,
 			x2,
 			y2
-		]);
+		];
+		const currentLength = getBezierLength(coords);
 		if (distance <= 0) {} else if (distance >= currentLength) point = {
 			x: x2,
 			y: y2
 		};
-		else point = getPointAtCubicSegmentLength([
-			x1,
-			y1,
-			c1x,
-			c1y,
-			c2x,
-			c2y,
-			x2,
-			y2
-		], distance / currentLength);
+		else {
+			const t = getTAtBezierLength(coords, distance);
+			point = getPointAtCubicSegmentLength(coords, t);
+		}
 	}
 	return point;
 };
@@ -808,26 +912,23 @@ const getPointAtQuadLength = (x1, y1, cx, cy, x2, y2, distance) => {
 		y: y1
 	};
 	if (distanceIsNumber) {
-		const currentLength = getBezierLength([
+		const coords = [
 			x1,
 			y1,
 			cx,
 			cy,
 			x2,
 			y2
-		]);
+		];
+		const currentLength = getBezierLength(coords);
 		if (distance <= 0) {} else if (distance >= currentLength) point = {
 			x: x2,
 			y: y2
 		};
-		else point = getPointAtQuadSegmentLength([
-			x1,
-			y1,
-			cx,
-			cy,
-			x2,
-			y2
-		], distance / currentLength);
+		else {
+			const t = getTAtBezierLength(coords, distance);
+			point = getPointAtQuadSegmentLength(coords, t);
+		}
 	}
 	return point;
 };
@@ -1446,7 +1547,8 @@ const iterate = (path, iterator) => {
 * ```
 */
 const pathToAbsolute = (pathInput) => {
-	return iterate(parsePathString(pathInput), absolutizeSegment);
+	const path = parsePathString(pathInput);
+	return iterate(path, absolutizeSegment);
 };
 //#endregion
 //#region src/process/relativizeSegment.ts
@@ -1503,7 +1605,8 @@ const relativizeSegment = (segment, index, lastX, lastY) => {
 * ```
 */
 const pathToRelative = (pathInput) => {
-	return iterate(parsePathString(pathInput), relativizeSegment);
+	const path = parsePathString(pathInput);
+	return iterate(path, relativizeSegment);
 };
 //#endregion
 //#region src/process/arcToCubic.ts
@@ -2094,8 +2197,6 @@ const getPointAtLength = (pathInput, distance) => {
 	const path = normalizePath(pathInput);
 	let isM = false;
 	let data = [];
-	let x = 0;
-	let y = 0;
 	let [mx, my] = path[0].slice(1);
 	const distanceIsNumber = typeof distance === "number";
 	let point = {
@@ -2136,21 +2237,13 @@ const getPointAtLength = (pathInput, distance) => {
 				mx,
 				my
 			];
-			point = {
-				x: mx,
-				y: my
-			};
+			point = getPointAtLineLength(data[0], data[1], data[2], data[3], distance - totalLength);
 			length = getLineLength(data[0], data[1], data[2], data[3]);
 		}
-		[x, y] = data.slice(-2);
 		if (totalLength < distance) POINT = point;
 		else return false;
 		totalLength += length;
 	});
-	if (distance > totalLength - 1e-5) return {
-		x,
-		y
-	};
 	return POINT;
 };
 //#endregion
@@ -2901,7 +2994,7 @@ const isMultiPath = (path) => {
 		}
 		return false;
 	}
-	throw new TypeError(error + ": expected string or PathArray");
+	throw new TypeError("SVGPathCommanderError: expected string or PathArray");
 };
 //#endregion
 //#region src/util/isPolylineArray.ts
@@ -3021,7 +3114,8 @@ const optimizePath = (pathInput, roundOption) => {
 			const shortSegment = shortenSegment(seg, normalizedSegment, optimParams, prevCommand);
 			const absSegment = roundSegment(shortSegment, round);
 			const absString = absSegment.join("");
-			const relSegment = roundSegment(relativizeSegment(shortSegment, i, lastX, lastY), round);
+			const relativeSegment = relativizeSegment(shortSegment, i, lastX, lastY);
+			const relSegment = roundSegment(relativeSegment, round);
 			const relString = relSegment.join("");
 			result = absString.length < relString.length ? absSegment : relSegment;
 		}
@@ -3795,7 +3889,7 @@ function getRotations(a) {
 */
 function getRotatedPath(pathA, pathB, computedRotations) {
 	const rotations = computedRotations || getRotations(pathA);
-	if (pathA.length !== pathB.length) throw new TypeError(error + ": paths must have the same number of segments after equalization");
+	if (pathA.length !== pathB.length) throw new TypeError("SVGPathCommanderError: paths must have the same number of segments after equalization");
 	let bestIndex = 0;
 	let minDistanceSq = Infinity;
 	for (let ri = 0; ri < rotations.length; ri++) {
@@ -4470,7 +4564,8 @@ var SVGPathCommander = class {
 	*/
 	optimize() {
 		const { segments } = this;
-		this.segments = optimizePath(segments, this.round === "off" ? 2 : this.round);
+		const round = this.round === "off" ? 2 : this.round;
+		this.segments = optimizePath(segments, round);
 		return this;
 	}
 	/**

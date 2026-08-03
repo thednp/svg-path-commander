@@ -10,10 +10,10 @@ import type {
   SSegment,
   TSegment,
   // VSegment,
-} from "../types";
-import { pathToAbsolute } from "../convert/pathToAbsolute";
-import { normalizePath } from "./normalizePath";
-import { iterate } from "./iterate";
+} from "../types.ts";
+import { pathToAbsolute } from "../convert/pathToAbsolute.ts";
+import { normalizePath } from "./normalizePath.ts";
+import { iterate } from "./iterate.ts";
 
 /**
  * Reverses all segments of a PathArray and returns a new PathArray
@@ -28,7 +28,7 @@ import { iterate } from "./iterate";
  * // => [['M', 0, 100], ['L', 0, 0], ['L', 100, 0], ['L', 100, 100], ['Z']]
  * ```
  */
-export const reversePath = <T extends PathArray>(pathInput: T) => {
+export const reversePath = <T extends PathArray>(pathInput: T): T => {
   const absolutePath = pathToAbsolute(pathInput);
   const normalizedPath = normalizePath(absolutePath);
   const pLen = absolutePath.length;

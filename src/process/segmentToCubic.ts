@@ -1,8 +1,8 @@
-import { arcToCubic } from "./arcToCubic";
-import { quadToCubic } from "./quadToCubic";
-import { lineToCubic } from "./lineToCubic";
-import type { CSegment, MSegment, PathSegment } from "../types";
-import type { ParserParams } from "../interface";
+import { arcToCubic } from "./arcToCubic.ts";
+import { quadToCubic } from "./quadToCubic.ts";
+import { lineToCubic } from "./lineToCubic.ts";
+import type { CSegment, MSegment, PathSegment } from "../types.ts";
+import type { ParserParams } from "../interface.ts";
 
 /**
  * Converts any segment to C (cubic-bezier).
@@ -11,7 +11,10 @@ import type { ParserParams } from "../interface";
  * @param params the source segment parameters
  * @returns the cubic-bezier segment
  */
-export const segmentToCubic = (segment: PathSegment, params: ParserParams) => {
+export const segmentToCubic = (
+  segment: PathSegment,
+  params: ParserParams,
+): MSegment | CSegment => {
   const pathCommand = segment[0];
   const values = segment.slice(1).map(Number);
   const [x, y] = values;

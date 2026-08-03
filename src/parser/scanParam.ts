@@ -1,7 +1,7 @@
-import { isDigit } from "./isDigit";
-import { invalidPathValue } from "./invalidPathValue";
-import { error } from "../util/error";
-import type { PathParser } from "./pathParser";
+import { isDigit } from "./isDigit.ts";
+import { invalidPathValue } from "./invalidPathValue.ts";
+import { error } from "../util/error.ts";
+import type { PathParser } from "./pathParser.ts";
 
 /**
  * Validates every character of the path string,

@@ -1,17 +1,17 @@
-import { finalizeSegment } from "./finalizeSegment";
-import { paramsCounts } from "./paramsCount";
-import { scanFlag } from "./scanFlag";
-import { scanParam } from "./scanParam";
-import { skipSpaces } from "./skipSpaces";
-import { isPathCommand } from "./isPathCommand";
-import { isDigitStart } from "./isDigitStart";
-import { isArcCommand } from "./isArcCommand";
-import { isMoveCommand } from "./isMoveCommand";
-import { invalidPathValue } from "./invalidPathValue";
-import { error } from "../util/error";
+import { finalizeSegment } from "./finalizeSegment.ts";
+import { paramsCounts } from "./paramsCount.ts";
+import { scanFlag } from "./scanFlag.ts";
+import { scanParam } from "./scanParam.ts";
+import { skipSpaces } from "./skipSpaces.ts";
+import { isPathCommand } from "./isPathCommand.ts";
+import { isDigitStart } from "./isDigitStart.ts";
+import { isArcCommand } from "./isArcCommand.ts";
+import { isMoveCommand } from "./isMoveCommand.ts";
+import { invalidPathValue } from "./invalidPathValue.ts";
+import { error } from "../util/error.ts";
 
-import { type PathParser } from "./pathParser";
-import type { PathSegment, RelativeCommand } from "../types";
+import type { PathParser } from "./pathParser.ts";
+import type { PathSegment, RelativeCommand } from "../types.ts";
 
 /**
  * Scans every character in the path string to determine

@@ -1,5 +1,5 @@
-import { distanceSquareRoot } from "./distanceSquareRoot";
-import { type PointTuple } from "../types";
+import { distanceSquareRoot } from "./distanceSquareRoot.ts";
+import type { PointTuple } from "../types.ts";
 
 /**
  * d3-polygon-area
@@ -10,7 +10,7 @@ import { type PointTuple } from "../types";
  * @param polygon Array of [x, y]
  * @returns Signed area
  */
-const polygonArea = (polygon: PointTuple[]) => {
+const polygonArea = (polygon: PointTuple[]): number => {
   const n = polygon.length;
   let i = -1;
   let a: PointTuple;
@@ -35,7 +35,7 @@ const polygonArea = (polygon: PointTuple[]) => {
  * @param polygon an array of coordinates
  * @returns the polygon length
  */
-const polygonLength = (polygon: PointTuple[]) => {
+const polygonLength = (polygon: PointTuple[]): number => {
   return polygon.reduce((length, point, i) => {
     if (i) {
       return length + distanceSquareRoot(polygon[i - 1], point);

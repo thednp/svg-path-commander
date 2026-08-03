@@ -1,4 +1,4 @@
-import type { PathArray, PathSegment } from "../types";
+import type { PathArray, PathSegment } from "../types.ts";
 
 /**
  * The `PathParser` is used by the `parsePathString` static method

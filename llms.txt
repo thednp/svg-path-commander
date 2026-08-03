@@ -1,0 +1,63 @@
+# SVGPathCommander
+
+> A TypeScript sourced toolkit for manipulating the `d` (description) attribute of SVG `<path>` elements. Parses any path string into a `PathArray`, provides chainable instance and static methods for normalizing, optimizing, converting, transforming, reversing and morphing paths, plus accurate geometry queries. Works in browser and Node.js, ships strong TypeScript definitions and is verified against real Chromium by a Vitest + Playwright suite with 100% coverage.
+
+## Links
+
+- [GitHub Repository](https://github.com/thednp/svg-path-commander)
+- [Live Demo](https://thednp.github.io/svg-path-commander)
+- [README](README.md)
+- [Changelog](CHANGELOG.md)
+- [Agent Guidance](AGENTS.md)
+- [NPM Package](https://www.npmjs.com/package/svg-path-commander)
+- [JSR Package](https://jsr.io/@thednp/svg-path-commander)
+- [CDN](https://www.jsdelivr.com/package/npm/svg-path-commander)
+
+## About
+
+`svg-path-commander` is a modern set of TypeScript tools for manipulating the `d` attribute of `SVGPathElement` items. The library:
+
+- parses any valid SVG path string (including shorthand commands) into a `PathArray` and serializes it back into a lossless path string;
+- is implemented as a chainable `SVGPathCommander` class with instance methods, while every tool is also exposed as a standalone static method;
+- converts between absolute / relative command sets, to cubic Bézier only (`pathToCurve`), and from other SVG shapes (`<circle>`, `<rect>`, `<polygon>`, `<polyline>`, `<line>`, `<ellipse>`) into `<path>` (`shapeToPath`);
+- applies any CSS / SVG transform function to path commands via the modern `DOMMatrix` API (`@thednp/dommatrix` shim), including 3D to 2D projections, with SVG-consistent transform origins;
+- reverses path draw direction without altering the path (`reversePath`), including specialized variants for `C`-only paths and for other shapes;
+- provides more reliable and more accurate built-in `getBBox`, `getPointAtLength` and `getTotalLength` than the native methods, plus community tools like `getPropertiesAtLength`, `getSegmentOfPoint`, `isPointInStroke`, `pathsIntersection` and `boundingBoxIntersect`;
+- supports path morphing via `equalizePaths` / `equalizeSegments` and per-segment interpolation through `samplePath` / `splitPath`;
+- is built with [tsdown](https://tsdown.dev), producing ESM (`index.js`), UMD (`index.min.js`, global `SVGPathCommander`) and a static-methods-only `util.js` entry into `dist/`;
+- is JSR-ready: `deno.json` publishes the raw TypeScript source as `@thednp/svg-path-commander` with clean `deno check` / `deno lint` / `deno publish --dry-run`.
+
+## Usage
+
+```ts
+import SVGPathCommander from "svg-path-commander";
+
+const path = new SVGPathCommander("M0 0L100 0L50 100");
+path.flipX().toString(); // "M0 0L100 0L50 -100"
+```
+
+```ts
+import { getPathBBox, pathToCurve } from "svg-path-commander/util";
+
+getPathBBox("M0 0L100 0L50 100"); // { x: 0, y: 0, width: 100, height: 100 }
+```
+
+## API Overview
+
+**Constructor** — accepts an SVG path string, a `PathArray` (array of command segments) or a generic array of numbers / strings; optional `Options` (e.g. `transformOrigin`, `rounding`) validated against `defaultOptions`.
+
+**Instance methods** — chainable: `parse`, `toString`, `flipX`, `flipY`, `transform`, `scale`, `rotate`, `translate`, `skew`, `skewX`, `skewY`, `reverse`, `reverseC`, `toAbsolute`, `toRelative`, `toCurve`, `optimize`, `round`, `normalize`, `getPointAtLength`, `getSegmentOfPoint`, `getPropertiesAtLength`, `getIntersections`, `getBBox`, `getTotalLength`.
+
+**Getters** — `bbox`, `length`, `string`, `segments`, `path`, `options`.
+
+**Static methods** — `parsePathString`, `pathToString`, `normalizePath`, `optimizePath`, `absolutePath`, `relativePath`, `pathToCurve`, `shapeToPath`, `reversePath`, `transformPath`, `scalePath`, `rotatePath`, `translatePath`, `skewPath`, `roundPath`, `getPathBBox`, `getPathLength`, `getPointAtLength`, `getSegmentOfPoint`, `getPropertiesAtLength`, `getIntersection`, `pathsIntersection`, `equalizePaths`, `equalizeSegments`, plus the low-level tools in the `svg-path-commander/util` subpath entry.
+
+**Types** — `PathArray`, `PathSegment`, `PathCommand`, `AbsoluteCommand`, `RelativeCommand`, `NormalSegment`, `IteratorCallback`, `Options`, `TransformObject`, `PathBBox`, `ShapePath`, `ShapeAttrs`, and per-command segment aliases (`MSegment`, `LSegment`, `CSegment`, `ArcSegment`, ...).
+
+## Key Differences
+
+- Works in **Node.js** and browsers — no `SVGPathElement` required for path computation (the `@thednp/dommatrix` shim covers `DOMMatrix`).
+- All transformations are consistent with the SVG coordinate system, including `transformOrigin` for rotation.
+- The built-in `getBBox`, `getTotalLength` and `getPointAtLength` are implemented mathematically (arcs via Gauss-Legendre quadrature) and are more accurate than the native methods.
+- Static methods return safe defaults for empty / invalid input (e.g. `getPathBBox("")` returns a zeroed box) while the constructor throws a `TypeError` on invalid path strings.
+- The class API and the static methods share the same implementation, so behavior is identical whichever entry you use.

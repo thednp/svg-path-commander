@@ -1,0 +1,61 @@
+{
+  "name": "@thednp/svg-path-commander",
+  "description": "🛹 Modern TypeScript tools for SVG",
+  "version": "2.2.2",
+  "license": "MIT",
+  "keywords": [
+    "svg",
+    "path",
+    "commander",
+    "parse",
+    "normalize",
+    "optimize",
+    "reverse",
+    "intersect",
+    "convert",
+    "absolute",
+    "relative",
+    "curve",
+    "transform3d",
+    "typescript"
+  ],
+  "exports": "./src/index.ts",
+  "compilerOptions": {
+    "lib": [
+      "DOM",
+      "ESNext",
+      "DOM.Iterable"
+    ],
+    "strict": true
+  },
+  "minimumDependencyAge": "0",
+  "imports": {
+    "@thednp/dommatrix": "npm:@thednp/dommatrix@^3.0.6",
+    "@vitest/browser": "npm:@vitest/browser@^4.1.10",
+    "@vitest/browser-playwright": "npm:@vitest/browser-playwright@^4.1.10",
+    "@vitest/coverage-istanbul": "npm:@vitest/coverage-istanbul@^4.1.10",
+    "@vitest/ui": "npm:@vitest/ui@^4.1.10",
+    "playwright": "npm:playwright@^1.62.1",
+    "vitest": "npm:vitest@^4.1.10"
+  },
+  "tasks": {
+    "test": "deno task clean-coverage && vitest --browser.headless",
+    "test-ui": "deno task clean-coverage && vitest --browser --ui",
+    "clean-coverage": "rm -rf coverage .nyc_output",
+    "lint": "deno lint src",
+    "check": "deno check src",
+    "format": "deno fmt src",
+    "fix": "deno lint src --fix"
+  },
+  "publish": {
+    "include": [
+      "src",
+      "package.json",
+      "README.md",
+      "CHANGELOG.md",
+      "AGENTS.md",
+      "CLAUDE.md",
+      "LICENSE"
+    ]
+  }
+}

@@ -6,13 +6,13 @@ import type {
   PolyAttr,
   RectAttr,
   ShapeParams,
-} from "../interface";
-import type { PathArray, PathSegment, ShapeOps, ShapeTypes } from "../types";
-import { error } from "./error";
-import { parsePathString } from "../parser/parsePathString";
-import { shapeParams } from "./shapeParams";
-import { isPathArray } from "./isPathArray";
-import { isElement } from "./isElement";
+} from "../interface.ts";
+import type { PathArray, PathSegment, ShapeOps, ShapeTypes } from "../types.ts";
+import { error } from "./error.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { shapeParams } from "./shapeParams.ts";
+import { isPathArray } from "./isPathArray.ts";
+import { isElement } from "./isElement.ts";
 
 /**
  * Returns a new PathArray from line attributes.
@@ -169,7 +169,9 @@ export const getRectanglePath = (attr: RectAttr): PathArray => {
  * @param element target shape
  * @returns the newly created `<path>` element
  */
-export const shapeToPathArray = (element: ShapeTypes | ShapeOps) => {
+export const shapeToPathArray = (
+  element: ShapeTypes | ShapeOps,
+): false | PathArray => {
   const supportedShapes = Object.keys(shapeParams) as (keyof ShapeParams)[];
   const targetIsElement = isElement(element);
   const tagName = targetIsElement ? element.tagName : null;

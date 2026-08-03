@@ -1,12 +1,12 @@
-import type { ShapeParams } from "../interface";
-import type { ShapeOps, ShapeTypes } from "../types";
-import { pathToString } from "../convert/pathToString";
-import { defaultOptions } from "../options/options";
-import { error } from "./error";
-import { isValidPath } from "./isValidPath";
-import { isElement } from "./isElement";
-import { shapeToPathArray } from "./shapeToPathArray";
-import { shapeParams } from "./shapeParams";
+import type { ShapeParams } from "../interface.ts";
+import type { ShapeOps, ShapeTypes } from "../types.ts";
+import { pathToString } from "../convert/pathToString.ts";
+import { defaultOptions } from "../options/options.ts";
+import { error } from "./error.ts";
+import { isValidPath } from "./isValidPath.ts";
+import { isElement } from "./isElement.ts";
+import { shapeToPathArray } from "./shapeToPathArray.ts";
+import { shapeParams } from "./shapeParams.ts";
 
 /**
  * Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`,

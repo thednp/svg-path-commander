@@ -1,11 +1,11 @@
-import type { LSegment, MSegment, PathArray, PointTuple } from "../types";
-import { getLineLength } from "../math/lineTools";
-import { getArcLength } from "../math/arcTools";
-import { getCubicLength } from "../math/cubicTools";
-import { getQuadLength } from "../math/quadTools";
-import { iterate } from "../process/iterate";
-import { parsePathString } from "../parser/parsePathString";
-import { absolutizeSegment } from "../process/absolutizeSegment";
+import type { LSegment, MSegment, PathArray, PointTuple } from "../types.ts";
+import { getLineLength } from "../math/lineTools.ts";
+import { getArcLength } from "../math/arcTools.ts";
+import { getCubicLength } from "../math/cubicTools.ts";
+import { getQuadLength } from "../math/quadTools.ts";
+import { iterate } from "../process/iterate.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { absolutizeSegment } from "../process/absolutizeSegment.ts";
 
 /**
  * Returns the total length of a path, equivalent to `shape.getTotalLength()`.
@@ -19,7 +19,9 @@ import { absolutizeSegment } from "../process/absolutizeSegment";
  * // => 300
  * ```
  */
-export const getTotalLength = <T extends PathArray>(pathInput: string | T) => {
+export const getTotalLength = <T extends PathArray>(
+  pathInput: string | T,
+): number => {
   const path = parsePathString(pathInput);
   let paramX1 = 0;
   let paramY1 = 0;

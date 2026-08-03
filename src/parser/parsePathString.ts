@@ -1,7 +1,7 @@
-import { scanSegment } from "./scanSegment";
-import { skipSpaces } from "./skipSpaces";
-import { PathParser } from "./pathParser";
-import type { PathArray } from "../types";
+import { scanSegment } from "./scanSegment.ts";
+import { skipSpaces } from "./skipSpaces.ts";
+import { PathParser } from "./pathParser.ts";
+import type { PathArray } from "../types.ts";
 
 /**
  * Parses a path string value and returns an array
@@ -17,7 +17,9 @@ import type { PathArray } from "../types";
  * @param pathInput the string to be parsed
  * @returns the resulted `pathArray` or error string
  */
-export const parsePathString = <T extends PathArray>(pathInput: string | T) => {
+export const parsePathString = <T extends PathArray>(
+  pathInput: string | T,
+): PathArray => {
   if (typeof pathInput !== "string") {
     return pathInput.slice(0) as T;
   }

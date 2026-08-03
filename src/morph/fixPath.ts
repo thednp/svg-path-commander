@@ -1,8 +1,8 @@
 // src/morph/fixPath.ts
-import type { PathArray } from "../types";
-import { parsePathString } from "../parser/parsePathString";
-import { normalizePath } from "../process/normalizePath";
-import { isClosedPath } from "../util/isClosedPath";
+import type { PathArray } from "../types.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
+import { normalizePath } from "../process/normalizePath.ts";
+import { isClosedPath } from "../util/isClosedPath.ts";
 
 /**
  * Checks a `PathArray` for an unnecessary `Z` segment
@@ -18,7 +18,7 @@ import { isClosedPath } from "../util/isClosedPath";
  * @param pathInput the `pathArray` source
  * @returns void
  */
-export const fixPath = <T extends PathArray>(pathInput: T | string) => {
+export const fixPath = <T extends PathArray>(pathInput: T | string): void => {
   const pathArray = parsePathString(pathInput);
 
   /* istanbul ignore else */

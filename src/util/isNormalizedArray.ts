@@ -1,5 +1,5 @@
-import type { NormalArray } from "../types";
-import { isAbsoluteArray } from "./isAbsoluteArray";
+import type { NormalArray } from "../types.ts";
+import { isAbsoluteArray } from "./isAbsoluteArray.ts";
 
 /**
  * Iterates an array to check if it's a `pathArray`

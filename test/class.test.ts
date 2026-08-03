@@ -223,10 +223,25 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
 
   test('Test getBBox arcs', async () => {
     // https://github.com/thednp/svg-path-commander/issues/47
-    const path1 = new SVGPathCommander('M77.7553 122.1843A15.6631 5.5 45 0 1 92.7199 129.3707L100.7729 137.4237A15.6631 5.5 45 0 1 92.9947 145.2019L84.9417 137.1489A15.6631 5.5 45 0 1 77.7553 122.1843').getBBox();
-    expect(path1, 'Using the SVGPathCommander').to.deep.equal({cx: 92.85730493191977, cy: 137.28630493191974, cz: 47.294968430086385, height: 31.529978953390895, width: 31.529978953390938, x: 77.09231545522431, x2: 108.62229440861525, y: 121.52131545522431, y2: 153.0512944086152});
-    const path2 = new SVGPathCommander('M3 7L13 7m-20 10l10 0V27H23v10h10C33 43 38 47 43 47c0 5 5 10 10 10S63 67 63 67s-10 10 10 10Q50 50 73 57q20 -5 0 -10T70 40t0 -15A5 10 45 1 0 40 20a5 5 20 0 1 -10 -10Z').getBBox();
-    expect(path2, 'Using the SVGPathCommander').to.deep.equal({ width: 90, height: 75.27596299546647, x: -7, y: 1.7240370045335283, x2: 83, y2: 77, cx: 38, cy: 39.362018502266764, cz: 127.63798149773324});
+    // compare against the native browser API as reference
+    const container = getMarkup();
+    wrapper.append(container);
+    await vi.waitFor(() => container.querySelector('svg'), { timeout: 200 });
+    const path = await vi.waitFor(() => container.querySelector('path') as SVGPathElement, { timeout: 200 });
+
+    const arcsPaths = [
+      'M77.7553 122.1843A15.6631 5.5 45 0 1 92.7199 129.3707L100.7729 137.4237A15.6631 5.5 45 0 1 92.9947 145.2019L84.9417 137.1489A15.6631 5.5 45 0 1 77.7553 122.1843',
+      'M3 7L13 7m-20 10l10 0V27H23v10h10C33 43 38 47 43 47c0 5 5 10 10 10S63 67 63 67s-10 10 10 10Q50 50 73 57q20 -5 0 -10T70 40t0 -15A5 10 45 1 0 40 20a5 5 20 0 1 -10 -10Z',
+    ];
+    arcsPaths.forEach((arcsPath) => {
+      const lib = new SVGPathCommander(arcsPath).getBBox();
+      path.setAttribute('d', arcsPath);
+      const native = path.getBBox();
+      expect(lib.x, 'Using the SVGPathCommander').toBeCloseTo(native.x, 4);
+      expect(lib.y, 'Using the SVGPathCommander').toBeCloseTo(native.y, 4);
+      expect(lib.width, 'Using the SVGPathCommander').toBeCloseTo(native.width, 4);
+      expect(lib.height, 'Using the SVGPathCommander').toBeCloseTo(native.height, 4);
+    });
   });
 
   test('Test getTotalLength', () => {
@@ -473,12 +488,34 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
       path.setAttribute('d', new SVGPathCommander(shape, { round: 2 }).reverse().toString());
       expect(path.getAttribute('d')).to.equal(simpleShapes.reversed[i]);
 
-      expect(new SVGPathCommander(shape).getTotalLength()).to.equal(simpleShapes.length[i]);
-      expect(new SVGPathCommander(shape).getBBox().width).to.equal(simpleShapes.width[i]);
-      expect(new SVGPathCommander(shape).getBBox().height).to.equal(simpleShapes.height[i]);
+      // compare against the native browser API as reference
+      // https://github.com/thednp/svg-path-commander/issues/63
+      // note: the browser approximates arc length/points via cubic conversion,
+      // so arc shapes are verified at lower precision than exact line/curve shapes
+      const isArcShape = /[Aa]/.test(shape);
+      path.setAttribute('d', shape);
+      const native = path.getBBox();
+      const lib = new SVGPathCommander(shape).getBBox();
+      expect(lib.width).toBeCloseTo(native.width, 4);
+      expect(lib.height).toBeCloseTo(native.height, 4);
+
+      const nativeLength = path.getTotalLength();
+      const libLength = new SVGPathCommander(shape).getTotalLength();
+      if (isArcShape) {
+        expect(Math.abs(libLength - nativeLength)).to.be.lessThan(0.01);
+      } else {
+        expect(libLength).toBeCloseTo(nativeLength, 3);
+      }
+
       expect(new SVGPathCommander(shape).getPointAtLength(0)).to.deep.equal(simpleShapes.pointAt0[i]);
-      expect(new SVGPathCommander(shape).getPointAtLength(50)).to.deep.equal(simpleShapes.pointAt50[i]);
-      expect(new SVGPathCommander(shape).getPointAtLength(400)).to.deep.equal(simpleShapes.pointAt400[i]);
+      const nativePoint50 = path.getPointAtLength(50);
+      const libPoint50 = new SVGPathCommander(shape).getPointAtLength(50);
+      expect(libPoint50.x).toBeCloseTo(nativePoint50.x, isArcShape ? 2 : 4);
+      expect(libPoint50.y).toBeCloseTo(nativePoint50.y, isArcShape ? 2 : 4);
+      const nativePoint400 = path.getPointAtLength(400);
+      const libPoint400 = new SVGPathCommander(shape).getPointAtLength(400);
+      expect(libPoint400.x).toBeCloseTo(nativePoint400.x, 4);
+      expect(libPoint400.y).toBeCloseTo(nativePoint400.y, 4);
     });
   });
   test('Test class getters', async () => {
@@ -595,8 +632,24 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
 
       path.setAttribute('d', new SVGPathCommander(shape, { round: 2 }).transform({translate: [1,1,0]}).toString());
       expect(path.getAttribute('d')).to.equal(shapes.translated[i]);
-      expect(new SVGPathCommander(shape).getTotalLength()).to.equal(shapes.length[i]);
-      expect(new SVGPathCommander(shape).getPointAtLength(50)).to.deep.equal(shapes.pointAt50[i]);
+
+      // compare against the native browser API as reference
+      // https://github.com/thednp/svg-path-commander/issues/63
+      // note: the browser approximates arc length/points via cubic conversion,
+      // so arc shapes are verified at lower precision than exact line/curve shapes
+      const isArcShape = /[Aa]/.test(shape);
+      path.setAttribute('d', shape);
+      const nativeLength = path.getTotalLength();
+      const libLength = new SVGPathCommander(shape).getTotalLength();
+      if (isArcShape) {
+        expect(Math.abs(libLength - nativeLength)).to.be.lessThan(0.01);
+      } else {
+        expect(libLength).toBeCloseTo(nativeLength, 3);
+      }
+      const nativePoint = path.getPointAtLength(50);
+      const libPoint = new SVGPathCommander(shape).getPointAtLength(50);
+      expect(libPoint.x).toBeCloseTo(nativePoint.x, isArcShape ? 2 : 4);
+      expect(libPoint.y).toBeCloseTo(nativePoint.y, isArcShape ? 2 : 4);
     });
   })
 });

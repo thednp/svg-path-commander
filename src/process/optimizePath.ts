@@ -3,14 +3,14 @@ import type {
   PathArray,
   PathCommand,
   PathSegment,
-} from "../types";
-import { pathToAbsolute } from "../convert/pathToAbsolute";
-import { shortenSegment } from "./shortenSegment";
-import { paramsParser } from "../parser/paramsParser";
-import { iterate } from "./iterate";
-import { normalizeSegment } from "./normalizeSegment";
-import { relativizeSegment } from "./relativizeSegment";
-import { roundSegment } from "./roundSegment";
+} from "../types.ts";
+import { pathToAbsolute } from "../convert/pathToAbsolute.ts";
+import { shortenSegment } from "./shortenSegment.ts";
+import { paramsParser } from "../parser/paramsParser.ts";
+import { iterate } from "./iterate.ts";
+import { normalizeSegment } from "./normalizeSegment.ts";
+import { relativizeSegment } from "./relativizeSegment.ts";
+import { roundSegment } from "./roundSegment.ts";
 
 /**
  * Optimizes a PathArray:
@@ -27,7 +27,7 @@ import { roundSegment } from "./roundSegment";
  * // => [['M', 10, 10], ['l', 0, 0], ['l', 80, 80]]
  * ```
  */
-export const optimizePath = <T extends PathArray>(
+export const optimizePath = <T extends string | PathArray>(
   pathInput: T,
   roundOption?: number,
 ): PathArray => {

@@ -1,7 +1,7 @@
 // src/morph/splitCubicToCount.ts
 
-import { CubicCoordinates } from "../types";
-import { splitCubicSegment } from "./splitCubicSegment";
+import type { CubicCoordinates } from "../types.ts";
+import { splitCubicSegment } from "./splitCubicSegment.ts";
 
 /**
  * Split a cubic Bézier into `count` segments of roughly equal parameter length.

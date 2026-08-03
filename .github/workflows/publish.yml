@@ -1,4 +1,4 @@
-name: Publish to npm
+name: Publish to npm / jsr
 
 on:
   release:
@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24" # Or 'lts/*'
+          node-version: "20" # Or 'lts/*'
           registry-url: "https://registry.npmjs.org" # Optional if using trusted publishing
 
       - name: PNPM setup
@@ -35,8 +35,8 @@ jobs:
       - name: Build (if needed)
         run: pnpm build # Optional
 
-      # - name: Install playwright (required for test)
-      #   run: pnpm exec playwright install
+      - name: Install playwright (required for test)
+        run: pnpm exec playwright install
 
       - name: Test (optional but recommended)
         run: pnpm test

@@ -1,5 +1,5 @@
-// import paramsParser from "../parser/paramsParser";
-import { parsePathString } from "../parser/parsePathString";
+// import paramsParser from "../parser/paramsParser.ts";
+import { parsePathString } from "../parser/parsePathString.ts";
 import type {
   AbsoluteCommand,
   HSegment,
@@ -7,8 +7,8 @@ import type {
   PathArray,
   PointTuple,
   VSegment,
-} from "../types";
-import { iterate } from "./iterate";
+} from "../types.ts";
+import { iterate } from "./iterate.ts";
 
 /**
  * Split a path string or PathArray into an array of sub-paths.

@@ -1,5 +1,5 @@
-import { CurveArray } from "../types";
-import { isNormalizedArray } from "./isNormalizedArray";
+import type { CurveArray } from "../types.ts";
+import { isNormalizedArray } from "./isNormalizedArray.ts";
 
 /**
  * Iterates an array to check if it's a `pathArray`

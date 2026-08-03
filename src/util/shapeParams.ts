@@ -1,4 +1,4 @@
-import type { ShapeParams } from "../interface";
+import type { ShapeParams } from "../interface.ts";
 
 /**
  * Supported shapes and their specific parameters.

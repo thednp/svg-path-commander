@@ -8,7 +8,7 @@ import type {
   PointTuple,
   QuadCoordinates,
   QuadPoints,
-} from "../types";
+} from "../types.ts";
 
 /**
  * Tools from bezier.js by Mike 'Pomax' Kamermans
@@ -73,7 +73,9 @@ const Cvalues = [
  * @param points
  * @returns
  */
-const deriveBezier = (points: QuadPoints | CubicPoints) => {
+const deriveBezier = (
+  points: QuadPoints | CubicPoints,
+): (DerivedQuadPoints | DerivedCubicPoints)[] => {
   const dpoints = [] as (DerivedCubicPoints | DerivedQuadPoints)[];
   for (let p = points, d = p.length, c = d - 1; d > 1; d -= 1, c -= 1) {
     const list = [] as unknown as DerivedCubicPoints | DerivedQuadPoints;
@@ -97,7 +99,7 @@ const deriveBezier = (points: QuadPoints | CubicPoints) => {
 const computeBezier = (
   points: DerivedQuadPoints | DerivedCubicPoints,
   t: number,
-) => {
+): DerivedPoint => {
   // shortcuts
   /* istanbul ignore next @preserve */
   if (t === 0) {
@@ -164,31 +166,46 @@ const computeBezier = (
   };
 };
 
-const calculateBezier = (derivativeFn: DeriveCallback, t: number) => {
+const calculateBezier = (derivativeFn: DeriveCallback, t: number): number => {
   const d = derivativeFn(t);
   const l = d.x * d.x + d.y * d.y;
 
   return Math.sqrt(l);
 };
 
-const bezierLength = (derivativeFn: DeriveCallback) => {
-  const z = 0.5;
+const bezierLength = (derivativeFn: DeriveCallback): number => {
+  return bezierLengthAtT(derivativeFn, 1);
+};
+
+/**
+ * Returns the arc length of a Bezier segment from its start point
+ * up to a given `t` ratio, by integrating the curve speed `|B'(t)|`
+ * over the `[0, t]` interval with Gauss-Legendre quadrature.
+ *
+ * @param derivativeFn the curve derivative function
+ * @param t the sampled point ratio in `[0-1]`
+ * @returns the arc length up to parameter `t`
+ */
+const bezierLengthAtT = (derivativeFn: DeriveCallback, t: number): number => {
+  const z = t / 2;
   const len = Tvalues.length;
 
   let sum = 0;
 
-  for (let i = 0, t; i < len; i++) {
-    t = z * Tvalues[i] + z;
-    sum += Cvalues[i] * calculateBezier(derivativeFn, t);
+  for (let i = 0, tMid; i < len; i++) {
+    tMid = z * Tvalues[i] + z;
+    sum += Cvalues[i] * calculateBezier(derivativeFn, tMid);
   }
   return z * sum;
 };
 
 /**
- * Returns the length of CubicBezier / Quad segment.
+ * Builds the Bezier points array from a curve coordinates array.
  * @param curve cubic / quad bezier segment
  */
-const getBezierLength = (curve: CubicCoordinates | QuadCoordinates) => {
+const getBezierPoints = (
+  curve: CubicCoordinates | QuadCoordinates,
+): CubicPoints | QuadPoints => {
   const points = [] as unknown as CubicPoints | QuadPoints;
   for (let idx = 0, len = curve.length, step = 2; idx < len; idx += step) {
     points.push({
@@ -196,6 +213,62 @@ const getBezierLength = (curve: CubicCoordinates | QuadCoordinates) => {
       y: curve[idx + 1],
     });
   }
+  return points;
+};
+
+/**
+ * Returns the arc length of a Bezier segment from its start point
+ * up to a given `t` ratio, for the segment given by its coordinates.
+ *
+ * @param curve cubic / quad bezier segment
+ * @param t the sampled point ratio in `[0-1]`
+ * @returns the arc length up to parameter `t`
+ */
+const getBezierLengthAtT = (
+  curve: CubicCoordinates | QuadCoordinates,
+  t: number,
+): number => {
+  const dpoints = deriveBezier(getBezierPoints(curve));
+  return bezierLengthAtT((ratio: number) => {
+    return computeBezier(dpoints[0], ratio);
+  }, t);
+};
+
+/**
+ * Returns the `t` parameter of a Bezier segment at which the cumulative
+ * arc length equals the given `distance`, found by interval bisection.
+ *
+ * @param curve cubic / quad bezier segment
+ * @param distance the distance along the segment in `[0, length]`
+ * @returns the `t` parameter in `[0-1]`
+ */
+const getTAtBezierLength = (
+  curve: CubicCoordinates | QuadCoordinates,
+  distance: number,
+): number => {
+  const dpoints = deriveBezier(getBezierPoints(curve));
+  const derivativeFn = (ratio: number) => {
+    return computeBezier(dpoints[0], ratio);
+  };
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 25; i += 1) {
+    const mid = (lo + hi) / 2;
+    if (bezierLengthAtT(derivativeFn, mid) < distance) {
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  return (lo + hi) / 2;
+};
+
+/**
+ * Returns the length of CubicBezier / Quad segment.
+ * @param curve cubic / quad bezier segment
+ */
+const getBezierLength = (curve: CubicCoordinates | QuadCoordinates): number => {
+  const points = getBezierPoints(curve);
   const dpoints = deriveBezier(points);
   return bezierLength((t: number) => {
     return computeBezier(dpoints[0], t);
@@ -210,7 +283,7 @@ const CBEZIER_MINMAX_EPSILON = 0.00000001;
  * @param A an array which consist of X/Y values
  */
 // https://github.com/kpym/SVGPathy/blob/acd1a50c626b36d81969f6e98e8602e128ba4302/lib/box.js#L89
-const minmaxQ = ([v1, cp, v2]: [number, number, number]) => {
+const minmaxQ = ([v1, cp, v2]: [number, number, number]): PointTuple => {
   const min = Math.min(v1, v2);
   const max = Math.max(v1, v2);
 
@@ -230,7 +303,9 @@ const minmaxQ = ([v1, cp, v2]: [number, number, number]) => {
  * @param A an array which consist of X/Y values
  * @see https://github.com/kpym/SVGPathy/blob/acd1a50c626b36d81969f6e98e8602e128ba4302/lib/box.js#L127
  */
-const minmaxC = ([v1, cp1, cp2, v2]: [number, number, number, number]) => {
+const minmaxC = (
+  [v1, cp1, cp2, v2]: [number, number, number, number],
+): PointTuple => {
   const K = v1 - 3 * cp1 + 3 * cp2 - v2;
 
   // if the polynomial is (almost) quadratic and not cubic
@@ -279,12 +354,16 @@ const minmaxC = ([v1, cp1, cp2, v2]: [number, number, number, number]) => {
 };
 const bezierTools = {
   bezierLength,
+  bezierLengthAtT,
   calculateBezier,
   CBEZIER_MINMAX_EPSILON,
   computeBezier,
   Cvalues,
   deriveBezier,
   getBezierLength,
+  getBezierLengthAtT,
+  getBezierPoints,
+  getTAtBezierLength,
   minmaxC,
   minmaxQ,
   Tvalues,
@@ -292,6 +371,7 @@ const bezierTools = {
 
 export {
   bezierLength,
+  bezierLengthAtT,
   bezierTools,
   calculateBezier,
   CBEZIER_MINMAX_EPSILON,
@@ -299,6 +379,9 @@ export {
   Cvalues,
   deriveBezier,
   getBezierLength,
+  getBezierLengthAtT,
+  getBezierPoints,
+  getTAtBezierLength,
   minmaxC,
   minmaxQ,
   Tvalues,

@@ -1,5 +1,5 @@
 import CSSMatrix from "@thednp/dommatrix";
-import { type PointTuple } from "../types";
+import type { PointTuple } from "../types.ts";
 
 /**
  * Transforms a specified point using a matrix, returning a new

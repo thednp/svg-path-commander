@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-SVGPathCommander v2.2.0 — TypeScript library for manipulating SVG `<path>` `d` attributes. Works in browser and Node.js.
+SVGPathCommander v2.2.2 — TypeScript library for manipulating SVG `<path>` `d` attributes. Works in browser and Node.js.
 
 ## Commands
 
@@ -10,6 +10,7 @@ SVGPathCommander v2.2.0 — TypeScript library for manipulating SVG `<path>` `d`
 pnpm install          # Install dependencies
 pnpm dev              # Serve docs on localhost:3000
 pnpm test             # Run all tests (vitest + happy-dom)
+pnpm test:browser     # Run browser tests (vitest + playwright chromium)
 pnpm test-ui          # Run tests with UI
 pnpm test -- -t "Test name"    # Run a single test by name
 pnpm test -- class.test.ts     # Run a single test file
@@ -21,13 +22,25 @@ pnpm build            # Build with tsdown
 pnpm check:ts         # tsc --noEmit (type check only)
 ```
 
+Deno equivalents (via `deno.json`):
+
+```bash
+deno task test       # vitest run
+deno task lint       # deno lint src
+deno task check      # deno check src (no --sloppy-imports needed)
+deno task build      # tsdown via node
+deno publish         # JSR dry run: deno publish --dry-run --allow-dirty
+```
+
 ## Tech Stack
 
 - **Language:** TypeScript (strict, ES2020 target, `allowImportingTsExtensions`)
-- **Package manager:** pnpm (v10.33.0)
+- **Package manager:** pnpm (v11.x)
 - **Build:** tsdown (ESM + UMD outputs)
 - **Test:** Vitest + happy-dom (Istanbul coverage)
+- **Browser Test:** Vitest + Playwright (real Chromium, `test/browser/`)
 - **Lint/Format:** Deno (`deno lint`, `deno fmt`)
+- **JSR:** `deno.json` publishes as `@thednp/svg-path-commander` — `deno check src`, `deno lint src` and `deno publish --dry-run --allow-dirty` must all pass
 - **Dependency:** `@thednp/dommatrix` (DOMMatrix shim)
 
 ## Source Structure (`src/`)
@@ -88,9 +101,10 @@ pnpm check:ts         # tsc --noEmit (type check only)
 - Instance options validated in constructor with fallback to `defaultOptions`
 
 ### Testing
-- Tests run with happy-dom (headless browser simulation)
+- Tests run with happy-dom (headless browser simulation) via `pnpm test`
+- Browser tests run with real Chromium (Playwright) via `pnpm test:browser`
 - Fixtures in `test/fixtures/`
-- Two test files: `test/class.test.ts` (instance API), `test/static.test.ts` (static methods)
+- Test files: `test/class.test.ts` (instance API), `test/static.test.ts` (static methods), `test/browser/` (native browser APIs)
 - Tests render actual SVG and verify `d` attribute output
 - Use `vi.waitFor()` for async DOM queries (timeout: 200ms)
 - Use `expect().to.deep.equal()` for object comparison, `expect().to.equal()` for primitives
