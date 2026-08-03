@@ -32,8 +32,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build
-        run: pnpm build # Optional
+      # - name: Build # included in prepublishOnly
+      #   run: pnpm build # Optional
 
       - name: Install playwright
         run: pnpm exec playwright install
@@ -42,7 +42,7 @@ jobs:
         run: pnpm test
 
       - name: Publish to npm
-        run: pnpm publish --provenance --no-git-checks # --access public for new/public packages
+        run: pnpm publish --provenance --access public --no-git-checks # --access public for new/public packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Only needed if NOT using trusted publishing
 
