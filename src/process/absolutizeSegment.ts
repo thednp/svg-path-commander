@@ -56,6 +56,16 @@ export const absolutizeSegment = (
       (segment as LSegment)[1] + lastX,
       (segment as LSegment)[2] + lastY,
     ] as LSegment;
+  } else if (absCommand === "C") {
+    return [
+      absCommand,
+      (segment as CSegment)[1] + lastX,
+      (segment as CSegment)[2] + lastY,
+      (segment as CSegment)[3] + lastX,
+      (segment as CSegment)[4] + lastY,
+      (segment as CSegment)[5] + lastX,
+      (segment as CSegment)[6] + lastY,
+    ] as CSegment;
   } else {
     // use brakets for `eslint: no-case-declaration`
     // https://stackoverflow.com/a/50753272/803358
@@ -64,7 +74,7 @@ export const absolutizeSegment = (
     for (let j = 1; j < seglen; j += 1) {
       absValues.push((segment[j] as number) + (j % 2 ? lastX : lastY));
     }
-    // for c, s, q, t
+    // for s, q, t
     return [absCommand as typeof absCommand | number].concat(absValues) as
       | MSegment
       | QSegment

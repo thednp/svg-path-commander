@@ -9,11 +9,11 @@ SVGPathCommander v2.2.2 — TypeScript library for manipulating SVG `<path>` `d`
 ```bash
 pnpm install          # Install dependencies
 pnpm dev              # Serve docs on localhost:3000
-pnpm test             # Run all tests (vitest + happy-dom)
-pnpm test:browser     # Run browser tests (vitest + playwright chromium)
+pnpm test             # Run all tests (vitest + Istanbul coverage)
 pnpm test-ui          # Run tests with UI
 pnpm test -- -t "Test name"    # Run a single test by name
 pnpm test -- class.test.ts     # Run a single test file
+pnpm bench            # Benchmark vs svgpath (results embedded in README)
 pnpm lint             # Deno lint + tsc type check
 pnpm lint:ts          # Deno lint only
 pnpm fix:ts           # Deno lint --fix
@@ -37,8 +37,7 @@ deno publish         # JSR dry run: deno publish --dry-run --allow-dirty
 - **Language:** TypeScript (strict, ES2020 target, `allowImportingTsExtensions`)
 - **Package manager:** pnpm (v11.x)
 - **Build:** tsdown (ESM + UMD outputs)
-- **Test:** Vitest + happy-dom (Istanbul coverage)
-- **Browser Test:** Vitest + Playwright (real Chromium, `test/browser/`)
+- **Test:** Vitest + Istanbul coverage (`test/class.test.ts`, `test/static.test.ts`)
 - **Lint/Format:** Deno (`deno lint`, `deno fmt`)
 - **JSR:** `deno.json` publishes as `@thednp/svg-path-commander` — `deno check src`, `deno lint src` and `deno publish --dry-run --allow-dirty` must all pass
 - **Dependency:** `@thednp/dommatrix` (DOMMatrix shim)
@@ -101,12 +100,9 @@ deno publish         # JSR dry run: deno publish --dry-run --allow-dirty
 - Instance options validated in constructor with fallback to `defaultOptions`
 
 ### Testing
-- Tests run with happy-dom (headless browser simulation) via `pnpm test`
-- Browser tests run with real Chromium (Playwright) via `pnpm test:browser`
+- Tests run with Vitest + Istanbul coverage via `pnpm test`
+- Test files: `test/class.test.ts` (instance API), `test/static.test.ts` (static methods)
 - Fixtures in `test/fixtures/`
-- Test files: `test/class.test.ts` (instance API), `test/static.test.ts` (static methods), `test/browser/` (native browser APIs)
-- Tests render actual SVG and verify `d` attribute output
-- Use `vi.waitFor()` for async DOM queries (timeout: 200ms)
 - Use `expect().to.deep.equal()` for object comparison, `expect().to.equal()` for primitives
 - Coverage provider: Istanbul
 

@@ -106,5 +106,79 @@ export const scanParam = (path: PathParser) => {
   }
 
   path.index = index;
-  path.param = +path.pathValue.slice(start, index);
+  path.param = scanNumber(pathValue, start, index);
+};
+
+/**
+ * Converts a validated number substring to a Number without
+ * allocating a new string, matching `+str.slice(start, end)`.
+ *
+ * Falls back to the native conversion when the value cannot be
+ * represented exactly with plain double arithmetic (more than 15
+ * significant digits or an exponent beyond +-22).
+ *
+ * @param str - the path string
+ * @param start - the index of the first char of the number
+ * @param end - the index after the last char of the number
+ * @returns the parsed number
+ */
+const scanNumber = (str: string, start: number, end: number): number => {
+  let i = start;
+  let sign = 1;
+  let param = 0;
+  let decimals = 0;
+  let sigDigits = 0;
+  let inFraction = false;
+  let expSign = 1;
+  let exp = 0;
+
+  const ch = str.charCodeAt(i);
+  if (ch === 0x2b /* + */) {
+    i += 1;
+  } else if (ch === 0x2d /* - */) {
+    sign = -1;
+    i += 1;
+  }
+
+  for (; i < end; i += 1) {
+    const code = str.charCodeAt(i);
+    if (code === 0x2e /* . */) {
+      inFraction = true;
+    } else if (code === 0x65 /* e */ || code === 0x45 /* E */) {
+      i += 1;
+      const expCode = str.charCodeAt(i);
+      if (expCode === 0x2b /* + */) {
+        i += 1;
+      } else if (expCode === 0x2d /* - */) {
+        expSign = -1;
+        i += 1;
+      }
+      for (; i < end; i += 1) {
+        exp = exp * 10 + (str.charCodeAt(i) - 0x30);
+      }
+    } else {
+      const digit = code - 0x30;
+      if (digit !== 0 || param !== 0) {
+        sigDigits += 1;
+      }
+      param = param * 10 + digit;
+      if (inFraction) {
+        decimals += 1;
+      }
+    }
+  }
+
+  if (sigDigits > 15 || sigDigits === 0) {
+    return +str.slice(start, end);
+  }
+
+  const scale = expSign * exp - decimals;
+  if (scale > 22 || scale < -22) {
+    return +str.slice(start, end);
+  }
+
+  if (scale >= 0) {
+    return sign * param * 10 ** scale;
+  }
+  return sign * param / 10 ** -scale;
 };

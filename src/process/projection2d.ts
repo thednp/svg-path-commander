@@ -16,6 +16,15 @@ const translatePoint = (
   cssm: CSSMatrix,
   v: [number, number, number, number],
 ): [number, number, number, number] => {
+  if (cssm.is2D) {
+    return [
+      cssm.a * v[0] + cssm.c * v[1] + cssm.e * v[3],
+      cssm.b * v[0] + cssm.d * v[1] + cssm.f * v[3],
+      0,
+      1,
+    ];
+  }
+
   let m = CSSMatrix.Translate(v[0], v[1], v[2]);
 
   [, , , m.m44] = v;

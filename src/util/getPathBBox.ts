@@ -1,6 +1,6 @@
 import { iterate } from "../process/iterate.ts";
 import type { PathBBox } from "../interface.ts";
-import type { LSegment, MSegment, PathArray, PointTuple } from "../types.ts";
+import type { LSegment, MSegment, PathArray } from "../types.ts";
 import { getLineBBox } from "../math/lineTools.ts";
 import { getArcBBox } from "../math/arcTools.ts";
 import { getCubicBBox } from "../math/cubicTools.ts";
@@ -69,11 +69,14 @@ export const getPathBBox = <T extends PathArray>(
 
   iterate(path, (seg, index, lastX, lastY) => {
     [pathCommand] = seg;
-    const absCommand = pathCommand.toUpperCase();
-    const isRelative = absCommand !== pathCommand;
+    const commandCode = pathCommand.charCodeAt(0);
+    const isRelative = commandCode >= 97; // a-z
+    const absCommand = (isRelative
+      ? String.fromCharCode(commandCode - 32)
+      : pathCommand) as typeof pathCommand;
     const absoluteSegment = isRelative
       ? absolutizeSegment(seg, index, lastX, lastY)
-      : (seg.slice(0) as typeof seg);
+      : seg;
 
     const normalSegment = absCommand === "V"
       ? (["L", lastX, absoluteSegment[1]] as LSegment)
@@ -83,7 +86,7 @@ export const getPathBBox = <T extends PathArray>(
 
     [pathCommand] = normalSegment;
 
-    if (!"TQ".includes(absCommand)) {
+    if (absCommand !== "T" && absCommand !== "Q") {
       // optional but good to be cautious
       paramQX = 0;
       paramQY = 0;
@@ -172,14 +175,24 @@ export const getPathBBox = <T extends PathArray>(
     yMax = max(maxY, yMax);
 
     // update params
-    [paramX1, paramY1] = pathCommand === "Z"
-      ? [mx, my]
-      : (normalSegment.slice(-2) as PointTuple);
-    [paramX2, paramY2] = pathCommand === "C"
-      ? ([normalSegment[3], normalSegment[4]] as PointTuple)
-      : pathCommand === "S"
-      ? ([normalSegment[1], normalSegment[2]] as PointTuple)
-      : [paramX1, paramY1];
+    if (pathCommand === "Z") {
+      paramX1 = mx;
+      paramY1 = my;
+    } else {
+      const segLen = normalSegment.length;
+      paramX1 = normalSegment[segLen - 2] as number;
+      paramY1 = normalSegment[segLen - 1] as number;
+    }
+    if (pathCommand === "C") {
+      paramX2 = normalSegment[3] as number;
+      paramY2 = normalSegment[4] as number;
+    } else if (pathCommand === "S") {
+      paramX2 = normalSegment[1] as number;
+      paramY2 = normalSegment[2] as number;
+    } else {
+      paramX2 = paramX1;
+      paramY2 = paramY1;
+    }
   });
 
   const width = xMax - xMin;

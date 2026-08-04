@@ -1,6 +1,5 @@
-import type { PathArray, PathSegment } from "../types.ts";
+import type { PathArray } from "../types.ts";
 import { defaultOptions } from "../options/options.ts";
-import { roundTo } from "../math/roundTo.ts";
 
 /**
  * Returns a valid `d` attribute string value created
@@ -22,7 +21,7 @@ export const pathToString = <T extends PathArray>(
 ): string => {
   const pathLen = path.length;
   let { round } = defaultOptions;
-  let segment = path[0] as PathSegment;
+  let segment = path[0] as PathArray[number];
   let result = "";
 
   // allow for ZERO decimals
@@ -34,20 +33,22 @@ export const pathToString = <T extends PathArray>(
     ? round
     : "off";
 
+  const pow = round === "off" ? 0 : 10 ** round;
+
   for (let i = 0; i < pathLen; i += 1) {
     segment = path[i];
-    const [pathCommand] = segment;
-    const values = segment.slice(1) as number[];
+    const pathCommand = segment[0] as string;
+    const segLen = segment.length;
     result += pathCommand;
     if (round === "off") {
-      result += values.join(" ");
+      for (let j = 1; j < segLen; j += 1) {
+        result += segment[j] as number;
+        if (j !== segLen - 1) result += " ";
+      }
     } else {
-      let j = 0;
-      const valLen = values.length;
-      while (j < valLen) {
-        result += roundTo(values[j], round);
-        if (j !== valLen - 1) result += " ";
-        j += 1;
+      for (let j = 1; j < segLen; j += 1) {
+        result += Math.round((segment[j] as number) * pow) / pow;
+        if (j !== segLen - 1) result += " ";
       }
     }
   }

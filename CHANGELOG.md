@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.3.0] - 2026-08-04
+
+### Added
+- `pnpm bench` — head-to-head benchmark against the [SvgPath](https://github.com/fontello/svgpath) library (vendored reference in `scripts/svgpath/`), comparing parse / bbox / transform / string output, with results embedded in the README
+
+### Changed
+- **Performance**: allocation-free parsing — `scanParam()` converts validated number substrings without allocating new strings, `finalizeSegment()` builds segments with pre-sized arrays and index-based slicing instead of `splice()`
+- **Performance**: single-pass 2D transforms — `transformPath()` now uses a dedicated `transform2D()` fast path that transforms segments in place (no per-segment absolutize / copy / DOMMatrix projection), falling back to the 3D-capable `iterate()` path for 3D matrices; output is byte-identical to the previous implementation (~2.8x faster 2D transforms)
+- **Performance**: fast 2D branch in `projection2d()`, char-code based command detection in `iterate()` / `getPathBBox()`, allocation-free rounding in `pathToString()`, and a dedicated `C` case in `absolutizeSegment()`
+- Rebuilt `dist` and `docs` bundles
+
 ## [2.2.4] - 2026-08-04
 ### Fixed
 - Build warnings: UMD bundle now uses a dedicated `src/browser.ts` entry so the `SVGPathCommander` global remains the class itself (no mixed-exports namespace), and the `output.dir`/`output.file` conflict is resolved — tree-shaking, named exports and type declarations are unaffected

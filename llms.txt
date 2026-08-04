@@ -25,6 +25,7 @@
 - provides more reliable and more accurate built-in `getBBox`, `getPointAtLength` and `getTotalLength` than the native methods, plus community tools like `getPropertiesAtLength`, `getSegmentOfPoint`, `isPointInStroke`, `pathsIntersection` and `boundingBoxIntersect`;
 - supports path morphing via `equalizePaths` / `equalizeSegments` and per-segment interpolation through `samplePath` / `splitPath`;
 - is built with [tsdown](https://tsdown.dev), producing ESM (`index.js`), UMD (`index.min.js`, global `SVGPathCommander`) and a static-methods-only `util.js` entry into `dist/`;
+- is performance-oriented: allocation-free parsing and string output, a single-pass fast path for 2D transforms, and benchmarks against [SvgPath](https://github.com/fontello/svgpath) via `pnpm bench` (results in the README);
 - is JSR-ready: `deno.json` publishes the raw TypeScript source as `@thednp/svg-path-commander` with clean `deno check` / `deno lint` / `deno publish --dry-run`.
 
 ## Usage

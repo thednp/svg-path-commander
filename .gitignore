@@ -3,3 +3,4 @@ node_modules
 experiments
 coverage
 test/__screenshots__
+.vitest-attachments

@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v2.2.4 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.3.0 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1106,12 +1106,25 @@ const finalizeSegment = (path) => {
 	let pathCommand = path.pathValue[path.segmentStart];
 	let relativeCommand = pathCommand.toLowerCase();
 	const { data } = path;
-	while (data.length >= paramsCounts[relativeCommand]) {
-		if (relativeCommand === "m" && data.length > 2) {
-			path.segments.push([pathCommand].concat(data.splice(0, 2)));
+	let index = 0;
+	while (data.length - index >= paramsCounts[relativeCommand]) {
+		if (relativeCommand === "m" && data.length - index > 2) {
+			const segment = new Array(3);
+			segment[0] = pathCommand;
+			segment[1] = data[index];
+			segment[2] = data[index + 1];
+			path.segments.push(segment);
+			index += 2;
 			relativeCommand = "l";
 			pathCommand = pathCommand === "m" ? "l" : "L";
-		} else path.segments.push([pathCommand].concat(data.splice(0, paramsCounts[relativeCommand])));
+		} else {
+			const paramCount = paramsCounts[relativeCommand];
+			const segment = new Array(paramCount + 1);
+			segment[0] = pathCommand;
+			for (let i = 0; i < paramCount; i += 1) segment[i + 1] = data[index + i];
+			path.segments.push(segment);
+			index += paramCount;
+		}
 		if (!paramsCounts[relativeCommand]) break;
 	}
 };
@@ -1226,7 +1239,60 @@ const scanParam = (path) => {
 		}
 	}
 	path.index = index;
-	path.param = +path.pathValue.slice(start, index);
+	path.param = scanNumber(pathValue, start, index);
+};
+/**
+* Converts a validated number substring to a Number without
+* allocating a new string, matching `+str.slice(start, end)`.
+*
+* Falls back to the native conversion when the value cannot be
+* represented exactly with plain double arithmetic (more than 15
+* significant digits or an exponent beyond +-22).
+*
+* @param str - the path string
+* @param start - the index of the first char of the number
+* @param end - the index after the last char of the number
+* @returns the parsed number
+*/
+const scanNumber = (str, start, end) => {
+	let i = start;
+	let sign = 1;
+	let param = 0;
+	let decimals = 0;
+	let sigDigits = 0;
+	let inFraction = false;
+	let expSign = 1;
+	let exp = 0;
+	const ch = str.charCodeAt(i);
+	if (ch === 43) i += 1;
+	else if (ch === 45) {
+		sign = -1;
+		i += 1;
+	}
+	for (; i < end; i += 1) {
+		const code = str.charCodeAt(i);
+		if (code === 46) inFraction = true;
+		else if (code === 101 || code === 69) {
+			i += 1;
+			const expCode = str.charCodeAt(i);
+			if (expCode === 43) i += 1;
+			else if (expCode === 45) {
+				expSign = -1;
+				i += 1;
+			}
+			for (; i < end; i += 1) exp = exp * 10 + (str.charCodeAt(i) - 48);
+		} else {
+			const digit = code - 48;
+			if (digit !== 0 || param !== 0) sigDigits += 1;
+			param = param * 10 + digit;
+			if (inFraction) decimals += 1;
+		}
+	}
+	if (sigDigits > 15 || sigDigits === 0) return +str.slice(start, end);
+	const scale = expSign * exp - decimals;
+	if (scale > 22 || scale < -22) return +str.slice(start, end);
+	if (scale >= 0) return sign * param * 10 ** scale;
+	return sign * param / 10 ** -scale;
 };
 //#endregion
 //#region src/parser/isSpace.ts
@@ -1470,6 +1536,15 @@ const absolutizeSegment = (segment, index, lastX, lastY) => {
 		segment[1] + lastX,
 		segment[2] + lastY
 	];
+	else if (absCommand === "C") return [
+		absCommand,
+		segment[1] + lastX,
+		segment[2] + lastY,
+		segment[3] + lastX,
+		segment[4] + lastY,
+		segment[5] + lastX,
+		segment[6] + lastY
+	];
 	else {
 		const absValues = [];
 		const seglen = segment.length;
@@ -1515,8 +1590,9 @@ const iterate = (path, iterator) => {
 	while (i < path.length) {
 		const segment = path[i];
 		const [pathCommand] = segment;
-		const absCommand = pathCommand.toUpperCase();
-		const isRelative = absCommand !== pathCommand;
+		const commandCode = pathCommand.charCodeAt(0);
+		const isRelative = commandCode >= 97;
+		const absCommand = isRelative ? String.fromCharCode(commandCode - 32) : pathCommand;
 		const iteratorResult = iterator(segment, i, x, y);
 		if (iteratorResult === false) break;
 		if (absCommand === "Z") {
@@ -1971,20 +2047,19 @@ const pathToString = (path, roundOption) => {
 	let segment = path[0];
 	let result = "";
 	round = roundOption === "off" ? roundOption : typeof roundOption === "number" && roundOption >= 0 ? roundOption : typeof round === "number" && round >= 0 ? round : "off";
+	const pow = round === "off" ? 0 : 10 ** round;
 	for (let i = 0; i < pathLen; i += 1) {
 		segment = path[i];
-		const [pathCommand] = segment;
-		const values = segment.slice(1);
+		const pathCommand = segment[0];
+		const segLen = segment.length;
 		result += pathCommand;
-		if (round === "off") result += values.join(" ");
-		else {
-			let j = 0;
-			const valLen = values.length;
-			while (j < valLen) {
-				result += roundTo(values[j], round);
-				if (j !== valLen - 1) result += " ";
-				j += 1;
-			}
+		if (round === "off") for (let j = 1; j < segLen; j += 1) {
+			result += segment[j];
+			if (j !== segLen - 1) result += " ";
+		}
+		else for (let j = 1; j < segLen; j += 1) {
+			result += Math.round(segment[j] * pow) / pow;
+			if (j !== segLen - 1) result += " ";
 		}
 	}
 	return result;
@@ -2036,8 +2111,10 @@ const getPathBBox = (pathInput) => {
 	let paramQY = 0;
 	iterate(path, (seg, index, lastX, lastY) => {
 		[pathCommand] = seg;
-		const absCommand = pathCommand.toUpperCase();
-		const absoluteSegment = absCommand !== pathCommand ? absolutizeSegment(seg, index, lastX, lastY) : seg.slice(0);
+		const commandCode = pathCommand.charCodeAt(0);
+		const isRelative = commandCode >= 97;
+		const absCommand = isRelative ? String.fromCharCode(commandCode - 32) : pathCommand;
+		const absoluteSegment = isRelative ? absolutizeSegment(seg, index, lastX, lastY) : seg;
 		const normalSegment = absCommand === "V" ? [
 			"L",
 			lastX,
@@ -2048,7 +2125,7 @@ const getPathBBox = (pathInput) => {
 			lastY
 		] : absoluteSegment;
 		[pathCommand] = normalSegment;
-		if (!"TQ".includes(absCommand)) {
+		if (absCommand !== "T" && absCommand !== "Q") {
 			paramQX = 0;
 			paramQY = 0;
 		}
@@ -2078,8 +2155,24 @@ const getPathBBox = (pathInput) => {
 		yMin = min(minY, yMin);
 		xMax = max(maxX, xMax);
 		yMax = max(maxY, yMax);
-		[paramX1, paramY1] = pathCommand === "Z" ? [mx, my] : normalSegment.slice(-2);
-		[paramX2, paramY2] = pathCommand === "C" ? [normalSegment[3], normalSegment[4]] : pathCommand === "S" ? [normalSegment[1], normalSegment[2]] : [paramX1, paramY1];
+		if (pathCommand === "Z") {
+			paramX1 = mx;
+			paramY1 = my;
+		} else {
+			const segLen = normalSegment.length;
+			paramX1 = normalSegment[segLen - 2];
+			paramY1 = normalSegment[segLen - 1];
+		}
+		if (pathCommand === "C") {
+			paramX2 = normalSegment[3];
+			paramY2 = normalSegment[4];
+		} else if (pathCommand === "S") {
+			paramX2 = normalSegment[1];
+			paramY2 = normalSegment[2];
+		} else {
+			paramX2 = paramX1;
+			paramY2 = paramY1;
+		}
 	});
 	const width = xMax - xMin;
 	const height = yMax - yMin;
@@ -3365,6 +3458,12 @@ const getSVGMatrix = (transform) => {
 * @returns the resulting Tuple
 */
 const translatePoint = (cssm, v) => {
+	if (cssm.is2D) return [
+		cssm.a * v[0] + cssm.c * v[1] + cssm.e * v[3],
+		cssm.b * v[0] + cssm.d * v[1] + cssm.f * v[3],
+		0,
+		1
+	];
 	let m = CSSMatrix.Translate(v[0], v[1], v[2]);
 	[, , , m.m44] = v;
 	m = cssm.multiply(m);
@@ -3405,6 +3504,161 @@ const projection2d = (m, point2D, origin) => {
 //#endregion
 //#region src/process/transformPath.ts
 /**
+* Applies a 2D transformation to a `PathArray` in a single pass, without
+* absolutizing or copying each segment, returning a new absolute `PathArray`.
+*
+* @param path the parsed path value
+* @param a the `a` value of the matrix
+* @param b the `b` value of the matrix
+* @param c the `c` value of the matrix
+* @param d the `d` value of the matrix
+* @param e the `e` value of the matrix
+* @param f the `f` value of the matrix
+* @param originX the transform origin `x` value
+* @param originY the transform origin `y` value
+* @returns the transformed absolute path
+*/
+const transform2D = (path, a, b, c, d, e, f, originX, originY) => {
+	const result = [];
+	let x = 0;
+	let y = 0;
+	let lx = 0;
+	let ly = 0;
+	let ox = 0;
+	let oy = 0;
+	let omx = 0;
+	let omy = 0;
+	for (let i = 0, len = path.length; i < len; i += 1) {
+		const seg = path[i];
+		const pathCommand = seg[0];
+		const commandCode = pathCommand.charCodeAt(0);
+		const isRelative = commandCode >= 97;
+		const absCommand = isRelative ? String.fromCharCode(commandCode - 32) : pathCommand;
+		const outCommand = i === 0 && isRelative ? pathCommand : absCommand;
+		if (absCommand === "Z") {
+			result.push(["Z"]);
+			ox = omx;
+			oy = omy;
+			continue;
+		}
+		if (absCommand === "V") {
+			const absY = seg[1] + (isRelative ? oy : 0);
+			lx = a * ox + c * absY + e - originX + originX;
+			ly = b * ox + d * absY + f - originY + originY;
+			if (x !== lx && y !== ly) result.push([
+				"L",
+				lx,
+				ly
+			]);
+			else if (y === ly) result.push(["H", lx]);
+			else if (x === lx) result.push(["V", ly]);
+			else result.push([
+				"L",
+				ox,
+				absY
+			]);
+			oy = absY;
+			x = lx;
+			y = ly;
+			continue;
+		}
+		if (absCommand === "H") {
+			const absX = seg[1] + (isRelative ? ox : 0);
+			lx = a * absX + c * oy + e - originX + originX;
+			ly = b * absX + d * oy + f - originY + originY;
+			if (x !== lx && y !== ly) result.push([
+				"L",
+				lx,
+				ly
+			]);
+			else if (y === ly) result.push(["H", lx]);
+			else if (x === lx) result.push(["V", ly]);
+			else result.push([
+				"L",
+				absX,
+				oy
+			]);
+			ox = absX;
+			x = lx;
+			y = ly;
+			continue;
+		}
+		if (absCommand === "A") {
+			const absX = seg[6] + (isRelative ? ox : 0);
+			const absY = seg[7] + (isRelative ? oy : 0);
+			const cubics = arcToCubic(ox, oy, seg[1], seg[2], seg[3], seg[4], seg[5], absX, absY);
+			const cubicsLen = cubics.length;
+			let k = 0;
+			if (cubicsLen > 0) do {
+				const piece = ["C"];
+				const end = k + 6;
+				for (let j = k; j < end; j += 2) {
+					lx = a * cubics[j] + c * cubics[j + 1] + e - originX + originX;
+					ly = b * cubics[j] + d * cubics[j + 1] + f - originY + originY;
+					piece.push(lx, ly);
+				}
+				result.push(piece);
+				k = end;
+			} while (k < cubicsLen);
+			else result.push(["C"]);
+			if (cubicsLen > 0) {
+				ox = cubics[cubicsLen - 2];
+				oy = cubics[cubicsLen - 1];
+			} else {
+				ox = absX;
+				oy = absY;
+			}
+			x = lx;
+			y = ly;
+			continue;
+		}
+		if (absCommand === "L") {
+			const absX = seg[1] + (isRelative ? ox : 0);
+			const absY = seg[2] + (isRelative ? oy : 0);
+			lx = a * absX + c * absY + e - originX + originX;
+			ly = b * absX + d * absY + f - originY + originY;
+			if (x !== lx && y !== ly) result.push([
+				"L",
+				lx,
+				ly
+			]);
+			else if (y === ly) result.push(["H", lx]);
+			else if (x === lx) result.push(["V", ly]);
+			else result.push([
+				"L",
+				absX,
+				absY
+			]);
+			ox = absX;
+			oy = absY;
+			x = lx;
+			y = ly;
+			continue;
+		}
+		{
+			const piece = [outCommand];
+			const segLen = seg.length;
+			for (let j = 1; j < segLen; j += 2) {
+				const absX = seg[j] + (isRelative ? ox : 0);
+				const absY = seg[j + 1] + (isRelative ? oy : 0);
+				lx = a * absX + c * absY + e - originX + originX;
+				ly = b * absX + d * absY + f - originY + originY;
+				piece.push(lx, ly);
+			}
+			result.push(piece);
+			ox = seg[segLen - 2] + (isRelative ? ox : 0);
+			oy = seg[segLen - 1] + (isRelative ? oy : 0);
+			if (absCommand === "M") {
+				omx = ox;
+				omy = oy;
+			}
+			x = lx;
+			y = ly;
+		}
+	}
+	return result;
+};
+/**
 * Apply a 2D / 3D transformation to a PathArray.
 *
 * Since SVGElement doesn't support 3D transformation, this function
@@ -3421,12 +3675,6 @@ const projection2d = (m, point2D, origin) => {
 * ```
 */
 const transformPath = (pathInput, transform) => {
-	let x = 0;
-	let y = 0;
-	let lx = 0;
-	let ly = 0;
-	let j = 0;
-	let jj = 0;
 	const path = parsePathString(pathInput);
 	const transformProps = transform && Object.keys(transform);
 	if (!transform || transformProps && !transformProps.length) return path.slice(0);
@@ -3434,8 +3682,15 @@ const transformPath = (pathInput, transform) => {
 	const origin = transform.origin;
 	const matrixInstance = getSVGMatrix(transform);
 	if (matrixInstance.isIdentity) return path.slice(0);
+	if (matrixInstance.is2D) return transform2D(path, matrixInstance.a, matrixInstance.b, matrixInstance.c, matrixInstance.d, matrixInstance.e, matrixInstance.f, origin[0], origin[1]);
+	let x = 0;
+	let y = 0;
+	let lx = 0;
+	let ly = 0;
+	let j = 0;
+	let jj = 0;
 	return iterate(path, (seg, index, lastX, lastY) => {
-		let [pathCommand] = seg;
+		const [pathCommand] = seg;
 		const absCommand = pathCommand.toUpperCase();
 		const absoluteSegment = absCommand !== pathCommand ? absolutizeSegment(seg, index, lastX, lastY) : seg.slice(0);
 		let result = absCommand === "A" ? ["C"].concat(arcToCubic(lastX, lastY, absoluteSegment[1], absoluteSegment[2], absoluteSegment[3], absoluteSegment[4], absoluteSegment[5], absoluteSegment[6], absoluteSegment[7])) : absCommand === "V" ? [
@@ -3447,14 +3702,12 @@ const transformPath = (pathInput, transform) => {
 			absoluteSegment[1],
 			lastY
 		] : absoluteSegment;
-		pathCommand = result[0];
-		const isLongArc = pathCommand === "C" && result.length > 7;
-		const tempSegment = isLongArc ? result.slice(0, 7) : result.slice(0);
-		if (isLongArc) {
+		if (result[0] === "C" && result.length > 7) {
+			const tempSegment = result.slice(0, 7);
 			path.splice(index + 1, 0, ["C"].concat(result.slice(7)));
 			result = tempSegment;
 		}
-		if (pathCommand === "L") {
+		if (result[0] === "L") {
 			[lx, ly] = projection2d(matrixInstance, [result[1], result[2]], origin);
 			if (x !== lx && y !== ly) result = [
 				"L",

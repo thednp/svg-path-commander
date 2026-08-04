@@ -41,8 +41,11 @@ export const iterate = <T extends PathArray>(
   while (i < path.length) {
     const segment = path[i];
     const [pathCommand] = segment;
-    const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
-    const isRelative = absCommand !== pathCommand;
+    const commandCode = pathCommand.charCodeAt(0);
+    const isRelative = commandCode >= 97; // a-z
+    const absCommand = (isRelative
+      ? String.fromCharCode(commandCode - 32)
+      : pathCommand) as AbsoluteCommand;
 
     const iteratorResult = iterator(segment, i, x, y);
     // some methods like getPointAtLength would like to break
