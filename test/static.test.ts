@@ -188,6 +188,16 @@ describe('SVGPathCommander Static Methods', () => {
     expect(path3).to.equal('M16.9706 -2.8284C16.6064 -0.4208 14.1423 2.0433 11.3137 2.8284M16.9706 -2.8284C14.1419 -2.0433 11.6779 0.4208 11.3137 2.8284M16.9706 -2.8284C17.5074 -6.3778 13.3604 -7.6385 9.506 -5.0977C5.6516 -2.5569 4.9805 1.8798 8.2981 2.8884C9.1684 3.153 10.2198 3.1321 11.3137 2.8284M16.9706 -2.8284C21.1405 -3.9859 23.5152 -0.9528 21.245 2.631C18.9748 6.2148 13.7624 7.6616 11.8626 5.2352C11.3642 4.5986 11.1729 3.7596 11.3137 2.8284');
   });
 
+  test(`Can transformPath a PathArray with a relative first command`, () => {
+    const { transformPath } = SVGPathCommander;
+
+    const path = transformPath(
+      [["m", 10, 10], ["l", 20, 0], ["l", 0, 20], ["z"]] as unknown as PathArray,
+      { translate: [5, 7] },
+    );
+    expect(path).to.deep.equal([["m", 15, 17], ["H", 35], ["V", 37], ["Z"]]);
+  });
+
   test(`Can do getPropertiesAtLength`, () => {
     try {
       SVGPathCommander.getPropertiesAtLength('M16.9706 -2.8284A4 6 89.5025 0 1 11.3137 2.8284M', 50);
