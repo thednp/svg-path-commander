@@ -284,7 +284,7 @@ const [eq1, eq2] = SVGPathCommander.equalizePaths(
 ```
 
 # WIKI
-For developer guidelines, and a complete list of static methods, head over to the [wiki pages](https://github.com/thednp/svg-path-commander/wiki).
+For developer guidelines, and a complete list of static methods, head over to the [`wiki/`](wiki/) folder in this repository.
 
 
 # What Is It For?
@@ -324,4 +324,4 @@ For developer guidelines, and a complete list of static methods, head over to th
 * a special thanks goes to [@vltansky](https://github.com/vltansky) for fixing tree-shaking in **SVGPathCommander**!
 
 # License
-**SVGPathCommander** is released under [MIT Licence](https://github.com/thednp/svg-path-commander/blob/master/LICENSE).
+**SVGPathCommander** is released under [MIT Licence](LICENSE).

@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v2.2.3 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.2.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -7,149 +7,236 @@ import CSSMatrix from "@thednp/dommatrix";
 //#region src/interface.d.ts
 /** The properties of a path segment found by segment lookup utilities. */
 type SegmentProperties = {
+  /** The path segment. */
   segment: PathSegment;
+  /** The index of the segment in the path. */
   index: number;
+  /** The length of the segment. */
   length: number;
+  /** The distance from the start of the path to the end of the segment. */
   lengthAtSegment: number;
 };
 /** The closest point on the path to a given point, with the distance and optional segment. */
 type PointProperties = {
+  /** The closest point on the path to the given point. */
   closest: {
+    /** The X coordinate of the closest point. */
     x: number;
+    /** The Y coordinate of the closest point. */
     y: number;
   };
+  /** The distance from the given point to the closest point on the path. */
   distance: number;
+  /** The segment which contains the closest point. */
   segment?: SegmentProperties;
 };
 /** The attributes of a `<line>` element read by `shapeToPath`. */
 type LineAttr = {
+  /** The element type. */
   type: "line";
+  /** The X coordinate of the start point. */
   x1: number;
+  /** The Y coordinate of the start point. */
   y1: number;
+  /** The X coordinate of the end point. */
   x2: number;
+  /** The Y coordinate of the end point. */
   y2: number;
   [key: string]: string | number;
 };
 /** The attributes of a `<polygon>` or `<polyline>` element read by `shapeToPath`. */
 type PolyAttr = {
+  /** The element type. */
   type: "polygon" | "polyline";
+  /** The points attribute value. */
   points: string;
   [key: string]: string | number;
 };
 /** The attributes of a `<circle>` element read by `shapeToPath`. */
 type CircleAttr = {
+  /** The element type. */
   type: "circle";
+  /** The X coordinate of the center. */
   cx: number;
+  /** The Y coordinate of the center. */
   cy: number;
+  /** The circle radius. */
   r: number;
   [key: string]: string | number;
 };
 /** The attributes of an `<ellipse>` element read by `shapeToPath`. */
 type EllipseAttr = {
+  /** The element type. */
   type: "ellipse";
+  /** The X coordinate of the center. */
   cx: number;
+  /** The Y coordinate of the center. */
   cy: number;
+  /** The X axis radius. */
   rx: number;
+  /** The Y axis radius. */
   ry?: number;
   [key: string]: string | number | undefined;
 };
 /** The attributes of a `<rect>` element read by `shapeToPath`. */
 type RectAttr = {
+  /** The element type. */
   type: "rect";
+  /** The rectangle width. */
   width: number;
+  /** The rectangle height. */
   height: number;
+  /** The X coordinate of the top-left corner. */
   x: number;
+  /** The Y coordinate of the top-left corner. */
   y: number;
+  /** The X axis corner radius. */
   rx?: number;
+  /** The Y axis corner radius. */
   ry?: number;
   [key: string]: string | number | undefined;
 };
 /** The attributes of a `<glyph>` element read by `shapeToPath`. */
 type GlyphAttr = {
+  /** The element type. */
   type: "glyph";
+  /** The path data of the glyph. */
   d: string;
   [key: string]: string | number;
 };
 /** The parameter names read from each SVG shape element by `shapeToPath`. */
 type ShapeParams = {
+  /** The parameter names read from the `<line>` element. */
   line: ["x1", "y1", "x2", "y2"];
+  /** The parameter names read from the `<circle>` element. */
   circle: ["cx", "cy", "r"];
+  /** The parameter names read from the `<ellipse>` element. */
   ellipse: ["cx", "cy", "rx", "ry"];
+  /** The parameter names read from the `<rect>` element. */
   rect: ["width", "height", "x", "y", "rx", "ry"];
+  /** The parameter names read from the `<polygon>` element. */
   polygon: ["points"];
+  /** The parameter names read from the `<polyline>` element. */
   polyline: ["points"];
+  /** The parameter names read from the `<glyph>` element. */
   glyph: ["d"];
 };
 /** The bounding box of a path, equivalent to the native `getBBox()` result. */
 type PathBBox = {
+  /** The width of the bounding box. */
   width: number;
+  /** The height of the bounding box. */
   height: number;
+  /** The X coordinate of the top-left corner. */
   x: number;
+  /** The Y coordinate of the top-left corner. */
   y: number;
+  /** The X coordinate of the bottom-right corner. */
   x2: number;
+  /** The Y coordinate of the bottom-right corner. */
   y2: number;
+  /** The X coordinate of the center. */
   cx: number;
+  /** The Y coordinate of the center. */
   cy: number;
+  /** The Z coordinate of the center, used as transform origin for 3D projections. */
   cz: number;
 };
 /** The minimum and maximum points of a segment bounding box. */
 type SegmentLimits = {
+  /** The minimum coordinates of the segment. */
   min: {
+    /** The minimum X coordinate. */
     x: number;
+    /** The minimum Y coordinate. */
     y: number;
   };
+  /** The maximum coordinates of the segment. */
   max: {
+    /** The maximum X coordinate. */
     x: number;
+    /** The maximum Y coordinate. */
     y: number;
   };
 };
 /** The current state tracked by the SVG path string parser. */
 type ParserParams = {
+  /** The X coordinate of the previous moveto point. */
   mx: number;
+  /** The Y coordinate of the previous moveto point. */
   my: number;
+  /** The X coordinate of the previous control point. */
   x1: number;
+  /** The Y coordinate of the previous control point. */
   y1: number;
+  /** The X coordinate of the second control point. */
   x2: number;
+  /** The Y coordinate of the second control point. */
   y2: number;
+  /** The X coordinate of the current point. */
   x: number;
+  /** The Y coordinate of the current point. */
   y: number;
+  /** The X coordinate of the previous quadratic control point. */
   qx: number | null;
+  /** The Y coordinate of the previous quadratic control point. */
   qy: number | null;
 };
 /** The result of a length computation factory: length, point and segment limits. */
 type LengthFactory = {
+  /** The total length of the segment. */
   length: number;
+  /** The point on the segment at the given length. */
   point: {
+    /** The X coordinate of the point at the given length. */
     x: number;
+    /** The Y coordinate of the point at the given length. */
     y: number;
   };
+  /** The minimum coordinates of the segment. */
   min: {
+    /** The minimum X coordinate of the segment. */
     x: number;
+    /** The minimum Y coordinate of the segment. */
     y: number;
   };
+  /** The maximum coordinates of the segment. */
   max: {
+    /** The maximum X coordinate of the segment. */
     x: number;
+    /** The maximum Y coordinate of the segment. */
     y: number;
   };
 };
 /** The `SVGPathCommander` instance options. */
 type Options = {
+  /** The amount of decimals to round path values to, or "off" to disable rounding. */
   round: "off" | number;
+  /** The transform origin used for path transformations. */
   origin: number[];
 };
 /** A path segment and its transformation context (command letter and coordinates). */
 type PathTransform = {
+  /** The current path segment. */
   s: PathSegment;
+  /** The current path command letter. */
   c: string;
+  /** The current X coordinate. */
   x: number;
+  /** The current Y coordinate. */
   y: number;
 };
 /** A transform function object with translate, rotate, scale, skew and origin. */
 type TransformObject = {
+  /** A translate value, a number for all axes or an array of values. */
   translate: number | number[];
+  /** A rotate value, a number for all axes or an array of values. */
   rotate: number | number[];
+  /** A scale value, a number for all axes or an array of values. */
   scale: number | number[];
+  /** A skew value, a number for all axes or an array of values. */
   skew: number | number[];
+  /** The transform origin. */
   origin: number[];
 };
 /** The keys of a `TransformObject`. */
@@ -306,17 +393,21 @@ type ShapeTags = "line" | "polyline" | "polygon" | "ellipse" | "circle" | "rect"
 type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
 /** A `TransformObject` with a required 3D origin. */
 type TransformObjectValues = Partial<TransformObject> & {
+  /** The transform origin. */
   origin: [number, number, number];
 };
 /** A 2D point with `x` and `y` coordinates. */
 type Point = {
+  /** The X coordinate. */
   x: number;
+  /** The Y coordinate. */
   y: number;
 };
 /** A 2D point as a tuple `[x, y]`. */
 type PointTuple = [number, number];
 /** A `Point` with a `t` parameter (a point on a curve at ratio `t`). */
 type DerivedPoint = Point & {
+  /** The parameter ratio in `[0-1]`. */
   t: number;
 };
 /** The six points of a quadratic Bezier curve (on-curve and off-curve control points). */
@@ -343,49 +434,72 @@ type IteratorCallback<T extends PathArray, K extends keyof T = number> = (segmen
 type BBoxMaxima = [minX: number, minY: number, maxX: number, maxY: number];
 /** A point on the path at a given length, including the `t` ratio. */
 type PointAtLength = {
+  /** The X coordinate. */
   x: number;
+  /** The Y coordinate. */
   y: number;
+  /** The parameter ratio in `[0-1]`. */
   t: number;
 };
 /** An intersection point between two curves, including both `t` ratios. */
 type IntersectionPoint = {
+  /** The X coordinate of the intersection point. */
   x: number;
+  /** The Y coordinate of the intersection point. */
   y: number;
+  /** The parameter ratio of the first curve. */
   t1: number;
+  /** The parameter ratio of the second curve. */
   t2: number;
 };
 /** Options for computing intersections between two curves. */
 interface IntersectionOptions {
+  /** Whether to only count the intersections without computing points. */
   justCount?: boolean;
+  /** The epsilon value used for precision. */
   epsilon?: number;
 }
 /** Options for equalizing a single path to a given segment count. */
 interface PathEqualizationOptions {
-  /** @default "auto" */
+  /** The equalization mode. @default "auto" */
   mode?: "line" | "curve" | "auto";
+  /** The number of sample points for the line mode. */
   sampleSize?: number;
+  /** The amount of decimals to round values to. */
   roundValues?: number;
+  /** Whether to close the path before equalization. */
   close?: boolean;
 }
 /** Options for equalizing two paths for morphing. */
 interface EqualizationOptions {
-  /** @default "auto" */
+  /** The equalization mode. @default "auto" */
   mode?: "curve" | "auto";
+  /** The number of sample points for the line mode. */
   sampleSize?: number;
+  /** The amount of decimals to round values to. */
   roundValues?: number;
+  /** Whether to reverse the second path before equalization. */
   reverse?: boolean;
+  /** Whether to close the path before equalization. */
   close?: boolean;
+  /** The target segment count for both paths. */
   target?: number;
 }
 /** `EqualizationOptions` without `reverse` and `target`, used for path pairs. */
 type PathsEqualizationOptions = Omit<EqualizationOptions, "reverse" | "target">;
 /** The geometric features of a path used for matching during morphing. */
 interface PathFeature {
+  /** Whether the path is a polygon. */
   isPoly: boolean;
+  /** The normalized path array. */
   path: NormalArray;
+  /** The number of segments in the path. */
   size: number;
+  /** The absolute area of the path. */
   area: number;
+  /** The signed area of the path, negative for clockwise direction. */
   signedArea: number;
+  /** The bounding box of the path. */
   bbox: PathBBox;
 }
 //#endregion
@@ -1318,7 +1432,7 @@ declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string
  * pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', true)
  * // => 1
  * pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', false)
- * // => [{ x: 50, y: 25, t1: 0.5, t2: 0.5 }]
+ * // => [{ x: 80.4136, y: 19.5864, t1: 0.7262, t2: 0.2738 }]
  * ```
  */
 declare const pathsIntersection: <T extends string | PathArray>(pathInput1: T, pathInput2: T, justCount?: boolean) => number | IntersectionPoint[];
@@ -1355,8 +1469,11 @@ declare const isPointInsideBBox: (bbox: BBoxMaxima, [x, y]: PointTuple) => boole
  * @returns a new SVGPathCommander instance
  */
 declare class SVGPathCommander {
+  /** The parsed PathArray stored on the instance. */
   segments: PathArray;
+  /** The rounding option used for the output path string. */
   round: number | "off";
+  /** The transform origin used for path transformations. */
   origin: [number, number, number];
   /**
    * @constructor
@@ -1364,6 +1481,12 @@ declare class SVGPathCommander {
    * @param config instance options
    */
   constructor(pathValue: string, config?: Partial<Options>);
+  /**
+   * Returns the path bounding box, equivalent to native `path.getBBox()`.
+   *
+   * @public
+   * @returns the pathBBox
+   */
   get bbox(): {
     x: number;
     y: number;
@@ -1375,6 +1498,12 @@ declare class SVGPathCommander {
     cy: number;
     cz: number;
   };
+  /**
+   * Returns the total path length, equivalent to native `path.getTotalLength()`.
+   *
+   * @public
+   * @returns the path total length
+   */
   get length(): number;
   /**
    * Returns the path bounding box, equivalent to native `path.getBBox()`.
@@ -1458,7 +1587,7 @@ declare class SVGPathCommander {
    * @example
    * ```ts
    * new SVGPathCommander('M0 0L100 0L100 100L0 100Z').reverse().toString()
-   * // => 'M0 100L0 0L100 0L100 100Z'
+   * // => 'M0 100L100 100L100 0L0 0Z'
    * ```
    *
    * @param onlySubpath - option to reverse all sub-paths except first
@@ -1490,7 +1619,7 @@ declare class SVGPathCommander {
    * @example
    * ```ts
    * new SVGPathCommander('M10 10L10 10L90 90').optimize().toString()
-   * // => 'M10 10l0 0 80 80'
+   * // => 'M10 10v0l80 80'
    * ```
    *
    * @returns this for chaining
@@ -1548,8 +1677,14 @@ declare class SVGPathCommander {
    * @returns void
    */
   dispose(): void;
+  /** The default instance options. */
   static options: Options;
+  /**
+   * The DOMMatrix shim used for transformations.
+   * @see https://github.com/thednp/dommatrix
+   */
   static CSSMatrix: typeof CSSMatrix;
+  /** The tools for elliptical arc computation. */
   static arcTools: {
     angleBetween: (v0: Point, v1: Point) => number;
     arcLength: (rx: number, ry: number, theta: number) => number;
@@ -1573,6 +1708,7 @@ declare class SVGPathCommander {
       y: number;
     };
   };
+  /** The tools for Bezier curve computation. */
   static bezierTools: {
     bezierLength: (derivativeFn: DeriveCallback) => number;
     bezierLengthAtT: (derivativeFn: DeriveCallback, t: number) => number;
@@ -1589,6 +1725,7 @@ declare class SVGPathCommander {
     minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;
     Tvalues: number[];
   };
+  /** The tools for cubic Bezier computation. */
   static cubicTools: {
     getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => BBoxMaxima;
     getCubicLength: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => number;
@@ -1601,6 +1738,7 @@ declare class SVGPathCommander {
       y: number;
     };
   };
+  /** The tools for line segment computation. */
   static lineTools: {
     getLineBBox: (x1: number, y1: number, x2: number, y2: number) => [number, number, number, number];
     getLineLength: (x1: number, y1: number, x2: number, y2: number) => number;
@@ -1609,11 +1747,13 @@ declare class SVGPathCommander {
       y: number;
     };
   };
+  /** The tools for polygon computation. */
   static polygonTools: {
     polygonArea: (polygon: PointTuple[]) => number;
     polygonLength: (polygon: PointTuple[]) => number;
     polygonCentroid: (polygon: PointTuple[]) => PointTuple;
   };
+  /** The tools for quadratic Bezier computation. */
   static quadTools: {
     getPointAtQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number, distance?: number) => {
       x: number;
@@ -1626,23 +1766,41 @@ declare class SVGPathCommander {
     getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => [number, number, number, number];
     getQuadLength: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => number;
   };
+  /** Parses a path string value or object and returns an array */
   static pathToAbsolute: typeof pathToAbsolute;
+  /** Parses a path string value or object and returns an array */
   static pathToRelative: typeof pathToRelative;
+  /** Parses a path string or PathArray and returns a new one */
   static pathToCurve: typeof pathToCurve;
+  /** Returns a valid `d` attribute string value created */
   static pathToString: typeof pathToString;
+  /** Returns the square root of the distance */
   static distanceSquareRoot: typeof distanceSquareRoot;
+  /** Returns the coordinates of a specified distance */
   static midPoint: typeof midPoint;
+  /** Returns an {x,y} vector rotated by a given */
   static rotateVector: typeof rotateVector;
+  /** Rounds a number to the specified number of decimal places. */
   static roundTo: typeof roundTo;
+  /** Parses a path string value and returns an array */
   static parsePathString: typeof parsePathString;
+  /** Breaks the parsing of a pathString once a segment is finalized. */
   static finalizeSegment: typeof finalizeSegment;
+  /** Error message prefix used when a path string cannot be parsed. */
   static invalidPathValue: string;
+  /** Checks if the character is an A (arc-to) path command. */
   static isArcCommand: typeof isArcCommand;
+  /** Checks if a character is a digit. */
   static isDigit: typeof isDigit;
+  /** Checks if the character is or belongs to a number. */
   static isDigitStart: typeof isDigitStart;
+  /** Checks if the character is a MoveTo command. */
   static isMoveCommand: typeof isMoveCommand;
+  /** Checks if the character is a path command. */
   static isPathCommand: typeof isPathCommand;
+  /** Checks if the character is a space. */
   static isSpace: typeof isSpace;
+  /** The number of parameters for each path command. */
   static paramsCount: {
     a: number;
     c: number;
@@ -1656,66 +1814,125 @@ declare class SVGPathCommander {
     v: number;
     z: number;
   };
+  /** Default parser parameters object used to track position state */
   static paramsParser: ParserParams;
+  /** The `PathParser` is used by the `parsePathString` static method */
   static PathParser: typeof PathParser;
+  /** Validates an A (arc-to) specific path command value. */
   static scanFlag: typeof scanFlag;
+  /** Validates every character of the path string, */
   static scanParam: typeof scanParam;
+  /** Scans every character in the path string to determine */
   static scanSegment: typeof scanSegment;
+  /** Points the parser to the next character in the */
   static skipSpaces: typeof skipSpaces;
+  /** Small threshold value used for floating-point distance comparisons in path calculations. */
   static distanceEpsilon: number;
+  /** Checks a `PathArray` for an unnecessary `Z` segment */
   static fixPath: typeof fixPath;
+  /** Returns the point in path closest to a given point. */
   static getClosestPoint: typeof getClosestPoint;
+  /** Check if a path is drawn clockwise and returns true if so, */
   static getDrawDirection: typeof getDrawDirection;
+  /** Returns the area of a single cubic-bezier segment. */
   static getPathArea: typeof getPathArea;
+  /** Calculates the bounding box of a path. */
   static getPathBBox: typeof getPathBBox;
+  /** Returns [x,y] coordinates of a point at a given length along a path. */
   static getPointAtLength: typeof getPointAtLength;
+  /** Returns the segment, its index and length as well as */
   static getPropertiesAtLength: typeof getPropertiesAtLength;
+  /** Returns the point and segment in path closest to a given point as well as */
   static getPropertiesAtPoint: typeof getPropertiesAtPoint;
+  /** Returns the segment at a given length. */
   static getSegmentAtLength: typeof getSegmentAtLength;
+  /** Returns the path segment which contains a given point. */
   static getSegmentOfPoint: typeof getSegmentOfPoint;
+  /** Returns the total length of a path, equivalent to `shape.getTotalLength()`. */
   static getTotalLength: typeof getTotalLength;
+  /** Iterates an array to check if it's a `pathArray` */
   static isAbsoluteArray: typeof isAbsoluteArray;
+  /** Iterates an array to check if it's a `pathArray` */
   static isCurveArray: typeof isCurveArray;
+  /** Checks if a path is a polygon (only M, L, H, V, Z commands). */
   static isPolygonArray: typeof isPolygonArray;
+  /** Iterates an array to check if it's a `pathArray` */
   static isNormalizedArray: typeof isNormalizedArray;
+  /** Iterates an array to check if it's an actual `pathArray`. */
   static isPathArray: typeof isPathArray;
+  /** Checks if a given point is in the stroke of a path. */
   static isPointInStroke: typeof isPointInStroke;
+  /** Iterates an array to check if it's a `pathArray` */
   static isRelativeArray: typeof isRelativeArray;
+  /** Parses a path string value to determine its validity */
   static isValidPath: typeof isValidPath;
+  /** Samples points from a path to form a polygon approximation. */
   static samplePolygon: typeof samplePolygon;
+  /** Supported shapes and their specific parameters. */
   static shapeParams: ShapeParams;
+  /** Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`, */
   static shapeToPath: typeof shapeToPath;
+  /** Returns a new PathArray from line attributes. */
   static shapeToPathArray: typeof shapeToPathArray;
+  /** Returns an absolute segment of a `PathArray` object. */
   static absolutizeSegment: typeof absolutizeSegment;
+  /** Converts A (arc-to) segments to C (cubic-bezier-to). */
   static arcToCubic: typeof arcToCubic;
+  /** Returns a transformation matrix to apply to `<path>` elements. */
   static getSVGMatrix: typeof getSVGMatrix;
+  /** Iterates over a `PathArray`, executing a callback for each segment. */
   static iterate: typeof iterate;
+  /** Converts an L (line-to) segment to C (cubic-bezier). */
   static lineToCubic: typeof lineToCubic;
+  /** Parses a path string or PathArray, then iterates the result for: */
   static normalizePath: typeof normalizePath;
+  /** Normalizes a single segment of a `pathArray` object. */
   static normalizeSegment: typeof normalizeSegment;
+  /** Optimizes a PathArray: */
   static optimizePath: typeof optimizePath;
+  /** Transforms a specified point using a matrix, returning a new */
   static projection2d: typeof projection2d;
+  /** Converts a Q (quadratic-bezier) segment to C (cubic-bezier). */
   static quadToCubic: typeof quadToCubic;
+  /** Returns a relative segment of a `PathArray` object. */
   static relativizeSegment: typeof relativizeSegment;
+  /** Reverses all segments of a `pathArray` */
   static reverseCurve: typeof reverseCurve;
+  /** Reverses all segments of a PathArray and returns a new PathArray */
   static reversePath: typeof reversePath;
+  /** Rounds the values of a `pathArray` instance to */
   static roundPath: typeof roundPath;
+  /** Rounds the numeric values of a path segment to the specified precision. */
   static roundSegment: typeof roundSegment;
+  /** Converts any segment to C (cubic-bezier). */
   static segmentToCubic: typeof segmentToCubic;
+  /** Shorten a single segment of a `pathArray` object. */
   static shortenSegment: typeof shortenSegment;
+  /** Split a path string or PathArray into an array of sub-paths. */
   static splitPath: typeof splitPath;
+  /** Equalizes two paths for morphing (single/multi subpath). */
   static equalizePaths: typeof equalizePaths;
+  /** Equalizes two paths for morphing (single subpath only). */
   static equalizeSegments: typeof equalizeSegments;
+  /** Split a cubic Bézier into two cubics at parameter t [0–1]. */
   static splitCubicSegment: typeof splitCubicSegment;
+  /** Apply a 2D / 3D transformation to a PathArray. */
   static transformPath: typeof transformPath;
+  /** Checks if a point is inside a bounding box. */
   static isPointInsideBBox: typeof isPointInsideBBox;
+  /** Finds intersection points between two paths. */
   static pathsIntersection: typeof pathsIntersection;
+  /** Checks if two bounding boxes intersect. */
   static boundingBoxIntersect: typeof boundingBoxIntersect;
+  /** Determines if an SVG path contains multiple subpaths. */
   static isMultiPath: typeof isMultiPath;
+  /** Check if a PathArray is closed, which means its last segment is a Z. */
   static isClosedPath: typeof isClosedPath;
+  /** Checks if a path is a polyline (only M, L, H, V commands). */
   static isPolylineArray: typeof isPolylineArray;
+  /** The library version. */
   static version: string;
 }
 //#endregion
-export { ACommand, ASegment, AbsoluteArray, AbsoluteCommand, AbsoluteSegment, ArcCoordinates, ArcSegment, BBoxMaxima, CCommand, CSegment, CircleAttr, CloseSegment, ClosedCurveArray, CubicCoordinates, CubicPoints, CubicSegment, CurveArray, DeriveCallback, DerivedCubicPoints, DerivedPoint, DerivedQuadPoints, DigitNumber, EllipseAttr, EqualizationOptions, GlyphAttr, HCommand, HSegment, HorLineSegment, IntersectionOptions, IntersectionPoint, IteratorCallback, LCommand, LSegment, LengthFactory, LineAttr, LineCoordinates, LineSegment, MCommand, MSegment, MorphPathArray, MoveSegment, NormalArray, NormalSegment, Options, ParserParams, PathArray, PathBBox, PathCommand, PathCommandNumber, PathEqualizationOptions, PathFeature, PathSegment, PathTransform, PathsEqualizationOptions, Point, PointAtLength, PointProperties, PointTuple, PolyAttr, PolygonArray, PolylineArray, QCommand, QSegment, QuadCoordinates, QuadPoints, QuadSegment, RectAttr, RelativeArray, RelativeCommand, RelativeSegment, SCommand, SSegment, SegmentLimits, SegmentProperties, ShapeOps, ShapeParams, ShapeTags, ShapeTypes, ShortCubicSegment, ShortQuadSegment, ShortSegment, SpaceNumber, TCommand, TSegment, TransformEntries, TransformObject, TransformObjectValues, TransformProps, VCommand, VSegment, VertLineSegment, ZCommand, ZSegment, aCommand, aSegment, cCommand, cSegment, SVGPathCommander as default, hCommand, hSegment, lCommand, lSegment, mCommand, mSegment, qCommand, qSegment, sCommand, sSegment, tCommand, tSegment, vCommand, vSegment, zCommand, zSegment };
+export { ACommand, ASegment, AbsoluteArray, AbsoluteCommand, AbsoluteSegment, ArcCoordinates, ArcSegment, BBoxMaxima, CCommand, CSegment, CircleAttr, CloseSegment, ClosedCurveArray, CubicCoordinates, CubicPoints, CubicSegment, CurveArray, DeriveCallback, DerivedCubicPoints, DerivedPoint, DerivedQuadPoints, DigitNumber, EllipseAttr, EqualizationOptions, GlyphAttr, HCommand, HSegment, HorLineSegment, IntersectionOptions, IntersectionPoint, IteratorCallback, LCommand, LSegment, LengthFactory, LineAttr, LineCoordinates, LineSegment, MCommand, MSegment, MorphPathArray, MoveSegment, NormalArray, NormalSegment, Options, ParserParams, PathArray, PathBBox, PathCommand, PathCommandNumber, PathEqualizationOptions, PathFeature, PathSegment, PathTransform, PathsEqualizationOptions, Point, PointAtLength, PointProperties, PointTuple, PolyAttr, PolygonArray, PolylineArray, QCommand, QSegment, QuadCoordinates, QuadPoints, QuadSegment, RectAttr, RelativeArray, RelativeCommand, RelativeSegment, SCommand, SSegment, SVGPathCommander, SVGPathCommander as default, SegmentLimits, SegmentProperties, ShapeOps, ShapeParams, ShapeTags, ShapeTypes, ShortCubicSegment, ShortQuadSegment, ShortSegment, SpaceNumber, TCommand, TSegment, TransformEntries, TransformObject, TransformObjectValues, TransformProps, VCommand, VSegment, VertLineSegment, ZCommand, ZSegment, aCommand, aSegment, cCommand, cSegment, hCommand, hSegment, lCommand, lSegment, mCommand, mSegment, qCommand, qSegment, sCommand, sSegment, tCommand, tSegment, vCommand, vSegment, zCommand, zSegment };
 //# sourceMappingURL=index.d.ts.map

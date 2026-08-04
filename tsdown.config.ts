@@ -33,7 +33,7 @@ const config: UserConfig = {
 export default defineConfig([
   { // UMD
     ...config,
-    entry: "src/index.ts",
+    entry: "src/browser.ts",
     format: "umd",
     clean: true,
     minify: true,
@@ -43,11 +43,16 @@ export default defineConfig([
     plugins: [stripComments({ type: "none" })],
     deps: {
       alwaysBundle: ["@thednp/dommatrix"],
-      onlyBundle: false
+      // onlyBundle: false
     },
     dts: false,
-    outputOptions: {
-      file: "dist/index.min.js",
+    outputOptions(options, format) {
+      return {
+        ...options,
+        dir: undefined,
+        file: "dist/index.min.js",
+        exports: "default",
+      };
     },
   },
   { // ESM

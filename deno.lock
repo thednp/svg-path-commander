@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@thednp/dommatrix@^3.0.6": "3.0.6",
     "npm:@thednp/dommatrix@^3.0.6": "3.0.6",
     "npm:@types/node@^26.1.2": "26.1.2",
     "npm:@vitest/browser-playwright@^4.1.10": "4.1.10_playwright@1.62.1_vitest@4.1.10_@types+node@26.1.2_@vitest+coverage-istanbul@4.1.10_@vitest+ui@4.1.10_happy-dom@20.11.1_vite@8.2.0__@types+node@26.1.2",
@@ -14,6 +15,11 @@
     "npm:vite-plugin-strip-comments@^0.0.10": "0.0.10",
     "npm:vite@^8.2.0": "8.2.0_@types+node@26.1.2",
     "npm:vitest@^4.1.10": "4.1.10_@types+node@26.1.2_@vitest+browser-playwright@4.1.10_@vitest+coverage-istanbul@4.1.10_@vitest+ui@4.1.10_happy-dom@20.11.1_vite@8.2.0__@types+node@26.1.2_playwright@1.62.1"
+  },
+  "jsr": {
+    "@thednp/dommatrix@3.0.6": {
+      "integrity": "0cd3875ac8b52f077a4a7e2294727d494d7e4519b88c61f6d4a4457242466b1c"
+    }
   },
   "npm": {
     "@babel/code-frame@7.29.7": {
@@ -1282,7 +1288,7 @@
   },
   "workspace": {
     "dependencies": [
-      "npm:@thednp/dommatrix@^3.0.6",
+      "jsr:@thednp/dommatrix@^3.0.6",
       "npm:@vitest/browser-playwright@^4.1.10",
       "npm:@vitest/browser@^4.1.10",
       "npm:@vitest/coverage-istanbul@^4.1.10",

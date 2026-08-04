@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v2.2.3 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.2.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -4308,7 +4308,7 @@ const interHelper = (bez1, bez2, config) => {
 * pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', true)
 * // => 1
 * pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', false)
-* // => [{ x: 50, y: 25, t1: 0.5, t2: 0.5 }]
+* // => [{ x: 80.4136, y: 19.5864, t1: 0.7262, t2: 0.2738 }]
 * ```
 */
 const pathsIntersection = (pathInput1, pathInput2, justCount = true) => {

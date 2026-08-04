@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v2.2.3 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.2.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -7,98 +7,154 @@ import CSSMatrix from "@thednp/dommatrix";
 //#region src/interface.d.ts
 /** The properties of a path segment found by segment lookup utilities. */
 type SegmentProperties = {
+  /** The path segment. */
   segment: PathSegment;
+  /** The index of the segment in the path. */
   index: number;
+  /** The length of the segment. */
   length: number;
+  /** The distance from the start of the path to the end of the segment. */
   lengthAtSegment: number;
 };
 /** The closest point on the path to a given point, with the distance and optional segment. */
 type PointProperties = {
+  /** The closest point on the path to the given point. */
   closest: {
+    /** The X coordinate of the closest point. */
     x: number;
+    /** The Y coordinate of the closest point. */
     y: number;
   };
+  /** The distance from the given point to the closest point on the path. */
   distance: number;
+  /** The segment which contains the closest point. */
   segment?: SegmentProperties;
 };
 /** The attributes of a `<line>` element read by `shapeToPath`. */
 type LineAttr = {
+  /** The element type. */
   type: "line";
+  /** The X coordinate of the start point. */
   x1: number;
+  /** The Y coordinate of the start point. */
   y1: number;
+  /** The X coordinate of the end point. */
   x2: number;
+  /** The Y coordinate of the end point. */
   y2: number;
   [key: string]: string | number;
 };
 /** The attributes of a `<polygon>` or `<polyline>` element read by `shapeToPath`. */
 type PolyAttr = {
+  /** The element type. */
   type: "polygon" | "polyline";
+  /** The points attribute value. */
   points: string;
   [key: string]: string | number;
 };
 /** The attributes of a `<circle>` element read by `shapeToPath`. */
 type CircleAttr = {
+  /** The element type. */
   type: "circle";
+  /** The X coordinate of the center. */
   cx: number;
+  /** The Y coordinate of the center. */
   cy: number;
+  /** The circle radius. */
   r: number;
   [key: string]: string | number;
 };
 /** The attributes of an `<ellipse>` element read by `shapeToPath`. */
 type EllipseAttr = {
+  /** The element type. */
   type: "ellipse";
+  /** The X coordinate of the center. */
   cx: number;
+  /** The Y coordinate of the center. */
   cy: number;
+  /** The X axis radius. */
   rx: number;
+  /** The Y axis radius. */
   ry?: number;
   [key: string]: string | number | undefined;
 };
 /** The attributes of a `<rect>` element read by `shapeToPath`. */
 type RectAttr = {
+  /** The element type. */
   type: "rect";
+  /** The rectangle width. */
   width: number;
+  /** The rectangle height. */
   height: number;
+  /** The X coordinate of the top-left corner. */
   x: number;
+  /** The Y coordinate of the top-left corner. */
   y: number;
+  /** The X axis corner radius. */
   rx?: number;
+  /** The Y axis corner radius. */
   ry?: number;
   [key: string]: string | number | undefined;
 };
 /** The attributes of a `<glyph>` element read by `shapeToPath`. */
 type GlyphAttr = {
+  /** The element type. */
   type: "glyph";
+  /** The path data of the glyph. */
   d: string;
   [key: string]: string | number;
 };
 /** The parameter names read from each SVG shape element by `shapeToPath`. */
 type ShapeParams = {
+  /** The parameter names read from the `<line>` element. */
   line: ["x1", "y1", "x2", "y2"];
+  /** The parameter names read from the `<circle>` element. */
   circle: ["cx", "cy", "r"];
+  /** The parameter names read from the `<ellipse>` element. */
   ellipse: ["cx", "cy", "rx", "ry"];
+  /** The parameter names read from the `<rect>` element. */
   rect: ["width", "height", "x", "y", "rx", "ry"];
+  /** The parameter names read from the `<polygon>` element. */
   polygon: ["points"];
+  /** The parameter names read from the `<polyline>` element. */
   polyline: ["points"];
+  /** The parameter names read from the `<glyph>` element. */
   glyph: ["d"];
 };
 /** The current state tracked by the SVG path string parser. */
 type ParserParams = {
+  /** The X coordinate of the previous moveto point. */
   mx: number;
+  /** The Y coordinate of the previous moveto point. */
   my: number;
+  /** The X coordinate of the previous control point. */
   x1: number;
+  /** The Y coordinate of the previous control point. */
   y1: number;
+  /** The X coordinate of the second control point. */
   x2: number;
+  /** The Y coordinate of the second control point. */
   y2: number;
+  /** The X coordinate of the current point. */
   x: number;
+  /** The Y coordinate of the current point. */
   y: number;
+  /** The X coordinate of the previous quadratic control point. */
   qx: number | null;
+  /** The Y coordinate of the previous quadratic control point. */
   qy: number | null;
 };
 /** A transform function object with translate, rotate, scale, skew and origin. */
 type TransformObject = {
+  /** A translate value, a number for all axes or an array of values. */
   translate: number | number[];
+  /** A rotate value, a number for all axes or an array of values. */
   rotate: number | number[];
+  /** A scale value, a number for all axes or an array of values. */
   scale: number | number[];
+  /** A skew value, a number for all axes or an array of values. */
   skew: number | number[];
+  /** The transform origin. */
   origin: number[];
 };
 //#endregion
@@ -249,17 +305,21 @@ type ShapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGE
 type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
 /** A `TransformObject` with a required 3D origin. */
 type TransformObjectValues = Partial<TransformObject> & {
+  /** The transform origin. */
   origin: [number, number, number];
 };
 /** A 2D point with `x` and `y` coordinates. */
 type Point = {
+  /** The X coordinate. */
   x: number;
+  /** The Y coordinate. */
   y: number;
 };
 /** A 2D point as a tuple `[x, y]`. */
 type PointTuple = [number, number];
 /** A `Point` with a `t` parameter (a point on a curve at ratio `t`). */
 type DerivedPoint = Point & {
+  /** The parameter ratio in `[0-1]`. */
   t: number;
 };
 /** The six points of a quadratic Bezier curve (on-curve and off-curve control points). */
@@ -282,19 +342,28 @@ type IteratorCallback<T extends PathArray, K extends keyof T = number> = (segmen
 type BBoxMaxima = [minX: number, minY: number, maxX: number, maxY: number];
 /** An intersection point between two curves, including both `t` ratios. */
 type IntersectionPoint = {
+  /** The X coordinate of the intersection point. */
   x: number;
+  /** The Y coordinate of the intersection point. */
   y: number;
+  /** The parameter ratio of the first curve. */
   t1: number;
+  /** The parameter ratio of the second curve. */
   t2: number;
 };
 /** Options for equalizing two paths for morphing. */
 interface EqualizationOptions {
-  /** @default "auto" */
+  /** The equalization mode. @default "auto" */
   mode?: "curve" | "auto";
+  /** The number of sample points for the line mode. */
   sampleSize?: number;
+  /** The amount of decimals to round values to. */
   roundValues?: number;
+  /** Whether to reverse the second path before equalization. */
   reverse?: boolean;
+  /** Whether to close the path before equalization. */
   close?: boolean;
+  /** The target segment count for both paths. */
   target?: number;
 }
 //#endregion
@@ -1703,7 +1772,7 @@ declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string
  * pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', true)
  * // => 1
  * pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', false)
- * // => [{ x: 50, y: 25, t1: 0.5, t2: 0.5 }]
+ * // => [{ x: 80.4136, y: 19.5864, t1: 0.7262, t2: 0.2738 }]
  * ```
  */
 declare const pathsIntersection: <T extends string | PathArray>(pathInput1: T, pathInput2: T, justCount?: boolean) => number | IntersectionPoint[];

@@ -5,5 +5,6 @@ import SVGPathCommander from "./main.ts";
 export * from "./types.ts";
 export * from "./interface.ts";
 
+export { SVGPathCommander };
 export default SVGPathCommander;
 export {};

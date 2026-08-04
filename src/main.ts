@@ -108,10 +108,12 @@ import distanceEpsilon from "./util/distanceEpsilon.ts";
  * @author thednp <https://github.com/thednp/svg-path-commander>
  * @returns a new SVGPathCommander instance
  */
-class SVGPathCommander {
-  // declare class properties
+export class SVGPathCommander {
+  /** The parsed PathArray stored on the instance. */
   declare segments: PathArray;
+  /** The rounding option used for the output path string. */
   declare round: number | "off";
+  /** The transform origin used for path transformations. */
   declare origin: [number, number, number];
 
   /**
@@ -159,6 +161,12 @@ class SVGPathCommander {
 
     return this;
   }
+  /**
+   * Returns the path bounding box, equivalent to native `path.getBBox()`.
+   *
+   * @public
+   * @returns the pathBBox
+   */
   get bbox(): {
     x: number;
     y: number;
@@ -172,6 +180,12 @@ class SVGPathCommander {
   } {
     return getPathBBox(this.segments);
   }
+  /**
+   * Returns the total path length, equivalent to native `path.getTotalLength()`.
+   *
+   * @public
+   * @returns the path total length
+   */
   get length(): number {
     return getTotalLength(this.segments);
   }
@@ -279,7 +293,7 @@ class SVGPathCommander {
    * @example
    * ```ts
    * new SVGPathCommander('M0 0L100 0L100 100L0 100Z').reverse().toString()
-   * // => 'M0 100L0 0L100 0L100 100Z'
+   * // => 'M0 100L100 100L100 0L0 0Z'
    * ```
    *
    * @param onlySubpath - option to reverse all sub-paths except first
@@ -340,7 +354,7 @@ class SVGPathCommander {
    * @example
    * ```ts
    * new SVGPathCommander('M10 10L10 10L90 90').optimize().toString()
-   * // => 'M10 10l0 0 80 80'
+   * // => 'M10 10v0l80 80'
    * ```
    *
    * @returns this for chaining
@@ -471,100 +485,188 @@ class SVGPathCommander {
     Object.keys(this).forEach((key) => delete this[key as keyof typeof this]);
   }
 
+  /** The default instance options. */
   static options = defaultOptions;
+  /**
+   * The DOMMatrix shim used for transformations.
+   * @see https://github.com/thednp/dommatrix
+   */
   static CSSMatrix = CSSMatrix;
+  /** The tools for elliptical arc computation. */
   static arcTools = arcTools;
+  /** The tools for Bezier curve computation. */
   static bezierTools = bezierTools;
+  /** The tools for cubic Bezier computation. */
   static cubicTools = cubicTools;
+  /** The tools for line segment computation. */
   static lineTools = lineTools;
+  /** The tools for polygon computation. */
   static polygonTools = polygonTools;
+  /** The tools for quadratic Bezier computation. */
   static quadTools = quadTools;
 
+  /** Parses a path string value or object and returns an array */
   static pathToAbsolute = pathToAbsolute;
+  /** Parses a path string value or object and returns an array */
   static pathToRelative = pathToRelative;
+  /** Parses a path string or PathArray and returns a new one */
   static pathToCurve = pathToCurve;
+  /** Returns a valid `d` attribute string value created */
   static pathToString = pathToString;
 
+  /** Returns the square root of the distance */
   static distanceSquareRoot = distanceSquareRoot;
+  /** Returns the coordinates of a specified distance */
   static midPoint = midPoint;
+  /** Returns an {x,y} vector rotated by a given */
   static rotateVector = rotateVector;
+  /** Rounds a number to the specified number of decimal places. */
   static roundTo = roundTo;
 
+  /** Parses a path string value and returns an array */
   static parsePathString = parsePathString;
+  /** Breaks the parsing of a pathString once a segment is finalized. */
   static finalizeSegment = finalizeSegment;
+  /** Error message prefix used when a path string cannot be parsed. */
   static invalidPathValue = invalidPathValue;
 
+  /** Checks if the character is an A (arc-to) path command. */
   static isArcCommand = isArcCommand;
+  /** Checks if a character is a digit. */
   static isDigit = isDigit;
+  /** Checks if the character is or belongs to a number. */
   static isDigitStart = isDigitStart;
+  /** Checks if the character is a MoveTo command. */
   static isMoveCommand = isMoveCommand;
+  /** Checks if the character is a path command. */
   static isPathCommand = isPathCommand;
+  /** Checks if the character is a space. */
   static isSpace = isSpace;
 
+  /** The number of parameters for each path command. */
   static paramsCount = paramsCounts;
+  /** Default parser parameters object used to track position state */
   static paramsParser = paramsParser;
+  /** The `PathParser` is used by the `parsePathString` static method */
   static PathParser = PathParser;
+  /** Validates an A (arc-to) specific path command value. */
   static scanFlag = scanFlag;
+  /** Validates every character of the path string, */
   static scanParam = scanParam;
+  /** Scans every character in the path string to determine */
   static scanSegment = scanSegment;
+  /** Points the parser to the next character in the */
   static skipSpaces = skipSpaces;
 
+  /** Small threshold value used for floating-point distance comparisons in path calculations. */
   static distanceEpsilon = distanceEpsilon;
 
+  /** Checks a `PathArray` for an unnecessary `Z` segment */
   static fixPath = fixPath;
+  /** Returns the point in path closest to a given point. */
   static getClosestPoint = getClosestPoint;
+  /** Check if a path is drawn clockwise and returns true if so, */
   static getDrawDirection = getDrawDirection;
+  /** Returns the area of a single cubic-bezier segment. */
   static getPathArea = getPathArea;
+  /** Calculates the bounding box of a path. */
   static getPathBBox = getPathBBox;
+  /** Returns [x,y] coordinates of a point at a given length along a path. */
   static getPointAtLength = getPointAtLength;
+  /** Returns the segment, its index and length as well as */
   static getPropertiesAtLength = getPropertiesAtLength;
+  /** Returns the point and segment in path closest to a given point as well as */
   static getPropertiesAtPoint = getPropertiesAtPoint;
+  /** Returns the segment at a given length. */
   static getSegmentAtLength = getSegmentAtLength;
+  /** Returns the path segment which contains a given point. */
   static getSegmentOfPoint = getSegmentOfPoint;
+  /** Returns the total length of a path, equivalent to `shape.getTotalLength()`. */
   static getTotalLength = getTotalLength;
 
+  /** Iterates an array to check if it's a `pathArray` */
   static isAbsoluteArray = isAbsoluteArray;
+  /** Iterates an array to check if it's a `pathArray` */
   static isCurveArray = isCurveArray;
+  /** Checks if a path is a polygon (only M, L, H, V, Z commands). */
   static isPolygonArray = isPolygonArray;
+  /** Iterates an array to check if it's a `pathArray` */
   static isNormalizedArray = isNormalizedArray;
+  /** Iterates an array to check if it's an actual `pathArray`. */
   static isPathArray = isPathArray;
+  /** Checks if a given point is in the stroke of a path. */
   static isPointInStroke = isPointInStroke;
+  /** Iterates an array to check if it's a `pathArray` */
   static isRelativeArray = isRelativeArray;
+  /** Parses a path string value to determine its validity */
   static isValidPath = isValidPath;
 
+  /** Samples points from a path to form a polygon approximation. */
   static samplePolygon = samplePolygon;
+  /** Supported shapes and their specific parameters. */
   static shapeParams = shapeParams;
+  /** Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`, */
   static shapeToPath = shapeToPath;
+  /** Returns a new PathArray from line attributes. */
   static shapeToPathArray = shapeToPathArray;
 
+  /** Returns an absolute segment of a `PathArray` object. */
   static absolutizeSegment = absolutizeSegment;
+  /** Converts A (arc-to) segments to C (cubic-bezier-to). */
   static arcToCubic = arcToCubic;
+  /** Returns a transformation matrix to apply to `<path>` elements. */
   static getSVGMatrix = getSVGMatrix;
+  /** Iterates over a `PathArray`, executing a callback for each segment. */
   static iterate = iterate;
+  /** Converts an L (line-to) segment to C (cubic-bezier). */
   static lineToCubic = lineToCubic;
+  /** Parses a path string or PathArray, then iterates the result for: */
   static normalizePath = normalizePath;
+  /** Normalizes a single segment of a `pathArray` object. */
   static normalizeSegment = normalizeSegment;
+  /** Optimizes a PathArray: */
   static optimizePath = optimizePath;
+  /** Transforms a specified point using a matrix, returning a new */
   static projection2d = projection2d;
+  /** Converts a Q (quadratic-bezier) segment to C (cubic-bezier). */
   static quadToCubic = quadToCubic;
+  /** Returns a relative segment of a `PathArray` object. */
   static relativizeSegment = relativizeSegment;
+  /** Reverses all segments of a `pathArray` */
   static reverseCurve = reverseCurve;
+  /** Reverses all segments of a PathArray and returns a new PathArray */
   static reversePath = reversePath;
+  /** Rounds the values of a `pathArray` instance to */
   static roundPath = roundPath;
+  /** Rounds the numeric values of a path segment to the specified precision. */
   static roundSegment = roundSegment;
+  /** Converts any segment to C (cubic-bezier). */
   static segmentToCubic = segmentToCubic;
+  /** Shorten a single segment of a `pathArray` object. */
   static shortenSegment = shortenSegment;
+  /** Split a path string or PathArray into an array of sub-paths. */
   static splitPath = splitPath;
+  /** Equalizes two paths for morphing (single/multi subpath). */
   static equalizePaths = equalizePaths;
+  /** Equalizes two paths for morphing (single subpath only). */
   static equalizeSegments = equalizeSegments;
+  /** Split a cubic Bézier into two cubics at parameter t [0–1]. */
   static splitCubicSegment = splitCubicSegment;
+  /** Apply a 2D / 3D transformation to a PathArray. */
   static transformPath = transformPath;
+  /** Checks if a point is inside a bounding box. */
   static isPointInsideBBox = isPointInsideBBox;
+  /** Finds intersection points between two paths. */
   static pathsIntersection = pathsIntersection;
+  /** Checks if two bounding boxes intersect. */
   static boundingBoxIntersect = boundingBoxIntersect;
+  /** Determines if an SVG path contains multiple subpaths. */
   static isMultiPath = isMultiPath;
+  /** Check if a PathArray is closed, which means its last segment is a Z. */
   static isClosedPath = isClosedPath;
+  /** Checks if a path is a polyline (only M, L, H, V commands). */
   static isPolylineArray = isPolylineArray;
+  /** The library version. */
   static version = pkg.version;
 }
 

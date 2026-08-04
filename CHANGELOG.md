@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.2.4] - 2026-08-04
+### Fixed
+- Build warnings: UMD bundle now uses a dedicated `src/browser.ts` entry so the `SVGPathCommander` global remains the class itself (no mixed-exports namespace), and the `output.dir`/`output.file` conflict is resolved — tree-shaking, named exports and type declarations are unaffected
+- ESM bundle exports the `SVGPathCommander` named export alongside the default, with all types available in `dist/index.d.ts`
+
+
+## [2.2.3] - 2026-08-04
+
+### Added
+- Named `SVGPathCommander` export alongside the default export for better JSR documentation rendering
+- Full JSDoc coverage for all class statics, instance properties, getters and every interface / type member — zero undocumented symbols per `deno doc --json` on both `index` and `util` entry points
+- JSR `./util` subpath export in `deno.json`, mirroring the npm `svg-path-commander/util` entry
+
+### Changed
+- Documentation moved from the GitHub wiki into the repository `wiki/` folder — the GitHub-hosted wiki pages are no longer available, and the README and wiki pages now reference the local `wiki/` folder instead
+- Merged `NPM.md` and `JSR.md` into a single `Installation.md` (npm, pnpm, bun, Deno/JSR and CDN installation)
+- Updated `Usage-Examples.md` with corrected output values verified against the current implementation
+- Rebuilt `dist` and `docs` bundles
+
 ## [2.2.2] - 2026-08-03
 
 ### Added

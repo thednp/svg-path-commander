@@ -359,12 +359,15 @@ export type ShapeOps =
 
 /** A `TransformObject` with a required 3D origin. */
 export type TransformObjectValues = Partial<TransformObject> & {
+  /** The transform origin. */
   origin: [number, number, number];
 };
 
 /** A 2D point with `x` and `y` coordinates. */
 export type Point = {
+  /** The X coordinate. */
   x: number;
+  /** The Y coordinate. */
   y: number;
 };
 
@@ -372,7 +375,10 @@ export type Point = {
 export type PointTuple = [number, number];
 
 /** A `Point` with a `t` parameter (a point on a curve at ratio `t`). */
-export type DerivedPoint = Point & { t: number };
+export type DerivedPoint = Point & {
+  /** The parameter ratio in `[0-1]`. */
+  t: number;
+};
 /** The six points of a quadratic Bezier curve (on-curve and off-curve control points). */
 export type QuadPoints = [Point, Point, Point, Point, Point, Point];
 /** The eight points of a cubic Bezier curve (on-curve and off-curve control points). */
@@ -456,37 +462,58 @@ export type BBoxMaxima = [
   maxY: number,
 ];
 /** A point on the path at a given length, including the `t` ratio. */
-export type PointAtLength = { x: number; y: number; t: number };
+export type PointAtLength = {
+  /** The X coordinate. */
+  x: number;
+  /** The Y coordinate. */
+  y: number;
+  /** The parameter ratio in `[0-1]`. */
+  t: number;
+};
 /** An intersection point between two curves, including both `t` ratios. */
 export type IntersectionPoint = {
+  /** The X coordinate of the intersection point. */
   x: number;
+  /** The Y coordinate of the intersection point. */
   y: number;
+  /** The parameter ratio of the first curve. */
   t1: number;
+  /** The parameter ratio of the second curve. */
   t2: number;
 };
 /** Options for computing intersections between two curves. */
 export interface IntersectionOptions {
+  /** Whether to only count the intersections without computing points. */
   justCount?: boolean;
+  /** The epsilon value used for precision. */
   epsilon?: number;
 }
 
 /** Options for equalizing a single path to a given segment count. */
 export interface PathEqualizationOptions {
-  /** @default "auto" */
+  /** The equalization mode. @default "auto" */
   mode?: "line" | "curve" | "auto";
-  sampleSize?: number; // for line option
-  roundValues?: number; // 4 decimals
+  /** The number of sample points for the line mode. */
+  sampleSize?: number;
+  /** The amount of decimals to round values to. */
+  roundValues?: number;
+  /** Whether to close the path before equalization. */
   close?: boolean;
 }
 
 /** Options for equalizing two paths for morphing. */
 export interface EqualizationOptions {
-  /** @default "auto" */
+  /** The equalization mode. @default "auto" */
   mode?: "curve" | "auto";
-  sampleSize?: number; // for line option
-  roundValues?: number; // 4 decimals
+  /** The number of sample points for the line mode. */
+  sampleSize?: number;
+  /** The amount of decimals to round values to. */
+  roundValues?: number;
+  /** Whether to reverse the second path before equalization. */
   reverse?: boolean;
+  /** Whether to close the path before equalization. */
   close?: boolean;
+  /** The target segment count for both paths. */
   target?: number;
 }
 
@@ -498,10 +525,16 @@ export type PathsEqualizationOptions = Omit<
 
 /** The geometric features of a path used for matching during morphing. */
 export interface PathFeature {
+  /** Whether the path is a polygon. */
   isPoly: boolean;
+  /** The normalized path array. */
   path: NormalArray;
+  /** The number of segments in the path. */
   size: number;
+  /** The absolute area of the path. */
   area: number;
+  /** The signed area of the path, negative for clockwise direction. */
   signedArea: number;
+  /** The bounding box of the path. */
   bbox: PathBBox;
 }
