@@ -1,7 +1,7 @@
 {
   "name": "@thednp/svg-path-commander",
   "description": "🛹 Modern TypeScript tools for SVG",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "license": "MIT",
   "keywords": [
     "svg",

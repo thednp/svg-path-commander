@@ -42,6 +42,7 @@ const Tvalues = [
   0.9951872199970213601799974097007368118745,
 ];
 
+/** The weights for the 32-point Gauss-Legendre quadrature. */
 const Cvalues = [
   0.1279381953467521569740561652246953718517,
   0.1279381953467521569740561652246953718517,
@@ -166,6 +167,13 @@ const computeBezier = (
   };
 };
 
+/**
+ * Calculates the speed (derivative magnitude) of a Bezier curve at parameter `t`.
+ *
+ * @param derivativeFn the curve derivative function
+ * @param t the sampled point ratio in `[0-1]`
+ * @returns the curve speed at parameter `t`
+ */
 const calculateBezier = (derivativeFn: DeriveCallback, t: number): number => {
   const d = derivativeFn(t);
   const l = d.x * d.x + d.y * d.y;
@@ -173,6 +181,12 @@ const calculateBezier = (derivativeFn: DeriveCallback, t: number): number => {
   return Math.sqrt(l);
 };
 
+/**
+ * Returns the total arc length of a Bezier segment.
+ *
+ * @param derivativeFn the curve derivative function
+ * @returns the total arc length
+ */
 const bezierLength = (derivativeFn: DeriveCallback): number => {
   return bezierLengthAtT(derivativeFn, 1);
 };
@@ -276,6 +290,7 @@ const getBezierLength = (curve: CubicCoordinates | QuadCoordinates): number => {
 };
 
 // Precision for consider cubic polynom as quadratic one
+/** The precision threshold to consider a cubic polynomial as quadratic. */
 const CBEZIER_MINMAX_EPSILON = 0.00000001;
 
 /**
@@ -352,6 +367,7 @@ const minmaxC = (
 
   return [min, max] as PointTuple;
 };
+/** The tools for Bezier curve computation. */
 const bezierTools = {
   bezierLength,
   bezierLengthAtT,

@@ -66,6 +66,7 @@ const polygonCentroid = (polygon: PointTuple[]): PointTuple => {
   return [sumX / count, sumY / count];
 };
 
+/** The tools for polygon computation. */
 const polygonTools = {
   polygonArea,
   polygonLength,

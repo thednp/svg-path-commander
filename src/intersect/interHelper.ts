@@ -57,6 +57,14 @@ const intersect = (
   return { x: px, y: py };
 };
 
+/**
+ * Returns the intersection point(s) of two cubic Bezier curves.
+ *
+ * @param bez1 the coordinates of the first cubic Bezier segment
+ * @param bez2 the coordinates of the second cubic Bezier segment
+ * @param config optional intersection options
+ * @returns the intersection points, or `undefined` if the curves do not intersect
+ */
 export const interHelper = (
   bez1: CubicCoordinates,
   bez2: CubicCoordinates,

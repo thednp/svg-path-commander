@@ -499,6 +499,7 @@ const getArcBBox = (
   return [xMin, yMin, xMax, yMax] as [number, number, number, number];
 };
 
+/** The tools for elliptical arc computation. */
 const arcTools = {
   angleBetween,
   arcLength,

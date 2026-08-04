@@ -1,11 +1,11 @@
 /*!
-* SVGPathCommander v2.2.2 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.2.3 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 import CSSMatrix from "@thednp/dommatrix";
 //#region package.json
-var version = "2.2.2";
+var version = "2.2.3";
 //#endregion
 //#region src/math/midPoint.ts
 /**
@@ -100,6 +100,7 @@ const getLineBBox = (x1, y1, x2, y2) => {
 		max(y1, y2)
 	];
 };
+/** The tools for line segment computation. */
 const lineTools = {
 	getLineBBox,
 	getLineLength,
@@ -137,6 +138,7 @@ const Tvalues = [
 	-.9951872199970213,
 	.9951872199970213
 ];
+/** The weights for the 32-point Gauss-Legendre quadrature. */
 const Cvalues = [
 	.12793819534675216,
 	.12793819534675216,
@@ -237,11 +239,24 @@ const computeBezier = (points, t) => {
 		t
 	};
 };
+/**
+* Calculates the speed (derivative magnitude) of a Bezier curve at parameter `t`.
+*
+* @param derivativeFn the curve derivative function
+* @param t the sampled point ratio in `[0-1]`
+* @returns the curve speed at parameter `t`
+*/
 const calculateBezier = (derivativeFn, t) => {
 	const d = derivativeFn(t);
 	const l = d.x * d.x + d.y * d.y;
 	return Math.sqrt(l);
 };
+/**
+* Returns the total arc length of a Bezier segment.
+*
+* @param derivativeFn the curve derivative function
+* @returns the total arc length
+*/
 const bezierLength = (derivativeFn) => {
 	return bezierLengthAtT(derivativeFn, 1);
 };
@@ -323,6 +338,7 @@ const getBezierLength = (curve) => {
 		return computeBezier(dpoints[0], t);
 	});
 };
+/** The precision threshold to consider a cubic polynomial as quadratic. */
 const CBEZIER_MINMAX_EPSILON = 1e-8;
 /**
 * Returns the most extreme points in a Quad Bezier segment.
@@ -363,6 +379,7 @@ const minmaxC = ([v1, cp1, cp2, v2]) => {
 	}
 	return [min, max];
 };
+/** The tools for Bezier curve computation. */
 const bezierTools = {
 	bezierLength,
 	bezierLengthAtT,
@@ -706,6 +723,7 @@ const getArcBBox = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
 		yMax
 	];
 };
+/** The tools for elliptical arc computation. */
 const arcTools = {
 	angleBetween,
 	arcLength,
@@ -842,6 +860,7 @@ const getCubicBBox = (x1, y1, c1x, c1y, c2x, c2y, x2, y2) => {
 		cyMinMax[1]
 	];
 };
+/** The tools for cubic Bezier computation. */
 const cubicTools = {
 	getCubicBBox,
 	getCubicLength,
@@ -962,6 +981,7 @@ const getQuadBBox = (x1, y1, cx, cy, x2, y2) => {
 		cyMinMax[1]
 	];
 };
+/** The tools for quadratic Bezier computation. */
 const quadTools = {
 	getPointAtQuadLength,
 	getPointAtQuadSegmentLength,
@@ -1025,6 +1045,7 @@ const polygonCentroid = (polygon) => {
 	const count = polygon.length;
 	return [sumX / count, sumY / count];
 };
+/** The tools for polygon computation. */
 const polygonTools = {
 	polygonArea,
 	polygonLength,
@@ -4224,6 +4245,14 @@ const intersect = (x1, y1, x2, y2, x3, y3, x4, y4) => {
 		y: py
 	};
 };
+/**
+* Returns the intersection point(s) of two cubic Bezier curves.
+*
+* @param bez1 the coordinates of the first cubic Bezier segment
+* @param bez2 the coordinates of the second cubic Bezier segment
+* @param config optional intersection options
+* @returns the intersection points, or `undefined` if the curves do not intersect
+*/
 const interHelper = (bez1, bez2, config) => {
 	const bbox1 = getCubicBBox(...bez1);
 	const bbox2 = getCubicBBox(...bez2);

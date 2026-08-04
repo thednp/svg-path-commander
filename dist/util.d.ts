@@ -1,16 +1,18 @@
 /*!
-* SVGPathCommander v2.2.2 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.2.3 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 import CSSMatrix from "@thednp/dommatrix";
 //#region src/interface.d.ts
+/** The properties of a path segment found by segment lookup utilities. */
 type SegmentProperties = {
   segment: PathSegment;
   index: number;
   length: number;
   lengthAtSegment: number;
 };
+/** The closest point on the path to a given point, with the distance and optional segment. */
 type PointProperties = {
   closest: {
     x: number;
@@ -19,6 +21,7 @@ type PointProperties = {
   distance: number;
   segment?: SegmentProperties;
 };
+/** The attributes of a `<line>` element read by `shapeToPath`. */
 type LineAttr = {
   type: "line";
   x1: number;
@@ -27,11 +30,13 @@ type LineAttr = {
   y2: number;
   [key: string]: string | number;
 };
+/** The attributes of a `<polygon>` or `<polyline>` element read by `shapeToPath`. */
 type PolyAttr = {
   type: "polygon" | "polyline";
   points: string;
   [key: string]: string | number;
 };
+/** The attributes of a `<circle>` element read by `shapeToPath`. */
 type CircleAttr = {
   type: "circle";
   cx: number;
@@ -39,6 +44,7 @@ type CircleAttr = {
   r: number;
   [key: string]: string | number;
 };
+/** The attributes of an `<ellipse>` element read by `shapeToPath`. */
 type EllipseAttr = {
   type: "ellipse";
   cx: number;
@@ -47,6 +53,7 @@ type EllipseAttr = {
   ry?: number;
   [key: string]: string | number | undefined;
 };
+/** The attributes of a `<rect>` element read by `shapeToPath`. */
 type RectAttr = {
   type: "rect";
   width: number;
@@ -57,11 +64,13 @@ type RectAttr = {
   ry?: number;
   [key: string]: string | number | undefined;
 };
+/** The attributes of a `<glyph>` element read by `shapeToPath`. */
 type GlyphAttr = {
   type: "glyph";
   d: string;
   [key: string]: string | number;
 };
+/** The parameter names read from each SVG shape element by `shapeToPath`. */
 type ShapeParams = {
   line: ["x1", "y1", "x2", "y2"];
   circle: ["cx", "cy", "r"];
@@ -71,6 +80,7 @@ type ShapeParams = {
   polyline: ["points"];
   glyph: ["d"];
 };
+/** The current state tracked by the SVG path string parser. */
 type ParserParams = {
   mx: number;
   my: number;
@@ -83,6 +93,7 @@ type ParserParams = {
   qx: number | null;
   qy: number | null;
 };
+/** A transform function object with translate, rotate, scale, skew and origin. */
 type TransformObject = {
   translate: number | number[];
   rotate: number | number[];
@@ -92,104 +103,191 @@ type TransformObject = {
 };
 //#endregion
 //#region src/types.d.ts
+/** Whitespace character codes recognized by the SVG path string tokenizer. */
 type SpaceNumber = 0x1680 | 0x180e | 0x2000 | 0x2001 | 0x2002 | 0x2003 | 0x2004 | 0x2005 | 0x2006 | 0x2007 | 0x2008 | 0x2009 | 0x200a | 0x202f | 0x205f | 0x3000 | 0xfeff | 0x0a | 0x0d | 0x2028 | 0x2029 | 0x20 | 0x09 | 0x0b | 0x0c | 0xa0 | 0x1680;
+/** Character codes of all SVG path command letters. */
 type PathCommandNumber = 0x6d | 0x7a | 0x6c | 0x68 | 0x76 | 0x63 | 0x73 | 0x71 | 0x74 | 0x61;
+/** Character codes of the decimal digits 0-9. */
 type DigitNumber = 0x30 | 0x31 | 0x32 | 0x33 | 0x34 | 0x35 | 0x36 | 0x37 | 0x38 | 0x39;
+/** The absolute moveto command letter. */
 type MCommand = "M";
+/** The relative moveto command letter. */
 type mCommand = "m";
+/** The absolute lineto command letter. */
 type LCommand = "L";
+/** The relative lineto command letter. */
 type lCommand = "l";
+/** The absolute vertical lineto command letter. */
 type VCommand = "V";
+/** The relative vertical lineto command letter. */
 type vCommand = "v";
+/** The absolute horizontal lineto command letter. */
 type HCommand = "H";
+/** The relative horizontal lineto command letter. */
 type hCommand = "h";
+/** The absolute closepath command letter. */
 type ZCommand = "Z";
+/** The relative closepath command letter. */
 type zCommand = "z";
+/** The absolute cubic Bezier command letter. */
 type CCommand = "C";
+/** The relative cubic Bezier command letter. */
 type cCommand = "c";
+/** The absolute smooth cubic Bezier command letter. */
 type SCommand = "S";
+/** The relative smooth cubic Bezier command letter. */
 type sCommand = "s";
+/** The absolute quadratic Bezier command letter. */
 type QCommand = "Q";
+/** The relative quadratic Bezier command letter. */
 type qCommand = "q";
+/** The absolute smooth quadratic Bezier command letter. */
 type TCommand = "T";
+/** The relative smooth quadratic Bezier command letter. */
 type tCommand = "t";
+/** The absolute elliptical arc command letter. */
 type ACommand = "A";
+/** The relative elliptical arc command letter. */
 type aCommand = "a";
+/** The union of all absolute path command letters. */
 type AbsoluteCommand = MCommand | LCommand | VCommand | HCommand | ZCommand | CCommand | SCommand | QCommand | TCommand | ACommand;
+/** The union of all relative path command letters. */
 type RelativeCommand = mCommand | lCommand | vCommand | hCommand | zCommand | cCommand | sCommand | qCommand | tCommand | aCommand;
+/** Any SVG path command letter, absolute or relative. */
 type PathCommand = AbsoluteCommand | RelativeCommand;
+/** The absolute moveto segment tuple `[M, x, y]`. */
 type MSegment = [MCommand, number, number];
+/** The relative moveto segment tuple `[m, dx, dy]`. */
 type mSegment = [mCommand, number, number];
+/** The moveto segment, absolute or relative. */
 type MoveSegment = MSegment | mSegment;
+/** The absolute lineto segment tuple `[L, x, y]`. */
 type LSegment = [LCommand, number, number];
+/** The relative lineto segment tuple `[l, dx, dy]`. */
 type lSegment = [lCommand, number, number];
+/** The lineto segment, absolute or relative. */
 type LineSegment = LSegment | lSegment;
+/** The absolute vertical lineto segment tuple `[V, y]`. */
 type VSegment = [VCommand, number];
+/** The relative vertical lineto segment tuple `[v, dy]`. */
 type vSegment = [vCommand, number];
+/** The vertical lineto segment, absolute or relative. */
 type VertLineSegment = vSegment | VSegment;
+/** The absolute horizontal lineto segment tuple `[H, x]`. */
 type HSegment = [HCommand, number];
+/** The relative horizontal lineto segment tuple `[h, dx]`. */
 type hSegment = [hCommand, number];
+/** The horizontal lineto segment, absolute or relative. */
 type HorLineSegment = HSegment | hSegment;
+/** The absolute closepath segment tuple `[Z]`. */
 type ZSegment = [ZCommand];
+/** The relative closepath segment tuple `[z]`. */
 type zSegment = [zCommand];
+/** The closepath segment, absolute or relative. */
 type CloseSegment = ZSegment | zSegment;
+/** The absolute cubic Bezier segment tuple `[C, x1, y1, x2, y2, x, y]`. */
 type CSegment = [CCommand, number, number, number, number, number, number];
+/** The relative cubic Bezier segment tuple `[c, dx1, dy1, dx2, dy2, dx, dy]`. */
 type cSegment = [cCommand, number, number, number, number, number, number];
+/** The cubic Bezier segment, absolute or relative. */
 type CubicSegment = CSegment | cSegment;
+/** The absolute smooth cubic Bezier segment tuple `[S, x2, y2, x, y]`. */
 type SSegment = [SCommand, number, number, number, number];
+/** The relative smooth cubic Bezier segment tuple `[s, dx2, dy2, dx, dy]`. */
 type sSegment = [sCommand, number, number, number, number];
+/** The smooth cubic Bezier segment, absolute or relative. */
 type ShortCubicSegment = SSegment | sSegment;
+/** The absolute quadratic Bezier segment tuple `[Q, x1, y1, x, y]`. */
 type QSegment = [QCommand, number, number, number, number];
+/** The relative quadratic Bezier segment tuple `[q, dx1, dy1, dx, dy]`. */
 type qSegment = [qCommand, number, number, number, number];
+/** The quadratic Bezier segment, absolute or relative. */
 type QuadSegment = QSegment | qSegment;
+/** The absolute smooth quadratic Bezier segment tuple `[T, x, y]`. */
 type TSegment = [TCommand, number, number];
+/** The relative smooth quadratic Bezier segment tuple `[t, dx, dy]`. */
 type tSegment = [tCommand, number, number];
+/** The smooth quadratic Bezier segment, absolute or relative. */
 type ShortQuadSegment = TSegment | tSegment;
+/** The absolute elliptical arc segment tuple `[A, rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y]`. */
 type ASegment = [ACommand, number, number, number, number, number, number, number];
+/** The relative elliptical arc segment tuple `[a, rx, ry, xAxisRotation, largeArcFlag, sweepFlag, dx, dy]`. */
 type aSegment = [aCommand, number, number, number, number, number, number, number];
+/** The elliptical arc segment, absolute or relative. */
 type ArcSegment = ASegment | aSegment;
+/** Any SVG path command segment. */
 type PathSegment = MoveSegment | LineSegment | VertLineSegment | HorLineSegment | CloseSegment | CubicSegment | ShortCubicSegment | QuadSegment | ShortQuadSegment | ArcSegment;
+/** Any shorthand or single-coordinate path segment. */
 type ShortSegment = VertLineSegment | HorLineSegment | ShortCubicSegment | ShortQuadSegment | CloseSegment;
+/** Any absolute path command segment. */
 type AbsoluteSegment = MSegment | LSegment | VSegment | HSegment | CSegment | SSegment | QSegment | TSegment | ASegment | ZSegment;
+/** Any relative path command segment. */
 type RelativeSegment = mSegment | lSegment | vSegment | hSegment | cSegment | sSegment | qSegment | tSegment | aSegment | zSegment;
+/** The path segments used by the normalized form (no shorthand commands). */
 type NormalSegment = MSegment | LSegment | CSegment | QSegment | ASegment | ZSegment;
+/** A parsed SVG path string as an array of path segments. */
 type PathArray = [MSegment | mSegment, ...PathSegment[]];
+/** A `PathArray` with only absolute path segments. */
 type AbsoluteArray = [MSegment, ...AbsoluteSegment[]];
+/** A `PathArray` with only relative path segments. */
 type RelativeArray = [MSegment, ...RelativeSegment[]];
+/** A `PathArray` with only normalized segments (no shorthand commands). */
 type NormalArray = [MSegment, ...NormalSegment[]];
+/** A `PathArray` with only moveto and cubic Bezier segments. */
 type CurveArray = [MSegment, ...CSegment[]];
+/** A `CurveArray` ending with a closepath segment. */
 type ClosedCurveArray = [MSegment, ...CSegment[], ZSegment];
+/** A `PathArray` describing a closed polygon (moveto, lineto and closepath). */
 type PolygonArray = [MSegment, ...LSegment[], ZSegment];
+/** A `PathArray` describing an open polyline (moveto and lineto). */
 type PolylineArray = [MSegment, ...LSegment[]];
+/** The `PathArray` shapes supported by path morphing. */
 type MorphPathArray = PolygonArray | PolylineArray | CurveArray | ClosedCurveArray;
+/** The SVG element types that can be converted to a path. */
 type ShapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;
+/** The shape attributes mapped to each supported SVG element type. */
 type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
+/** A `TransformObject` with a required 3D origin. */
 type TransformObjectValues = Partial<TransformObject> & {
   origin: [number, number, number];
 };
+/** A 2D point with `x` and `y` coordinates. */
 type Point = {
   x: number;
   y: number;
 };
+/** A 2D point as a tuple `[x, y]`. */
 type PointTuple = [number, number];
+/** A `Point` with a `t` parameter (a point on a curve at ratio `t`). */
 type DerivedPoint = Point & {
   t: number;
 };
+/** The six points of a quadratic Bezier curve (on-curve and off-curve control points). */
 type QuadPoints = [Point, Point, Point, Point, Point, Point];
+/** The eight points of a cubic Bezier curve (on-curve and off-curve control points). */
 type CubicPoints = [Point, Point, Point, Point, Point, Point, Point, Point];
+/** The six derived points of a quadratic Bezier curve, each with a `t` parameter. */
 type DerivedQuadPoints = [DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint];
+/** The eight derived points of a cubic Bezier curve, each with a `t` parameter. */
 type DerivedCubicPoints = [DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint];
+/** The six coordinates of a quadratic Bezier segment `[x1, y1, cx, cy, x, y]`. */
 type QuadCoordinates = [number, number, number, number, number, number];
+/** The eight coordinates of a cubic Bezier segment. */
 type CubicCoordinates = [number, number, number, number, number, number, number, number];
+/** A function that derives a point on a curve at a given `t` ratio. */
 type DeriveCallback = (t: number) => Point;
+/** A callback invoked for each segment while iterating over a `PathArray`. */
 type IteratorCallback<T extends PathArray, K extends keyof T = number> = (segment: PathSegment & T[K], index: number, lastX: number, lastY: number) => PathSegment | T[K] | false | void | undefined;
+/** The bounding box extremes `[minX, minY, maxX, maxY]`. */
 type BBoxMaxima = [minX: number, minY: number, maxX: number, maxY: number];
+/** An intersection point between two curves, including both `t` ratios. */
 type IntersectionPoint = {
   x: number;
   y: number;
   t1: number;
   t2: number;
 };
+/** Options for equalizing two paths for morphing. */
 interface EqualizationOptions {
   /** @default "auto" */
   mode?: "curve" | "auto";
@@ -324,6 +422,7 @@ declare const getPointAtArcLength: (x1: number, y1: number, RX: number, RY: numb
  * @returns the extrema of the Arc segment
  */
 declare const getArcBBox: (x1: number, y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, x: number, y: number) => [number, number, number, number];
+/** The tools for elliptical arc computation. */
 declare const arcTools: {
   angleBetween: typeof angleBetween;
   arcLength: typeof arcLength;
@@ -347,7 +446,20 @@ declare const deriveBezier: (points: QuadPoints | CubicPoints) => (DerivedQuadPo
  * @param t
  */
 declare const computeBezier: (points: DerivedQuadPoints | DerivedCubicPoints, t: number) => DerivedPoint;
+/**
+ * Calculates the speed (derivative magnitude) of a Bezier curve at parameter `t`.
+ *
+ * @param derivativeFn the curve derivative function
+ * @param t the sampled point ratio in `[0-1]`
+ * @returns the curve speed at parameter `t`
+ */
 declare const calculateBezier: (derivativeFn: DeriveCallback, t: number) => number;
+/**
+ * Returns the total arc length of a Bezier segment.
+ *
+ * @param derivativeFn the curve derivative function
+ * @returns the total arc length
+ */
 declare const bezierLength: (derivativeFn: DeriveCallback) => number;
 /**
  * Returns the arc length of a Bezier segment from its start point
@@ -398,6 +510,7 @@ declare const minmaxQ: ([v1, cp, v2]: [number, number, number]) => PointTuple;
  * @see https://github.com/kpym/SVGPathy/blob/acd1a50c626b36d81969f6e98e8602e128ba4302/lib/box.js#L127
  */
 declare const minmaxC: ([v1, cp1, cp2, v2]: [number, number, number, number]) => PointTuple;
+/** The tools for Bezier curve computation. */
 declare const bezierTools: {
   bezierLength: typeof bezierLength;
   bezierLengthAtT: typeof bezierLengthAtT;
@@ -481,6 +594,7 @@ declare const getPointAtCubicLength: (x1: number, y1: number, c1x: number, c1y: 
  * @returns the extrema of the CubicBezier segment
  */
 declare const getCubicBBox: (x1: number, y1: number, c1x: number, c1y: number, c2x: number, c2y: number, x2: number, y2: number) => BBoxMaxima;
+/** The tools for cubic Bezier computation. */
 declare const cubicTools: {
   getCubicBBox: typeof getCubicBBox;
   getCubicLength: typeof getCubicLength;
@@ -523,6 +637,7 @@ declare const getPointAtLineLength: (x1: number, y1: number, x2: number, y2: num
  * @returns the bounding box for line segments
  */
 declare const getLineBBox: (x1: number, y1: number, x2: number, y2: number) => [number, number, number, number];
+/** The tools for line segment computation. */
 declare const lineTools: {
   getLineBBox: typeof getLineBBox;
   getLineLength: typeof getLineLength;
@@ -590,6 +705,7 @@ declare const getPointAtQuadLength: (x1: number, y1: number, cx: number, cy: num
  * @returns the extrema of the QuadraticBezier segment
  */
 declare const getQuadBBox: (x1: number, y1: number, cx: number, cy: number, x2: number, y2: number) => [number, number, number, number];
+/** The tools for quadratic Bezier computation. */
 declare const quadTools: {
   getPointAtQuadLength: typeof getPointAtQuadLength;
   getPointAtQuadSegmentLength: typeof getPointAtQuadSegmentLength;
@@ -626,6 +742,7 @@ declare const polygonLength: (polygon: PointTuple[]) => number;
  * @returns [x, y] centroid
  */
 declare const polygonCentroid: (polygon: PointTuple[]) => PointTuple;
+/** The tools for polygon computation. */
 declare const polygonTools: {
   polygonArea: typeof polygonArea;
   polygonLength: typeof polygonLength;

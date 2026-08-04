@@ -78,6 +78,7 @@ const getLineBBox = (
   ];
 };
 
+/** The tools for line segment computation. */
 const lineTools = {
   getLineBBox,
   getLineLength,

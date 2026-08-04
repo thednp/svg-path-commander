@@ -118,6 +118,7 @@ const getQuadBBox = (
     number,
   ];
 };
+/** The tools for quadratic Bezier computation. */
 const quadTools = {
   getPointAtQuadLength,
   getPointAtQuadSegmentLength,

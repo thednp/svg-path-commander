@@ -127,6 +127,7 @@ const getCubicBBox = (
   return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]];
 };
 
+/** The tools for cubic Bezier computation. */
 const cubicTools = {
   getCubicBBox,
   getCubicLength,
