@@ -19,7 +19,10 @@
     "transform3d",
     "typescript"
   ],
-  "exports": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./util": "./src/util.ts"
+  },
   "compilerOptions": {
     "lib": [
       "DOM",
