@@ -751,7 +751,13 @@ describe('SVGPathCommander Static Methods', () => {
   });
 
   test(`Can cover all remaining branches`, () => {
-    const { isMultiPath, roundPath, paramsParser, shortenSegment, splitPath, pathToString, optimizePath, parsePathString, getPathBBox, getPointAtLength, getTotalLength } = SVGPathCommander;
+    const { isMultiPath, roundPath, paramsParser, shortenSegment, splitPath, pathToString, optimizePath, parsePathString, getPathBBox, getPointAtLength, getTotalLength, roundTo } = SVGPathCommander;
+    expect(roundTo(3.456, 0), `can round with 0 decimals`).to.equal(3);
+    expect(parsePathString('M0 0L+10 10'), `can parse a number starting with +`).to.deep.equal([['M', 0, 0], ['L', 10, 10]]);
+    expect(parsePathString('M0 0L1e+2 0'), `can parse a positive exponent`).to.deep.equal([['M', 0, 0], ['L', 100, 0]]);
+    expect(parsePathString('M0 0L1e-2 0'), `can parse a negative exponent`).to.deep.equal([['M', 0, 0], ['L', 0.01, 0]]);
+    expect(parsePathString('M0 0L1e25 0'), `can parse a large exponent`).to.deep.equal([['M', 0, 0], ['L', 1e25, 0]]);
+    expect(parsePathString('M0 0L1e-25 0'), `can parse a tiny exponent`).to.deep.equal([['M', 0, 0], ['L', 1e-25, 0]]);
     expect(getPointAtLength(simpleShapes.normalized[3], 2 * getTotalLength('M6 10A6 4 10 1 0 14 10'))).to.deep.equal({ x: 14, y: 10 });
     expect(getPointAtLength(simpleShapes.normalized[0], 0)).to.deep.equal({ x: 10, y: 10 });
     expect(getPointAtLength(simpleShapes.normalized[3], undefined)).to.deep.equal({ x: 6, y: 10 });
