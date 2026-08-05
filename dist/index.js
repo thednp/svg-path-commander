@@ -1,11 +1,11 @@
 /*!
-* SVGPathCommander v2.3.0 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.3.1 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 import CSSMatrix from "@thednp/dommatrix";
 //#region package.json
-var version = "2.3.0";
+var version = "2.3.1";
 //#endregion
 //#region src/math/midPoint.ts
 /**

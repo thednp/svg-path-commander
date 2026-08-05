@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@thednp/dommatrix':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.1.1
+        version: 3.1.1
     devDependencies:
       '@types/node':
         specifier: ^26.1.2
@@ -246,8 +246,8 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@thednp/dommatrix@3.1.0':
-    resolution: {integrity: sha512-jCHykme+nuiZExA9v/y6Kyht47By3hGqdn+rOKlyZRkBqNCLPs+/2DVBjoKYcOj1vAeXZq+6DetXn1SYg/6OMg==}
+  '@thednp/dommatrix@3.1.1':
+    resolution: {integrity: sha512-LQw9A56KeDYN9aPFGjad2xTpGNnsIsvq98k1l28HNsvi+SuRFY6M5ET3f0SFrtssOKOcvgqmObztR0/dc6kSZQ==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -633,8 +633,8 @@ packages:
       oxc-resolver:
         optional: true
 
-  electron-to-chromium@1.5.399:
-    resolution: {integrity: sha512-lEcqhErbHjXRvd41rnWLpzbyU/IXfIYo7QwaFWmxGeLiLyY2TBCdHnWY88vB+p3ubnihRypDm66panXl7TylLA==}
+  electron-to-chromium@1.5.400:
+    resolution: {integrity: sha512-96EWDNjM59SYflgeV5Ylsf4EMiq1a25YjCnJH7cxn/AF2H3pILRweaUnoLax0yKHWdpOzY6JKEu45e8irqZIHA==}
 
   empathic@2.0.1:
     resolution: {integrity: sha512-YGRs8knHhKHVShLkFET/rWAU8kmHbOV5LwN938RHI0pljAJ1Gf6SzXsSmRaEzcXTtOOmVqJ5+WtQPL5uigY50Q==}
@@ -833,8 +833,8 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  node-releases@2.0.51:
-    resolution: {integrity: sha512-wRNIrw4DmVLKQlbgOMdkMx27Wrpzes2hh5Jtbi2bjPd+4wJstWIqP5A+lscnqbm0xxmT5Bpg8Lec5ItEBwx6BQ==}
+  node-releases@2.0.52:
+    resolution: {integrity: sha512-MRlTqhAfoMx/4mhEbPo3Hi02g9LJZaJkka69V6h67Cb1gjrAG0jsTE4CZX1eptNx+VCAwJmfpnDIF4P0Nh1A7A==}
     engines: {node: '>=18'}
 
   obug@2.1.4:
@@ -1104,8 +1104,8 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  ws@8.21.1:
-    resolution: {integrity: sha512-+0NTnW77fFN/DjQi6k/Sq/Yvk4Sgajw7urW8V+asjXnRgDs9gyGkdb7EzgfhA4goXsRIZKE28fzIXBHEzhuiWw==}
+  ws@8.21.2:
+    resolution: {integrity: sha512-54dMVAo4WIe6SKy3vBgN+9bJZqqQ8IMRevAkOLQALhi49qkkQDQfWdAZ8KQlXiEabw88ARXXdUrlvtbKQX+aKw==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -1307,7 +1307,7 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@thednp/dommatrix@3.1.0': {}
+  '@thednp/dommatrix@3.1.1': {}
 
   '@types/chai@5.2.3':
     dependencies:
@@ -1411,7 +1411,7 @@ snapshots:
       sirv: 3.0.2
       tinyrainbow: 3.1.1
       vitest: 4.1.10(@types/node@26.1.2)(@vitest/browser-playwright@4.1.10)(@vitest/coverage-istanbul@4.1.10)(@vitest/ui@4.1.10)(happy-dom@20.11.1)(vite@8.2.0(@types/node@26.1.2))
-      ws: 8.21.1
+      ws: 8.21.2
     transitivePeerDependencies:
       - bufferutil
       - msw
@@ -1570,8 +1570,8 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.12
       caniuse-lite: 1.0.30001806
-      electron-to-chromium: 1.5.399
-      node-releases: 2.0.51
+      electron-to-chromium: 1.5.400
+      node-releases: 2.0.52
       update-browserslist-db: 1.2.3(browserslist@4.28.7)
 
   buffer-image-size@0.6.4:
@@ -1598,7 +1598,7 @@ snapshots:
 
   dts-resolver@3.0.0: {}
 
-  electron-to-chromium@1.5.399: {}
+  electron-to-chromium@1.5.400: {}
 
   empathic@2.0.1: {}
 
@@ -1642,7 +1642,7 @@ snapshots:
       buffer-image-size: 0.6.4
       entities: 7.0.1
       whatwg-mimetype: 3.0.0
-      ws: 8.21.1
+      ws: 8.21.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -1747,7 +1747,7 @@ snapshots:
 
   nanoid@3.3.17: {}
 
-  node-releases@2.0.51: {}
+  node-releases@2.0.52: {}
 
   obug@2.1.4: {}
 
@@ -1962,7 +1962,7 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  ws@8.21.1: {}
+  ws@8.21.2: {}
 
   yallist@3.1.1: {}
 

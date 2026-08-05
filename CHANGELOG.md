@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.1] - 2026-08-05
+
+### Changed
+- Updated `@thednp/dommatrix` to `^3.1.1` — the 3.1.x line carries the shim's matrix-math rework (specialized `translate` / `scale` / `skew` / `multiply` and constructor fast paths), which directly accelerates the 3D transform path through `getSVGMatrix()` and `projection2d()`; 3.1.1 makes `setMatrixValue()` mutate the instance in place and return `this`, matching native `DOMMatrix` (SVGPathCommander does not use `setMatrixValue()`, so output is byte-identical and the 2D single-pass fast path is untouched)
+- Rebuilt `dist` and `docs` bundles
+
 ## [2.3.0] - 2026-08-04
 
 ### Added

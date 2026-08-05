@@ -2,7 +2,7 @@
   "name": "svg-path-commander",
   "author": "thednp",
   "license": "MIT",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "🛹 Modern TypeScript tools for SVG",
   "homepage": "http://thednp.github.io/svg-path-commander",
   "bugs": {
@@ -79,7 +79,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@thednp/dommatrix": "^3.1.0"
+    "@thednp/dommatrix": "^3.1.1"
   },
   "packageManager": "pnpm@11.18.0"
 }

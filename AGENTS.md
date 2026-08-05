@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-SVGPathCommander v2.2.2 — TypeScript library for manipulating SVG `<path>` `d` attributes. Works in browser and Node.js.
+SVGPathCommander v2.3.1 — TypeScript library for manipulating SVG `<path>` `d` attributes. Works in browser and Node.js.
 
 ## Commands
 
@@ -40,7 +40,7 @@ deno publish         # JSR dry run: deno publish --dry-run --allow-dirty
 - **Test:** Vitest + Istanbul coverage (`test/class.test.ts`, `test/static.test.ts`)
 - **Lint/Format:** Deno (`deno lint`, `deno fmt`)
 - **JSR:** `deno.json` publishes as `@thednp/svg-path-commander` — `deno check src`, `deno lint src` and `deno publish --dry-run --allow-dirty` must all pass
-- **Dependency:** `@thednp/dommatrix` (DOMMatrix shim)
+- **Dependency:** `@thednp/dommatrix` `^3.1.1` (DOMMatrix shim)
 
 ## Source Structure (`src/`)
 
