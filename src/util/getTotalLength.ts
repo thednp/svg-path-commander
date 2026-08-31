@@ -27,8 +27,8 @@ export const getTotalLength = <T extends PathArray>(
   let paramY1 = 0;
   let paramX2 = 0;
   let paramY2 = 0;
-  let paramQX = 0;
-  let paramQY = 0;
+  let paramQX: number | null = null;
+  let paramQY: number | null = null;
   let pathCommand = "M";
   let mx = 0;
   let my = 0;
@@ -51,8 +51,8 @@ export const getTotalLength = <T extends PathArray>(
 
     if (!"TQ".includes(absCommand)) {
       // optional but good to be cautious
-      paramQX = 0;
-      paramQY = 0;
+      paramQX = null;
+      paramQY = null;
     }
 
     // this segment is always ZERO
@@ -105,8 +105,8 @@ export const getTotalLength = <T extends PathArray>(
         normalSegment[6] as number,
       );
     } else if (pathCommand === "T") {
-      paramQX = paramX1 * 2 - paramQX;
-      paramQY = paramY1 * 2 - paramQY;
+      paramQX = paramQX === null ? lastX : paramX1 * 2 - paramQX;
+      paramQY = paramQY === null ? lastY : paramY1 * 2 - paramQY;
       totalLength += getQuadLength(
         lastX,
         lastY,
