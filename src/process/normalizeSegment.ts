@@ -78,8 +78,8 @@ export const normalizeSegment = (
     params.y1 = y1;
     return ["C", x1, y1].concat(absValues) as CSegment;
   } else if (absCommand === "T") {
-    const qx = px1 * 2 - (params.qx ? params.qx : /* istanbul ignore next */ 0);
-    const qy = py1 * 2 - (params.qy ? params.qy : /* istanbul ignore next */ 0);
+    const qx = params.qx != null ? px1 * 2 - params.qx : px1;
+    const qy = params.qy != null ? py1 * 2 - params.qy : py1;
     params.qx = qx;
     params.qy = qy;
     return ["Q", qx, qy].concat(absValues) as QSegment;

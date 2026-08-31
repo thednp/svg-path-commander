@@ -897,3 +897,32 @@ describe('Static method consistency', () => {
     expect(isPointInsideBBox([bbox.x, bbox.y, bbox.x2, bbox.y2], [mid.x, mid.y])).to.equal(true);
   });
 });
+
+describe('T/t shorthand with no preceding Q/T uses the current point as control', () => {
+  const { getPathBBox, getTotalLength, normalizePath } = SVGPathCommander;
+
+  test('Can compute the bbox of a t following a curve command', () => {
+    const bbox = getPathBBox('M486.7 242c0 0 0 0 0 0t0 0l10 10');
+    expect(bbox.x).to.be.closeTo(486.7, 0.001);
+    expect(bbox.y).to.be.closeTo(242, 0.001);
+    expect(bbox.x2).to.be.closeTo(496.7, 0.001);
+    expect(bbox.y2).to.be.closeTo(252, 0.001);
+  });
+
+  test('Can compute the length of a t following a curve command', () => {
+    expect(getTotalLength('M486.7 242c0 0 0 0 0 0t0 0l10 10')).to.be.closeTo(Math.sqrt(200), 0.001);
+  });
+
+  test('Can normalize a T to the current point when no Q precedes it', () => {
+    expect(normalizePath('M0 0L10 10T20 20')).to.deep.equal([['M', 0, 0], ['L', 10, 10], ['Q', 10, 10, 20, 20]]);
+  });
+
+  test('Can still reflect the control point of a T following a Q', () => {
+    const bbox = getPathBBox('M0 0Q10 10 20 0T40 0');
+    expect(bbox.x).to.be.closeTo(0, 0.001);
+    expect(bbox.y).to.be.closeTo(-5, 0.001);
+    expect(bbox.x2).to.be.closeTo(40, 0.001);
+    expect(bbox.y2).to.be.closeTo(5, 0.001);
+    expect(normalizePath('M0 0Q10 10 20 0T40 0')).to.deep.equal([['M', 0, 0], ['Q', 10, 10, 20, 0], ['Q', 30, -10, 40, 0]]);
+  });
+});
