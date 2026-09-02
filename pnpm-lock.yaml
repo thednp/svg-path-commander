@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@thednp/dommatrix':
-        specifier: ^3.1.1
-        version: 3.1.1
+        specifier: ^3.1.2
+        version: 3.1.2
     devDependencies:
       '@types/node':
         specifier: ^26.4.1
@@ -252,8 +252,8 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@thednp/dommatrix@3.1.1':
-    resolution: {integrity: sha512-LQw9A56KeDYN9aPFGjad2xTpGNnsIsvq98k1l28HNsvi+SuRFY6M5ET3f0SFrtssOKOcvgqmObztR0/dc6kSZQ==}
+  '@thednp/dommatrix@3.1.2':
+    resolution: {integrity: sha512-wxRH2/Qdqd+JxFpjb5vw+ZMaij8Hqa/9Hgl41n2Jb+3WNRhdemrosK0FxEo/yEvhvHGW8D1tZ3oPH9N0m1QG+A==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -1316,7 +1316,7 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@thednp/dommatrix@3.1.1': {}
+  '@thednp/dommatrix@3.1.2': {}
 
   '@types/chai@5.2.3':
     dependencies:

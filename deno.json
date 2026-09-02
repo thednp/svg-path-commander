@@ -1,7 +1,7 @@
 {
   "name": "@thednp/svg-path-commander",
   "description": "🛹 Modern TypeScript tools for SVG",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "license": "MIT",
   "keywords": [
     "svg",
@@ -33,7 +33,7 @@
   },
   "minimumDependencyAge": "0",
   "imports": {
-    "@thednp/dommatrix": "jsr:@thednp/dommatrix@^3.1.1",
+    "@thednp/dommatrix": "jsr:@thednp/dommatrix@^3.1.2",
     "@vitest/browser": "npm:@vitest/browser@^4.1.11",
     "@vitest/browser-playwright": "npm:@vitest/browser-playwright@^4.1.11",
     "@vitest/coverage-istanbul": "npm:@vitest/coverage-istanbul@^4.1.11",

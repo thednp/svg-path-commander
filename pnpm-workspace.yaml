@@ -1,4 +1,4 @@
 minimumReleaseAgeExclude:
-  - '@thednp/dommatrix@3.0.6 || 3.1.0 || 3.1.1'
+  - '@thednp/dommatrix@3.0.6 || 3.1.0 || 3.1.1 || 3.1.2'
   - '@types/node@26.4.1'
   - happy-dom@20.12.2
