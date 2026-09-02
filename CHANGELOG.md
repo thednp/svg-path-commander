@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.3.3] - 2026-09-02
+
+### Changed
+- Updated dependencies: `@thednp/dommatrix` `^3.1.2`
+
 ## [2.3.2] - 2026-09-02
 
 ### Fixed
