@@ -1,7 +1,7 @@
 {
   "name": "@thednp/svg-path-commander",
   "description": "🛹 Modern TypeScript tools for SVG",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "license": "MIT",
   "keywords": [
     "svg",
@@ -34,12 +34,12 @@
   "minimumDependencyAge": "0",
   "imports": {
     "@thednp/dommatrix": "jsr:@thednp/dommatrix@^3.1.1",
-    "@vitest/browser": "npm:@vitest/browser@^4.1.10",
-    "@vitest/browser-playwright": "npm:@vitest/browser-playwright@^4.1.10",
-    "@vitest/coverage-istanbul": "npm:@vitest/coverage-istanbul@^4.1.10",
-    "@vitest/ui": "npm:@vitest/ui@^4.1.10",
+    "@vitest/browser": "npm:@vitest/browser@^4.1.11",
+    "@vitest/browser-playwright": "npm:@vitest/browser-playwright@^4.1.11",
+    "@vitest/coverage-istanbul": "npm:@vitest/coverage-istanbul@^4.1.11",
+    "@vitest/ui": "npm:@vitest/ui@^4.1.11",
     "playwright": "npm:playwright@^1.62.1",
-    "vitest": "npm:vitest@^4.1.10"
+    "vitest": "npm:vitest@^4.1.11"
   },
   "tasks": {
     "test": "deno task clean-coverage && vitest --browser.headless",

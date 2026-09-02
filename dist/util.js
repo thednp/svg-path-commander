@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v2.3.1 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.3.2 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1940,8 +1940,8 @@ const normalizeSegment = (segment, params) => {
 			y1
 		].concat(absValues);
 	} else if (absCommand === "T") {
-		const qx = px1 * 2 - (params.qx ? params.qx : 0);
-		const qy = py1 * 2 - (params.qy ? params.qy : 0);
+		const qx = params.qx != null ? px1 * 2 - params.qx : px1;
+		const qy = params.qy != null ? py1 * 2 - params.qy : py1;
 		params.qx = qx;
 		params.qy = qy;
 		return [
@@ -2107,8 +2107,8 @@ const getPathBBox = (pathInput) => {
 	let paramY1 = 0;
 	let paramX2 = 0;
 	let paramY2 = 0;
-	let paramQX = 0;
-	let paramQY = 0;
+	let paramQX = null;
+	let paramQY = null;
 	iterate(path, (seg, index, lastX, lastY) => {
 		[pathCommand] = seg;
 		const commandCode = pathCommand.charCodeAt(0);
@@ -2126,8 +2126,8 @@ const getPathBBox = (pathInput) => {
 		] : absoluteSegment;
 		[pathCommand] = normalSegment;
 		if (absCommand !== "T" && absCommand !== "Q") {
-			paramQX = 0;
-			paramQY = 0;
+			paramQX = null;
+			paramQY = null;
 		}
 		if (pathCommand === "M") {
 			[, mx, my] = normalSegment;
@@ -2143,8 +2143,8 @@ const getPathBBox = (pathInput) => {
 			[minX, minY, maxX, maxY] = getCubicBBox(lastX, lastY, cp1x, cp1y, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4]);
 		} else if (pathCommand === "C") [minX, minY, maxX, maxY] = getCubicBBox(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4], normalSegment[5], normalSegment[6]);
 		else if (pathCommand === "T") {
-			paramQX = paramX1 * 2 - paramQX;
-			paramQY = paramY1 * 2 - paramQY;
+			paramQX = paramQX === null ? lastX : paramX1 * 2 - paramQX;
+			paramQY = paramQY === null ? lastY : paramY1 * 2 - paramQY;
 			[minX, minY, maxX, maxY] = getQuadBBox(lastX, lastY, paramQX, paramQY, normalSegment[1], normalSegment[2]);
 		} else if (pathCommand === "Q") {
 			paramQX = normalSegment[1];
@@ -2208,8 +2208,8 @@ const getTotalLength = (pathInput) => {
 	let paramY1 = 0;
 	let paramX2 = 0;
 	let paramY2 = 0;
-	let paramQX = 0;
-	let paramQY = 0;
+	let paramQX = null;
+	let paramQY = null;
 	let pathCommand = "M";
 	let mx = 0;
 	let my = 0;
@@ -2229,8 +2229,8 @@ const getTotalLength = (pathInput) => {
 		] : absoluteSegment;
 		[pathCommand] = normalSegment;
 		if (!"TQ".includes(absCommand)) {
-			paramQX = 0;
-			paramQY = 0;
+			paramQX = null;
+			paramQY = null;
 		}
 		if (pathCommand === "M") [, mx, my] = normalSegment;
 		else if (pathCommand === "L") totalLength += getLineLength(lastX, lastY, normalSegment[1], normalSegment[2]);
@@ -2241,8 +2241,8 @@ const getTotalLength = (pathInput) => {
 			totalLength += getCubicLength(lastX, lastY, cp1x, cp1y, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4]);
 		} else if (pathCommand === "C") totalLength += getCubicLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4], normalSegment[5], normalSegment[6]);
 		else if (pathCommand === "T") {
-			paramQX = paramX1 * 2 - paramQX;
-			paramQY = paramY1 * 2 - paramQY;
+			paramQX = paramQX === null ? lastX : paramX1 * 2 - paramQX;
+			paramQY = paramQY === null ? lastY : paramY1 * 2 - paramQY;
 			totalLength += getQuadLength(lastX, lastY, paramQX, paramQY, normalSegment[1], normalSegment[2]);
 		} else if (pathCommand === "Q") {
 			paramQX = normalSegment[1];
@@ -2714,7 +2714,7 @@ const isMultiPath = (path) => {
 		}
 		return false;
 	}
-	throw new TypeError("SVGPathCommanderError: expected string or PathArray");
+	throw new TypeError(error + ": expected string or PathArray");
 };
 //#endregion
 //#region src/util/isClosedPath.ts
@@ -4160,7 +4160,7 @@ function getRotations(a) {
 */
 function getRotatedPath(pathA, pathB, computedRotations) {
 	const rotations = computedRotations || getRotations(pathA);
-	if (pathA.length !== pathB.length) throw new TypeError("SVGPathCommanderError: paths must have the same number of segments after equalization");
+	if (pathA.length !== pathB.length) throw new TypeError(error + ": paths must have the same number of segments after equalization");
 	let bestIndex = 0;
 	let minDistanceSq = Infinity;
 	for (let ri = 0; ri < rotations.length; ri++) {
@@ -4535,13 +4535,15 @@ const interHelper = (bez1, bez2, config) => {
 			if (xy[is.x.toFixed(4)] == is.y.toFixed(4)) continue;
 			xy[is.x.toFixed(4)] = is.y.toFixed(4);
 			const t1 = di.t + Math.abs((is[ci] - di[ci]) / (di1[ci] - di[ci])) * (di1.t - di.t), t2 = dj.t + Math.abs((is[cj] - dj[cj]) / (dj1[cj] - dj[cj])) * (dj1.t - dj.t);
-			if (t1 >= 0 && t1 <= maxLimit && t2 >= 0 && t2 <= maxLimit) if (justCount) res++;
-			else res.push({
-				x: is.x,
-				y: is.y,
-				t1: Math.min(t1, 1),
-				t2: Math.min(t2, 1)
-			});
+			if (t1 >= 0 && t1 <= maxLimit && t2 >= 0 && t2 <= maxLimit) {
+				if (justCount) res++;
+				else res.push({
+					x: is.x,
+					y: is.y,
+					t1: Math.min(t1, 1),
+					t2: Math.min(t2, 1)
+				});
+			}
 		}
 	}
 	return res;

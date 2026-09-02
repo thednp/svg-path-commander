@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.3.2] - 2026-09-02
+
+### Fixed
+- `T`/`t` smooth-quadratic shorthand without a preceding `Q`/`q`/`T`/`t` now correctly uses the current point as control point per the SVG spec ([#64](https://github.com/thednp/svg-path-commander/pull/64), thanks @nattyluke) — `normalizeSegment` (`src/process/normalizeSegment.ts:4`), `getPathBBox` (`src/util/getPathBBox.ts:12`) and `getTotalLength` (`src/util/getTotalLength.ts:12`) previously reflected a `0`-defaulted control point, so a `t` following a non-`Q` command (e.g. Illustrator `c...t` output) produced an inflated control/bbox/length (thanks @nattyluke)
+
+### Changed
+- Updated dev dependencies: `@types/node` `^26.4.1`, `vitest` / `@vitest/*` `^4.1.11`, `happy-dom` `^20.12.2`, `vite` `^8.2.2`
+- Rebuilt `dist` and `docs` bundles
+
 ## [2.3.1] - 2026-08-05
 
 ### Changed

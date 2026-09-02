@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-SVGPathCommander v2.3.1 — TypeScript library for manipulating SVG `<path>` `d` attributes. Works in browser and Node.js.
+SVGPathCommander v2.3.2 — TypeScript library for manipulating SVG `<path>` `d` attributes. Works in browser and Node.js.
 
 ## Commands
 

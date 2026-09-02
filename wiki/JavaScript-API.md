@@ -315,7 +315,7 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   ```
 * **SVGPathCommander.version** - the current library version.
   ```js
-  SVGPathCommander.version; // => "2.3.1"
+  SVGPathCommander.version; // => "2.3.2"
   ```
 
 

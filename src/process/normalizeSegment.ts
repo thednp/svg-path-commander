@@ -78,6 +78,7 @@ export const normalizeSegment = (
     params.y1 = y1;
     return ["C", x1, y1].concat(absValues) as CSegment;
   } else if (absCommand === "T") {
+    // keep null check #64
     const qx = params.qx != null ? px1 * 2 - params.qx : px1;
     const qy = params.qy != null ? py1 * 2 - params.qy : py1;
     params.qx = qx;
