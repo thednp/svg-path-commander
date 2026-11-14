@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v2.3.3 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.3.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -169,10 +169,16 @@ type ParserParams = {
   x1: number;
   /** The Y coordinate of the previous control point. */
   y1: number;
-  /** The X coordinate of the second control point. */
-  x2: number;
-  /** The Y coordinate of the second control point. */
-  y2: number;
+  /**
+   * The X coordinate of the reflectable control point of the previous
+   * segment, `null` when the previous segment has none.
+   */
+  x2: number | null;
+  /**
+   * The Y coordinate of the reflectable control point of the previous
+   * segment, `null` when the previous segment has none.
+   */
+  y2: number | null;
   /** The X coordinate of the current point. */
   x: number;
   /** The Y coordinate of the current point. */
@@ -1248,9 +1254,10 @@ declare const lineToCubic: (x1: number, y1: number, x2: number, y2: number) => n
  *
  * @param segment the segment object
  * @param params the normalization parameters
+ * @param prevCommand the command of the previous segment
  * @returns the normalized segment
  */
-declare const normalizeSegment: (segment: PathSegment, params: ParserParams) => NormalSegment;
+declare const normalizeSegment: (segment: PathSegment, params: ParserParams, prevCommand?: PathCommand | null) => NormalSegment;
 //#endregion
 //#region src/process/projection2d.d.ts
 /**

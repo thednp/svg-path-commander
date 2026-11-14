@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.3.4] - 2026-11-14
+
+### Fixed
+- `getPathBBox()` returned mirrored extrema for elliptical arcs rotated by more than 90 degrees ([#65](https://github.com/thednp/svg-path-commander/issues/65)) — `getArcBBox()` (`src/math/arcTools.ts:440`) assumed the same extremum order for the X and Y axis, but the extrema swap sides when `cos(alpha) < 0`, so e.g. `M-4 0A22 5 156 0 0 3 -21` reported `[-34.21, -21, 3, 6.26]` instead of `[-4, -27.26, 33.21, 0]`
+- `S`/`s` smooth-cubic shorthand no longer reflects a control point that does not exist ([#65](https://github.com/thednp/svg-path-commander/issues/65)) — per the SVG spec the control point of an `S` is only reflected when the previous command is a `C`/`c`/`S`/`s`, otherwise it coincides with the current point; `normalizePath()`, `pathToCurve()` and `optimizePath()` read the reflectable control point from the previous segment whatever its type, so an `S` after a `Q` or an `A` reflected a quadratic control point or even an arc flag, and a legitimate `0` coordinate was treated as a missing value
+- `reversePath()` no longer produces `NaN` coordinates for a path with a trailing moveto or a segment following a `Z` ([#65](https://github.com/thednp/svg-path-commander/issues/65)) — the previous point was read from the previous segment, which has no coordinates for a `Z` segment
+- `reverse()` no longer collapses the control points of an `S` segment that is not preceded by a cubic ([#66](https://github.com/thednp/svg-path-commander/issues/66)) — the reversed segment kept the `S` shorthand although the reflected control point cannot be recovered from the previous segment of the reversed path, so the control points collapsed onto the current point and the path length changed
+- `optimize()` no longer rewrites a cubic as a smooth cubic when the control points do not match ([#66](https://github.com/thednp/svg-path-commander/issues/66)) — `shortenSegment()` (`src/process/shortenSegment.ts:54`) checked a second, unrelated condition that ignored the control points of the cubic, so any cubic following a segment whose control point matched its end point was shortened to an `s`, changing the shape of the path
+
+### Changed
+- `ParserParams.x2` / `ParserParams.y2` are now `number | null`, `null` marks a previous segment without a reflectable control point (the same sentinel used by `ParserParams.qx` / `ParserParams.qy`)
+- `normalizeSegment()` accepts the command of the previous segment as an optional third argument, required to tell a reflectable control point from a missing one
+- Rebuilt `dist` and `docs` bundles
+
 ## [2.3.3] - 2026-09-02
 
 ### Changed

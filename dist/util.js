@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v2.3.3 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander v2.3.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -660,7 +660,7 @@ const getPointAtArcLength = (x1, y1, RX, RY, angle, LAF, SF, x, y, distance) => 
 const getArcBBox = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
 	const { center, rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
 	const deltaAngle = endAngle - startAngle;
-	const { min, max, tan, atan2, PI } = Math;
+	const { min, max, tan, atan2, cos, PI } = Math;
 	const { x: cx, y: cy } = center;
 	const alpha = angle * PI / 180;
 	const tangent = tan(alpha);
@@ -673,6 +673,11 @@ const getArcBBox = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
 	const angle2 = theta + PI;
 	const angle3 = atan2(ry, rx * tangent);
 	const angle4 = angle3 + PI;
+	const flipped = cos(alpha) < 0;
+	const rightAngle = flipped ? angle2 : angle1;
+	const leftAngle = flipped ? angle1 : angle2;
+	const topAngle = flipped ? angle3 : angle4;
+	const bottomAngle = flipped ? angle4 : angle3;
 	const xArray = [x];
 	const yArray = [y];
 	let xMin = min(x1, x);
@@ -690,22 +695,22 @@ const getArcBBox = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
 	* otherwise exclude elliptic extreme points
 	*/
 	if (pP2[0] > xMax || pP3[0] > xMax) {
-		const p1 = arcPoint(cx, cy, rx, ry, alpha, angle1);
+		const p1 = arcPoint(cx, cy, rx, ry, alpha, rightAngle);
 		xArray.push(p1[0]);
 		yArray.push(p1[1]);
 	}
 	if (pP2[0] < xMin || pP3[0] < xMin) {
-		const p2 = arcPoint(cx, cy, rx, ry, alpha, angle2);
+		const p2 = arcPoint(cx, cy, rx, ry, alpha, leftAngle);
 		xArray.push(p2[0]);
 		yArray.push(p2[1]);
 	}
 	if (pP2[1] < yMin || pP3[1] < yMin) {
-		const p4 = arcPoint(cx, cy, rx, ry, alpha, angle4);
+		const p4 = arcPoint(cx, cy, rx, ry, alpha, topAngle);
 		xArray.push(p4[0]);
 		yArray.push(p4[1]);
 	}
 	if (pP2[1] > yMax || pP3[1] > yMax) {
-		const p3 = arcPoint(cx, cy, rx, ry, alpha, angle3);
+		const p3 = arcPoint(cx, cy, rx, ry, alpha, bottomAngle);
 		xArray.push(p3[0]);
 		yArray.push(p3[1]);
 	}
@@ -1892,13 +1897,14 @@ const segmentToCubic = (segment, params) => {
 *
 * @param segment the segment object
 * @param params the normalization parameters
+* @param prevCommand the command of the previous segment
 * @returns the normalized segment
 */
-const normalizeSegment = (segment, params) => {
+const normalizeSegment = (segment, params, prevCommand) => {
 	const [pathCommand] = segment;
 	const absCommand = pathCommand.toUpperCase();
 	const isRelative = pathCommand !== absCommand;
-	const { x1: px1, y1: py1, x2: px2, y2: py2, x, y } = params;
+	const { x, y } = params;
 	const values = segment.slice(1);
 	let absValues = values.map((n, j) => n + (isRelative ? j % 2 ? y : x : 0));
 	if (!"TQ".includes(absCommand)) {
@@ -1911,11 +1917,11 @@ const normalizeSegment = (segment, params) => {
 	} else if (absCommand === "H") return [
 		"L",
 		segment[1] + (isRelative ? x : 0),
-		py1
+		y
 	];
 	else if (absCommand === "V") return [
 		"L",
-		px1,
+		x,
 		segment[1] + (isRelative ? y : 0)
 	];
 	else if (absCommand === "L") return [
@@ -1930,18 +1936,15 @@ const normalizeSegment = (segment, params) => {
 	];
 	else if (absCommand === "C") return ["C"].concat(absValues);
 	else if (absCommand === "S") {
-		const x1 = px1 * 2 - px2;
-		const y1 = py1 * 2 - py2;
-		params.x1 = x1;
-		params.y1 = y1;
+		const canReflect = prevCommand != null && "CS".includes(prevCommand);
 		return [
 			"C",
-			x1,
-			y1
+			canReflect && params.x2 != null ? x * 2 - params.x2 : x,
+			canReflect && params.y2 != null ? y * 2 - params.y2 : y
 		].concat(absValues);
 	} else if (absCommand === "T") {
-		const qx = params.qx != null ? px1 * 2 - params.qx : px1;
-		const qy = params.qy != null ? py1 * 2 - params.qy : py1;
+		const qx = params.qx != null ? x * 2 - params.qx : x;
+		const qy = params.qy != null ? y * 2 - params.qy : y;
 		params.qx = qx;
 		params.qy = qy;
 		return [
@@ -1968,8 +1971,8 @@ const paramsParser = {
 	my: 0,
 	x1: 0,
 	y1: 0,
-	x2: 0,
-	y2: 0,
+	x2: null,
+	y2: null,
 	x: 0,
 	y: 0,
 	qx: null,
@@ -1993,10 +1996,11 @@ const paramsParser = {
 const pathToCurve = (pathInput) => {
 	const params = { ...paramsParser };
 	const path = parsePathString(pathInput);
+	let prevCommand = null;
 	return iterate(path, (seg, index, lastX, lastY) => {
 		params.x = lastX;
 		params.y = lastY;
-		const normalSegment = normalizeSegment(seg, params);
+		const normalSegment = normalizeSegment(seg, params, prevCommand);
 		if (normalSegment[0] === "M") {
 			params.mx = normalSegment[1];
 			params.my = normalSegment[2];
@@ -2009,8 +2013,14 @@ const pathToCurve = (pathInput) => {
 		const seglen = result.length;
 		params.x1 = +result[seglen - 2];
 		params.y1 = +result[seglen - 1];
-		params.x2 = +result[seglen - 4] || params.x1;
-		params.y2 = +result[seglen - 3] || params.y1;
+		if (normalSegment[0] === "C") {
+			params.x2 = +result[seglen - 4];
+			params.y2 = +result[seglen - 3];
+		} else {
+			params.x2 = null;
+			params.y2 = null;
+		}
+		prevCommand = normalSegment[0];
 		return result;
 	});
 };
@@ -2277,15 +2287,22 @@ const DISTANCE_EPSILON = 1e-5;
 const normalizePath = (pathInput) => {
 	const path = parsePathString(pathInput);
 	const params = { ...paramsParser };
+	let prevCommand = null;
 	return iterate(path, (seg, _, lastX, lastY) => {
 		params.x = lastX;
 		params.y = lastY;
-		const result = normalizeSegment(seg, params);
+		const result = normalizeSegment(seg, params, prevCommand);
 		const seglen = result.length;
 		params.x1 = +result[seglen - 2];
 		params.y1 = +result[seglen - 1];
-		params.x2 = +result[seglen - 4] || params.x1;
-		params.y2 = +result[seglen - 3] || params.y1;
+		if (result[0] === "C" || result[0] === "Q") {
+			params.x2 = +result[seglen - 4];
+			params.y2 = +result[seglen - 3];
+		} else {
+			params.x2 = null;
+			params.y2 = null;
+		}
+		prevCommand = result[0];
 		return result;
 	});
 };
@@ -3116,7 +3133,7 @@ const shortenSegment = (segment, normalSegment, params, prevCommand) => {
 	const { round: defaultRound } = defaultOptions;
 	const round = typeof defaultRound === "number" ? defaultRound : 4;
 	const normalValues = normalSegment.slice(1);
-	const { x1, y1, x2, y2, x, y } = params;
+	const { x2, y2, x, y } = params;
 	const [nx, ny] = normalValues.slice(-2);
 	const result = segment;
 	if (!"TQ".includes(pathCommand)) {
@@ -3128,9 +3145,7 @@ const shortenSegment = (segment, normalSegment, params, prevCommand) => {
 		else if (roundTo(y, round) === roundTo(ny, round)) return ["H", nx];
 	} else if (pathCommand === "C") {
 		const [nx1, ny1] = normalValues;
-		params.x1 = nx1;
-		params.y1 = ny1;
-		if ("CS".includes(prevCommand) && (roundTo(nx1, round) === roundTo(x1 * 2 - x2, round) && roundTo(ny1, round) === roundTo(y1 * 2 - y2, round) || roundTo(x1, round) === roundTo(x2 * 2 - x, round) && roundTo(y1, round) === roundTo(y2 * 2 - y, round))) return [
+		if ("CS".includes(prevCommand) && x2 != null && y2 != null && roundTo(nx1, round) === roundTo(x * 2 - x2, round) && roundTo(ny1, round) === roundTo(y * 2 - y2, round)) return [
 			"S",
 			normalValues[2],
 			normalValues[3],
@@ -3141,7 +3156,7 @@ const shortenSegment = (segment, normalSegment, params, prevCommand) => {
 		const [qx, qy] = normalValues;
 		params.qx = qx;
 		params.qy = qy;
-		if ("QT".includes(prevCommand) && roundTo(qx, round) === roundTo(x1 * 2 - x2, round) && roundTo(qy, round) === roundTo(y1 * 2 - y2, round)) return [
+		if ("QT".includes(prevCommand) && x2 != null && y2 != null && roundTo(qx, round) === roundTo(x * 2 - x2, round) && roundTo(qy, round) === roundTo(y * 2 - y2, round)) return [
 			"T",
 			normalValues[2],
 			normalValues[3]
@@ -3189,12 +3204,12 @@ const optimizePath = (pathInput, roundOption) => {
 	return iterate(path, (seg, i, lastX, lastY) => {
 		optimParams.x = lastX;
 		optimParams.y = lastY;
-		const normalizedSegment = normalizeSegment(seg, optimParams);
 		let result = seg;
 		pathCommand = seg[0];
 		allPathCommands[i] = pathCommand;
+		if (i) prevCommand = allPathCommands[i - 1];
+		const normalizedSegment = normalizeSegment(seg, optimParams, i ? prevCommand : null);
 		if (i) {
-			prevCommand = allPathCommands[i - 1];
 			const shortSegment = shortenSegment(seg, normalizedSegment, optimParams, prevCommand);
 			const absSegment = roundSegment(shortSegment, round);
 			const absString = absSegment.join("");
@@ -3206,8 +3221,13 @@ const optimizePath = (pathInput, roundOption) => {
 		const seglen = normalizedSegment.length;
 		optimParams.x1 = +normalizedSegment[seglen - 2];
 		optimParams.y1 = +normalizedSegment[seglen - 1];
-		optimParams.x2 = +normalizedSegment[seglen - 4] || optimParams.x1;
-		optimParams.y2 = +normalizedSegment[seglen - 3] || optimParams.y1;
+		if (normalizedSegment[0] === "C" || normalizedSegment[0] === "Q") {
+			optimParams.x2 = +normalizedSegment[seglen - 4];
+			optimParams.y2 = +normalizedSegment[seglen - 3];
+		} else {
+			optimParams.x2 = null;
+			optimParams.y2 = null;
+		}
 		return result;
 	});
 };
@@ -3231,6 +3251,26 @@ const reversePath = (pathInput) => {
 	const normalizedPath = normalizePath(absolutePath);
 	const pLen = absolutePath.length;
 	const isClosed = absolutePath[pLen - 1][0] === "Z";
+	const endPoints = [];
+	let endX = 0;
+	let endY = 0;
+	let subX = 0;
+	let subY = 0;
+	for (const seg of normalizedPath) {
+		if (seg[0] === "M") {
+			subX = +seg[1];
+			subY = +seg[2];
+			endX = subX;
+			endY = subY;
+		} else if (seg[0] === "Z") {
+			endX = subX;
+			endY = subY;
+		} else {
+			endX = +seg[seg.length - 2];
+			endY = +seg[seg.length - 1];
+		}
+		endPoints.push([endX, endY]);
+	}
 	const reversedPath = iterate(absolutePath, (segment, i) => {
 		const normalizedSegment = normalizedPath[i];
 		const prevSeg = i && absolutePath[i - 1];
@@ -3238,7 +3278,7 @@ const reversePath = (pathInput) => {
 		const nextSeg = absolutePath[i + 1];
 		const nextCommand = nextSeg && nextSeg[0];
 		const pathCommand = segment[0];
-		const [x, y] = normalizedPath[i ? i - 1 : pLen - 1].slice(-2);
+		const [x, y] = endPoints[i ? i - 1 : pLen - 1];
 		let result = segment;
 		switch (pathCommand) {
 			case "M":
@@ -3279,17 +3319,17 @@ const reversePath = (pathInput) => {
 				];
 				break;
 			case "S":
-				if (prevCommand && "CS".includes(prevCommand) && (!nextSeg || nextCommand !== "S")) result = [
-					"C",
-					normalizedSegment[3],
-					normalizedSegment[4],
+				if (nextSeg && nextCommand === "S") result = [
+					pathCommand,
 					normalizedSegment[1],
 					normalizedSegment[2],
 					x,
 					y
 				];
 				else result = [
-					pathCommand,
+					"C",
+					normalizedSegment[3],
+					normalizedSegment[4],
 					normalizedSegment[1],
 					normalizedSegment[2],
 					x,

@@ -18,16 +18,18 @@ import type {
  *
  * @param segment the segment object
  * @param params the normalization parameters
+ * @param prevCommand the command of the previous segment
  * @returns the normalized segment
  */
 export const normalizeSegment = (
   segment: PathSegment,
   params: ParserParams,
+  prevCommand?: PathCommand | null,
 ): NormalSegment => {
   const [pathCommand] = segment;
   const absCommand = pathCommand.toUpperCase();
   const isRelative = pathCommand !== absCommand;
-  const { x1: px1, y1: py1, x2: px2, y2: py2, x, y } = params;
+  const { x, y } = params;
   const values = segment.slice(1) as number[];
   let absValues = values.map((n, j) => n + (isRelative ? (j % 2 ? y : x) : 0));
 
@@ -49,12 +51,12 @@ export const normalizeSegment = (
     return [
       "L",
       (segment as HSegment)[1] + (isRelative ? x : 0),
-      py1,
+      y,
     ] as LSegment;
   } else if (absCommand === "V") {
     return [
       "L",
-      px1,
+      x,
       (segment as VSegment)[1] + (isRelative ? y : 0),
     ] as LSegment;
   } else if (absCommand === "L") {
@@ -72,15 +74,16 @@ export const normalizeSegment = (
   } else if (absCommand === "C") {
     return ["C" as PathCommand | number].concat(absValues) as CSegment;
   } else if (absCommand === "S") {
-    const x1 = px1 * 2 - px2;
-    const y1 = py1 * 2 - py2;
-    params.x1 = x1;
-    params.y1 = y1;
+    // the control point is only reflected when the previous segment
+    // is a cubic, otherwise it coincides with the current point
+    const canReflect = prevCommand != null && "CS".includes(prevCommand);
+    const x1 = canReflect && params.x2 != null ? x * 2 - params.x2 : x;
+    const y1 = canReflect && params.y2 != null ? y * 2 - params.y2 : y;
     return ["C", x1, y1].concat(absValues) as CSegment;
   } else if (absCommand === "T") {
     // keep null check #64
-    const qx = params.qx != null ? px1 * 2 - params.qx : px1;
-    const qy = params.qy != null ? py1 * 2 - params.qy : py1;
+    const qx = params.qx != null ? x * 2 - params.qx : x;
+    const qy = params.qy != null ? y * 2 - params.qy : y;
     params.qx = qx;
     params.qy = qy;
     return ["Q", qx, qy].concat(absValues) as QSegment;

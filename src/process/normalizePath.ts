@@ -1,4 +1,4 @@
-import type { NormalArray, PathArray } from "../types.ts";
+import type { NormalArray, PathArray, PathCommand } from "../types.ts";
 import { normalizeSegment } from "./normalizeSegment.ts";
 import { parsePathString } from "../parser/parsePathString.ts";
 import { paramsParser } from "../parser/paramsParser.ts";
@@ -23,17 +23,25 @@ export const normalizePath = <T extends string | PathArray>(
 ): NormalArray => {
   const path = parsePathString(pathInput);
   const params = { ...paramsParser };
+  let prevCommand: PathCommand | null = null;
 
   return iterate(path, (seg, _, lastX, lastY) => {
     params.x = lastX;
     params.y = lastY;
-    const result = normalizeSegment(seg, params);
+    const result = normalizeSegment(seg, params, prevCommand);
 
     const seglen = result.length;
     params.x1 = +result[seglen - 2];
     params.y1 = +result[seglen - 1];
-    params.x2 = +result[seglen - 4] || params.x1;
-    params.y2 = +result[seglen - 3] || params.y1;
+    // only cubic and quadratic segments carry a reflectable control point
+    if (result[0] === "C" || result[0] === "Q") {
+      params.x2 = +result[seglen - 4];
+      params.y2 = +result[seglen - 3];
+    } else {
+      params.x2 = null;
+      params.y2 = null;
+    }
+    prevCommand = result[0];
 
     return result;
   }) as NormalArray;

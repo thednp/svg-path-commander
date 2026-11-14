@@ -169,10 +169,16 @@ export type ParserParams = {
   x1: number;
   /** The Y coordinate of the previous control point. */
   y1: number;
-  /** The X coordinate of the second control point. */
-  x2: number;
-  /** The Y coordinate of the second control point. */
-  y2: number;
+  /**
+   * The X coordinate of the reflectable control point of the previous
+   * segment, `null` when the previous segment has none.
+   */
+  x2: number | null;
+  /**
+   * The Y coordinate of the reflectable control point of the previous
+   * segment, `null` when the previous segment has none.
+   */
+  y2: number | null;
   /** The X coordinate of the current point. */
   x: number;
   /** The Y coordinate of the current point. */

@@ -926,3 +926,88 @@ describe('T/t shorthand with no preceding Q/T uses the current point as control'
     expect(normalizePath('M0 0Q10 10 20 0T40 0')).to.deep.equal([['M', 0, 0], ['Q', 10, 10, 20, 0], ['Q', 30, -10, 40, 0]]);
   });
 });
+
+describe('S/s shorthand and arc bounds fixes', () => {
+  const { getPathBBox, getTotalLength, normalizePath, pathToCurve, pathToString, reversePath, transformPath } = SVGPathCommander;
+
+  test('Can compute the bbox of a rotated arc with an angle over 90 degrees', () => {
+    const arc = 'M-4 0A22 5 156 0 0 3 -21';
+    const bbox = getPathBBox(arc);
+    expect(bbox.x).to.be.closeTo(-4, 0.01);
+    expect(bbox.y).to.be.closeTo(-27.264, 0.01);
+    expect(bbox.x2).to.be.closeTo(33.207, 0.01);
+    expect(bbox.y2).to.be.closeTo(0, 0.01);
+  });
+
+  test('Can compute the bbox of a rotated arc the same way as the curve conversion', () => {
+    const arc = 'M-4 0A22 5 156 0 0 3 -21';
+    const curve = pathToString(pathToCurve(arc));
+    const arcBox = getPathBBox(arc);
+    const curveBox = getPathBBox(curve);
+    expect(curveBox.x).to.be.closeTo(arcBox.x, 0.5);
+    expect(curveBox.y).to.be.closeTo(arcBox.y, 0.5);
+    expect(curveBox.x2).to.be.closeTo(arcBox.x2, 0.5);
+    expect(curveBox.y2).to.be.closeTo(arcBox.y2, 0.5);
+  });
+
+  test('Can normalize an S following a Q with the current point as control point', () => {
+    expect(normalizePath('M10 10Q20 30 30 10S50 30 60 10')).to.deep.equal([
+      ['M', 10, 10],
+      ['Q', 20, 30, 30, 10],
+      ['C', 30, 10, 50, 30, 60, 10],
+    ]);
+  });
+
+  test('Can normalize an S following an A with the current point as control point', () => {
+    expect(normalizePath('M0 0A10 10 0 0 1 20 0S40 30 50 0')).to.deep.equal([
+      ['M', 0, 0],
+      ['A', 10, 10, 0, 0, 1, 20, 0],
+      ['C', 20, 0, 40, 30, 50, 0],
+    ]);
+  });
+
+  test('Can reflect the control point of an S following a C with a zero coordinate', () => {
+    expect(normalizePath('M10 10C10 10 0 20 10 20S20 30 30 20')).to.deep.equal([
+      ['M', 10, 10],
+      ['C', 10, 10, 0, 20, 10, 20],
+      ['C', 20, 20, 20, 30, 30, 20],
+    ]);
+  });
+
+  test('Can compute the same length for a path and its normalized version', () => {
+    const path = 'M10 10Q20 30 30 10S50 30 60 10';
+    expect(getTotalLength(pathToString(normalizePath(path)))).to.be.closeTo(getTotalLength(path), 0.001);
+    expect(getTotalLength(pathToString(pathToCurve(path)))).to.be.closeTo(getTotalLength(path), 0.001);
+  });
+
+  test('Can reverse a path with a trailing moveto without NaN values', () => {
+    const reversed = pathToString(reversePath('M0 0L10 0L10 10Zm4 4'));
+    expect(reversed).to.not.contain('NaN');
+    expect(reversed).to.equal('M4 4M0 0M10 10L10 0L0 0');
+  });
+
+  test('Can reverse an S segment that is not preceded by a cubic', () => {
+    const path = 'M0 0L10 0S20 10 30 0';
+    const reversed = pathToString(reversePath(path));
+    expect(reversed).to.equal('M30 0C20 10 10 0 10 0L0 0');
+    expect(getTotalLength(reversed)).to.be.closeTo(getTotalLength(path), 0.001);
+  });
+
+  test('Can optimize a cubic without rewriting it as a smooth cubic', () => {
+    const path = 'M0 0C5 5 10 10 10 10C40 -50 10 10 30 10';
+    const optimized = pathToString(SVGPathCommander.optimizePath(path));
+    expect(optimized).to.equal('M0 0c5 5 10 10 10 10c30 -60 0 0 20 0');
+    expect(getTotalLength(optimized)).to.be.closeTo(getTotalLength(path), 0.001);
+  });
+
+  test('Can still shorten a cubic to a smooth cubic when the control points match', () => {
+    const path = 'M0 0C10 10 20 20 30 0C40 -20 50 20 60 0';
+    expect(pathToString(SVGPathCommander.optimizePath(path))).to.contain('s');
+  });
+
+  test('Can transform a path with an S segment without changing the shape', () => {
+    const path = 'M0 0L10 0S20 10 30 0';
+    const transformed = pathToString(transformPath(path, { translate: [5, 5] }));
+    expect(getTotalLength(transformed)).to.be.closeTo(getTotalLength(path), 0.001);
+  });
+});

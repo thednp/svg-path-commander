@@ -417,7 +417,7 @@ const getArcBBox = (
     y,
   );
   const deltaAngle = endAngle - startAngle;
-  const { min, max, tan, atan2, PI } = Math;
+  const { min, max, tan, atan2, cos, PI } = Math;
 
   // circle/elipse center coordinates
   const { x: cx, y: cy } = center;
@@ -435,6 +435,13 @@ const getArcBBox = (
   const angle2 = theta + PI;
   const angle3 = atan2(ry, rx * tangent);
   const angle4 = angle3 + PI;
+  // the extremum points swap sides when the ellipse is rotated by more
+  // than 90 degrees, the sign of `cos(alpha)` tells which one is which
+  const flipped = cos(alpha) < 0;
+  const rightAngle = flipped ? angle2 : angle1;
+  const leftAngle = flipped ? angle1 : angle2;
+  const topAngle = flipped ? angle3 : angle4;
+  const bottomAngle = flipped ? angle4 : angle3;
   const xArray = [x];
   const yArray = [y];
 
@@ -462,7 +469,7 @@ const getArcBBox = (
   // right
   if (pP2[0] > xMax || pP3[0] > xMax) {
     // get point for this theta
-    const p1 = arcPoint(cx, cy, rx, ry, alpha, angle1);
+    const p1 = arcPoint(cx, cy, rx, ry, alpha, rightAngle);
     xArray.push(p1[0]);
     yArray.push(p1[1]);
   }
@@ -470,7 +477,7 @@ const getArcBBox = (
   // left
   if (pP2[0] < xMin || pP3[0] < xMin) {
     // get anti-symmetric point
-    const p2 = arcPoint(cx, cy, rx, ry, alpha, angle2);
+    const p2 = arcPoint(cx, cy, rx, ry, alpha, leftAngle);
     xArray.push(p2[0]);
     yArray.push(p2[1]);
   }
@@ -478,7 +485,7 @@ const getArcBBox = (
   // top
   if (pP2[1] < yMin || pP3[1] < yMin) {
     // get anti-symmetric point
-    const p4 = arcPoint(cx, cy, rx, ry, alpha, angle4);
+    const p4 = arcPoint(cx, cy, rx, ry, alpha, topAngle);
     xArray.push(p4[0]);
     yArray.push(p4[1]);
   }
@@ -486,7 +493,7 @@ const getArcBBox = (
   // bottom
   if (pP2[1] > yMax || pP3[1] > yMax) {
     // get point for this theta
-    const p3 = arcPoint(cx, cy, rx, ry, alpha, angle3);
+    const p3 = arcPoint(cx, cy, rx, ry, alpha, bottomAngle);
     xArray.push(p3[0]);
     yArray.push(p3[1]);
   }

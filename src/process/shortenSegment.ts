@@ -31,7 +31,7 @@ export const shortenSegment = (
     ? defaultRound
     : /* istanbul ignore next */ 4;
   const normalValues = normalSegment.slice(1) as number[];
-  const { x1, y1, x2, y2, x, y } = params;
+  const { x2, y2, x, y } = params;
   const [nx, ny] = normalValues.slice(-2);
   const result = segment;
 
@@ -49,15 +49,12 @@ export const shortenSegment = (
     }
   } else if (pathCommand === "C") {
     const [nx1, ny1] = normalValues;
-    params.x1 = nx1;
-    params.y1 = ny1;
 
     if (
       "CS".includes(prevCommand) &&
-      ((roundTo(nx1, round) === roundTo(x1 * 2 - x2, round) &&
-        roundTo(ny1, round) === roundTo(y1 * 2 - y2, round)) ||
-        (roundTo(x1, round) === roundTo(x2 * 2 - x, round) &&
-          roundTo(y1, round) === roundTo(y2 * 2 - y, round)))
+      x2 != null && y2 != null &&
+      roundTo(nx1, round) === roundTo(x * 2 - x2, round) &&
+      roundTo(ny1, round) === roundTo(y * 2 - y2, round)
     ) {
       return [
         "S",
@@ -74,8 +71,9 @@ export const shortenSegment = (
 
     if (
       "QT".includes(prevCommand) &&
-      roundTo(qx, round) === roundTo(x1 * 2 - x2, round) &&
-      roundTo(qy, round) === roundTo(y1 * 2 - y2, round)
+      x2 != null && y2 != null &&
+      roundTo(qx, round) === roundTo(x * 2 - x2, round) &&
+      roundTo(qy, round) === roundTo(y * 2 - y2, round)
     ) {
       return ["T", normalValues[2], normalValues[3]] as TSegment;
     }

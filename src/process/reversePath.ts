@@ -34,6 +34,30 @@ export const reversePath = <T extends PathArray>(pathInput: T): T => {
   const pLen = absolutePath.length;
   const isClosed = absolutePath[pLen - 1][0] === "Z";
 
+  // the end point of every normalized segment, the closing point of a
+  // subpath is its starting point, so a segment following a `Z` starts
+  // where the `Z` ends, not where the previous segment ended
+  const endPoints: PointTuple[] = [];
+  let endX = 0;
+  let endY = 0;
+  let subX = 0;
+  let subY = 0;
+  for (const seg of normalizedPath) {
+    if (seg[0] === "M") {
+      subX = +seg[1];
+      subY = +seg[2];
+      endX = subX;
+      endY = subY;
+    } else if (seg[0] === "Z") {
+      endX = subX;
+      endY = subY;
+    } else {
+      endX = +seg[seg.length - 2];
+      endY = +seg[seg.length - 1];
+    }
+    endPoints.push([endX, endY]);
+  }
+
   const reversedPath = iterate(absolutePath, (segment, i) => {
     const normalizedSegment = normalizedPath[i];
     const prevSeg = i && absolutePath[i - 1];
@@ -41,7 +65,7 @@ export const reversePath = <T extends PathArray>(pathInput: T): T => {
     const nextSeg = absolutePath[i + 1];
     const nextCommand = nextSeg && nextSeg[0];
     const pathCommand = segment[0];
-    const [x, y] = normalizedPath[i ? i - 1 : pLen - 1].slice(-2) as PointTuple;
+    const [x, y] = endPoints[i ? i - 1 : pLen - 1];
     let result = segment;
 
     switch (pathCommand) {
@@ -76,11 +100,19 @@ export const reversePath = <T extends PathArray>(pathInput: T): T => {
         }
         break;
       case "S":
-        if (
-          prevCommand &&
-          "CS".includes(prevCommand) &&
-          (!nextSeg || nextCommand !== "S")
-        ) {
+        // the control points can stay implicit only when the next segment
+        // is an `S` as well, the reflected control point of the reversed
+        // segment is then recovered from the previous segment of the
+        // reversed path
+        if (nextSeg && nextCommand === "S") {
+          result = [
+            pathCommand,
+            normalizedSegment[1],
+            normalizedSegment[2],
+            x,
+            y,
+          ] as SSegment;
+        } else {
           result = [
             "C",
             normalizedSegment[3],
@@ -90,14 +122,6 @@ export const reversePath = <T extends PathArray>(pathInput: T): T => {
             x,
             y,
           ] as CSegment;
-        } else {
-          result = [
-            pathCommand,
-            normalizedSegment[1],
-            normalizedSegment[2],
-            x,
-            y,
-          ] as SSegment;
         }
         break;
       case "Q":

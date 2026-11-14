@@ -46,7 +46,6 @@ export const optimizePath = <T extends string | PathArray>(
   return iterate(path, (seg, i, lastX, lastY) => {
     optimParams.x = lastX;
     optimParams.y = lastY;
-    const normalizedSegment = normalizeSegment(seg, optimParams);
     let result: PathSegment = seg;
     pathCommand = seg[0];
 
@@ -55,6 +54,13 @@ export const optimizePath = <T extends string | PathArray>(
     if (i) {
       // Get previous path command for `shortenSegment`
       prevCommand = allPathCommands[i - 1];
+    }
+    const normalizedSegment = normalizeSegment(
+      seg,
+      optimParams,
+      i ? prevCommand : null,
+    );
+    if (i) {
       const shortSegment = shortenSegment(
         seg as AbsoluteSegment,
         normalizedSegment,
@@ -72,8 +78,14 @@ export const optimizePath = <T extends string | PathArray>(
     const seglen = normalizedSegment.length;
     optimParams.x1 = +normalizedSegment[seglen - 2];
     optimParams.y1 = +normalizedSegment[seglen - 1];
-    optimParams.x2 = +normalizedSegment[seglen - 4] || optimParams.x1;
-    optimParams.y2 = +normalizedSegment[seglen - 3] || optimParams.y1;
+    // only cubic and quadratic segments carry a reflectable control point
+    if (normalizedSegment[0] === "C" || normalizedSegment[0] === "Q") {
+      optimParams.x2 = +normalizedSegment[seglen - 4];
+      optimParams.y2 = +normalizedSegment[seglen - 3];
+    } else {
+      optimParams.x2 = null;
+      optimParams.y2 = null;
+    }
 
     return result;
   });
