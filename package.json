@@ -65,18 +65,18 @@
     "prepublishOnly": "pnpm up --latest && pnpm up:deno && pnpm format && pnpm lint:ts && pnpm build"
   },
   "devDependencies": {
-    "@types/node": "^26.4.1",
-    "@vitest/browser": "^4.1.11",
-    "@vitest/browser-playwright": "^4.1.11",
-    "@vitest/coverage-istanbul": "^4.1.11",
-    "@vitest/ui": "^4.1.11",
-    "happy-dom": "^20.12.2",
-    "playwright": "^1.62.1",
-    "tsdown": "0.22.14",
+    "@types/node": "^26.6.6",
+    "@vitest/browser": "^5.1.0",
+    "@vitest/browser-playwright": "^5.1.0",
+    "@vitest/coverage-istanbul": "^5.1.0",
+    "@vitest/ui": "^5.1.0",
+    "happy-dom": "^21.0.4",
+    "playwright": "^1.65.1",
+    "tsdown": "0.23.7",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2",
+    "vite": "^8.3.8",
     "vite-plugin-strip-comments": "^0.0.10",
-    "vitest": "^4.1.11"
+    "vitest": "^5.1.0"
   },
   "dependencies": {
     "@thednp/dommatrix": "^3.1.2"

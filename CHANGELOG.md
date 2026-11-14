@@ -12,6 +12,7 @@
 ### Changed
 - `ParserParams.x2` / `ParserParams.y2` are now `number | null`, `null` marks a previous segment without a reflectable control point (the same sentinel used by `ParserParams.qx` / `ParserParams.qy`)
 - `normalizeSegment()` accepts the command of the previous segment as an optional third argument, required to tell a reflectable control point from a missing one
+- Updated dev dependencies: `vitest` / `@vitest/*` `^5.1.0`, `vite` `^8.3.8`, `happy-dom` `^21.0.4`, `playwright` `^1.65.1`, `tsdown` `0.23.7`, `@types/node` `^26.6.6`
 - Rebuilt `dist` and `docs` bundles
 
 ## [2.3.3] - 2026-09-02

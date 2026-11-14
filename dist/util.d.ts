@@ -4,7 +4,6 @@
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 import CSSMatrix from "@thednp/dommatrix";
-//#region src/interface.d.ts
 /** The properties of a path segment found by segment lookup utilities. */
 type SegmentProperties = {
   /** The path segment. */
@@ -163,8 +162,6 @@ type TransformObject = {
   /** The transform origin. */
   origin: number[];
 };
-//#endregion
-//#region src/types.d.ts
 /** Whitespace character codes recognized by the SVG path string tokenizer. */
 type SpaceNumber = 0x1680 | 0x180e | 0x2000 | 0x2001 | 0x2002 | 0x2003 | 0x2004 | 0x2005 | 0x2006 | 0x2007 | 0x2008 | 0x2009 | 0x200a | 0x202f | 0x205f | 0x3000 | 0xfeff | 0x0a | 0x0d | 0x2028 | 0x2029 | 0x20 | 0x09 | 0x0b | 0x0c | 0xa0 | 0x1680;
 /** Character codes of all SVG path command letters. */
@@ -372,8 +369,6 @@ interface EqualizationOptions {
   /** The target segment count for both paths. */
   target?: number;
 }
-//#endregion
-//#region src/math/arcTools.d.ts
 /**
  * Returns the signed arc length of an ellipse segment from angle `0` up to
  * the given `theta` angle, by integrating the curve speed
@@ -509,8 +504,6 @@ declare const arcTools: {
   getArcProps: typeof getArcProps;
   getPointAtArcLength: typeof getPointAtArcLength;
 };
-//#endregion
-//#region src/math/bezier.d.ts
 /**
  * @param points
  * @returns
@@ -602,8 +595,6 @@ declare const bezierTools: {
   minmaxQ: typeof minmaxQ;
   Tvalues: number[];
 };
-//#endregion
-//#region src/math/cubicTools.d.ts
 /**
  * Returns a point at a given length of a CubicBezier segment.
  *
@@ -676,8 +667,6 @@ declare const cubicTools: {
   getPointAtCubicLength: typeof getPointAtCubicLength;
   getPointAtCubicSegmentLength: typeof getPointAtCubicSegmentLength;
 };
-//#endregion
-//#region src/math/lineTools.d.ts
 /**
  * Returns length for line segments (MoveTo, LineTo).
  *
@@ -718,8 +707,6 @@ declare const lineTools: {
   getLineLength: typeof getLineLength;
   getPointAtLineLength: typeof getPointAtLineLength;
 };
-//#endregion
-//#region src/math/quadTools.d.ts
 /**
  * Returns the {x,y} coordinates of a point at a
  * given length of a quadratic-bezier segment.
@@ -787,8 +774,6 @@ declare const quadTools: {
   getQuadBBox: typeof getQuadBBox;
   getQuadLength: typeof getQuadLength;
 };
-//#endregion
-//#region src/math/polygonTools.d.ts
 /**
  * d3-polygon-area
  * @see https://github.com/d3/d3-polygon
@@ -823,8 +808,6 @@ declare const polygonTools: {
   polygonLength: typeof polygonLength;
   polygonCentroid: typeof polygonCentroid;
 };
-//#endregion
-//#region src/math/distanceSquareRoot.d.ts
 /**
  * Returns the square root of the distance
  * between two given points.
@@ -833,9 +816,7 @@ declare const polygonTools: {
  * @param b the second point coordinates
  * @returns the distance value
  */
-declare const distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
-//#endregion
-//#region src/math/midPoint.d.ts
+export declare const distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
 /**
  * Returns the coordinates of a specified distance
  * ratio between two points.
@@ -845,9 +826,7 @@ declare const distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
  * @param t the ratio
  * @returns the midpoint coordinates
  */
-declare const midPoint: ([ax, ay]: PointTuple, [bx, by]: PointTuple, t: number) => PointTuple;
-//#endregion
-//#region src/math/rotateVector.d.ts
+export declare const midPoint: ([ax, ay]: PointTuple, [bx, by]: PointTuple, t: number) => PointTuple;
 /**
  * Returns an {x,y} vector rotated by a given
  * angle in radian.
@@ -857,12 +836,10 @@ declare const midPoint: ([ax, ay]: PointTuple, [bx, by]: PointTuple, t: number) 
  * @param rad the radian vector angle
  * @returns the rotated vector
  */
-declare const rotateVector: (x: number, y: number, rad: number) => {
+export declare const rotateVector: (x: number, y: number, rad: number) => {
   x: number;
   y: number;
 };
-//#endregion
-//#region src/math/roundTo.d.ts
 /**
  * Rounds a number to the specified number of decimal places.
  *
@@ -870,9 +847,7 @@ declare const rotateVector: (x: number, y: number, rad: number) => {
  * @param round - Number of decimal places
  * @returns The rounded number
  */
-declare const roundTo: (n: number, round: number) => number;
-//#endregion
-//#region src/convert/pathToAbsolute.d.ts
+export declare const roundTo: (n: number, round: number) => number;
 /**
  * Parses a path string value or object and returns an array
  * of segments, all converted to absolute values.
@@ -886,9 +861,7 @@ declare const roundTo: (n: number, round: number) => number;
  * // => [['M', 10, 10], ['L', 90, 90]]
  * ```
  */
-declare const pathToAbsolute: <T extends PathArray>(pathInput: string | T) => AbsoluteArray;
-//#endregion
-//#region src/convert/pathToRelative.d.ts
+export declare const pathToAbsolute: <T extends PathArray>(pathInput: string | T) => AbsoluteArray;
 /**
  * Parses a path string value or object and returns an array
  * of segments, all converted to relative values.
@@ -902,9 +875,7 @@ declare const pathToAbsolute: <T extends PathArray>(pathInput: string | T) => Ab
  * // => [['M', 10, 10], ['l', 80, 80]]
  * ```
  */
-declare const pathToRelative: <T extends PathArray>(pathInput: string | T) => RelativeArray;
-//#endregion
-//#region src/convert/pathToCurve.d.ts
+export declare const pathToRelative: <T extends PathArray>(pathInput: string | T) => RelativeArray;
 /**
  * Parses a path string or PathArray and returns a new one
  * in which all segments are converted to cubic-bezier.
@@ -918,9 +889,7 @@ declare const pathToRelative: <T extends PathArray>(pathInput: string | T) => Re
  * // => [['M', 10, 50], ['C', 25, 25, 40, 50, 40, 50]]
  * ```
  */
-declare const pathToCurve: <T extends PathArray>(pathInput: string | T) => CurveArray;
-//#endregion
-//#region src/convert/pathToString.d.ts
+export declare const pathToCurve: <T extends PathArray>(pathInput: string | T) => CurveArray;
 /**
  * Returns a valid `d` attribute string value created
  * by rounding values and concatenating the PathArray segments.
@@ -935,15 +904,14 @@ declare const pathToCurve: <T extends PathArray>(pathInput: string | T) => Curve
  * // => 'M10 10L90 90'
  * ```
  */
-declare const pathToString: <T extends PathArray>(path: T, roundOption?: number | "off") => string;
-//#endregion
-//#region src/parser/parsePathString.d.ts
+export declare const pathToString: <T extends PathArray>(path: T, roundOption?: number | "off") => string;
 /**
  * Parses a path string value and returns an array
  * of segments we like to call `PathArray`.
  *
  * If parameter value is already a `PathArray`,
  * return a clone of it.
+
  * @example
  * parsePathString("M 0 0L50 50")
  * // => [["M",0,0],["L",50,50]]
@@ -951,16 +919,14 @@ declare const pathToString: <T extends PathArray>(path: T, roundOption?: number 
  * @param pathInput the string to be parsed
  * @returns the resulted `pathArray` or error string
  */
-declare const parsePathString: <T extends PathArray>(pathInput: string | T) => PathArray;
-//#endregion
-//#region src/parser/pathParser.d.ts
+export declare const parsePathString: <T extends PathArray>(pathInput: string | T) => PathArray;
 /**
  * The `PathParser` is used by the `parsePathString` static method
  * to generate a `pathArray`.
  *
  * @param pathString - The SVG path string to parse
  */
-declare class PathParser {
+export declare class PathParser {
   segments: PathArray | PathSegment[];
   pathValue: string;
   max: number;
@@ -971,38 +937,28 @@ declare class PathParser {
   err: string;
   constructor(pathString: string);
 }
-//#endregion
-//#region src/parser/finalizeSegment.d.ts
 /**
  * Breaks the parsing of a pathString once a segment is finalized.
  *
  * @param path - The PathParser instance
  */
-declare const finalizeSegment: (path: PathParser) => void;
-//#endregion
-//#region src/parser/invalidPathValue.d.ts
+export declare const finalizeSegment: (path: PathParser) => void;
 /** Error message prefix used when a path string cannot be parsed. */
-declare const invalidPathValue = "Invalid path value";
-//#endregion
-//#region src/parser/isArcCommand.d.ts
+export declare const invalidPathValue = "Invalid path value";
 /**
  * Checks if the character is an A (arc-to) path command.
  *
  * @param code the character to check
  * @returns check result
  */
-declare const isArcCommand: (code: number) => code is 97;
-//#endregion
-//#region src/parser/isDigit.d.ts
+export declare const isArcCommand: (code: number) => code is 97;
 /**
  * Checks if a character is a digit.
  *
  * @param code the character to check
  * @returns check result
  */
-declare const isDigit: (code: number) => code is DigitNumber;
-//#endregion
-//#region src/parser/isDigitStart.d.ts
+export declare const isDigit: (code: number) => code is DigitNumber;
 /**
  * Checks if the character is or belongs to a number.
  * [0-9]|+|-|.
@@ -1010,38 +966,30 @@ declare const isDigit: (code: number) => code is DigitNumber;
  * @param code the character to check
  * @returns check result
  */
-declare const isDigitStart: (code: number) => code is DigitNumber | 43 | 45 | 46;
-//#endregion
-//#region src/parser/isMoveCommand.d.ts
+export declare const isDigitStart: (code: number) => code is DigitNumber | 43 | 45 | 46;
 /**
  * Checks if the character is a MoveTo command.
  *
  * @param code the character to check
  * @returns check result
  */
-declare const isMoveCommand: (code: number) => code is 109 | 77;
-//#endregion
-//#region src/parser/isPathCommand.d.ts
+export declare const isMoveCommand: (code: number) => code is 109 | 77;
 /**
  * Checks if the character is a path command.
  *
  * @param code the character to check
  * @returns check result
  */
-declare const isPathCommand: (code: number) => code is PathCommandNumber;
-//#endregion
-//#region src/parser/isSpace.d.ts
+export declare const isPathCommand: (code: number) => code is PathCommandNumber;
 /**
  * Checks if the character is a space.
  *
  * @param ch the character to check
  * @returns check result
  */
-declare const isSpace: (ch: number) => ch is SpaceNumber;
-//#endregion
-//#region src/parser/paramsCount.d.ts
+export declare const isSpace: (ch: number) => ch is SpaceNumber;
 /** Segment params length */
-declare const paramsCounts: {
+export declare const paramsCounts: {
   a: number;
   c: number;
   h: number;
@@ -1054,42 +1002,32 @@ declare const paramsCounts: {
   v: number;
   z: number;
 };
-//#endregion
-//#region src/parser/paramsParser.d.ts
 /**
  * Default parser parameters object used to track position state
  * while iterating through path segments.
  */
-declare const paramsParser: ParserParams;
-//#endregion
-//#region src/parser/scanFlag.d.ts
+export declare const paramsParser: ParserParams;
 /**
  * Validates an A (arc-to) specific path command value.
  * Usually a `large-arc-flag` or `sweep-flag`.
  *
  * @param path - The PathParser instance
  */
-declare const scanFlag: (path: PathParser) => void;
-//#endregion
-//#region src/parser/scanParam.d.ts
+export declare const scanFlag: (path: PathParser) => void;
 /**
  * Validates every character of the path string,
  * every path command, negative numbers or floating point numbers.
  *
  * @param path - The PathParser instance
  */
-declare const scanParam: (path: PathParser) => void;
-//#endregion
-//#region src/parser/scanSegment.d.ts
+export declare const scanParam: (path: PathParser) => void;
 /**
  * Scans every character in the path string to determine
  * where a segment starts and where it ends.
  *
  * @param path - The PathParser instance
  */
-declare const scanSegment: (path: PathParser) => void;
-//#endregion
-//#region src/parser/skipSpaces.d.ts
+export declare const scanSegment: (path: PathParser) => void;
 /**
  * Points the parser to the next character in the
  * path string every time it encounters any kind of
@@ -1097,9 +1035,7 @@ declare const scanSegment: (path: PathParser) => void;
  *
  * @param path - The PathParser instance
  */
-declare const skipSpaces: (path: PathParser) => void;
-//#endregion
-//#region src/util/getPathBBox.d.ts
+export declare const skipSpaces: (path: PathParser) => void;
 /**
  * Calculates the bounding box of a path.
  *
@@ -1112,7 +1048,7 @@ declare const skipSpaces: (path: PathParser) => void;
  * // => { x: 0, y: 0, width: 100, height: 100, x2: 100, y2: 100, cx: 50, cy: 50, cz: 150 }
  * ```
  */
-declare const getPathBBox: <T extends PathArray>(pathInput: T | string) => {
+export declare const getPathBBox: <T extends PathArray>(pathInput: T | string) => {
   x: number;
   y: number;
   width: number;
@@ -1123,8 +1059,6 @@ declare const getPathBBox: <T extends PathArray>(pathInput: T | string) => {
   cy: number;
   cz: number;
 };
-//#endregion
-//#region src/util/getTotalLength.d.ts
 /**
  * Returns the total length of a path, equivalent to `shape.getTotalLength()`.
  *
@@ -1137,13 +1071,9 @@ declare const getPathBBox: <T extends PathArray>(pathInput: T | string) => {
  * // => 300
  * ```
  */
-declare const getTotalLength: <T extends PathArray>(pathInput: string | T) => number;
-//#endregion
-//#region src/util/distanceEpsilon.d.ts
+export declare const getTotalLength: <T extends PathArray>(pathInput: string | T) => number;
 /** Small threshold value used for floating-point distance comparisons in path calculations. */
 declare const DISTANCE_EPSILON = 0.00001;
-//#endregion
-//#region src/util/getClosestPoint.d.ts
 /**
  * Returns the point in path closest to a given point.
  *
@@ -1151,15 +1081,13 @@ declare const DISTANCE_EPSILON = 0.00001;
  * @param point the given point
  * @returns the best match
  */
-declare const getClosestPoint: (pathInput: string | PathArray, point: {
+export declare const getClosestPoint: (pathInput: string | PathArray, point: {
   x: number;
   y: number;
 }) => {
   x: number;
   y: number;
 };
-//#endregion
-//#region src/util/getDrawDirection.d.ts
 /**
  * Check if a path is drawn clockwise and returns true if so,
  * false otherwise.
@@ -1167,9 +1095,7 @@ declare const getClosestPoint: (pathInput: string | PathArray, point: {
  * @param path the path string or `pathArray`
  * @returns true when clockwise or false if not
  */
-declare const getDrawDirection: (path: string | PathArray) => boolean;
-//#endregion
-//#region src/util/getPathArea.d.ts
+export declare const getDrawDirection: (path: string | PathArray) => boolean;
 /**
  * Returns the signed area of a shape.
  *
@@ -1186,9 +1112,7 @@ declare const getDrawDirection: (path: string | PathArray) => boolean;
  * // => -10000 (counter-clockwise square)
  * ```
  */
-declare const getPathArea: <T extends PathArray | string>(path: T) => number;
-//#endregion
-//#region src/util/getPointAtLength.d.ts
+export declare const getPathArea: <T extends PathArray | string>(path: T) => number;
 /**
  * Returns [x,y] coordinates of a point at a given length along a path.
  *
@@ -1202,12 +1126,10 @@ declare const getPathArea: <T extends PathArray | string>(path: T) => number;
  * // => { x: 50, y: 0 }
  * ```
  */
-declare const getPointAtLength: <T extends PathArray>(pathInput: string | T, distance?: number) => {
+export declare const getPointAtLength: <T extends PathArray>(pathInput: string | T, distance?: number) => {
   x: number;
   y: number;
 };
-//#endregion
-//#region src/util/getPropertiesAtLength.d.ts
 /**
  * Returns the segment, its index and length as well as
  * the length to that segment at a given length in a path.
@@ -1216,9 +1138,7 @@ declare const getPointAtLength: <T extends PathArray>(pathInput: string | T, dis
  * @param distance the given length
  * @returns the requested properties
  */
-declare const getPropertiesAtLength: <T extends PathArray>(pathInput: string | T, distance?: number) => SegmentProperties;
-//#endregion
-//#region src/util/getPropertiesAtPoint.d.ts
+export declare const getPropertiesAtLength: <T extends PathArray>(pathInput: string | T, distance?: number) => SegmentProperties;
 /**
  * Returns the point and segment in path closest to a given point as well as
  * the distance to the path stroke.
@@ -1229,9 +1149,7 @@ declare const getPropertiesAtLength: <T extends PathArray>(pathInput: string | T
  * @param point the given point
  * @returns the requested properties
  */
-declare const getPropertiesAtPoint: <T extends PathArray>(pathInput: string | T, point: Point) => PointProperties;
-//#endregion
-//#region src/util/getSegmentAtLength.d.ts
+export declare const getPropertiesAtPoint: <T extends PathArray>(pathInput: string | T, point: Point) => PointProperties;
 /**
  * Returns the segment at a given length.
  *
@@ -1239,9 +1157,7 @@ declare const getPropertiesAtPoint: <T extends PathArray>(pathInput: string | T,
  * @param distance the distance in path to look at
  * @returns the requested segment
  */
-declare const getSegmentAtLength: <T extends PathArray>(pathInput: string | T, distance?: number) => PathSegment | undefined;
-//#endregion
-//#region src/util/getSegmentOfPoint.d.ts
+export declare const getSegmentAtLength: <T extends PathArray>(pathInput: string | T, distance?: number) => PathSegment | undefined;
 /**
  * Returns the path segment which contains a given point.
  *
@@ -1249,12 +1165,10 @@ declare const getSegmentAtLength: <T extends PathArray>(pathInput: string | T, d
  * @param point the point of the shape to look for
  * @returns the requested segment
  */
-declare const getSegmentOfPoint: <T extends PathArray>(path: string | T, point: {
+export declare const getSegmentOfPoint: <T extends PathArray>(path: string | T, point: {
   x: number;
   y: number;
 }) => SegmentProperties | undefined;
-//#endregion
-//#region src/util/isAbsoluteArray.d.ts
 /**
  * Iterates an array to check if it's a `pathArray`
  * with all absolute values.
@@ -1262,9 +1176,7 @@ declare const getSegmentOfPoint: <T extends PathArray>(path: string | T, point: 
  * @param path the `pathArray` to be checked
  * @returns iteration result
  */
-declare const isAbsoluteArray: (path: unknown) => path is AbsoluteArray;
-//#endregion
-//#region src/util/isCurveArray.d.ts
+export declare const isAbsoluteArray: (path: unknown) => path is AbsoluteArray;
 /**
  * Iterates an array to check if it's a `pathArray`
  * with all C (cubic bezier) segments.
@@ -1272,9 +1184,7 @@ declare const isAbsoluteArray: (path: unknown) => path is AbsoluteArray;
  * @param path the `Array` to be checked
  * @returns iteration result
  */
-declare const isCurveArray: (path: unknown) => path is CurveArray;
-//#endregion
-//#region src/util/isNormalizedArray.d.ts
+export declare const isCurveArray: (path: unknown) => path is CurveArray;
 /**
  * Iterates an array to check if it's a `pathArray`
  * with all segments in non-shorthand notation
@@ -1283,18 +1193,14 @@ declare const isCurveArray: (path: unknown) => path is CurveArray;
  * @param path - the array to be checked
  * @returns true if the array is a normalized path array
  */
-declare const isNormalizedArray: (path: unknown) => path is NormalArray;
-//#endregion
-//#region src/util/isPathArray.d.ts
+export declare const isNormalizedArray: (path: unknown) => path is NormalArray;
 /**
  * Iterates an array to check if it's an actual `pathArray`.
  *
  * @param path the `pathArray` to be checked
  * @returns iteration result
  */
-declare const isPathArray: (path: unknown) => path is PathArray;
-//#endregion
-//#region src/util/isPointInStroke.d.ts
+export declare const isPathArray: (path: unknown) => path is PathArray;
 /**
  * Checks if a given point is in the stroke of a path.
  *
@@ -1302,28 +1208,22 @@ declare const isPathArray: (path: unknown) => path is PathArray;
  * @param point the given `{x,y}` point
  * @returns the query result
  */
-declare const isPointInStroke: <T extends PathArray>(pathInput: string | T, point: {
+export declare const isPointInStroke: <T extends PathArray>(pathInput: string | T, point: {
   x: number;
   y: number;
 }) => boolean;
-//#endregion
-//#region src/util/isPolygonArray.d.ts
 /**
  * Checks if a path is a polygon (only M, L, H, V, Z commands).
  * @param pathArray PathArray (pre-normalize if needed)
  * @returns boolean
  */
-declare const isPolygonArray: (path: PathArray) => path is PolygonArray;
-//#endregion
-//#region src/util/isPolylineArray.d.ts
+export declare const isPolygonArray: (path: PathArray) => path is PolygonArray;
 /**
  * Checks if a path is a polyline (only M, L, H, V commands).
  * @param pathArray PathArray (pre-normalize if needed)
  * @returns boolean
  */
-declare function isPolylineArray(path: PathArray): path is PolylineArray;
-//#endregion
-//#region src/util/isRelativeArray.d.ts
+export declare function isPolylineArray(path: PathArray): path is PolylineArray;
 /**
  * Iterates an array to check if it's a `pathArray`
  * with relative values.
@@ -1331,9 +1231,7 @@ declare function isPolylineArray(path: PathArray): path is PolylineArray;
  * @param path the `pathArray` to be checked
  * @returns iteration result
  */
-declare const isRelativeArray: (path: unknown) => path is RelativeArray;
-//#endregion
-//#region src/util/isValidPath.d.ts
+export declare const isRelativeArray: (path: unknown) => path is RelativeArray;
 /**
  * Parses a path string value to determine its validity
  * then returns true if it's valid or false otherwise.
@@ -1341,32 +1239,24 @@ declare const isRelativeArray: (path: unknown) => path is RelativeArray;
  * @param pathString the path string to be parsed
  * @returns the path string validity
  */
-declare const isValidPath: (pathString: string) => boolean;
-//#endregion
-//#region src/util/isMultiPath.d.ts
+export declare const isValidPath: (pathString: string) => boolean;
 /**
  * Determines if an SVG path contains multiple subpaths.
  * Accepts path string or PathArray.
  * @param path - 'M10,10 L20,20 Z M30,30 L40,40' → true
  * @returns boolean
  */
-declare const isMultiPath: <T extends PathArray>(path: string | T) => boolean;
-//#endregion
-//#region src/util/isClosedPath.d.ts
+export declare const isMultiPath: <T extends PathArray>(path: string | T) => boolean;
 /**
  * Check if a PathArray is closed, which means its last segment is a Z.
  * @param path
  * @returns true if the path is closed
  */
-declare const isClosedPath: <T extends PathArray>(path: T) => boolean;
-//#endregion
-//#region src/util/shapeParams.d.ts
+export declare const isClosedPath: <T extends PathArray>(path: T) => boolean;
 /**
  * Supported shapes and their specific parameters.
  */
-declare const shapeParams: ShapeParams;
-//#endregion
-//#region src/util/shapeToPath.d.ts
+export declare const shapeParams: ShapeParams;
 /**
  * Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`,
  * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>` or `<glyph>`. If `replace` parameter
@@ -1396,9 +1286,7 @@ declare const shapeParams: ShapeParams;
  * // => 'M50 25A25 25 0 1 1 50 75A25 25 0 1 1 50 25Z'
  * ```
  */
-declare const shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean, ownerDocument?: Document) => SVGPathElement | false;
-//#endregion
-//#region src/util/shapeToPathArray.d.ts
+export declare const shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean, ownerDocument?: Document) => SVGPathElement | false;
 /**
  * Returns a new `pathArray` created from attributes of a `<line>`, `<polyline>`,
  * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>`, <path> or `<glyph>`.
@@ -1409,9 +1297,7 @@ declare const shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean, o
  * @param element target shape
  * @returns the newly created `<path>` element
  */
-declare const shapeToPathArray: (element: ShapeTypes | ShapeOps) => false | PathArray;
-//#endregion
-//#region src/process/normalizePath.d.ts
+export declare const shapeToPathArray: (element: ShapeTypes | ShapeOps) => false | PathArray;
 /**
  * Parses a path string or PathArray, then iterates the result for:
  * * converting segments to absolute values
@@ -1426,9 +1312,7 @@ declare const shapeToPathArray: (element: ShapeTypes | ShapeOps) => false | Path
  * // => [['M', 10, 90], ['C', 30, 90, 25, 10, 50, 10], ['C', 75, 10, 70, 90, 90, 90]]
  * ```
  */
-declare const normalizePath: <T extends string | PathArray>(pathInput: T) => NormalArray;
-//#endregion
-//#region src/process/optimizePath.d.ts
+export declare const normalizePath: <T extends string | PathArray>(pathInput: T) => NormalArray;
 /**
  * Optimizes a PathArray:
  * * converts segments to shorthand if possible
@@ -1444,9 +1328,7 @@ declare const normalizePath: <T extends string | PathArray>(pathInput: T) => Nor
  * // => [['M', 10, 10], ['l', 0, 0], ['l', 80, 80]]
  * ```
  */
-declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOption?: number) => PathArray;
-//#endregion
-//#region src/process/reversePath.d.ts
+export declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOption?: number) => PathArray;
 /**
  * Reverses all segments of a PathArray and returns a new PathArray
  * with absolute values.
@@ -1460,9 +1342,7 @@ declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOp
  * // => [['M', 0, 100], ['L', 0, 0], ['L', 100, 0], ['L', 100, 100], ['Z']]
  * ```
  */
-declare const reversePath: <T extends PathArray>(pathInput: T) => T;
-//#endregion
-//#region src/process/splitPath.d.ts
+export declare const reversePath: <T extends PathArray>(pathInput: T) => T;
 /**
  * Split a path string or PathArray into an array of sub-paths.
  *
@@ -1481,9 +1361,7 @@ declare const reversePath: <T extends PathArray>(pathInput: T) => T;
  * // ]
  * ```
  */
-declare const splitPath: <T extends PathArray>(pathInput: T | string) => T[];
-//#endregion
-//#region src/process/transformPath.d.ts
+export declare const splitPath: <T extends PathArray>(pathInput: T | string) => T[];
 /**
  * Apply a 2D / 3D transformation to a PathArray.
  *
@@ -1500,9 +1378,7 @@ declare const splitPath: <T extends PathArray>(pathInput: T | string) => T[];
  * // => [['M', 10, 20], ['L', 210, 20], ['L', 210, 220], ['L', 10, 220], ['Z']]
  * ```
  */
-declare const transformPath: <T extends PathArray>(pathInput: T | string, transform?: Partial<TransformObject>) => T | AbsoluteArray;
-//#endregion
-//#region src/process/absolutizeSegment.d.ts
+export declare const transformPath: <T extends PathArray>(pathInput: T | string, transform?: Partial<TransformObject>) => T | AbsoluteArray;
 /**
  * Returns an absolute segment of a `PathArray` object.
  *
@@ -1512,9 +1388,7 @@ declare const transformPath: <T extends PathArray>(pathInput: T | string, transf
  * @param lastY the last known Y value
  * @returns the absolute segment
  */
-declare const absolutizeSegment: (segment: PathSegment, index: number, lastX: number, lastY: number) => AbsoluteSegment;
-//#endregion
-//#region src/process/arcToCubic.d.ts
+export declare const absolutizeSegment: (segment: PathSegment, index: number, lastX: number, lastY: number) => AbsoluteSegment;
 /**
  * Converts A (arc-to) segments to C (cubic-bezier-to).
  *
@@ -1533,9 +1407,7 @@ declare const absolutizeSegment: (segment: PathSegment, index: number, lastX: nu
  * @param recursive the parameters needed to split arc into 2 segments
  * @returns the resulting cubic-bezier segment(s)
  */
-declare const arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, recursive?: [number, number, number, number]) => number[];
-//#endregion
-//#region src/process/getSVGMatrix.d.ts
+export declare const arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, recursive?: [number, number, number, number]) => number[];
 /**
  * Returns a transformation matrix to apply to `<path>` elements.
  *
@@ -1544,9 +1416,7 @@ declare const arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle
  * @param transform the `transformObject`
  * @returns a new transformation matrix
  */
-declare const getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix;
-//#endregion
-//#region src/process/iterate.d.ts
+export declare const getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix;
 /**
  * Iterates over a `PathArray`, executing a callback for each segment.
  * The callback can:
@@ -1574,9 +1444,7 @@ declare const getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix;
  *   if (seg[0] === 'L') return ['C', x, y, seg[1], seg[2], seg[1], seg[2]];
  * });
  */
-declare const iterate: <T extends PathArray>(path: T, iterator: IteratorCallback<T>) => T;
-//#endregion
-//#region src/process/lineToCubic.d.ts
+export declare const iterate: <T extends PathArray>(path: T, iterator: IteratorCallback<T>) => T;
 /**
  * Converts an L (line-to) segment to C (cubic-bezier).
  *
@@ -1586,9 +1454,7 @@ declare const iterate: <T extends PathArray>(path: T, iterator: IteratorCallback
  * @param y2 line end y
  * @returns the cubic-bezier segment
  */
-declare const lineToCubic: (x1: number, y1: number, x2: number, y2: number) => number[];
-//#endregion
-//#region src/process/normalizeSegment.d.ts
+export declare const lineToCubic: (x1: number, y1: number, x2: number, y2: number) => number[];
 /**
  * Normalizes a single segment of a `pathArray` object.
  *
@@ -1597,9 +1463,7 @@ declare const lineToCubic: (x1: number, y1: number, x2: number, y2: number) => n
  * @param prevCommand the command of the previous segment
  * @returns the normalized segment
  */
-declare const normalizeSegment: (segment: PathSegment, params: ParserParams, prevCommand?: PathCommand | null) => NormalSegment;
-//#endregion
-//#region src/process/projection2d.d.ts
+export declare const normalizeSegment: (segment: PathSegment, params: ParserParams, prevCommand?: PathCommand | null) => NormalSegment;
 /**
  * Returns the [x,y] projected coordinates for a given an [x,y] point
  * and an [x,y,z] perspective origin point.
@@ -1614,9 +1478,7 @@ declare const normalizeSegment: (segment: PathSegment, params: ParserParams, pre
  * @param origin the [x,y,z] transform origin
  * @returns the projected [x,y] coordinates
  */
-declare const projection2d: (m: CSSMatrix, point2D: PointTuple, origin: [number, number, number]) => PointTuple;
-//#endregion
-//#region src/process/quadToCubic.d.ts
+export declare const projection2d: (m: CSSMatrix, point2D: PointTuple, origin: [number, number, number]) => PointTuple;
 /**
  * Converts a Q (quadratic-bezier) segment to C (cubic-bezier).
  *
@@ -1628,9 +1490,7 @@ declare const projection2d: (m: CSSMatrix, point2D: PointTuple, origin: [number,
  * @param y2 curve end y
  * @returns the cubic-bezier segment
  */
-declare const quadToCubic: (x1: number, y1: number, qx: number, qy: number, x2: number, y2: number) => [number, number, number, number, number, number];
-//#endregion
-//#region src/process/relativizeSegment.d.ts
+export declare const quadToCubic: (x1: number, y1: number, qx: number, qy: number, x2: number, y2: number) => [number, number, number, number, number, number];
 /**
  * Returns a relative segment of a `PathArray` object.
  *
@@ -1640,9 +1500,7 @@ declare const quadToCubic: (x1: number, y1: number, qx: number, qy: number, x2: 
  * @param lastY the last known Y value
  * @returns the relative segment
  */
-declare const relativizeSegment: (segment: PathSegment, index: number, lastX: number, lastY: number) => MSegment | RelativeSegment;
-//#endregion
-//#region src/process/reverseCurve.d.ts
+export declare const relativizeSegment: (segment: PathSegment, index: number, lastX: number, lastY: number) => MSegment | RelativeSegment;
 /**
  * Reverses all segments of a `pathArray`
  * which consists of only C (cubic-bezier) path commands.
@@ -1650,9 +1508,7 @@ declare const relativizeSegment: (segment: PathSegment, index: number, lastX: nu
  * @param path the source `pathArray`
  * @returns the reversed `pathArray`
  */
-declare const reverseCurve: (path: CurveArray) => CurveArray;
-//#endregion
-//#region src/process/roundPath.d.ts
+export declare const reverseCurve: (path: CurveArray) => CurveArray;
 /**
  * Rounds the values of a `pathArray` instance to
  * a specified amount of decimals and returns it.
@@ -1661,9 +1517,7 @@ declare const reverseCurve: (path: CurveArray) => CurveArray;
  * @param roundOption the amount of decimals to round numbers to
  * @returns the resulted `pathArray` with rounded values
  */
-declare const roundPath: <T extends PathArray>(path: T, roundOption?: number | "off") => T;
-//#endregion
-//#region src/process/roundSegment.d.ts
+export declare const roundPath: <T extends PathArray>(path: T, roundOption?: number | "off") => T;
 /**
  * Rounds the numeric values of a path segment to the specified precision.
  *
@@ -1671,9 +1525,7 @@ declare const roundPath: <T extends PathArray>(path: T, roundOption?: number | "
  * @param roundOption - Number of decimal places
  * @returns The rounded segment
  */
-declare const roundSegment: <T extends PathSegment>(segment: T, roundOption: number) => T;
-//#endregion
-//#region src/process/segmentToCubic.d.ts
+export declare const roundSegment: <T extends PathSegment>(segment: T, roundOption: number) => T;
 /**
  * Converts any segment to C (cubic-bezier).
  *
@@ -1681,9 +1533,7 @@ declare const roundSegment: <T extends PathSegment>(segment: T, roundOption: num
  * @param params the source segment parameters
  * @returns the cubic-bezier segment
  */
-declare const segmentToCubic: (segment: PathSegment, params: ParserParams) => MSegment | CSegment;
-//#endregion
-//#region src/process/shortenSegment.d.ts
+export declare const segmentToCubic: (segment: PathSegment, params: ParserParams) => MSegment | CSegment;
 /**
  * Shorten a single segment of a `pathArray` object.
  *
@@ -1693,9 +1543,7 @@ declare const segmentToCubic: (segment: PathSegment, params: ParserParams) => MS
  * @param prevCommand the path command of the previous segment
  * @returns the shortened segment
  */
-declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSegment, params: ParserParams, prevCommand: PathCommand) => ShortSegment;
-//#endregion
-//#region src/morph/fixPath.d.ts
+export declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSegment, params: ParserParams, prevCommand: PathCommand) => ShortSegment;
 /**
  * Checks a `PathArray` for an unnecessary `Z` segment
  * and removes it. The `PathArray` is modified in place.
@@ -1710,9 +1558,7 @@ declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSe
  * @param pathInput the `pathArray` source
  * @returns void
  */
-declare const fixPath: <T extends PathArray>(pathInput: T | string) => void;
-//#endregion
-//#region src/morph/splitCubicSegment.d.ts
+export declare const fixPath: <T extends PathArray>(pathInput: T | string) => void;
 /**
  * Split a cubic Bézier into two cubics at parameter t [0–1].
  *
@@ -1727,9 +1573,7 @@ declare const fixPath: <T extends PathArray>(pathInput: T | string) => void;
  * @param t - Parameter in range [0, 1] at which to split
  * @returns Array of two cubic segments, each as [x1,y1, x2,y2, x3,y3, x4,y4]
  */
-declare function splitCubicSegment(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number, t: number): [CubicCoordinates, CubicCoordinates];
-//#endregion
-//#region src/morph/equalizeSegments.d.ts
+export declare function splitCubicSegment(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number, t: number): [CubicCoordinates, CubicCoordinates];
 /**
  * Equalizes two paths for morphing (single subpath only).
  *
@@ -1745,9 +1589,7 @@ declare function splitCubicSegment(x1: number, y1: number, x2: number, y2: numbe
  * // eq1.length === eq2.length
  * ```
  */
-declare const equalizeSegments: (path1: PathArray | string, path2: PathArray | string, initialCfg?: EqualizationOptions) => [MorphPathArray, MorphPathArray];
-//#endregion
-//#region src/morph/equalizePaths.d.ts
+export declare const equalizeSegments: (path1: PathArray | string, path2: PathArray | string, initialCfg?: EqualizationOptions) => [MorphPathArray, MorphPathArray];
 /**
  * Equalizes two paths for morphing (single/multi subpath).
  *
@@ -1763,9 +1605,7 @@ declare const equalizeSegments: (path1: PathArray | string, path2: PathArray | s
  * // eq1.length === eq2.length — ready for morphing
  * ```
  */
-declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: {}) => [MorphPathArray, MorphPathArray];
-//#endregion
-//#region src/intersect/pathIntersection.d.ts
+export declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: {}) => [MorphPathArray, MorphPathArray];
 /**
  * Finds intersection points between two paths.
  *
@@ -1782,9 +1622,7 @@ declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string
  * // => [{ x: 80.4136, y: 19.5864, t1: 0.7262, t2: 0.2738 }]
  * ```
  */
-declare const pathsIntersection: <T extends string | PathArray>(pathInput1: T, pathInput2: T, justCount?: boolean) => number | IntersectionPoint[];
-//#endregion
-//#region src/intersect/boundingBoxIntersect.d.ts
+export declare const pathsIntersection: <T extends string | PathArray>(pathInput1: T, pathInput2: T, justCount?: boolean) => number | IntersectionPoint[];
 /**
  * Checks if two bounding boxes intersect.
  *
@@ -1792,9 +1630,7 @@ declare const pathsIntersection: <T extends string | PathArray>(pathInput1: T, p
  * @param b - Second bounding box as [minX, minY, maxX, maxY]
  * @returns True if the bounding boxes overlap
  */
-declare const boundingBoxIntersect: (a: BBoxMaxima, b: BBoxMaxima) => boolean;
-//#endregion
-//#region src/intersect/isPointInsideBBox.d.ts
+export declare const boundingBoxIntersect: (a: BBoxMaxima, b: BBoxMaxima) => boolean;
 /**
  * Checks if a point is inside a bounding box.
  *
@@ -1802,7 +1638,6 @@ declare const boundingBoxIntersect: (a: BBoxMaxima, b: BBoxMaxima) => boolean;
  * @param point - The point as [x, y]
  * @returns True if the point is inside or on the edge of the bounding box
  */
-declare const isPointInsideBBox: (bbox: BBoxMaxima, [x, y]: PointTuple) => boolean;
-//#endregion
-export { PathParser, absolutizeSegment, arcToCubic, arcTools, bezierTools, boundingBoxIntersect, cubicTools, DISTANCE_EPSILON as distanceEpsilon, distanceSquareRoot, equalizePaths, equalizeSegments, finalizeSegment, fixPath, getClosestPoint, getDrawDirection, getPathArea, getPathBBox, getPointAtLength, getPropertiesAtLength, getPropertiesAtPoint, getSVGMatrix, getSegmentAtLength, getSegmentOfPoint, getTotalLength, invalidPathValue, isAbsoluteArray, isArcCommand, isClosedPath, isCurveArray, isDigit, isDigitStart, isMoveCommand, isMultiPath, isNormalizedArray, isPathArray, isPathCommand, isPointInStroke, isPointInsideBBox, isPolygonArray, isPolylineArray, isRelativeArray, isSpace, isValidPath, iterate, lineToCubic, lineTools, midPoint, normalizePath, normalizeSegment, optimizePath, paramsCounts, paramsParser, parsePathString, pathToAbsolute, pathToCurve, pathToRelative, pathToString, pathsIntersection, polygonTools, projection2d, quadToCubic, quadTools, relativizeSegment, reverseCurve, reversePath, rotateVector, roundPath, roundSegment, roundTo, scanFlag, scanParam, scanSegment, segmentToCubic, shapeParams, shapeToPath, shapeToPathArray, shortenSegment, skipSpaces, splitCubicSegment, splitPath, transformPath };
+export declare const isPointInsideBBox: (bbox: BBoxMaxima, [x, y]: PointTuple) => boolean;
+export { arcTools, bezierTools, cubicTools, DISTANCE_EPSILON as distanceEpsilon, lineTools, polygonTools, quadTools };
 //# sourceMappingURL=util.d.ts.map

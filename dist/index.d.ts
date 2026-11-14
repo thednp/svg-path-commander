@@ -4,9 +4,8 @@
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 import CSSMatrix from "@thednp/dommatrix";
-//#region src/interface.d.ts
 /** The properties of a path segment found by segment lookup utilities. */
-type SegmentProperties = {
+export type SegmentProperties = {
   /** The path segment. */
   segment: PathSegment;
   /** The index of the segment in the path. */
@@ -17,7 +16,7 @@ type SegmentProperties = {
   lengthAtSegment: number;
 };
 /** The closest point on the path to a given point, with the distance and optional segment. */
-type PointProperties = {
+export type PointProperties = {
   /** The closest point on the path to the given point. */
   closest: {
     /** The X coordinate of the closest point. */
@@ -31,7 +30,7 @@ type PointProperties = {
   segment?: SegmentProperties;
 };
 /** The attributes of a `<line>` element read by `shapeToPath`. */
-type LineAttr = {
+export type LineAttr = {
   /** The element type. */
   type: "line";
   /** The X coordinate of the start point. */
@@ -45,7 +44,7 @@ type LineAttr = {
   [key: string]: string | number;
 };
 /** The attributes of a `<polygon>` or `<polyline>` element read by `shapeToPath`. */
-type PolyAttr = {
+export type PolyAttr = {
   /** The element type. */
   type: "polygon" | "polyline";
   /** The points attribute value. */
@@ -53,7 +52,7 @@ type PolyAttr = {
   [key: string]: string | number;
 };
 /** The attributes of a `<circle>` element read by `shapeToPath`. */
-type CircleAttr = {
+export type CircleAttr = {
   /** The element type. */
   type: "circle";
   /** The X coordinate of the center. */
@@ -65,7 +64,7 @@ type CircleAttr = {
   [key: string]: string | number;
 };
 /** The attributes of an `<ellipse>` element read by `shapeToPath`. */
-type EllipseAttr = {
+export type EllipseAttr = {
   /** The element type. */
   type: "ellipse";
   /** The X coordinate of the center. */
@@ -79,7 +78,7 @@ type EllipseAttr = {
   [key: string]: string | number | undefined;
 };
 /** The attributes of a `<rect>` element read by `shapeToPath`. */
-type RectAttr = {
+export type RectAttr = {
   /** The element type. */
   type: "rect";
   /** The rectangle width. */
@@ -97,7 +96,7 @@ type RectAttr = {
   [key: string]: string | number | undefined;
 };
 /** The attributes of a `<glyph>` element read by `shapeToPath`. */
-type GlyphAttr = {
+export type GlyphAttr = {
   /** The element type. */
   type: "glyph";
   /** The path data of the glyph. */
@@ -105,7 +104,7 @@ type GlyphAttr = {
   [key: string]: string | number;
 };
 /** The parameter names read from each SVG shape element by `shapeToPath`. */
-type ShapeParams = {
+export type ShapeParams = {
   /** The parameter names read from the `<line>` element. */
   line: ["x1", "y1", "x2", "y2"];
   /** The parameter names read from the `<circle>` element. */
@@ -122,7 +121,7 @@ type ShapeParams = {
   glyph: ["d"];
 };
 /** The bounding box of a path, equivalent to the native `getBBox()` result. */
-type PathBBox = {
+export type PathBBox = {
   /** The width of the bounding box. */
   width: number;
   /** The height of the bounding box. */
@@ -143,7 +142,7 @@ type PathBBox = {
   cz: number;
 };
 /** The minimum and maximum points of a segment bounding box. */
-type SegmentLimits = {
+export type SegmentLimits = {
   /** The minimum coordinates of the segment. */
   min: {
     /** The minimum X coordinate. */
@@ -160,7 +159,7 @@ type SegmentLimits = {
   };
 };
 /** The current state tracked by the SVG path string parser. */
-type ParserParams = {
+export type ParserParams = {
   /** The X coordinate of the previous moveto point. */
   mx: number;
   /** The Y coordinate of the previous moveto point. */
@@ -189,7 +188,7 @@ type ParserParams = {
   qy: number | null;
 };
 /** The result of a length computation factory: length, point and segment limits. */
-type LengthFactory = {
+export type LengthFactory = {
   /** The total length of the segment. */
   length: number;
   /** The point on the segment at the given length. */
@@ -215,14 +214,14 @@ type LengthFactory = {
   };
 };
 /** The `SVGPathCommander` instance options. */
-type Options = {
+export type Options = {
   /** The amount of decimals to round path values to, or "off" to disable rounding. */
   round: "off" | number;
   /** The transform origin used for path transformations. */
   origin: number[];
 };
 /** A path segment and its transformation context (command letter and coordinates). */
-type PathTransform = {
+export type PathTransform = {
   /** The current path segment. */
   s: PathSegment;
   /** The current path command letter. */
@@ -233,7 +232,7 @@ type PathTransform = {
   y: number;
 };
 /** A transform function object with translate, rotate, scale, skew and origin. */
-type TransformObject = {
+export type TransformObject = {
   /** A translate value, a number for all axes or an array of values. */
   translate: number | number[];
   /** A rotate value, a number for all axes or an array of values. */
@@ -246,200 +245,198 @@ type TransformObject = {
   origin: number[];
 };
 /** The keys of a `TransformObject`. */
-type TransformProps = keyof TransformObject;
+export type TransformProps = keyof TransformObject;
 /** The entries of a `TransformObject` (key-value pairs). */
-type TransformEntries = [TransformProps, TransformObject[TransformProps]][];
-//#endregion
-//#region src/types.d.ts
+export type TransformEntries = [TransformProps, TransformObject[TransformProps]][];
 /** Whitespace character codes recognized by the SVG path string tokenizer. */
-type SpaceNumber = 0x1680 | 0x180e | 0x2000 | 0x2001 | 0x2002 | 0x2003 | 0x2004 | 0x2005 | 0x2006 | 0x2007 | 0x2008 | 0x2009 | 0x200a | 0x202f | 0x205f | 0x3000 | 0xfeff | 0x0a | 0x0d | 0x2028 | 0x2029 | 0x20 | 0x09 | 0x0b | 0x0c | 0xa0 | 0x1680;
+export type SpaceNumber = 0x1680 | 0x180e | 0x2000 | 0x2001 | 0x2002 | 0x2003 | 0x2004 | 0x2005 | 0x2006 | 0x2007 | 0x2008 | 0x2009 | 0x200a | 0x202f | 0x205f | 0x3000 | 0xfeff | 0x0a | 0x0d | 0x2028 | 0x2029 | 0x20 | 0x09 | 0x0b | 0x0c | 0xa0 | 0x1680;
 /** Character codes of all SVG path command letters. */
-type PathCommandNumber = 0x6d | 0x7a | 0x6c | 0x68 | 0x76 | 0x63 | 0x73 | 0x71 | 0x74 | 0x61;
+export type PathCommandNumber = 0x6d | 0x7a | 0x6c | 0x68 | 0x76 | 0x63 | 0x73 | 0x71 | 0x74 | 0x61;
 /** Character codes of the decimal digits 0-9. */
-type DigitNumber = 0x30 | 0x31 | 0x32 | 0x33 | 0x34 | 0x35 | 0x36 | 0x37 | 0x38 | 0x39;
+export type DigitNumber = 0x30 | 0x31 | 0x32 | 0x33 | 0x34 | 0x35 | 0x36 | 0x37 | 0x38 | 0x39;
 /** The absolute moveto command letter. */
-type MCommand = "M";
+export type MCommand = "M";
 /** The relative moveto command letter. */
-type mCommand = "m";
+export type mCommand = "m";
 /** The absolute lineto command letter. */
-type LCommand = "L";
+export type LCommand = "L";
 /** The relative lineto command letter. */
-type lCommand = "l";
+export type lCommand = "l";
 /** The absolute vertical lineto command letter. */
-type VCommand = "V";
+export type VCommand = "V";
 /** The relative vertical lineto command letter. */
-type vCommand = "v";
+export type vCommand = "v";
 /** The absolute horizontal lineto command letter. */
-type HCommand = "H";
+export type HCommand = "H";
 /** The relative horizontal lineto command letter. */
-type hCommand = "h";
+export type hCommand = "h";
 /** The absolute closepath command letter. */
-type ZCommand = "Z";
+export type ZCommand = "Z";
 /** The relative closepath command letter. */
-type zCommand = "z";
+export type zCommand = "z";
 /** The absolute cubic Bezier command letter. */
-type CCommand = "C";
+export type CCommand = "C";
 /** The relative cubic Bezier command letter. */
-type cCommand = "c";
+export type cCommand = "c";
 /** The absolute smooth cubic Bezier command letter. */
-type SCommand = "S";
+export type SCommand = "S";
 /** The relative smooth cubic Bezier command letter. */
-type sCommand = "s";
+export type sCommand = "s";
 /** The absolute quadratic Bezier command letter. */
-type QCommand = "Q";
+export type QCommand = "Q";
 /** The relative quadratic Bezier command letter. */
-type qCommand = "q";
+export type qCommand = "q";
 /** The absolute smooth quadratic Bezier command letter. */
-type TCommand = "T";
+export type TCommand = "T";
 /** The relative smooth quadratic Bezier command letter. */
-type tCommand = "t";
+export type tCommand = "t";
 /** The absolute elliptical arc command letter. */
-type ACommand = "A";
+export type ACommand = "A";
 /** The relative elliptical arc command letter. */
-type aCommand = "a";
+export type aCommand = "a";
 /** The union of all absolute path command letters. */
-type AbsoluteCommand = MCommand | LCommand | VCommand | HCommand | ZCommand | CCommand | SCommand | QCommand | TCommand | ACommand;
+export type AbsoluteCommand = MCommand | LCommand | VCommand | HCommand | ZCommand | CCommand | SCommand | QCommand | TCommand | ACommand;
 /** The union of all relative path command letters. */
-type RelativeCommand = mCommand | lCommand | vCommand | hCommand | zCommand | cCommand | sCommand | qCommand | tCommand | aCommand;
+export type RelativeCommand = mCommand | lCommand | vCommand | hCommand | zCommand | cCommand | sCommand | qCommand | tCommand | aCommand;
 /** Any SVG path command letter, absolute or relative. */
-type PathCommand = AbsoluteCommand | RelativeCommand;
+export type PathCommand = AbsoluteCommand | RelativeCommand;
 /** The absolute moveto segment tuple `[M, x, y]`. */
-type MSegment = [MCommand, number, number];
+export type MSegment = [MCommand, number, number];
 /** The relative moveto segment tuple `[m, dx, dy]`. */
-type mSegment = [mCommand, number, number];
+export type mSegment = [mCommand, number, number];
 /** The moveto segment, absolute or relative. */
-type MoveSegment = MSegment | mSegment;
+export type MoveSegment = MSegment | mSegment;
 /** The absolute lineto segment tuple `[L, x, y]`. */
-type LSegment = [LCommand, number, number];
+export type LSegment = [LCommand, number, number];
 /** The relative lineto segment tuple `[l, dx, dy]`. */
-type lSegment = [lCommand, number, number];
+export type lSegment = [lCommand, number, number];
 /** The lineto segment, absolute or relative. */
-type LineSegment = LSegment | lSegment;
+export type LineSegment = LSegment | lSegment;
 /** The absolute vertical lineto segment tuple `[V, y]`. */
-type VSegment = [VCommand, number];
+export type VSegment = [VCommand, number];
 /** The relative vertical lineto segment tuple `[v, dy]`. */
-type vSegment = [vCommand, number];
+export type vSegment = [vCommand, number];
 /** The vertical lineto segment, absolute or relative. */
-type VertLineSegment = vSegment | VSegment;
+export type VertLineSegment = vSegment | VSegment;
 /** The absolute horizontal lineto segment tuple `[H, x]`. */
-type HSegment = [HCommand, number];
+export type HSegment = [HCommand, number];
 /** The relative horizontal lineto segment tuple `[h, dx]`. */
-type hSegment = [hCommand, number];
+export type hSegment = [hCommand, number];
 /** The horizontal lineto segment, absolute or relative. */
-type HorLineSegment = HSegment | hSegment;
+export type HorLineSegment = HSegment | hSegment;
 /** The absolute closepath segment tuple `[Z]`. */
-type ZSegment = [ZCommand];
+export type ZSegment = [ZCommand];
 /** The relative closepath segment tuple `[z]`. */
-type zSegment = [zCommand];
+export type zSegment = [zCommand];
 /** The closepath segment, absolute or relative. */
-type CloseSegment = ZSegment | zSegment;
+export type CloseSegment = ZSegment | zSegment;
 /** The absolute cubic Bezier segment tuple `[C, x1, y1, x2, y2, x, y]`. */
-type CSegment = [CCommand, number, number, number, number, number, number];
+export type CSegment = [CCommand, number, number, number, number, number, number];
 /** The relative cubic Bezier segment tuple `[c, dx1, dy1, dx2, dy2, dx, dy]`. */
-type cSegment = [cCommand, number, number, number, number, number, number];
+export type cSegment = [cCommand, number, number, number, number, number, number];
 /** The cubic Bezier segment, absolute or relative. */
-type CubicSegment = CSegment | cSegment;
+export type CubicSegment = CSegment | cSegment;
 /** The absolute smooth cubic Bezier segment tuple `[S, x2, y2, x, y]`. */
-type SSegment = [SCommand, number, number, number, number];
+export type SSegment = [SCommand, number, number, number, number];
 /** The relative smooth cubic Bezier segment tuple `[s, dx2, dy2, dx, dy]`. */
-type sSegment = [sCommand, number, number, number, number];
+export type sSegment = [sCommand, number, number, number, number];
 /** The smooth cubic Bezier segment, absolute or relative. */
-type ShortCubicSegment = SSegment | sSegment;
+export type ShortCubicSegment = SSegment | sSegment;
 /** The absolute quadratic Bezier segment tuple `[Q, x1, y1, x, y]`. */
-type QSegment = [QCommand, number, number, number, number];
+export type QSegment = [QCommand, number, number, number, number];
 /** The relative quadratic Bezier segment tuple `[q, dx1, dy1, dx, dy]`. */
-type qSegment = [qCommand, number, number, number, number];
+export type qSegment = [qCommand, number, number, number, number];
 /** The quadratic Bezier segment, absolute or relative. */
-type QuadSegment = QSegment | qSegment;
+export type QuadSegment = QSegment | qSegment;
 /** The absolute smooth quadratic Bezier segment tuple `[T, x, y]`. */
-type TSegment = [TCommand, number, number];
+export type TSegment = [TCommand, number, number];
 /** The relative smooth quadratic Bezier segment tuple `[t, dx, dy]`. */
-type tSegment = [tCommand, number, number];
+export type tSegment = [tCommand, number, number];
 /** The smooth quadratic Bezier segment, absolute or relative. */
-type ShortQuadSegment = TSegment | tSegment;
+export type ShortQuadSegment = TSegment | tSegment;
 /** The absolute elliptical arc segment tuple `[A, rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y]`. */
-type ASegment = [ACommand, number, number, number, number, number, number, number];
+export type ASegment = [ACommand, number, number, number, number, number, number, number];
 /** The relative elliptical arc segment tuple `[a, rx, ry, xAxisRotation, largeArcFlag, sweepFlag, dx, dy]`. */
-type aSegment = [aCommand, number, number, number, number, number, number, number];
+export type aSegment = [aCommand, number, number, number, number, number, number, number];
 /** The elliptical arc segment, absolute or relative. */
-type ArcSegment = ASegment | aSegment;
+export type ArcSegment = ASegment | aSegment;
 /** Any SVG path command segment. */
-type PathSegment = MoveSegment | LineSegment | VertLineSegment | HorLineSegment | CloseSegment | CubicSegment | ShortCubicSegment | QuadSegment | ShortQuadSegment | ArcSegment;
+export type PathSegment = MoveSegment | LineSegment | VertLineSegment | HorLineSegment | CloseSegment | CubicSegment | ShortCubicSegment | QuadSegment | ShortQuadSegment | ArcSegment;
 /** Any shorthand or single-coordinate path segment. */
-type ShortSegment = VertLineSegment | HorLineSegment | ShortCubicSegment | ShortQuadSegment | CloseSegment;
+export type ShortSegment = VertLineSegment | HorLineSegment | ShortCubicSegment | ShortQuadSegment | CloseSegment;
 /** Any absolute path command segment. */
-type AbsoluteSegment = MSegment | LSegment | VSegment | HSegment | CSegment | SSegment | QSegment | TSegment | ASegment | ZSegment;
+export type AbsoluteSegment = MSegment | LSegment | VSegment | HSegment | CSegment | SSegment | QSegment | TSegment | ASegment | ZSegment;
 /** Any relative path command segment. */
-type RelativeSegment = mSegment | lSegment | vSegment | hSegment | cSegment | sSegment | qSegment | tSegment | aSegment | zSegment;
+export type RelativeSegment = mSegment | lSegment | vSegment | hSegment | cSegment | sSegment | qSegment | tSegment | aSegment | zSegment;
 /** The path segments used by the normalized form (no shorthand commands). */
-type NormalSegment = MSegment | LSegment | CSegment | QSegment | ASegment | ZSegment;
+export type NormalSegment = MSegment | LSegment | CSegment | QSegment | ASegment | ZSegment;
 /** A parsed SVG path string as an array of path segments. */
-type PathArray = [MSegment | mSegment, ...PathSegment[]];
+export type PathArray = [MSegment | mSegment, ...PathSegment[]];
 /** A `PathArray` with only absolute path segments. */
-type AbsoluteArray = [MSegment, ...AbsoluteSegment[]];
+export type AbsoluteArray = [MSegment, ...AbsoluteSegment[]];
 /** A `PathArray` with only relative path segments. */
-type RelativeArray = [MSegment, ...RelativeSegment[]];
+export type RelativeArray = [MSegment, ...RelativeSegment[]];
 /** A `PathArray` with only normalized segments (no shorthand commands). */
-type NormalArray = [MSegment, ...NormalSegment[]];
+export type NormalArray = [MSegment, ...NormalSegment[]];
 /** A `PathArray` with only moveto and cubic Bezier segments. */
-type CurveArray = [MSegment, ...CSegment[]];
+export type CurveArray = [MSegment, ...CSegment[]];
 /** A `CurveArray` ending with a closepath segment. */
-type ClosedCurveArray = [MSegment, ...CSegment[], ZSegment];
+export type ClosedCurveArray = [MSegment, ...CSegment[], ZSegment];
 /** A `PathArray` describing a closed polygon (moveto, lineto and closepath). */
-type PolygonArray = [MSegment, ...LSegment[], ZSegment];
+export type PolygonArray = [MSegment, ...LSegment[], ZSegment];
 /** A `PathArray` describing an open polyline (moveto and lineto). */
-type PolylineArray = [MSegment, ...LSegment[]];
+export type PolylineArray = [MSegment, ...LSegment[]];
 /** The `PathArray` shapes supported by path morphing. */
-type MorphPathArray = PolygonArray | PolylineArray | CurveArray | ClosedCurveArray;
+export type MorphPathArray = PolygonArray | PolylineArray | CurveArray | ClosedCurveArray;
 /** The SVG element types that can be converted to a path. */
-type ShapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;
+export type ShapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;
 /** The tag names of the SVG elements that can be converted to a path. */
-type ShapeTags = "line" | "polyline" | "polygon" | "ellipse" | "circle" | "rect" | "glyph";
+export type ShapeTags = "line" | "polyline" | "polygon" | "ellipse" | "circle" | "rect" | "glyph";
 /** The shape attributes mapped to each supported SVG element type. */
-type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
+export type ShapeOps = LineAttr | PolyAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
 /** A `TransformObject` with a required 3D origin. */
-type TransformObjectValues = Partial<TransformObject> & {
+export type TransformObjectValues = Partial<TransformObject> & {
   /** The transform origin. */
   origin: [number, number, number];
 };
 /** A 2D point with `x` and `y` coordinates. */
-type Point = {
+export type Point = {
   /** The X coordinate. */
   x: number;
   /** The Y coordinate. */
   y: number;
 };
 /** A 2D point as a tuple `[x, y]`. */
-type PointTuple = [number, number];
+export type PointTuple = [number, number];
 /** A `Point` with a `t` parameter (a point on a curve at ratio `t`). */
-type DerivedPoint = Point & {
+export type DerivedPoint = Point & {
   /** The parameter ratio in `[0-1]`. */
   t: number;
 };
 /** The six points of a quadratic Bezier curve (on-curve and off-curve control points). */
-type QuadPoints = [Point, Point, Point, Point, Point, Point];
+export type QuadPoints = [Point, Point, Point, Point, Point, Point];
 /** The eight points of a cubic Bezier curve (on-curve and off-curve control points). */
-type CubicPoints = [Point, Point, Point, Point, Point, Point, Point, Point];
+export type CubicPoints = [Point, Point, Point, Point, Point, Point, Point, Point];
 /** The six derived points of a quadratic Bezier curve, each with a `t` parameter. */
-type DerivedQuadPoints = [DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint];
+export type DerivedQuadPoints = [DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint];
 /** The eight derived points of a cubic Bezier curve, each with a `t` parameter. */
-type DerivedCubicPoints = [DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint];
+export type DerivedCubicPoints = [DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint];
 /** The six coordinates of a quadratic Bezier segment `[x1, y1, cx, cy, x, y]`. */
-type QuadCoordinates = [number, number, number, number, number, number];
+export type QuadCoordinates = [number, number, number, number, number, number];
 /** The eight coordinates of a cubic Bezier segment. */
-type CubicCoordinates = [number, number, number, number, number, number, number, number];
+export type CubicCoordinates = [number, number, number, number, number, number, number, number];
 /** The coordinates of an arc segment (the eight numbers after the command letter). */
-type ArcCoordinates = [number, number, number, number, number, number, number, number, number];
+export type ArcCoordinates = [number, number, number, number, number, number, number, number, number];
 /** The four coordinates of a line segment `[x1, y1, x2, y2]`. */
-type LineCoordinates = [number, number, number, number];
+export type LineCoordinates = [number, number, number, number];
 /** A function that derives a point on a curve at a given `t` ratio. */
-type DeriveCallback = (t: number) => Point;
+export type DeriveCallback = (t: number) => Point;
 /** A callback invoked for each segment while iterating over a `PathArray`. */
-type IteratorCallback<T extends PathArray, K extends keyof T = number> = (segment: PathSegment & T[K], index: number, lastX: number, lastY: number) => PathSegment | T[K] | false | void | undefined;
+export type IteratorCallback<T extends PathArray, K extends keyof T = number> = (segment: PathSegment & T[K], index: number, lastX: number, lastY: number) => PathSegment | T[K] | false | void | undefined;
 /** The bounding box extremes `[minX, minY, maxX, maxY]`. */
-type BBoxMaxima = [minX: number, minY: number, maxX: number, maxY: number];
+export type BBoxMaxima = [minX: number, minY: number, maxX: number, maxY: number];
 /** A point on the path at a given length, including the `t` ratio. */
-type PointAtLength = {
+export type PointAtLength = {
   /** The X coordinate. */
   x: number;
   /** The Y coordinate. */
@@ -448,7 +445,7 @@ type PointAtLength = {
   t: number;
 };
 /** An intersection point between two curves, including both `t` ratios. */
-type IntersectionPoint = {
+export type IntersectionPoint = {
   /** The X coordinate of the intersection point. */
   x: number;
   /** The Y coordinate of the intersection point. */
@@ -459,14 +456,14 @@ type IntersectionPoint = {
   t2: number;
 };
 /** Options for computing intersections between two curves. */
-interface IntersectionOptions {
+export interface IntersectionOptions {
   /** Whether to only count the intersections without computing points. */
   justCount?: boolean;
   /** The epsilon value used for precision. */
   epsilon?: number;
 }
 /** Options for equalizing a single path to a given segment count. */
-interface PathEqualizationOptions {
+export interface PathEqualizationOptions {
   /** The equalization mode. @default "auto" */
   mode?: "line" | "curve" | "auto";
   /** The number of sample points for the line mode. */
@@ -477,7 +474,7 @@ interface PathEqualizationOptions {
   close?: boolean;
 }
 /** Options for equalizing two paths for morphing. */
-interface EqualizationOptions {
+export interface EqualizationOptions {
   /** The equalization mode. @default "auto" */
   mode?: "curve" | "auto";
   /** The number of sample points for the line mode. */
@@ -492,9 +489,9 @@ interface EqualizationOptions {
   target?: number;
 }
 /** `EqualizationOptions` without `reverse` and `target`, used for path pairs. */
-type PathsEqualizationOptions = Omit<EqualizationOptions, "reverse" | "target">;
+export type PathsEqualizationOptions = Omit<EqualizationOptions, "reverse" | "target">;
 /** The geometric features of a path used for matching during morphing. */
-interface PathFeature {
+export interface PathFeature {
   /** Whether the path is a polygon. */
   isPoly: boolean;
   /** The normalized path array. */
@@ -508,8 +505,6 @@ interface PathFeature {
   /** The bounding box of the path. */
   bbox: PathBBox;
 }
-//#endregion
-//#region src/math/distanceSquareRoot.d.ts
 /**
  * Returns the square root of the distance
  * between two given points.
@@ -519,8 +514,6 @@ interface PathFeature {
  * @returns the distance value
  */
 declare const distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
-//#endregion
-//#region src/math/midPoint.d.ts
 /**
  * Returns the coordinates of a specified distance
  * ratio between two points.
@@ -531,8 +524,6 @@ declare const distanceSquareRoot: (a: PointTuple, b: PointTuple) => number;
  * @returns the midpoint coordinates
  */
 declare const midPoint: ([ax, ay]: PointTuple, [bx, by]: PointTuple, t: number) => PointTuple;
-//#endregion
-//#region src/math/rotateVector.d.ts
 /**
  * Returns an {x,y} vector rotated by a given
  * angle in radian.
@@ -546,8 +537,6 @@ declare const rotateVector: (x: number, y: number, rad: number) => {
   x: number;
   y: number;
 };
-//#endregion
-//#region src/math/roundTo.d.ts
 /**
  * Rounds a number to the specified number of decimal places.
  *
@@ -556,8 +545,6 @@ declare const rotateVector: (x: number, y: number, rad: number) => {
  * @returns The rounded number
  */
 declare const roundTo: (n: number, round: number) => number;
-//#endregion
-//#region src/convert/pathToAbsolute.d.ts
 /**
  * Parses a path string value or object and returns an array
  * of segments, all converted to absolute values.
@@ -572,8 +559,6 @@ declare const roundTo: (n: number, round: number) => number;
  * ```
  */
 declare const pathToAbsolute: <T extends PathArray>(pathInput: string | T) => AbsoluteArray;
-//#endregion
-//#region src/convert/pathToRelative.d.ts
 /**
  * Parses a path string value or object and returns an array
  * of segments, all converted to relative values.
@@ -588,8 +573,6 @@ declare const pathToAbsolute: <T extends PathArray>(pathInput: string | T) => Ab
  * ```
  */
 declare const pathToRelative: <T extends PathArray>(pathInput: string | T) => RelativeArray;
-//#endregion
-//#region src/convert/pathToCurve.d.ts
 /**
  * Parses a path string or PathArray and returns a new one
  * in which all segments are converted to cubic-bezier.
@@ -604,8 +587,6 @@ declare const pathToRelative: <T extends PathArray>(pathInput: string | T) => Re
  * ```
  */
 declare const pathToCurve: <T extends PathArray>(pathInput: string | T) => CurveArray;
-//#endregion
-//#region src/convert/pathToString.d.ts
 /**
  * Returns a valid `d` attribute string value created
  * by rounding values and concatenating the PathArray segments.
@@ -621,14 +602,13 @@ declare const pathToCurve: <T extends PathArray>(pathInput: string | T) => Curve
  * ```
  */
 declare const pathToString: <T extends PathArray>(path: T, roundOption?: number | "off") => string;
-//#endregion
-//#region src/parser/parsePathString.d.ts
 /**
  * Parses a path string value and returns an array
  * of segments we like to call `PathArray`.
  *
  * If parameter value is already a `PathArray`,
  * return a clone of it.
+
  * @example
  * parsePathString("M 0 0L50 50")
  * // => [["M",0,0],["L",50,50]]
@@ -637,8 +617,6 @@ declare const pathToString: <T extends PathArray>(path: T, roundOption?: number 
  * @returns the resulted `pathArray` or error string
  */
 declare const parsePathString: <T extends PathArray>(pathInput: string | T) => PathArray;
-//#endregion
-//#region src/parser/pathParser.d.ts
 /**
  * The `PathParser` is used by the `parsePathString` static method
  * to generate a `pathArray`.
@@ -656,16 +634,12 @@ declare class PathParser {
   err: string;
   constructor(pathString: string);
 }
-//#endregion
-//#region src/parser/finalizeSegment.d.ts
 /**
  * Breaks the parsing of a pathString once a segment is finalized.
  *
  * @param path - The PathParser instance
  */
 declare const finalizeSegment: (path: PathParser) => void;
-//#endregion
-//#region src/parser/isArcCommand.d.ts
 /**
  * Checks if the character is an A (arc-to) path command.
  *
@@ -673,8 +647,6 @@ declare const finalizeSegment: (path: PathParser) => void;
  * @returns check result
  */
 declare const isArcCommand: (code: number) => code is 97;
-//#endregion
-//#region src/parser/isDigit.d.ts
 /**
  * Checks if a character is a digit.
  *
@@ -682,8 +654,6 @@ declare const isArcCommand: (code: number) => code is 97;
  * @returns check result
  */
 declare const isDigit: (code: number) => code is DigitNumber;
-//#endregion
-//#region src/parser/isDigitStart.d.ts
 /**
  * Checks if the character is or belongs to a number.
  * [0-9]|+|-|.
@@ -692,8 +662,6 @@ declare const isDigit: (code: number) => code is DigitNumber;
  * @returns check result
  */
 declare const isDigitStart: (code: number) => code is DigitNumber | 43 | 45 | 46;
-//#endregion
-//#region src/parser/isMoveCommand.d.ts
 /**
  * Checks if the character is a MoveTo command.
  *
@@ -701,8 +669,6 @@ declare const isDigitStart: (code: number) => code is DigitNumber | 43 | 45 | 46
  * @returns check result
  */
 declare const isMoveCommand: (code: number) => code is 109 | 77;
-//#endregion
-//#region src/parser/isPathCommand.d.ts
 /**
  * Checks if the character is a path command.
  *
@@ -710,8 +676,6 @@ declare const isMoveCommand: (code: number) => code is 109 | 77;
  * @returns check result
  */
 declare const isPathCommand: (code: number) => code is PathCommandNumber;
-//#endregion
-//#region src/parser/isSpace.d.ts
 /**
  * Checks if the character is a space.
  *
@@ -719,8 +683,6 @@ declare const isPathCommand: (code: number) => code is PathCommandNumber;
  * @returns check result
  */
 declare const isSpace: (ch: number) => ch is SpaceNumber;
-//#endregion
-//#region src/parser/scanFlag.d.ts
 /**
  * Validates an A (arc-to) specific path command value.
  * Usually a `large-arc-flag` or `sweep-flag`.
@@ -728,8 +690,6 @@ declare const isSpace: (ch: number) => ch is SpaceNumber;
  * @param path - The PathParser instance
  */
 declare const scanFlag: (path: PathParser) => void;
-//#endregion
-//#region src/parser/scanParam.d.ts
 /**
  * Validates every character of the path string,
  * every path command, negative numbers or floating point numbers.
@@ -737,8 +697,6 @@ declare const scanFlag: (path: PathParser) => void;
  * @param path - The PathParser instance
  */
 declare const scanParam: (path: PathParser) => void;
-//#endregion
-//#region src/parser/scanSegment.d.ts
 /**
  * Scans every character in the path string to determine
  * where a segment starts and where it ends.
@@ -746,8 +704,6 @@ declare const scanParam: (path: PathParser) => void;
  * @param path - The PathParser instance
  */
 declare const scanSegment: (path: PathParser) => void;
-//#endregion
-//#region src/parser/skipSpaces.d.ts
 /**
  * Points the parser to the next character in the
  * path string every time it encounters any kind of
@@ -756,8 +712,6 @@ declare const scanSegment: (path: PathParser) => void;
  * @param path - The PathParser instance
  */
 declare const skipSpaces: (path: PathParser) => void;
-//#endregion
-//#region src/util/getPathBBox.d.ts
 /**
  * Calculates the bounding box of a path.
  *
@@ -781,8 +735,6 @@ declare const getPathBBox: <T extends PathArray>(pathInput: T | string) => {
   cy: number;
   cz: number;
 };
-//#endregion
-//#region src/util/getTotalLength.d.ts
 /**
  * Returns the total length of a path, equivalent to `shape.getTotalLength()`.
  *
@@ -796,8 +748,6 @@ declare const getPathBBox: <T extends PathArray>(pathInput: T | string) => {
  * ```
  */
 declare const getTotalLength: <T extends PathArray>(pathInput: string | T) => number;
-//#endregion
-//#region src/util/getClosestPoint.d.ts
 /**
  * Returns the point in path closest to a given point.
  *
@@ -812,8 +762,6 @@ declare const getClosestPoint: (pathInput: string | PathArray, point: {
   x: number;
   y: number;
 };
-//#endregion
-//#region src/util/getDrawDirection.d.ts
 /**
  * Check if a path is drawn clockwise and returns true if so,
  * false otherwise.
@@ -822,8 +770,6 @@ declare const getClosestPoint: (pathInput: string | PathArray, point: {
  * @returns true when clockwise or false if not
  */
 declare const getDrawDirection: (path: string | PathArray) => boolean;
-//#endregion
-//#region src/util/getPathArea.d.ts
 /**
  * Returns the signed area of a shape.
  *
@@ -841,8 +787,6 @@ declare const getDrawDirection: (path: string | PathArray) => boolean;
  * ```
  */
 declare const getPathArea: <T extends PathArray | string>(path: T) => number;
-//#endregion
-//#region src/util/getPointAtLength.d.ts
 /**
  * Returns [x,y] coordinates of a point at a given length along a path.
  *
@@ -860,8 +804,6 @@ declare const getPointAtLength: <T extends PathArray>(pathInput: string | T, dis
   x: number;
   y: number;
 };
-//#endregion
-//#region src/util/getPropertiesAtLength.d.ts
 /**
  * Returns the segment, its index and length as well as
  * the length to that segment at a given length in a path.
@@ -871,8 +813,6 @@ declare const getPointAtLength: <T extends PathArray>(pathInput: string | T, dis
  * @returns the requested properties
  */
 declare const getPropertiesAtLength: <T extends PathArray>(pathInput: string | T, distance?: number) => SegmentProperties;
-//#endregion
-//#region src/util/getPropertiesAtPoint.d.ts
 /**
  * Returns the point and segment in path closest to a given point as well as
  * the distance to the path stroke.
@@ -884,8 +824,6 @@ declare const getPropertiesAtLength: <T extends PathArray>(pathInput: string | T
  * @returns the requested properties
  */
 declare const getPropertiesAtPoint: <T extends PathArray>(pathInput: string | T, point: Point) => PointProperties;
-//#endregion
-//#region src/util/getSegmentAtLength.d.ts
 /**
  * Returns the segment at a given length.
  *
@@ -894,8 +832,6 @@ declare const getPropertiesAtPoint: <T extends PathArray>(pathInput: string | T,
  * @returns the requested segment
  */
 declare const getSegmentAtLength: <T extends PathArray>(pathInput: string | T, distance?: number) => PathSegment | undefined;
-//#endregion
-//#region src/util/getSegmentOfPoint.d.ts
 /**
  * Returns the path segment which contains a given point.
  *
@@ -907,8 +843,6 @@ declare const getSegmentOfPoint: <T extends PathArray>(path: string | T, point: 
   x: number;
   y: number;
 }) => SegmentProperties | undefined;
-//#endregion
-//#region src/util/isAbsoluteArray.d.ts
 /**
  * Iterates an array to check if it's a `pathArray`
  * with all absolute values.
@@ -917,16 +851,12 @@ declare const getSegmentOfPoint: <T extends PathArray>(path: string | T, point: 
  * @returns iteration result
  */
 declare const isAbsoluteArray: (path: unknown) => path is AbsoluteArray;
-//#endregion
-//#region src/util/isPolygonArray.d.ts
 /**
  * Checks if a path is a polygon (only M, L, H, V, Z commands).
  * @param pathArray PathArray (pre-normalize if needed)
  * @returns boolean
  */
 declare const isPolygonArray: (path: PathArray) => path is PolygonArray;
-//#endregion
-//#region src/util/isCurveArray.d.ts
 /**
  * Iterates an array to check if it's a `pathArray`
  * with all C (cubic bezier) segments.
@@ -935,8 +865,6 @@ declare const isPolygonArray: (path: PathArray) => path is PolygonArray;
  * @returns iteration result
  */
 declare const isCurveArray: (path: unknown) => path is CurveArray;
-//#endregion
-//#region src/util/isNormalizedArray.d.ts
 /**
  * Iterates an array to check if it's a `pathArray`
  * with all segments in non-shorthand notation
@@ -946,8 +874,6 @@ declare const isCurveArray: (path: unknown) => path is CurveArray;
  * @returns true if the array is a normalized path array
  */
 declare const isNormalizedArray: (path: unknown) => path is NormalArray;
-//#endregion
-//#region src/util/isPathArray.d.ts
 /**
  * Iterates an array to check if it's an actual `pathArray`.
  *
@@ -955,8 +881,6 @@ declare const isNormalizedArray: (path: unknown) => path is NormalArray;
  * @returns iteration result
  */
 declare const isPathArray: (path: unknown) => path is PathArray;
-//#endregion
-//#region src/util/isPointInStroke.d.ts
 /**
  * Checks if a given point is in the stroke of a path.
  *
@@ -968,8 +892,6 @@ declare const isPointInStroke: <T extends PathArray>(pathInput: string | T, poin
   x: number;
   y: number;
 }) => boolean;
-//#endregion
-//#region src/util/isRelativeArray.d.ts
 /**
  * Iterates an array to check if it's a `pathArray`
  * with relative values.
@@ -978,8 +900,6 @@ declare const isPointInStroke: <T extends PathArray>(pathInput: string | T, poin
  * @returns iteration result
  */
 declare const isRelativeArray: (path: unknown) => path is RelativeArray;
-//#endregion
-//#region src/util/isValidPath.d.ts
 /**
  * Parses a path string value to determine its validity
  * then returns true if it's valid or false otherwise.
@@ -988,8 +908,6 @@ declare const isRelativeArray: (path: unknown) => path is RelativeArray;
  * @returns the path string validity
  */
 declare const isValidPath: (pathString: string) => boolean;
-//#endregion
-//#region src/morph/samplePolygon.d.ts
 /**
  * Samples points from a path to form a polygon approximation.
  * Collects endpoints of each segment (M start + ends of L/C/etc).
@@ -1000,8 +918,6 @@ declare const isValidPath: (pathString: string) => boolean;
  * @returns Array of [x, y] points
  */
 declare function samplePolygon<T extends NormalArray>(path: T): PointTuple[];
-//#endregion
-//#region src/util/shapeToPath.d.ts
 /**
  * Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`,
  * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>` or `<glyph>`. If `replace` parameter
@@ -1032,8 +948,6 @@ declare function samplePolygon<T extends NormalArray>(path: T): PointTuple[];
  * ```
  */
 declare const shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean, ownerDocument?: Document) => SVGPathElement | false;
-//#endregion
-//#region src/util/shapeToPathArray.d.ts
 /**
  * Returns a new `pathArray` created from attributes of a `<line>`, `<polyline>`,
  * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>`, <path> or `<glyph>`.
@@ -1045,8 +959,6 @@ declare const shapeToPath: (element: ShapeTypes | ShapeOps, replace?: boolean, o
  * @returns the newly created `<path>` element
  */
 declare const shapeToPathArray: (element: ShapeTypes | ShapeOps) => false | PathArray;
-//#endregion
-//#region src/util/isMultiPath.d.ts
 /**
  * Determines if an SVG path contains multiple subpaths.
  * Accepts path string or PathArray.
@@ -1054,24 +966,18 @@ declare const shapeToPathArray: (element: ShapeTypes | ShapeOps) => false | Path
  * @returns boolean
  */
 declare const isMultiPath: <T extends PathArray>(path: string | T) => boolean;
-//#endregion
-//#region src/util/isPolylineArray.d.ts
 /**
  * Checks if a path is a polyline (only M, L, H, V commands).
  * @param pathArray PathArray (pre-normalize if needed)
  * @returns boolean
  */
 declare function isPolylineArray(path: PathArray): path is PolylineArray;
-//#endregion
-//#region src/util/isClosedPath.d.ts
 /**
  * Check if a PathArray is closed, which means its last segment is a Z.
  * @param path
  * @returns true if the path is closed
  */
 declare const isClosedPath: <T extends PathArray>(path: T) => boolean;
-//#endregion
-//#region src/process/normalizePath.d.ts
 /**
  * Parses a path string or PathArray, then iterates the result for:
  * * converting segments to absolute values
@@ -1087,8 +993,6 @@ declare const isClosedPath: <T extends PathArray>(path: T) => boolean;
  * ```
  */
 declare const normalizePath: <T extends string | PathArray>(pathInput: T) => NormalArray;
-//#endregion
-//#region src/process/optimizePath.d.ts
 /**
  * Optimizes a PathArray:
  * * converts segments to shorthand if possible
@@ -1105,8 +1009,6 @@ declare const normalizePath: <T extends string | PathArray>(pathInput: T) => Nor
  * ```
  */
 declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOption?: number) => PathArray;
-//#endregion
-//#region src/process/reversePath.d.ts
 /**
  * Reverses all segments of a PathArray and returns a new PathArray
  * with absolute values.
@@ -1121,8 +1023,6 @@ declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOp
  * ```
  */
 declare const reversePath: <T extends PathArray>(pathInput: T) => T;
-//#endregion
-//#region src/process/splitPath.d.ts
 /**
  * Split a path string or PathArray into an array of sub-paths.
  *
@@ -1142,8 +1042,6 @@ declare const reversePath: <T extends PathArray>(pathInput: T) => T;
  * ```
  */
 declare const splitPath: <T extends PathArray>(pathInput: T | string) => T[];
-//#endregion
-//#region src/process/transformPath.d.ts
 /**
  * Apply a 2D / 3D transformation to a PathArray.
  *
@@ -1161,8 +1059,6 @@ declare const splitPath: <T extends PathArray>(pathInput: T | string) => T[];
  * ```
  */
 declare const transformPath: <T extends PathArray>(pathInput: T | string, transform?: Partial<TransformObject>) => T | AbsoluteArray;
-//#endregion
-//#region src/process/absolutizeSegment.d.ts
 /**
  * Returns an absolute segment of a `PathArray` object.
  *
@@ -1173,8 +1069,6 @@ declare const transformPath: <T extends PathArray>(pathInput: T | string, transf
  * @returns the absolute segment
  */
 declare const absolutizeSegment: (segment: PathSegment, index: number, lastX: number, lastY: number) => AbsoluteSegment;
-//#endregion
-//#region src/process/arcToCubic.d.ts
 /**
  * Converts A (arc-to) segments to C (cubic-bezier-to).
  *
@@ -1194,8 +1088,6 @@ declare const absolutizeSegment: (segment: PathSegment, index: number, lastX: nu
  * @returns the resulting cubic-bezier segment(s)
  */
 declare const arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle: number, LAF: number, SF: number, X2: number, Y2: number, recursive?: [number, number, number, number]) => number[];
-//#endregion
-//#region src/process/getSVGMatrix.d.ts
 /**
  * Returns a transformation matrix to apply to `<path>` elements.
  *
@@ -1205,8 +1097,6 @@ declare const arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle
  * @returns a new transformation matrix
  */
 declare const getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix;
-//#endregion
-//#region src/process/iterate.d.ts
 /**
  * Iterates over a `PathArray`, executing a callback for each segment.
  * The callback can:
@@ -1235,8 +1125,6 @@ declare const getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix;
  * });
  */
 declare const iterate: <T extends PathArray>(path: T, iterator: IteratorCallback<T>) => T;
-//#endregion
-//#region src/process/lineToCubic.d.ts
 /**
  * Converts an L (line-to) segment to C (cubic-bezier).
  *
@@ -1247,8 +1135,6 @@ declare const iterate: <T extends PathArray>(path: T, iterator: IteratorCallback
  * @returns the cubic-bezier segment
  */
 declare const lineToCubic: (x1: number, y1: number, x2: number, y2: number) => number[];
-//#endregion
-//#region src/process/normalizeSegment.d.ts
 /**
  * Normalizes a single segment of a `pathArray` object.
  *
@@ -1258,8 +1144,6 @@ declare const lineToCubic: (x1: number, y1: number, x2: number, y2: number) => n
  * @returns the normalized segment
  */
 declare const normalizeSegment: (segment: PathSegment, params: ParserParams, prevCommand?: PathCommand | null) => NormalSegment;
-//#endregion
-//#region src/process/projection2d.d.ts
 /**
  * Returns the [x,y] projected coordinates for a given an [x,y] point
  * and an [x,y,z] perspective origin point.
@@ -1275,8 +1159,6 @@ declare const normalizeSegment: (segment: PathSegment, params: ParserParams, pre
  * @returns the projected [x,y] coordinates
  */
 declare const projection2d: (m: CSSMatrix, point2D: PointTuple, origin: [number, number, number]) => PointTuple;
-//#endregion
-//#region src/process/quadToCubic.d.ts
 /**
  * Converts a Q (quadratic-bezier) segment to C (cubic-bezier).
  *
@@ -1289,8 +1171,6 @@ declare const projection2d: (m: CSSMatrix, point2D: PointTuple, origin: [number,
  * @returns the cubic-bezier segment
  */
 declare const quadToCubic: (x1: number, y1: number, qx: number, qy: number, x2: number, y2: number) => [number, number, number, number, number, number];
-//#endregion
-//#region src/process/relativizeSegment.d.ts
 /**
  * Returns a relative segment of a `PathArray` object.
  *
@@ -1301,8 +1181,6 @@ declare const quadToCubic: (x1: number, y1: number, qx: number, qy: number, x2: 
  * @returns the relative segment
  */
 declare const relativizeSegment: (segment: PathSegment, index: number, lastX: number, lastY: number) => MSegment | RelativeSegment;
-//#endregion
-//#region src/process/reverseCurve.d.ts
 /**
  * Reverses all segments of a `pathArray`
  * which consists of only C (cubic-bezier) path commands.
@@ -1311,8 +1189,6 @@ declare const relativizeSegment: (segment: PathSegment, index: number, lastX: nu
  * @returns the reversed `pathArray`
  */
 declare const reverseCurve: (path: CurveArray) => CurveArray;
-//#endregion
-//#region src/process/roundPath.d.ts
 /**
  * Rounds the values of a `pathArray` instance to
  * a specified amount of decimals and returns it.
@@ -1322,8 +1198,6 @@ declare const reverseCurve: (path: CurveArray) => CurveArray;
  * @returns the resulted `pathArray` with rounded values
  */
 declare const roundPath: <T extends PathArray>(path: T, roundOption?: number | "off") => T;
-//#endregion
-//#region src/process/roundSegment.d.ts
 /**
  * Rounds the numeric values of a path segment to the specified precision.
  *
@@ -1332,8 +1206,6 @@ declare const roundPath: <T extends PathArray>(path: T, roundOption?: number | "
  * @returns The rounded segment
  */
 declare const roundSegment: <T extends PathSegment>(segment: T, roundOption: number) => T;
-//#endregion
-//#region src/process/segmentToCubic.d.ts
 /**
  * Converts any segment to C (cubic-bezier).
  *
@@ -1342,8 +1214,6 @@ declare const roundSegment: <T extends PathSegment>(segment: T, roundOption: num
  * @returns the cubic-bezier segment
  */
 declare const segmentToCubic: (segment: PathSegment, params: ParserParams) => MSegment | CSegment;
-//#endregion
-//#region src/process/shortenSegment.d.ts
 /**
  * Shorten a single segment of a `pathArray` object.
  *
@@ -1354,8 +1224,6 @@ declare const segmentToCubic: (segment: PathSegment, params: ParserParams) => MS
  * @returns the shortened segment
  */
 declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSegment, params: ParserParams, prevCommand: PathCommand) => ShortSegment;
-//#endregion
-//#region src/morph/fixPath.d.ts
 /**
  * Checks a `PathArray` for an unnecessary `Z` segment
  * and removes it. The `PathArray` is modified in place.
@@ -1371,8 +1239,6 @@ declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSe
  * @returns void
  */
 declare const fixPath: <T extends PathArray>(pathInput: T | string) => void;
-//#endregion
-//#region src/morph/splitCubicSegment.d.ts
 /**
  * Split a cubic Bézier into two cubics at parameter t [0–1].
  *
@@ -1388,8 +1254,6 @@ declare const fixPath: <T extends PathArray>(pathInput: T | string) => void;
  * @returns Array of two cubic segments, each as [x1,y1, x2,y2, x3,y3, x4,y4]
  */
 declare function splitCubicSegment(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number, t: number): [CubicCoordinates, CubicCoordinates];
-//#endregion
-//#region src/morph/equalizeSegments.d.ts
 /**
  * Equalizes two paths for morphing (single subpath only).
  *
@@ -1406,8 +1270,6 @@ declare function splitCubicSegment(x1: number, y1: number, x2: number, y2: numbe
  * ```
  */
 declare const equalizeSegments: (path1: PathArray | string, path2: PathArray | string, initialCfg?: EqualizationOptions) => [MorphPathArray, MorphPathArray];
-//#endregion
-//#region src/morph/equalizePaths.d.ts
 /**
  * Equalizes two paths for morphing (single/multi subpath).
  *
@@ -1424,8 +1286,6 @@ declare const equalizeSegments: (path1: PathArray | string, path2: PathArray | s
  * ```
  */
 declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: {}) => [MorphPathArray, MorphPathArray];
-//#endregion
-//#region src/intersect/pathIntersection.d.ts
 /**
  * Finds intersection points between two paths.
  *
@@ -1443,8 +1303,6 @@ declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string
  * ```
  */
 declare const pathsIntersection: <T extends string | PathArray>(pathInput1: T, pathInput2: T, justCount?: boolean) => number | IntersectionPoint[];
-//#endregion
-//#region src/intersect/boundingBoxIntersect.d.ts
 /**
  * Checks if two bounding boxes intersect.
  *
@@ -1453,8 +1311,6 @@ declare const pathsIntersection: <T extends string | PathArray>(pathInput1: T, p
  * @returns True if the bounding boxes overlap
  */
 declare const boundingBoxIntersect: (a: BBoxMaxima, b: BBoxMaxima) => boolean;
-//#endregion
-//#region src/intersect/isPointInsideBBox.d.ts
 /**
  * Checks if a point is inside a bounding box.
  *
@@ -1463,8 +1319,6 @@ declare const boundingBoxIntersect: (a: BBoxMaxima, b: BBoxMaxima) => boolean;
  * @returns True if the point is inside or on the edge of the bounding box
  */
 declare const isPointInsideBBox: (bbox: BBoxMaxima, [x, y]: PointTuple) => boolean;
-//#endregion
-//#region src/main.d.ts
 /**
  * Creates a new SVGPathCommander instance with the following properties:
  * * segments: `pathArray`
@@ -1475,7 +1329,7 @@ declare const isPointInsideBBox: (bbox: BBoxMaxima, [x, y]: PointTuple) => boole
  * @author thednp <https://github.com/thednp/svg-path-commander>
  * @returns a new SVGPathCommander instance
  */
-declare class SVGPathCommander {
+export declare class SVGPathCommander {
   /** The parsed PathArray stored on the instance. */
   segments: PathArray;
   /** The rounding option used for the output path string. */
@@ -1940,6 +1794,5 @@ declare class SVGPathCommander {
   /** The library version. */
   static version: string;
 }
-//#endregion
-export { ACommand, ASegment, AbsoluteArray, AbsoluteCommand, AbsoluteSegment, ArcCoordinates, ArcSegment, BBoxMaxima, CCommand, CSegment, CircleAttr, CloseSegment, ClosedCurveArray, CubicCoordinates, CubicPoints, CubicSegment, CurveArray, DeriveCallback, DerivedCubicPoints, DerivedPoint, DerivedQuadPoints, DigitNumber, EllipseAttr, EqualizationOptions, GlyphAttr, HCommand, HSegment, HorLineSegment, IntersectionOptions, IntersectionPoint, IteratorCallback, LCommand, LSegment, LengthFactory, LineAttr, LineCoordinates, LineSegment, MCommand, MSegment, MorphPathArray, MoveSegment, NormalArray, NormalSegment, Options, ParserParams, PathArray, PathBBox, PathCommand, PathCommandNumber, PathEqualizationOptions, PathFeature, PathSegment, PathTransform, PathsEqualizationOptions, Point, PointAtLength, PointProperties, PointTuple, PolyAttr, PolygonArray, PolylineArray, QCommand, QSegment, QuadCoordinates, QuadPoints, QuadSegment, RectAttr, RelativeArray, RelativeCommand, RelativeSegment, SCommand, SSegment, SVGPathCommander, SVGPathCommander as default, SegmentLimits, SegmentProperties, ShapeOps, ShapeParams, ShapeTags, ShapeTypes, ShortCubicSegment, ShortQuadSegment, ShortSegment, SpaceNumber, TCommand, TSegment, TransformEntries, TransformObject, TransformObjectValues, TransformProps, VCommand, VSegment, VertLineSegment, ZCommand, ZSegment, aCommand, aSegment, cCommand, cSegment, hCommand, hSegment, lCommand, lSegment, mCommand, mSegment, qCommand, qSegment, sCommand, sSegment, tCommand, tSegment, vCommand, vSegment, zCommand, zSegment };
+export { SVGPathCommander as default };
 //# sourceMappingURL=index.d.ts.map

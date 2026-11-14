@@ -4,10 +4,9 @@
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 import CSSMatrix from "@thednp/dommatrix";
-//#region package.json
+// package.json
 var version = "2.3.4";
-//#endregion
-//#region src/math/midPoint.ts
+// src/math/midPoint.ts
 /**
 * Returns the coordinates of a specified distance
 * ratio between two points.
@@ -20,8 +19,7 @@ var version = "2.3.4";
 const midPoint = ([ax, ay], [bx, by], t) => {
 	return [ax + (bx - ax) * t, ay + (by - ay) * t];
 };
-//#endregion
-//#region src/math/distanceSquareRoot.ts
+// src/math/distanceSquareRoot.ts
 /**
 * Returns the square root of the distance
 * between two given points.
@@ -33,8 +31,7 @@ const midPoint = ([ax, ay], [bx, by], t) => {
 const distanceSquareRoot = (a, b) => {
 	return Math.sqrt((a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]));
 };
-//#endregion
-//#region src/math/lineTools.ts
+// src/math/lineTools.ts
 /**
 * Returns length for line segments (MoveTo, LineTo).
 *
@@ -106,8 +103,7 @@ const lineTools = {
 	getLineLength,
 	getPointAtLineLength
 };
-//#endregion
-//#region src/math/bezier.ts
+// src/math/bezier.ts
 /**
 * Tools from bezier.js by Mike 'Pomax' Kamermans
 * @see https://github.com/Pomax/bezierjs
@@ -396,8 +392,7 @@ const bezierTools = {
 	minmaxQ,
 	Tvalues
 };
-//#endregion
-//#region src/math/arcTools.ts
+// src/math/arcTools.ts
 /**
 * Returns the signed arc length of an ellipse segment from angle `0` up to
 * the given `theta` angle, by integrating the curve speed
@@ -740,8 +735,7 @@ const arcTools = {
 	getArcProps,
 	getPointAtArcLength
 };
-//#endregion
-//#region src/math/cubicTools.ts
+// src/math/cubicTools.ts
 /**
 * Returns a point at a given length of a CubicBezier segment.
 *
@@ -872,8 +866,7 @@ const cubicTools = {
 	getPointAtCubicLength,
 	getPointAtCubicSegmentLength
 };
-//#endregion
-//#region src/math/quadTools.ts
+// src/math/quadTools.ts
 /**
 * Returns the {x,y} coordinates of a point at a
 * given length of a quadratic-bezier segment.
@@ -993,8 +986,7 @@ const quadTools = {
 	getQuadBBox,
 	getQuadLength
 };
-//#endregion
-//#region src/math/polygonTools.ts
+// src/math/polygonTools.ts
 /**
 * d3-polygon-area
 * @see https://github.com/d3/d3-polygon
@@ -1056,8 +1048,7 @@ const polygonTools = {
 	polygonLength,
 	polygonCentroid
 };
-//#endregion
-//#region src/math/rotateVector.ts
+// src/math/rotateVector.ts
 /**
 * Returns an {x,y} vector rotated by a given
 * angle in radian.
@@ -1074,8 +1065,7 @@ const rotateVector = (x, y, rad) => {
 		y: x * sin(rad) + y * cos(rad)
 	};
 };
-//#endregion
-//#region src/math/roundTo.ts
+// src/math/roundTo.ts
 /**
 * Rounds a number to the specified number of decimal places.
 *
@@ -1087,8 +1077,7 @@ const roundTo = (n, round) => {
 	const pow = round >= 1 ? 10 ** round : 1;
 	return round > 0 ? Math.round(n * pow) / pow : Math.round(n);
 };
-//#endregion
-//#region src/options/options.ts
+// src/options/options.ts
 /** SVGPathCommander default options */
 const defaultOptions = {
 	origin: [
@@ -1098,8 +1087,7 @@ const defaultOptions = {
 	],
 	round: 4
 };
-//#endregion
-//#region src/parser/paramsCount.ts
+// src/parser/paramsCount.ts
 /** Segment params length */
 const paramsCounts = {
 	a: 7,
@@ -1114,8 +1102,7 @@ const paramsCounts = {
 	v: 1,
 	z: 0
 };
-//#endregion
-//#region src/parser/finalizeSegment.ts
+// src/parser/finalizeSegment.ts
 /**
 * Breaks the parsing of a pathString once a segment is finalized.
 *
@@ -1147,12 +1134,10 @@ const finalizeSegment = (path) => {
 		if (!paramsCounts[relativeCommand]) break;
 	}
 };
-//#endregion
-//#region src/util/error.ts
+// src/util/error.ts
 /** Error prefix used in all SVGPathCommander TypeError messages. */
 const error = "SVGPathCommanderError";
-//#endregion
-//#region src/parser/scanFlag.ts
+// src/parser/scanFlag.ts
 /**
 * Validates an A (arc-to) specific path command value.
 * Usually a `large-arc-flag` or `sweep-flag`.
@@ -1174,8 +1159,7 @@ const scanFlag = (path) => {
 	}
 	path.err = `${error}: invalid Arc flag "${pathValue[index]}", expecting 0 or 1 at index ${index}`;
 };
-//#endregion
-//#region src/parser/isDigit.ts
+// src/parser/isDigit.ts
 /**
 * Checks if a character is a digit.
 *
@@ -1185,12 +1169,10 @@ const scanFlag = (path) => {
 const isDigit = (code) => {
 	return code >= 48 && code <= 57;
 };
-//#endregion
-//#region src/parser/invalidPathValue.ts
+// src/parser/invalidPathValue.ts
 /** Error message prefix used when a path string cannot be parsed. */
 const invalidPathValue = "Invalid path value";
-//#endregion
-//#region src/parser/scanParam.ts
+// src/parser/scanParam.ts
 /**
 * Validates every character of the path string,
 * every path command, negative numbers or floating point numbers.
@@ -1313,8 +1295,7 @@ const scanNumber = (str, start, end) => {
 	if (scale >= 0) return sign * param * 10 ** scale;
 	return sign * param / 10 ** -scale;
 };
-//#endregion
-//#region src/parser/isSpace.ts
+// src/parser/isSpace.ts
 /**
 * Checks if the character is a space.
 *
@@ -1351,8 +1332,7 @@ const isSpace = (ch) => {
 		160
 	].includes(ch);
 };
-//#endregion
-//#region src/parser/skipSpaces.ts
+// src/parser/skipSpaces.ts
 /**
 * Points the parser to the next character in the
 * path string every time it encounters any kind of
@@ -1364,8 +1344,7 @@ const skipSpaces = (path) => {
 	const { pathValue, max } = path;
 	while (path.index < max && isSpace(pathValue.charCodeAt(path.index))) path.index += 1;
 };
-//#endregion
-//#region src/parser/isPathCommand.ts
+// src/parser/isPathCommand.ts
 /**
 * Checks if the character is a path command.
 *
@@ -1387,8 +1366,7 @@ const isPathCommand = (code) => {
 		default: return false;
 	}
 };
-//#endregion
-//#region src/parser/isDigitStart.ts
+// src/parser/isDigitStart.ts
 /**
 * Checks if the character is or belongs to a number.
 * [0-9]|+|-|.
@@ -1399,8 +1377,7 @@ const isPathCommand = (code) => {
 const isDigitStart = (code) => {
 	return isDigit(code) || code === 43 || code === 45 || code === 46;
 };
-//#endregion
-//#region src/parser/isArcCommand.ts
+// src/parser/isArcCommand.ts
 /**
 * Checks if the character is an A (arc-to) path command.
 *
@@ -1410,8 +1387,7 @@ const isDigitStart = (code) => {
 const isArcCommand = (code) => {
 	return (code | 32) === 97;
 };
-//#endregion
-//#region src/parser/isMoveCommand.ts
+// src/parser/isMoveCommand.ts
 /**
 * Checks if the character is a MoveTo command.
 *
@@ -1425,8 +1401,7 @@ const isMoveCommand = (code) => {
 		default: return false;
 	}
 };
-//#endregion
-//#region src/parser/scanSegment.ts
+// src/parser/scanSegment.ts
 /**
 * Scans every character in the path string to determine
 * where a segment starts and where it ends.
@@ -1471,8 +1446,7 @@ const scanSegment = (path) => {
 	}
 	finalizeSegment(path);
 };
-//#endregion
-//#region src/parser/pathParser.ts
+// src/parser/pathParser.ts
 /**
 * The `PathParser` is used by the `parsePathString` static method
 * to generate a `pathArray`.
@@ -1491,8 +1465,7 @@ var PathParser = class {
 		this.err = "";
 	}
 };
-//#endregion
-//#region src/parser/parsePathString.ts
+// src/parser/parsePathString.ts
 /**
 * Parses a path string value and returns an array
 * of segments we like to call `PathArray`.
@@ -1523,8 +1496,7 @@ const parsePathString = (pathInput) => {
 	} else throw TypeError(path.err);
 	return path.segments;
 };
-//#endregion
-//#region src/process/absolutizeSegment.ts
+// src/process/absolutizeSegment.ts
 /**
 * Returns an absolute segment of a `PathArray` object.
 *
@@ -1571,8 +1543,7 @@ const absolutizeSegment = (segment, index, lastX, lastY) => {
 		return [absCommand].concat(absValues);
 	}
 };
-//#endregion
-//#region src/process/iterate.ts
+// src/process/iterate.ts
 /**
 * Iterates over a `PathArray`, executing a callback for each segment.
 * The callback can:
@@ -1633,8 +1604,7 @@ const iterate = (path, iterator) => {
 	}
 	return path;
 };
-//#endregion
-//#region src/convert/pathToAbsolute.ts
+// src/convert/pathToAbsolute.ts
 /**
 * Parses a path string value or object and returns an array
 * of segments, all converted to absolute values.
@@ -1652,8 +1622,7 @@ const pathToAbsolute = (pathInput) => {
 	const path = parsePathString(pathInput);
 	return iterate(path, absolutizeSegment);
 };
-//#endregion
-//#region src/process/relativizeSegment.ts
+// src/process/relativizeSegment.ts
 /**
 * Returns a relative segment of a `PathArray` object.
 *
@@ -1691,8 +1660,7 @@ const relativizeSegment = (segment, index, lastX, lastY) => {
 		return [relCommand].concat(relValues);
 	}
 };
-//#endregion
-//#region src/convert/pathToRelative.ts
+// src/convert/pathToRelative.ts
 /**
 * Parses a path string value or object and returns an array
 * of segments, all converted to relative values.
@@ -1710,8 +1678,7 @@ const pathToRelative = (pathInput) => {
 	const path = parsePathString(pathInput);
 	return iterate(path, relativizeSegment);
 };
-//#endregion
-//#region src/process/arcToCubic.ts
+// src/process/arcToCubic.ts
 /**
 * Converts A (arc-to) segments to C (cubic-bezier-to).
 *
@@ -1823,8 +1790,7 @@ const arcToCubic = (X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, recursive) => {
 	for (let i = 0, ii = res.length; i < ii; i += 1) newres[i] = i % 2 ? rotateVector(res[i - 1], res[i], rad).y : rotateVector(res[i], res[i + 1], rad).x;
 	return newres;
 };
-//#endregion
-//#region src/process/quadToCubic.ts
+// src/process/quadToCubic.ts
 /**
 * Converts a Q (quadratic-bezier) segment to C (cubic-bezier).
 *
@@ -1848,8 +1814,7 @@ const quadToCubic = (x1, y1, qx, qy, x2, y2) => {
 		y2
 	];
 };
-//#endregion
-//#region src/process/lineToCubic.ts
+// src/process/lineToCubic.ts
 /**
 * Converts an L (line-to) segment to C (cubic-bezier).
 *
@@ -1871,8 +1836,7 @@ const lineToCubic = (x1, y1, x2, y2) => {
 		y2
 	];
 };
-//#endregion
-//#region src/process/segmentToCubic.ts
+// src/process/segmentToCubic.ts
 /**
 * Converts any segment to C (cubic-bezier).
 *
@@ -1904,8 +1868,7 @@ const segmentToCubic = (segment, params) => {
 	else if (pathCommand === "Z") return ["C"].concat(lineToCubic(px1, py1, params.mx, params.my));
 	return segment;
 };
-//#endregion
-//#region src/process/normalizeSegment.ts
+// src/process/normalizeSegment.ts
 /**
 * Normalizes a single segment of a `pathArray` object.
 *
@@ -1974,8 +1937,7 @@ const normalizeSegment = (segment, params, prevCommand) => {
 	} else if (absCommand === "Z") return ["Z"];
 	return segment;
 };
-//#endregion
-//#region src/parser/paramsParser.ts
+// src/parser/paramsParser.ts
 /**
 * Default parser parameters object used to track position state
 * while iterating through path segments.
@@ -1992,8 +1954,7 @@ const paramsParser = {
 	qx: null,
 	qy: null
 };
-//#endregion
-//#region src/convert/pathToCurve.ts
+// src/convert/pathToCurve.ts
 /**
 * Parses a path string or PathArray and returns a new one
 * in which all segments are converted to cubic-bezier.
@@ -2038,8 +1999,7 @@ const pathToCurve = (pathInput) => {
 		return result;
 	});
 };
-//#endregion
-//#region src/convert/pathToString.ts
+// src/convert/pathToString.ts
 /**
 * Returns a valid `d` attribute string value created
 * by rounding values and concatenating the PathArray segments.
@@ -2077,8 +2037,7 @@ const pathToString = (path, roundOption) => {
 	}
 	return result;
 };
-//#endregion
-//#region src/util/getPathBBox.ts
+// src/util/getPathBBox.ts
 /**
 * Calculates the bounding box of a path.
 *
@@ -2108,10 +2067,10 @@ const getPathBBox = (pathInput) => {
 	let mx = 0;
 	let my = 0;
 	const { max, min } = Math;
-	let xMin = Infinity;
-	let yMin = Infinity;
-	let xMax = -Infinity;
-	let yMax = -Infinity;
+	let xMin = 1e400;
+	let yMin = 1e400;
+	let xMax = -1e400;
+	let yMax = -1e400;
 	let minX = 0;
 	let minY = 0;
 	let maxX = 0;
@@ -2201,8 +2160,7 @@ const getPathBBox = (pathInput) => {
 		cz: Math.max(width, height) + Math.min(width, height) / 2
 	};
 };
-//#endregion
-//#region src/util/getTotalLength.ts
+// src/util/getTotalLength.ts
 /**
 * Returns the total length of a path, equivalent to `shape.getTotalLength()`.
 *
@@ -2267,12 +2225,10 @@ const getTotalLength = (pathInput) => {
 	});
 	return totalLength;
 };
-//#endregion
-//#region src/util/distanceEpsilon.ts
+// src/util/distanceEpsilon.ts
 /** Small threshold value used for floating-point distance comparisons in path calculations. */
 const DISTANCE_EPSILON = 1e-5;
-//#endregion
-//#region src/process/normalizePath.ts
+// src/process/normalizePath.ts
 /**
 * Parses a path string or PathArray, then iterates the result for:
 * * converting segments to absolute values
@@ -2309,8 +2265,7 @@ const normalizePath = (pathInput) => {
 		return result;
 	});
 };
-//#endregion
-//#region src/util/getPointAtLength.ts
+// src/util/getPointAtLength.ts
 /**
 * Returns [x,y] coordinates of a point at a given length along a path.
 *
@@ -2377,8 +2332,7 @@ const getPointAtLength = (pathInput, distance) => {
 	});
 	return POINT;
 };
-//#endregion
-//#region src/util/getPropertiesAtLength.ts
+// src/util/getPropertiesAtLength.ts
 /**
 * Returns the segment, its index and length as well as
 * the length to that segment at a given length in a path.
@@ -2430,8 +2384,7 @@ const getPropertiesAtLength = (pathInput, distance) => {
 	}
 	return segments.find(({ lengthAtSegment: l }) => l <= distance);
 };
-//#endregion
-//#region src/util/getPropertiesAtPoint.ts
+// src/util/getPropertiesAtPoint.ts
 /**
 * Returns the point and segment in path closest to a given point as well as
 * the distance to the path stroke.
@@ -2459,7 +2412,7 @@ const getPropertiesAtPoint = (pathInput, point) => {
 	};
 	let scanDistance = 0;
 	let bestLength = 0;
-	let bestDistance = Infinity;
+	let bestDistance = 1e400;
 	for (let scanLength = 0; scanLength <= pathLength; scanLength += precision) {
 		scan = getPointAtLength(normalPath, scanLength);
 		scanDistance = distanceTo(scan);
@@ -2501,8 +2454,7 @@ const getPropertiesAtPoint = (pathInput, point) => {
 		segment
 	};
 };
-//#endregion
-//#region src/util/getClosestPoint.ts
+// src/util/getClosestPoint.ts
 /**
 * Returns the point in path closest to a given point.
 *
@@ -2513,8 +2465,7 @@ const getPropertiesAtPoint = (pathInput, point) => {
 const getClosestPoint = (pathInput, point) => {
 	return getPropertiesAtPoint(pathInput, point).closest;
 };
-//#endregion
-//#region src/util/getPathArea.ts
+// src/util/getPathArea.ts
 /**
 * Returns the area of a single cubic-bezier segment.
 *
@@ -2565,8 +2516,7 @@ const getPathArea = (path) => {
 		}
 	}).reduce((a, b) => a + b, 0);
 };
-//#endregion
-//#region src/util/getDrawDirection.ts
+// src/util/getDrawDirection.ts
 /**
 * Check if a path is drawn clockwise and returns true if so,
 * false otherwise.
@@ -2577,8 +2527,7 @@ const getPathArea = (path) => {
 const getDrawDirection = (path) => {
 	return getPathArea(pathToCurve(path)) >= 0;
 };
-//#endregion
-//#region src/util/getSegmentAtLength.ts
+// src/util/getSegmentAtLength.ts
 /**
 * Returns the segment at a given length.
 *
@@ -2589,8 +2538,7 @@ const getDrawDirection = (path) => {
 const getSegmentAtLength = (pathInput, distance) => {
 	return getPropertiesAtLength(pathInput, distance).segment;
 };
-//#endregion
-//#region src/util/getSegmentOfPoint.ts
+// src/util/getSegmentOfPoint.ts
 /**
 * Returns the path segment which contains a given point.
 *
@@ -2601,8 +2549,7 @@ const getSegmentAtLength = (pathInput, distance) => {
 const getSegmentOfPoint = (path, point) => {
 	return getPropertiesAtPoint(path, point).segment;
 };
-//#endregion
-//#region src/util/isPathArray.ts
+// src/util/isPathArray.ts
 /**
 * Iterates an array to check if it's an actual `pathArray`.
 *
@@ -2615,8 +2562,7 @@ const isPathArray = (path) => {
 		return paramsCounts[lk] === seg.length - 1 && "achlmqstvz".includes(lk) && seg.slice(1).every(Number.isFinite);
 	}) && path.length > 0;
 };
-//#endregion
-//#region src/util/isAbsoluteArray.ts
+// src/util/isAbsoluteArray.ts
 /**
 * Iterates an array to check if it's a `pathArray`
 * with all absolute values.
@@ -2627,8 +2573,7 @@ const isPathArray = (path) => {
 const isAbsoluteArray = (path) => {
 	return isPathArray(path) && path.every(([x]) => x === x.toUpperCase());
 };
-//#endregion
-//#region src/util/isNormalizedArray.ts
+// src/util/isNormalizedArray.ts
 /**
 * Iterates an array to check if it's a `pathArray`
 * with all segments in non-shorthand notation
@@ -2640,8 +2585,7 @@ const isAbsoluteArray = (path) => {
 const isNormalizedArray = (path) => {
 	return isAbsoluteArray(path) && path.every(([pc]) => "ACLMQZ".includes(pc));
 };
-//#endregion
-//#region src/util/isPolygonArray.ts
+// src/util/isPolygonArray.ts
 /**
 * Checks if a path is a polygon (only M, L, H, V, Z commands).
 * @param pathArray PathArray (pre-normalize if needed)
@@ -2650,8 +2594,7 @@ const isNormalizedArray = (path) => {
 const isPolygonArray = (path) => {
 	return isNormalizedArray(path) && path.every(([pc]) => "MLVHZ".includes(pc));
 };
-//#endregion
-//#region src/util/isCurveArray.ts
+// src/util/isCurveArray.ts
 /**
 * Iterates an array to check if it's a `pathArray`
 * with all C (cubic bezier) segments.
@@ -2662,8 +2605,7 @@ const isPolygonArray = (path) => {
 const isCurveArray = (path) => {
 	return isNormalizedArray(path) && path.every(([pc]) => "MC".includes(pc));
 };
-//#endregion
-//#region src/util/isPointInStroke.ts
+// src/util/isPointInStroke.ts
 /**
 * Checks if a given point is in the stroke of a path.
 *
@@ -2675,8 +2617,7 @@ const isPointInStroke = (pathInput, point) => {
 	const { distance } = getPropertiesAtPoint(pathInput, point);
 	return Math.abs(distance) < DISTANCE_EPSILON;
 };
-//#endregion
-//#region src/util/isRelativeArray.ts
+// src/util/isRelativeArray.ts
 /**
 * Iterates an array to check if it's a `pathArray`
 * with relative values.
@@ -2687,8 +2628,7 @@ const isPointInStroke = (pathInput, point) => {
 const isRelativeArray = (path) => {
 	return isPathArray(path) && path.slice(1).every(([pc]) => pc === pc.toLowerCase());
 };
-//#endregion
-//#region src/util/isValidPath.ts
+// src/util/isValidPath.ts
 /**
 * Parses a path string value to determine its validity
 * then returns true if it's valid or false otherwise.
@@ -2703,8 +2643,7 @@ const isValidPath = (pathString) => {
 	while (path.index < path.max && !path.err.length) scanSegment(path);
 	return !path.err.length && "mM".includes(path.segments[0][0]);
 };
-//#endregion
-//#region src/morph/samplePolygon.ts
+// src/morph/samplePolygon.ts
 /**
 * Samples points from a path to form a polygon approximation.
 * Collects endpoints of each segment (M start + ends of L/C/etc).
@@ -2730,8 +2669,7 @@ function samplePolygon(path) {
 	});
 	return points;
 }
-//#endregion
-//#region src/util/shapeParams.ts
+// src/util/shapeParams.ts
 /**
 * Supported shapes and their specific parameters.
 */
@@ -2765,8 +2703,7 @@ const shapeParams = {
 	polyline: ["points"],
 	glyph: ["d"]
 };
-//#endregion
-//#region src/util/isElement.ts
+// src/util/isElement.ts
 /**
 * Checks if a value is a DOM Element.
 *
@@ -2774,8 +2711,7 @@ const shapeParams = {
 * @returns True if the value is a DOM Element (nodeType === 1)
 */
 const isElement = (node) => node !== void 0 && node !== null && typeof node === "object" && node.nodeType === 1;
-//#endregion
-//#region src/util/shapeToPathArray.ts
+// src/util/shapeToPathArray.ts
 /**
 * Returns a new PathArray from line attributes.
 *
@@ -3035,8 +2971,7 @@ const shapeToPathArray = (element) => {
 	if (isPathArray(pathArray) && pathArray.length) return pathArray;
 	return false;
 };
-//#endregion
-//#region src/util/shapeToPath.ts
+// src/util/shapeToPath.ts
 /**
 * Returns a new `<path>` element created from attributes of a `<line>`, `<polyline>`,
 * `<polygon>`, `<rect>`, `<ellipse>`, `<circle>` or `<glyph>`. If `replace` parameter
@@ -3104,8 +3039,7 @@ const shapeToPath = (element, replace, ownerDocument) => {
 	}
 	return false;
 };
-//#endregion
-//#region src/util/isMultiPath.ts
+// src/util/isMultiPath.ts
 /**
 * Determines if an SVG path contains multiple subpaths.
 * Accepts path string or PathArray.
@@ -3127,8 +3061,7 @@ const isMultiPath = (path) => {
 	}
 	throw new TypeError(error + ": expected string or PathArray");
 };
-//#endregion
-//#region src/util/isPolylineArray.ts
+// src/util/isPolylineArray.ts
 /**
 * Checks if a path is a polyline (only M, L, H, V commands).
 * @param pathArray PathArray (pre-normalize if needed)
@@ -3137,8 +3070,7 @@ const isMultiPath = (path) => {
 function isPolylineArray(path) {
 	return isNormalizedArray(path) && path.every(([pc]) => "MLVH".includes(pc));
 }
-//#endregion
-//#region src/util/isClosedPath.ts
+// src/util/isClosedPath.ts
 /**
 * Check if a PathArray is closed, which means its last segment is a Z.
 * @param path
@@ -3147,8 +3079,7 @@ function isPolylineArray(path) {
 const isClosedPath = (path) => {
 	return path[path.length - 1][0].toUpperCase() === "Z";
 };
-//#endregion
-//#region src/process/shortenSegment.ts
+// src/process/shortenSegment.ts
 /**
 * Shorten a single segment of a `pathArray` object.
 *
@@ -3194,8 +3125,7 @@ const shortenSegment = (segment, normalSegment, params, prevCommand) => {
 	}
 	return result;
 };
-//#endregion
-//#region src/process/roundSegment.ts
+// src/process/roundSegment.ts
 /**
 * Rounds the numeric values of a path segment to the specified precision.
 *
@@ -3207,8 +3137,7 @@ const roundSegment = (segment, roundOption) => {
 	const values = segment.slice(1).map((n) => roundTo(n, roundOption));
 	return [segment[0]].concat(values);
 };
-//#endregion
-//#region src/process/optimizePath.ts
+// src/process/optimizePath.ts
 /**
 * Optimizes a PathArray:
 * * converts segments to shorthand if possible
@@ -3261,8 +3190,7 @@ const optimizePath = (pathInput, roundOption) => {
 		return result;
 	});
 };
-//#endregion
-//#region src/process/reversePath.ts
+// src/process/reversePath.ts
 /**
 * Reverses all segments of a PathArray and returns a new PathArray
 * with absolute values.
@@ -3413,8 +3341,7 @@ const reversePath = (pathInput) => {
 	});
 	return isClosed ? reversedPath.reverse() : [reversedPath[0]].concat(reversedPath.slice(1).reverse());
 };
-//#endregion
-//#region src/process/splitPath.ts
+// src/process/splitPath.ts
 /**
 * Split a path string or PathArray into an array of sub-paths.
 *
@@ -3480,8 +3407,7 @@ const splitPath = (pathInput) => {
 	});
 	return composite;
 };
-//#endregion
-//#region src/process/getSVGMatrix.ts
+// src/process/getSVGMatrix.ts
 /**
 * Returns a transformation matrix to apply to `<path>` elements.
 *
@@ -3514,8 +3440,7 @@ const getSVGMatrix = (transform) => {
 	}
 	return matrix;
 };
-//#endregion
-//#region src/process/projection2d.ts
+// src/process/projection2d.ts
 /**
 * Transforms a specified point using a matrix, returning a new
 * Tuple *Object* comprising of the transformed point.
@@ -3571,8 +3496,7 @@ const projection2d = (m, point2D, origin) => {
 	const relativePositionZ = z - originZ;
 	return [relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originX, relativePositionY * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originY];
 };
-//#endregion
-//#region src/process/transformPath.ts
+// src/process/transformPath.ts
 /**
 * Applies a 2D transformation to a `PathArray` in a single pass, without
 * absolutizing or copying each segment, returning a new absolute `PathArray`.
@@ -3796,8 +3720,7 @@ const transformPath = (pathInput, transform) => {
 		return result;
 	});
 };
-//#endregion
-//#region src/process/reverseCurve.ts
+// src/process/reverseCurve.ts
 /**
 * Reverses all segments of a `pathArray`
 * which consists of only C (cubic-bezier) path commands.
@@ -3809,8 +3732,7 @@ const reverseCurve = (path) => {
 	const rotatedCurve = path.slice(1).map((x, i, curveOnly) => !i ? path[0].slice(1).concat(x.slice(1)) : curveOnly[i - 1].slice(-2).concat(x.slice(1))).map((x) => x.map((_, i) => x[x.length - i - 2 * (1 - i % 2)])).reverse();
 	return [["M"].concat(rotatedCurve[0].slice(0, 2))].concat(rotatedCurve.map((x) => ["C"].concat(x.slice(2))));
 };
-//#endregion
-//#region src/process/roundPath.ts
+// src/process/roundPath.ts
 /**
 * Rounds the values of a `pathArray` instance to
 * a specified amount of decimals and returns it.
@@ -3827,8 +3749,7 @@ const roundPath = (path, roundOption) => {
 		return roundSegment(segment, round);
 	});
 };
-//#endregion
-//#region src/morph/fixPath.ts
+// src/morph/fixPath.ts
 /**
 * Checks a `PathArray` for an unnecessary `Z` segment
 * and removes it. The `PathArray` is modified in place.
@@ -3854,8 +3775,7 @@ const fixPath = (pathInput) => {
 		if (mx === x && my === y) pathArray.splice(length - 1, 1);
 	}
 };
-//#endregion
-//#region src/morph/splitCubicSegment.ts
+// src/morph/splitCubicSegment.ts
 /**
 * Split a cubic Bézier into two cubics at parameter t [0–1].
 *
@@ -3897,8 +3817,7 @@ function splitCubicSegment(x1, y1, x2, y2, x3, y3, x4, y4, t) {
 		y4
 	]];
 }
-//#endregion
-//#region src/morph/pathToPolyline.ts
+// src/morph/pathToPolyline.ts
 /**
 * Converts any `PolyLineArray`/`PolygonArray` path (closed or open) to an explicit polyline (M + L*).
 * If the path is closed (has Z), the Z is replaced with an explicit L back to the initial M point.
@@ -3924,8 +3843,7 @@ const pathToPolyline = (path) => {
 	}
 	return result;
 };
-//#endregion
-//#region src/morph/splitLineToCount.ts
+// src/morph/splitLineToCount.ts
 /**
 * Split a line segment into `count` smaller segments of equal length
 * using the same repeated front-cutting strategy as splitCubicToCount.
@@ -3968,8 +3886,7 @@ function splitLineToCount(x1, y1, x2, y2, count) {
 	}
 	return result;
 }
-//#endregion
-//#region src/morph/getPathSplits.ts
+// src/morph/getPathSplits.ts
 /**
 * Determine the right amount of splits for each segment in a given PathArray
 * and for a target total amount of sub-segments.
@@ -4034,8 +3951,7 @@ function getPathSplits(path, target) {
 	}
 	return splits;
 }
-//#endregion
-//#region src/morph/splitLinePathToCount.ts
+// src/morph/splitLinePathToCount.ts
 /**
 * Splits a PolylineArray so that it has exactly `target` line segments.
 *
@@ -4071,8 +3987,7 @@ function splitLinePathToCount(path, target) {
 	if (newPath.length !== target) console.warn(`${error}: requested ${target} segments, got ${newPath.length}. Adjusted on last segment.`);
 	return newPath;
 }
-//#endregion
-//#region src/morph/splitCubicToCount.ts
+// src/morph/splitCubicToCount.ts
 /**
 * Split a cubic Bézier into `count` segments of roughly equal parameter length.
 * Does NOT mutate input parameters.
@@ -4118,8 +4033,7 @@ function splitCubicToCount(x1, y1, x2, y2, x3, y3, x4, y4, count) {
 	}
 	return result;
 }
-//#endregion
-//#region src/morph/splitCurvePathToCount.ts
+// src/morph/splitCurvePathToCount.ts
 /**
 * Splits a CurveArray so that it has exactly `target` cubic segments.
 *
@@ -4160,8 +4074,7 @@ function splitCurvePathToCount(path, target) {
 	if (newPath.length !== target) console.warn(`${error}: requested ${target} segments, got ${newPath.length}.`);
 	return newPath;
 }
-//#endregion
-//#region src/morph/getRotatedPath.ts
+// src/morph/getRotatedPath.ts
 /**
 * Returns all possible rotations of a path (line or curve) by shifting the start point.
 * Each rotation is a new PathArray starting at a different original segment.
@@ -4205,7 +4118,7 @@ function getRotatedPath(pathA, pathB, computedRotations) {
 	const rotations = computedRotations || getRotations(pathA);
 	if (pathA.length !== pathB.length) throw new TypeError(error + ": paths must have the same number of segments after equalization");
 	let bestIndex = 0;
-	let minDistanceSq = Infinity;
+	let minDistanceSq = 1e400;
 	for (let ri = 0; ri < rotations.length; ri++) {
 		const rotation = rotations[ri];
 		const rLen = rotation.length;
@@ -4226,8 +4139,7 @@ function getRotatedPath(pathA, pathB, computedRotations) {
 	}
 	return rotations[bestIndex];
 }
-//#endregion
-//#region src/morph/equalizeSegments.ts
+// src/morph/equalizeSegments.ts
 const equalizeSegmentsDefaults = {
 	mode: "auto",
 	sampleSize: 10,
@@ -4300,8 +4212,7 @@ const equalizeSegments = (path1, path2, initialCfg = {}) => {
 	}
 	return [equalP1, equalP2];
 };
-//#endregion
-//#region src/intersect/isPointInsideBBox.ts
+// src/intersect/isPointInsideBBox.ts
 /**
 * Checks if a point is inside a bounding box.
 *
@@ -4313,8 +4224,7 @@ const isPointInsideBBox = (bbox, [x, y]) => {
 	const [minX, minY, maxX, maxY] = bbox;
 	return x >= minX && x <= maxX && y >= minY && y <= maxY;
 };
-//#endregion
-//#region src/intersect/boundingBoxIntersect.ts
+// src/intersect/boundingBoxIntersect.ts
 /**
 * Checks if two bounding boxes intersect.
 *
@@ -4327,8 +4237,7 @@ const boundingBoxIntersect = (a, b) => {
 	const [bx1, by1, bx2, by2] = b;
 	return isPointInsideBBox(b, [ax1, ay1]) || isPointInsideBBox(b, [ax2, ay1]) || isPointInsideBBox(b, [ax1, ay2]) || isPointInsideBBox(b, [ax2, ay2]) || isPointInsideBBox(a, [bx1, by1]) || isPointInsideBBox(a, [bx2, by1]) || isPointInsideBBox(a, [bx1, by2]) || isPointInsideBBox(a, [bx2, by2]) || (ax1 < bx2 && ax1 > bx1 || bx1 < ax2 && bx1 > ax1) && (ay1 < by2 && ay1 > by1 || by1 < ay2 && by1 > ay1);
 };
-//#endregion
-//#region src/morph/createPlaceholder.ts
+// src/morph/createPlaceholder.ts
 /**
 * Create a degenerate `PathArray` at a given coordinate
 * to serve as a pair for another `PathArray`.
@@ -4366,8 +4275,7 @@ const createPlaceholder = ([atx, aty]) => {
 		["Z"]
 	];
 };
-//#endregion
-//#region src/morph/matchPaths.ts
+// src/morph/matchPaths.ts
 function getBestMatch(target, candidates) {
 	const targetBBox = target.bbox;
 	const potentialCandidates = [];
@@ -4443,8 +4351,7 @@ function matchPaths(fromPaths, toPaths) {
 	}
 	return pairs;
 }
-//#endregion
-//#region src/morph/classifyPaths.ts
+// src/morph/classifyPaths.ts
 /**
 * Classifies paths into outer (containing) and inner (hole) paths.
 *
@@ -4473,8 +4380,7 @@ const classifyPaths = (paths) => {
 		inners
 	};
 };
-//#endregion
-//#region src/morph/equalizePaths.ts
+// src/morph/equalizePaths.ts
 const equalizePathsDefaults = {
 	mode: "auto",
 	roundValues: 4,
@@ -4525,8 +4431,7 @@ const equalizePaths = (pathInput1, pathInput2, initialCfg = {}) => {
 	}
 	return [equalizedPairs.map((p) => p[0]).flat(), equalizedPairs.map((p) => p[1]).flat()];
 };
-//#endregion
-//#region src/intersect/interHelper.ts
+// src/intersect/interHelper.ts
 const intersect = (x1, y1, x2, y2, x3, y3, x4, y4) => {
 	if (Math.max(x1, x2) < Math.min(x3, x4) || Math.min(x1, x2) > Math.max(x3, x4) || Math.max(y1, y2) < Math.min(y3, y4) || Math.min(y1, y2) > Math.max(y3, y4)) return;
 	const nx = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4), ny = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4), denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
@@ -4591,8 +4496,7 @@ const interHelper = (bez1, bez2, config) => {
 	}
 	return res;
 };
-//#endregion
-//#region src/intersect/pathIntersection.ts
+// src/intersect/pathIntersection.ts
 /**
 * Finds intersection points between two paths.
 *
@@ -4698,8 +4602,7 @@ const pathsIntersection = (pathInput1, pathInput2, justCount = true) => {
 	}
 	return justCount ? countResult : pointsResult;
 };
-//#endregion
-//#region src/main.ts
+// src/main.ts
 /**
 * Creates a new SVGPathCommander instance with the following properties:
 * * segments: `pathArray`
@@ -5190,10 +5093,8 @@ var SVGPathCommander = class {
 	/** The library version. */
 	static version = version;
 };
-//#endregion
-//#region src/index.ts
+// src/index.ts
 var src_default = SVGPathCommander;
-//#endregion
 export { SVGPathCommander, src_default as default };
 
 //# sourceMappingURL=index.js.map
