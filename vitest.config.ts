@@ -1,7 +1,7 @@
-import { defineConfig } from "vitest/config";
-import { resolve } from 'node:path';
-import process from 'node:process';
-import { playwright } from '@vitest/browser-playwright';
+import { defineConfig } from "vite-plus";
+import { resolve } from "node:path";
+import process from "node:process";
+import { playwright } from "vite-plus/test/browser-playwright";
 
 export default defineConfig({
   resolve: {
@@ -13,14 +13,8 @@ export default defineConfig({
   test: {
     css: true,
     globals: true,
-    include: [
-      "test/**.test.ts"
-    ],
-    exclude: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "**/coverage/**",
-    ],
+    include: ["test/**.test.ts"],
+    exclude: ["**/node_modules/**", "**/dist/**", "**/coverage/**"],
     coverage: {
       provider: "istanbul",
       reporter: ["html", "text", "lcov"],
@@ -33,11 +27,11 @@ export default defineConfig({
       headless: true,
       instances: [
         {
-          name: 'chromium',
-          browser: 'chromium',
+          name: "chromium",
+          browser: "chromium",
           headless: true,
         },
-      ]
+      ],
     },
   },
 });

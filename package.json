@@ -1,33 +1,33 @@
 {
   "name": "svg-path-commander",
-  "author": "thednp",
-  "license": "MIT",
   "version": "2.3.4",
   "description": "🛹 Modern TypeScript tools for SVG",
+  "keywords": [
+    "absolute",
+    "commander",
+    "convert",
+    "curve",
+    "intersect",
+    "normalize",
+    "optimize",
+    "parse",
+    "path",
+    "relative",
+    "reverse",
+    "svg",
+    "transform3d",
+    "typescript"
+  ],
   "homepage": "http://thednp.github.io/svg-path-commander",
   "bugs": {
     "url": "https://github.com/thednp/svg-path-commander/issues"
   },
+  "license": "MIT",
+  "author": "thednp",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thednp/svg-path-commander.git"
   },
-  "keywords": [
-    "svg",
-    "path",
-    "commander",
-    "parse",
-    "normalize",
-    "optimize",
-    "reverse",
-    "intersect",
-    "convert",
-    "absolute",
-    "relative",
-    "curve",
-    "transform3d",
-    "typescript"
-  ],
   "files": [
     "dist",
     "package.json",
@@ -36,50 +36,57 @@
     "CHANGELOG.md",
     "LICENSE"
   ],
-  "main": "./dist/index.js",
-  "browser": "./dist/index.min.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "sideEffects": false,
   "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "browser": "./dist/index.min.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
     "./util": "./dist/util.js",
     "./package.json": "./package.json"
   },
   "scripts": {
-    "pre-test": "pnpm clean-coverage",
+    "pre-test": "vpr clean-coverage",
     "dev": "vite serve docs --port 3000",
-    "test": "vitest",
-    "test-ui": "vitest --ui",
+    "test": "vp test",
+    "test-ui": "vp test --ui",
     "clean-coverage": "rm -rf coverage .nyc_output",
-    "format": "deno fmt src",
-    "lint": "pnpm lint:ts",
+    "format": "vp fmt src",
+    "lint": "vpr lint:ts && vpr check:ts",
     "bench": "node scripts/bench.js",
-    "fix:ts": "deno lint --fix src",
-    "lint:ts": "deno lint src",
+    "fix:ts": "vp lint --fix src",
+    "lint:ts": "vp lint src",
     "check:ts": "tsc --noEmit",
     "up:deno": "deno update --latest && deno run -A scripts/update-deno.js",
-    "build": "tsdown && pnpm copy-docs",
+    "build": "vp pack && vpr copy-docs",
     "copy-docs": "cp dist/index.min.js docs/index.min.js && cp dist/index.min.js.map docs/index.min.js.map",
-    "prepublishOnly": "pnpm up --latest && pnpm up:deno && pnpm format && pnpm lint:ts && pnpm build"
+    "prepublishOnly": "vp up --latest && vpr up:deno && vpr format && vpr lint:ts && vpr build",
+    "prepare": "vp config"
+  },
+  "dependencies": {
+    "@thednp/dommatrix": "^3.1.3"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
-    "@vitest/browser": "^5.1.0",
-    "@vitest/browser-playwright": "^5.1.0",
-    "@vitest/coverage-istanbul": "^5.1.0",
-    "@vitest/ui": "^5.1.0",
+    "@vitest/browser-playwright": "catalog:",
+    "@vitest/coverage-istanbul": "catalog:",
+    "@vitest/ui": "catalog:",
     "happy-dom": "^21.0.4",
     "playwright": "^1.65.1",
-    "tsdown": "0.23.7",
     "typescript": "^7.0.2",
-    "vite": "^8.3.8",
+    "vite": "catalog:",
     "vite-plugin-strip-comments": "^0.0.10",
-    "vitest": "^5.1.0"
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
-  "dependencies": {
-    "@thednp/dommatrix": "^3.1.2"
-  },
-  "packageManager": "pnpm@11.18.0"
+  "catalog": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.6.0",
+    "vitest": "5.1.0",
+    "vite-plus": "1.6.0",
+    "@vitest/browser-playwright": "5.1.0",
+    "@vitest/coverage-istanbul": "5.1.0",
+    "@vitest/ui": "5.1.0"
+  }
 }

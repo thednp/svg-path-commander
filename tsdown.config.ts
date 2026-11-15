@@ -1,8 +1,6 @@
-import { defineConfig, type UserConfig } from "tsdown";
+import { defineConfig, type UserConfig } from "vite-plus/pack";
 import stripComments from "vite-plugin-strip-comments";
-const pkg = await import("./package.json", { with: { type: "json" } }).then(
-  (m) => m.default,
-);
+const pkg = await import("./package.json", { with: { type: "json" } }).then((m) => m.default);
 
 const year = new Date().getFullYear();
 const banner = `/*!
@@ -27,11 +25,11 @@ const config: UserConfig = {
   // outDir: "dist",
   // plugins: [stripComments({ type: "keep-jsdoc" })],
   globalName: "SVGPathCommander",
-  
 };
 
 export default defineConfig([
-  { // UMD
+  {
+    // UMD
     ...config,
     entry: "src/browser.ts",
     format: "umd",
@@ -55,7 +53,8 @@ export default defineConfig([
       };
     },
   },
-  { // ESM
+  {
+    // ESM
     ...config,
     entry: "src/index.ts",
     target: "esnext",
@@ -72,7 +71,8 @@ export default defineConfig([
     //   dir: "dist",
     // },
   },
-  { // UTIL
+  {
+    // UTIL
     ...config,
     entry: {
       util: "src/util.ts",
