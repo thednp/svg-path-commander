@@ -1,27 +1,27 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@thednp/dommatrix@^3.1.3": "3.1.3",
-    "npm:@thednp/dommatrix@^3.1.3": "3.1.3",
+    "jsr:@thednp/dommatrix@^3.1.4": "3.1.4",
+    "npm:@thednp/dommatrix@^3.1.4": "3.1.4",
     "npm:@types/node@^26.6.6": "26.6.6",
-    "npm:@vitest/browser-playwright@5.1.0": "5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+coverage-istanbul@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8",
-    "npm:@vitest/browser-playwright@^5.1.0": "5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+coverage-istanbul@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8",
-    "npm:@vitest/browser@^5.1.0": "5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0__playwright@1.65.1__vitest@5.1.0__@types+node@26.6.6__@vitest+browser-preview@5.1.0__@vitest+coverage-istanbul@5.1.0__happy-dom@21.0.4__vite@8.3.8_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_playwright@1.65.1_vite@8.3.8",
+    "npm:@vitest/browser-playwright@5.1.0": "5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8",
+    "npm:@vitest/browser-playwright@^5.1.0": "5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8",
+    "npm:@vitest/browser@^5.1.0": "5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_playwright@1.65.1_vite@8.3.8",
     "npm:@vitest/coverage-istanbul@5.1.0": "5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8",
     "npm:@vitest/coverage-istanbul@^5.1.0": "5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8",
-    "npm:@vitest/ui@5.1.0": "5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_playwright@1.65.1_vite@8.3.8",
-    "npm:@vitest/ui@^5.1.0": "5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_playwright@1.65.1_vite@8.3.8",
+    "npm:@vitest/ui@5.1.0": "5.1.0_vitest@5.1.0_@vitest+browser-preview@5.1.0_playwright@1.65.1",
+    "npm:@vitest/ui@^5.1.0": "5.1.0_vitest@5.1.0_@vitest+browser-preview@5.1.0_playwright@1.65.1",
     "npm:happy-dom@^21.0.4": "21.0.4",
     "npm:playwright@^1.65.1": "1.65.1",
     "npm:typescript@^7.0.2": "7.0.2",
     "npm:vite-plugin-strip-comments@^0.0.10": "0.0.10",
-    "npm:vite-plus@1.6.0": "1.6.0_@vitest+browser-playwright@5.1.0__playwright@1.65.1__vitest@5.1.0__@types+node@26.6.6__@vitest+browser-preview@5.1.0__@vitest+coverage-istanbul@5.1.0__happy-dom@21.0.4__vite@8.3.8_playwright@1.65.1_@types+node@26.6.6_typescript@7.0.2",
+    "npm:vite-plus@1.6.0": "1.6.0_@vitest+browser-playwright@5.1.0_playwright@1.65.1_@types+node@26.6.6_typescript@7.0.2",
     "npm:vitest@5.1.0": "5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8_playwright@1.65.1",
     "npm:vitest@^5.1.0": "5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8_playwright@1.65.1"
   },
   "jsr": {
-    "@thednp/dommatrix@3.1.3": {
-      "integrity": "5782156775dea2b68afa1c7ecd181b550fd7235434929f53c9d58fadf1de3104"
+    "@thednp/dommatrix@3.1.4": {
+      "integrity": "a45b001cf0738fc9803e099bea7f451a3d3f5a8d3eca693c4904fd59e2718d4d"
     }
   },
   "npm": {
@@ -457,8 +457,8 @@
         "@testing-library/dom"
       ]
     },
-    "@thednp/dommatrix@3.1.3": {
-      "integrity": "sha512-DD/ZVUidcousNYiwGT2oGZm8zwMkzMufM+SqrZWsP9vTOFfUtEWZ2LBsOAwgX12d9NQhsQ7J2Nz5m1iYtXPeiA=="
+    "@thednp/dommatrix@3.1.4": {
+      "integrity": "sha512-vNI1uA4My/z4Z7btrPsQ9mEV/ZC1bzl2ZdXPIHZiY3U6fHREKDFdNA97Z9VE57dzavgG9FHQZ5EKkpLBbwGx7g=="
     },
     "@tybys/wasm-util@0.10.4": {
       "integrity": "sha512-W3c4gRigFS0T/Ma4qIYF3GDAc5AQdHb1yL5znJT1Zv1YaD9Kitx656wBjvr19qbiosmZT8lWDM5BEMynUqX65A==",
@@ -597,17 +597,7 @@
       "os": ["win32"],
       "cpu": ["x64"]
     },
-    "@vitest/browser-playwright@5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_vite@8.3.8": {
-      "integrity": "sha512-3PbVvX/KNeUEzUeTTXw5bQDyfJS+WqU/UJ8RNWIojHb0mE6d/IBjuLmt+i7OpJ00tjNWv0O6XBm5ler/tEf3eg==",
-      "dependencies": [
-        "@vitest/browser",
-        "@vitest/mocker",
-        "playwright",
-        "tinyrainbow",
-        "vitest"
-      ]
-    },
-    "@vitest/browser-playwright@5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+coverage-istanbul@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8": {
+    "@vitest/browser-playwright@5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8": {
       "integrity": "sha512-3PbVvX/KNeUEzUeTTXw5bQDyfJS+WqU/UJ8RNWIojHb0mE6d/IBjuLmt+i7OpJ00tjNWv0O6XBm5ler/tEf3eg==",
       "dependencies": [
         "@vitest/browser",
@@ -626,12 +616,12 @@
         "vitest"
       ]
     },
-    "@vitest/browser@5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0__playwright@1.65.1__vitest@5.1.0__@types+node@26.6.6__@vitest+browser-preview@5.1.0__@vitest+coverage-istanbul@5.1.0__happy-dom@21.0.4__vite@8.3.8_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_playwright@1.65.1_vite@8.3.8": {
+    "@vitest/browser@5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_playwright@1.65.1_vite@8.3.8": {
       "integrity": "sha512-2sjGVAC/Rs8Jwv+xxBgklNG2g1LGyNgcFMBw71AcfBstLz25UGv1+fVvvZ+z8IfSuNg3nipERijnFtoEIdRDEA==",
       "dependencies": [
         "@blazediff/core",
         "@vitest/mocker",
-        "@vitest/ui@5.1.0_vitest@5.1.0_@vitest+browser-preview@5.1.0_playwright@1.65.1",
+        "@vitest/ui",
         "@vitest/utils",
         "magic-string",
         "pngjs",
@@ -712,30 +702,6 @@
     },
     "@vitest/spy@5.1.0": {
       "integrity": "sha512-2DPO5OMHWKrBngC+fCmTQqemNF0gidRhp3lxbBmRhW+M1XJrfgPpqNqWVevXtn2f2ufD5ZaR1B6B641aAlcX5A=="
-    },
-    "@vitest/ui@5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_vite@8.3.8": {
-      "integrity": "sha512-00S3x4NRmqIBUiTVWF9/xLaA9EP9KeKv0+1sBO7e2Y4luBISlW+2ttnhlk/zjbTqEvVhJWCCo7MXzu6zNbefqQ==",
-      "dependencies": [
-        "@vitest/utils",
-        "fflate",
-        "flatted",
-        "pathe",
-        "sirv",
-        "tinyrainbow",
-        "vitest"
-      ]
-    },
-    "@vitest/ui@5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_playwright@1.65.1_vite@8.3.8": {
-      "integrity": "sha512-00S3x4NRmqIBUiTVWF9/xLaA9EP9KeKv0+1sBO7e2Y4luBISlW+2ttnhlk/zjbTqEvVhJWCCo7MXzu6zNbefqQ==",
-      "dependencies": [
-        "@vitest/utils",
-        "fflate",
-        "flatted",
-        "pathe",
-        "sirv",
-        "tinyrainbow",
-        "vitest"
-      ]
     },
     "@vitest/ui@5.1.0_vitest@5.1.0_@vitest+browser-preview@5.1.0_playwright@1.65.1": {
       "integrity": "sha512-00S3x4NRmqIBUiTVWF9/xLaA9EP9KeKv0+1sBO7e2Y4luBISlW+2ttnhlk/zjbTqEvVhJWCCo7MXzu6zNbefqQ==",
@@ -1075,7 +1041,7 @@
     "obug@3.0.0": {
       "integrity": "sha512-5vvB5+W7ePv+p3uqxi+RcW1XAzLW0/hxt3/4X4Lc4qHudzOhmBiBwOY6DRob4WnanAEGvNcLjF+KNOufrUoEQw=="
     },
-    "oxfmt@0.78.0_vite-plus@1.6.0_@vitest+browser-playwright@5.1.0__playwright@1.65.1__vitest@5.1.0__@types+node@26.6.6__@vitest+coverage-istanbul@5.1.0__@vitest+ui@5.1.0__happy-dom@21.0.4__vite@8.3.8_playwright@1.65.1": {
+    "oxfmt@0.78.0_vite-plus@1.6.0_@vitest+browser-playwright@5.1.0_playwright@1.65.1": {
       "integrity": "sha512-uagX+70mKqh/YqxB6ON/lkxVPH6E1Z7pfP2x6XVRPPyiDCZtX6o1xIEeXAIXJ/2wA5ViX4RFuW+IAQn85yJdWg==",
       "dependencies": [
         "tinypool",
@@ -1119,7 +1085,7 @@
       ],
       "bin": true
     },
-    "oxlint@1.93.0_oxlint-tsgolint@7.0.2006_vite-plus@1.6.0_@vitest+browser-playwright@5.1.0__playwright@1.65.1__vitest@5.1.0__@types+node@26.6.6__@vitest+coverage-istanbul@5.1.0__@vitest+ui@5.1.0__happy-dom@21.0.4__vite@8.3.8_playwright@1.65.1": {
+    "oxlint@1.93.0_oxlint-tsgolint@7.0.2006_vite-plus@1.6.0_@vitest+browser-playwright@5.1.0_playwright@1.65.1": {
       "integrity": "sha512-19JMsQFX+YvEbcUTFQxjTwhvs0Ibg0D6CFneSLgpwnACWcY/6LjhpGpkPodh0T5aIT1pjMTLlYaeBFzaVgugTA==",
       "dependencies": [
         "oxlint-tsgolint",
@@ -1291,14 +1257,14 @@
     "vite-plugin-strip-comments@0.0.10": {
       "integrity": "sha512-LuWP3zfnxIBy67LCvH8qKGey+glLznRv+/oIKr165dPzfNBxleaq9+YwfEP617FPgl6mB5D7d5IUWuZ3OrehsA=="
     },
-    "vite-plus@1.6.0_@vitest+browser-playwright@5.1.0__playwright@1.65.1__vitest@5.1.0__@types+node@26.6.6__@vitest+browser-preview@5.1.0__@vitest+coverage-istanbul@5.1.0__happy-dom@21.0.4__vite@8.3.8_playwright@1.65.1_@types+node@26.6.6_typescript@7.0.2": {
+    "vite-plus@1.6.0_@vitest+browser-playwright@5.1.0_playwright@1.65.1_@types+node@26.6.6_typescript@7.0.2": {
       "integrity": "sha512-h6aIA80QcAhICBp2Xga8lPM9jOZm2VvPn7Ls531C7RjD9herrT1rPDUMY72IdFf1XyWDmFVEwO+W3EgXtSSMLQ==",
       "dependencies": [
         "@oxc-project/runtime",
         "@oxc-project/types@0.158.0",
         "@oxlint/plugins",
         "@vitest/browser",
-        "@vitest/browser-playwright@5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_vite@8.3.8",
+        "@vitest/browser-playwright",
         "@vitest/browser-preview",
         "@vitest/mocker",
         "@vitest/pretty-format",
@@ -1323,7 +1289,7 @@
         "@voidzero-dev/vite-plus-win32-x64-msvc"
       ],
       "optionalPeers": [
-        "@vitest/browser-playwright@5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_vite@8.3.8",
+        "@vitest/browser-playwright",
         "playwright"
       ],
       "bin": true
@@ -1351,11 +1317,11 @@
       "dependencies": [
         "@types/chai",
         "@types/node",
-        "@vitest/browser-playwright@5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_vite@8.3.8",
+        "@vitest/browser-playwright",
         "@vitest/browser-preview",
         "@vitest/coverage-istanbul",
         "@vitest/mocker",
-        "@vitest/ui@5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_vite@8.3.8",
+        "@vitest/ui",
         "chai",
         "es-module-lexer",
         "expect-type",
@@ -1372,10 +1338,10 @@
       ],
       "optionalPeers": [
         "@types/node",
-        "@vitest/browser-playwright@5.1.0_playwright@1.65.1_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_vite@8.3.8",
+        "@vitest/browser-playwright",
         "@vitest/browser-preview",
         "@vitest/coverage-istanbul",
-        "@vitest/ui@5.1.0_vitest@5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_happy-dom@21.0.4_vite@8.3.8",
+        "@vitest/ui",
         "happy-dom"
       ],
       "bin": true
@@ -1420,7 +1386,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@thednp/dommatrix@^3.1.3",
+      "jsr:@thednp/dommatrix@^3.1.4",
       "npm:@vitest/browser-playwright@^5.1.0",
       "npm:@vitest/browser@^5.1.0",
       "npm:@vitest/coverage-istanbul@^5.1.0",
@@ -1430,7 +1396,7 @@
     ],
     "packageJson": {
       "dependencies": [
-        "npm:@thednp/dommatrix@^3.1.3",
+        "npm:@thednp/dommatrix@^3.1.4",
         "npm:@types/node@^26.6.6",
         "npm:@vitest/browser-playwright@5.1.0",
         "npm:@vitest/coverage-istanbul@5.1.0",

@@ -28,8 +28,8 @@ importers:
   .:
     dependencies:
       '@thednp/dommatrix':
-        specifier: ^3.1.3
-        version: 3.1.3
+        specifier: ^3.1.4
+        version: 3.1.4
     devDependencies:
       '@types/node':
         specifier: ^26.6.6
@@ -530,8 +530,8 @@ packages:
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
 
-  '@thednp/dommatrix@3.1.3':
-    resolution: {integrity: sha512-DD/ZVUidcousNYiwGT2oGZm8zwMkzMufM+SqrZWsP9vTOFfUtEWZ2LBsOAwgX12d9NQhsQ7J2Nz5m1iYtXPeiA==}
+  '@thednp/dommatrix@3.1.4':
+    resolution: {integrity: sha512-vNI1uA4My/z4Z7btrPsQ9mEV/ZC1bzl2ZdXPIHZiY3U6fHREKDFdNA97Z9VE57dzavgG9FHQZ5EKkpLBbwGx7g==}
 
   '@tybys/wasm-util@0.10.4':
     resolution: {integrity: sha512-W3c4gRigFS0T/Ma4qIYF3GDAc5AQdHb1yL5znJT1Zv1YaD9Kitx656wBjvr19qbiosmZT8lWDM5BEMynUqX65A==}
@@ -1594,7 +1594,7 @@ snapshots:
     dependencies:
       '@testing-library/dom': 10.4.2
 
-  '@thednp/dommatrix@3.1.3': {}
+  '@thednp/dommatrix@3.1.4': {}
 
   '@tybys/wasm-util@0.10.4':
     dependencies:
