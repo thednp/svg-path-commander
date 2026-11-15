@@ -4,22 +4,34 @@ on:
     branches:
       - master
     paths:
-      - src/**/*
-      - src/*
+      - src
       - test
+      - scripts
       - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - deno.json
+      - tsconfig.json
+      - vite.config.ts
+      - vitest.config.ts
+      - tsdown.config.ts
       - .github/workflows/ci.yml
-
   pull_request:
     branches:
       - master
     paths:
-      - src/**/*
-      - src/*
+      - src
       - test
+      - scripts
       - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - deno.json
+      - tsconfig.json
+      - vite.config.ts
+      - vitest.config.ts
+      - tsdown.config.ts
       - .github/workflows/ci.yml
-
 jobs:
   test:
     runs-on: ubuntu-24.04
@@ -28,36 +40,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: PNPM setup
-        uses: pnpm/action-setup@v3
-
-      - name: Deno Setup
-        uses: denoland/setup-deno@v2
+      # Sets up Vite+, the Node.js runtime, the package manager and the
+      # dependency cache; `vp install` runs as part of the setup.
+      - name: Vite+ Setup
+        uses: voidzero-dev/setup-vp@v1.21.2
         with:
-          deno-version: v2.x
+          node-version: "26"
+          cache: true
+          run-install: '{"args":["--frozen-lockfile"]}'
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install --no-frozen-lockfile
+      - name: Verify Vite+
+        run: vp --version
 
       - name: Install Playwright
-        run: pnpm exec playwright install
+        run: vp exec playwright install
 
       - name: Lint
-        run: pnpm lint
+        run: vpr lint
 
       - name: Build
-        run: pnpm build
+        run: vpr build
 
       - name: ViTest
-        run: pnpm test
-      
-      - name: Upload coverage report on to coveralls.io...
+        run: vpr test
+
+      - name: Upload coverage report to coveralls.io...
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

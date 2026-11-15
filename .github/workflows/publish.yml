@@ -15,39 +15,49 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # Sets up Vite+, the Node.js runtime, the package manager and the
+      # dependency cache; `vp install` runs as part of the setup.
+      # `registry-url` writes the npm auth config for the publish step.
+      - name: Vite+ Setup
+        uses: voidzero-dev/setup-vp@v1.21.2
         with:
-          node-version: '22' # Or 'lts/*'
-          registry-url: "https://registry.npmjs.org" # Optional if using trusted publishing
+          node-version: "26"
+          cache: true
+          run-install: '{"args":["--frozen-lockfile"]}'
+          registry-url: "https://registry.npmjs.org"
 
-      - name: PNPM setup
-        uses: pnpm/action-setup@v3
+      - name: Verify Vite+
+        run: vp --version
 
       - name: Deno Setup
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
 
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+      - name: Install Playwright
+        run: vp exec playwright install
 
-      # - name: Build # included in prepublishOnly
-      #   run: pnpm build # Optional
+      - name: Lint
+        run: vpr lint
 
-      - name: Install playwright
-        run: pnpm exec playwright install
+      - name: Build
+        run: vpr build
 
       - name: Test
-        run: pnpm test
+        run: vpr test
 
+      # `--ignore-scripts` skips the `prepublishOnly` hook, which updates the
+      # dependencies and the lockfiles; the release is built from the committed
+      # sources instead.
       - name: Publish to npm
-        run: pnpm publish --provenance --no-git-checks # --access public for new/public packages
+        run: vp pm publish --provenance --access public --no-git-checks -- --ignore-scripts # --access public for new/public packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Only needed if NOT using trusted publishing
 
       - name: Publish to jsr
-        run: deno publish
+        # `--allow-dirty` is required because the build step regenerates the
+        # committed `dist/` and `docs/` artifacts.
+        run: deno publish --allow-dirty
         # env:
         #   Needed only if JSR OIDC (trusted publishing) is not enabled for this repo
         #   JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
