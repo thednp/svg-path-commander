@@ -16,9 +16,7 @@ import { relativizeSegment } from "../process/relativizeSegment.ts";
  * // => [['M', 10, 10], ['l', 80, 80]]
  * ```
  */
-export const pathToRelative = <T extends PathArray>(
-  pathInput: string | T,
-): RelativeArray => {
+export const pathToRelative = <T extends PathArray>(pathInput: string | T): RelativeArray => {
   const path = parsePathString(pathInput);
 
   return iterate(path, relativizeSegment) as RelativeArray;

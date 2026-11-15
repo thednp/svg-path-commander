@@ -1,4 +1,4 @@
-import SvgPath from './svgpath.js';
+import SvgPath from "./svgpath.js";
 
 // Precision for consider cubic polynom as quadratic one
 const CBEZIER_MINMAX_EPSILON = 0.00000001;
@@ -29,21 +29,11 @@ function minmaxC(A) {
       return [A[0], A[3]];
     }
 
-    return minmaxQ([
-      A[0],
-      -0.5 * A[0] + 1.5 * A[1],
-      A[0] - 3 * A[1] + 3 * A[2],
-    ]);
+    return minmaxQ([A[0], -0.5 * A[0] + 1.5 * A[1], A[0] - 3 * A[1] + 3 * A[2]]);
   }
 
   // the reduced discriminant of the derivative
-  const T =
-    -A[0] * A[2] +
-    A[0] * A[3] -
-    A[1] * A[2] -
-    A[1] * A[3] +
-    A[1] * A[1] +
-    A[2] * A[2];
+  const T = -A[0] * A[2] + A[0] * A[3] - A[1] * A[2] - A[1] * A[3] + A[1] * A[1] + A[2] * A[2];
 
   // if the polynomial is monotone in [0,1]
   if (T <= 0) {
@@ -82,7 +72,7 @@ function minmaxC(A) {
  * @param {String | typeof SvgPath} d SVG path for which their bounding box will be computed.
  * @returns {BBox}
  */
-export default function(d) {
+export default function (d) {
   const min = [Infinity, Infinity],
     max = [-Infinity, -Infinity];
   SvgPath.from(d)

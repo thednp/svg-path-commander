@@ -1,31 +1,30 @@
 {
   // https://janessagarrow.com/blog/typescript-and-esbuild/
- "compilerOptions": {
-   "lib": ["DOM", "ESNext", "DOM.Iterable"],
-   "module": "esnext",
-   "target": "ES2022",
-   "moduleResolution": "Bundler",
-   "allowJs": true,
-   "forceConsistentCasingInFileNames": true,
-   "useDefineForClassFields": true,
-   "strict": true,
-   "sourceMap": true,
-   "resolveJsonModule": true,
-   "esModuleInterop": true,
-   "isolatedModules": false,
-   "noUnusedLocals": true,
-   "noUnusedParameters": true,
-   "noImplicitReturns": true,
-   "removeComments": false,
-   "allowSyntheticDefaultImports": true,
-   "allowImportingTsExtensions": true,
-   "noEmit": true,
-   "paths": {
-    "~/*": [
-      "./src"
-    ]
-  }
- },
- "include": ["src/*"],
- "exclude": ["node_modules", "experiments", "coverage", "dist"],
+  "compilerOptions": {
+    "lib": ["DOM", "ESNext", "DOM.Iterable"],
+    "module": "esnext",
+    "target": "ES2022",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "strict": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "isolatedModules": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "removeComments": false,
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "types": ["vite-plus"],
+    "paths": {
+      "~/*": ["./src"]
+    }
+  },
+  "include": ["src/*", "test/**/*"],
+  "exclude": ["node_modules", "experiments", "coverage", "dist"]
 }

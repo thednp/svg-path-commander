@@ -52,9 +52,7 @@ export const splitPath = <T extends PathArray>(pathInput: T | string): T[] => {
       y += isRelative ? prevY : 0;
       mx = x;
       my = y;
-      path = [
-        (isRelative ? [absCommand, mx, my] : seg) as MSegment,
-      ] as unknown as T;
+      path = [(isRelative ? [absCommand, mx, my] : seg) as MSegment] as unknown as T;
     } else {
       if (absCommand === "Z") {
         x = mx;

@@ -66,16 +66,7 @@ export const getPathArea = <T extends PathArray | string>(path: T): number => {
           [, x, y] = seg;
           return 0;
         default:
-          len = getCubicSegArea(
-            x,
-            y,
-            seg[1],
-            seg[2],
-            seg[3],
-            seg[4],
-            seg[5],
-            seg[6],
-          );
+          len = getCubicSegArea(x, y, seg[1], seg[2], seg[3], seg[4], seg[5], seg[6]);
           [x, y] = seg.slice(-2) as PointTuple;
           return len;
       }

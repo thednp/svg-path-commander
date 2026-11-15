@@ -29,10 +29,7 @@ const arcLengthAtAngle = (rx: number, ry: number, theta: number): number => {
     let sum = 0;
     for (let i = 0, len = Tvalues.length; i < len; i += 1) {
       const phi = offset + z * Tvalues[i] + z;
-      sum += Cvalues[i] * Math.sqrt(
-        (rx * Math.sin(phi)) ** 2 +
-          (ry * Math.cos(phi)) ** 2,
-      );
+      sum += Cvalues[i] * Math.sqrt((rx * Math.sin(phi)) ** 2 + (ry * Math.cos(phi)) ** 2);
     }
     total += z * sum;
     offset += span;
@@ -49,12 +46,7 @@ const arcLengthAtAngle = (rx: number, ry: number, theta: number): number => {
  * @param to the end angle in radians
  * @returns the signed arc length
  */
-const arcLengthBetween = (
-  rx: number,
-  ry: number,
-  from: number,
-  to: number,
-): number => {
+const arcLengthBetween = (rx: number, ry: number, from: number, to: number): number => {
   return arcLengthAtAngle(rx, ry, to) - arcLengthAtAngle(rx, ry, from);
 };
 
@@ -180,18 +172,16 @@ const getArcProps = (
     y: -sin(xRotRad) * dx + cos(xRotRad) * dy,
   };
 
-  const radiiCheck = transformedPoint.x ** 2 / rx ** 2 +
-    transformedPoint.y ** 2 / ry ** 2;
+  const radiiCheck = transformedPoint.x ** 2 / rx ** 2 + transformedPoint.y ** 2 / ry ** 2;
 
   if (radiiCheck > 1) {
     rx *= sqrt(radiiCheck);
     ry *= sqrt(radiiCheck);
   }
 
-  const cSquareNumerator = rx ** 2 * ry ** 2 -
-    rx ** 2 * transformedPoint.y ** 2 - ry ** 2 * transformedPoint.x ** 2;
-  const cSquareRootDenom = rx ** 2 * transformedPoint.y ** 2 +
-    ry ** 2 * transformedPoint.x ** 2;
+  const cSquareNumerator =
+    rx ** 2 * ry ** 2 - rx ** 2 * transformedPoint.y ** 2 - ry ** 2 * transformedPoint.x ** 2;
+  const cSquareRootDenom = rx ** 2 * transformedPoint.y ** 2 + ry ** 2 * transformedPoint.x ** 2;
 
   let cRadicand = cSquareNumerator / cSquareRootDenom;
   /* istanbul ignore next @preserve */
@@ -203,10 +193,8 @@ const getArcProps = (
   };
 
   const center = {
-    x: cos(xRotRad) * transformedCenter.x - sin(xRotRad) * transformedCenter.y +
-      (x1 + x) / 2,
-    y: sin(xRotRad) * transformedCenter.x + cos(xRotRad) * transformedCenter.y +
-      (y1 + y) / 2,
+    x: cos(xRotRad) * transformedCenter.x - sin(xRotRad) * transformedCenter.y + (x1 + x) / 2,
+    y: sin(xRotRad) * transformedCenter.x + cos(xRotRad) * transformedCenter.y + (y1 + y) / 2,
   };
 
   const startVector = {
@@ -272,17 +260,7 @@ const getArcLength = (
   x: number,
   y: number,
 ): number => {
-  const { rx, ry, startAngle, endAngle } = getArcProps(
-    x1,
-    y1,
-    RX,
-    RY,
-    angle,
-    LAF,
-    SF,
-    x,
-    y,
-  );
+  const { rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
   return Math.abs(arcLengthBetween(rx, ry, startAngle, endAngle));
 };
 
@@ -352,9 +330,7 @@ const getPointAtArcLength = (
       for (let i = 0; i < 25; i += 1) {
         const mid = (lo + hi) / 2;
         if (
-          Math.abs(
-            arcLengthBetween(rx, ry, startAngle, startAngle + sweepAngle * mid),
-          ) < distance
+          Math.abs(arcLengthBetween(rx, ry, startAngle, startAngle + sweepAngle * mid)) < distance
         ) {
           lo = mid;
         } else {
@@ -366,10 +342,8 @@ const getPointAtArcLength = (
       const ellipseComponentY = ry * sin(alpha);
 
       point = {
-        x: cos(xRotRad) * ellipseComponentX - sin(xRotRad) * ellipseComponentY +
-          center.x,
-        y: sin(xRotRad) * ellipseComponentX + cos(xRotRad) * ellipseComponentY +
-          center.y,
+        x: cos(xRotRad) * ellipseComponentX - sin(xRotRad) * ellipseComponentY + center.x,
+        y: sin(xRotRad) * ellipseComponentX + cos(xRotRad) * ellipseComponentY + center.y,
       };
     }
   }

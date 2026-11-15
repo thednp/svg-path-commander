@@ -253,7 +253,4 @@ export type TransformObject = {
 /** The keys of a `TransformObject`. */
 export type TransformProps = keyof TransformObject;
 /** The entries of a `TransformObject` (key-value pairs). */
-export type TransformEntries = [
-  TransformProps,
-  TransformObject[TransformProps],
-][];
+export type TransformEntries = [TransformProps, TransformObject[TransformProps]][];

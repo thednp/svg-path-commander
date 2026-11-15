@@ -6,9 +6,7 @@ import type { NormalArray } from "../types.ts";
  * @param param0 An [x, y] tuple for the coordinate
  * @returns A new degenerate `PathArray`
  */
-export const createPlaceholder = (
-  [atx, aty]: [number, number],
-): NormalArray => {
+export const createPlaceholder = ([atx, aty]: [number, number]): NormalArray => {
   // Tiny square at point
   const r = 0.001;
   return [

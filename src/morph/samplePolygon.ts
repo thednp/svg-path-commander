@@ -13,9 +13,7 @@ import type { NormalArray, PointTuple } from "../types.ts";
  * @param path `PolygonPathArray` or `CurvePathArray`
  * @returns Array of [x, y] points
  */
-export function samplePolygon<T extends NormalArray>(
-  path: T,
-): PointTuple[] {
+export function samplePolygon<T extends NormalArray>(path: T): PointTuple[] {
   const points: PointTuple[] = [];
 
   let [mx, my] = [0, 0];

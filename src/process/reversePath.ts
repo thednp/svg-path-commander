@@ -28,7 +28,7 @@ import { iterate } from "./iterate.ts";
  * // => [['M', 0, 100], ['L', 0, 0], ['L', 100, 0], ['L', 100, 100], ['Z']]
  * ```
  */
-export const reversePath = <T extends PathArray>(pathInput: T): T => {
+export const reversePath = <T extends PathArray>(pathInput: T | string): T => {
   const absolutePath = pathToAbsolute(pathInput);
   const normalizedPath = normalizePath(absolutePath);
   const pLen = absolutePath.length;
@@ -88,15 +88,7 @@ export const reversePath = <T extends PathArray>(pathInput: T): T => {
         if (nextSeg && nextCommand === "S") {
           result = ["S", segment[1], segment[2], x, y];
         } else {
-          result = [
-            pathCommand,
-            segment[3],
-            segment[4],
-            segment[1],
-            segment[2],
-            x,
-            y,
-          ];
+          result = [pathCommand, segment[3], segment[4], segment[1], segment[2], x, y];
         }
         break;
       case "S":
@@ -105,13 +97,7 @@ export const reversePath = <T extends PathArray>(pathInput: T): T => {
         // segment is then recovered from the previous segment of the
         // reversed path
         if (nextSeg && nextCommand === "S") {
-          result = [
-            pathCommand,
-            normalizedSegment[1],
-            normalizedSegment[2],
-            x,
-            y,
-          ] as SSegment;
+          result = [pathCommand, normalizedSegment[1], normalizedSegment[2], x, y] as SSegment;
         } else {
           result = [
             "C",
@@ -132,18 +118,8 @@ export const reversePath = <T extends PathArray>(pathInput: T): T => {
         }
         break;
       case "T":
-        if (
-          prevCommand &&
-          "QT".includes(prevCommand) &&
-          (!nextSeg || nextCommand !== "T")
-        ) {
-          result = [
-            "Q",
-            normalizedSegment[1],
-            normalizedSegment[2],
-            x,
-            y,
-          ] as QSegment;
+        if (prevCommand && "QT".includes(prevCommand) && (!nextSeg || nextCommand !== "T")) {
+          result = ["Q", normalizedSegment[1], normalizedSegment[2], x, y] as QSegment;
         } else {
           result = [pathCommand, x, y] as TSegment;
         }

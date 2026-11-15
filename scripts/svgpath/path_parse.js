@@ -1,34 +1,42 @@
-'use strict';
-
+"use strict";
 
 var paramCounts = { a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0 };
 
 var SPECIAL_SPACES = [
-  0x1680, 0x180E, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006,
-  0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000, 0xFEFF
+  0x1680, 0x180e, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007, 0x2008, 0x2009,
+  0x200a, 0x202f, 0x205f, 0x3000, 0xfeff,
 ];
 
 function isSpace(ch) {
-  return (ch === 0x0A) || (ch === 0x0D) || (ch === 0x2028) || (ch === 0x2029) || // Line terminators
+  return (
+    ch === 0x0a ||
+    ch === 0x0d ||
+    ch === 0x2028 ||
+    ch === 0x2029 || // Line terminators
     // White spaces
-    (ch === 0x20) || (ch === 0x09) || (ch === 0x0B) || (ch === 0x0C) || (ch === 0xA0) ||
-    (ch >= 0x1680 && SPECIAL_SPACES.indexOf(ch) >= 0);
+    ch === 0x20 ||
+    ch === 0x09 ||
+    ch === 0x0b ||
+    ch === 0x0c ||
+    ch === 0xa0 ||
+    (ch >= 0x1680 && SPECIAL_SPACES.indexOf(ch) >= 0)
+  );
 }
 
 function isCommand(code) {
   /*eslint-disable no-bitwise*/
   switch (code | 0x20) {
-    case 0x6D/* m */:
-    case 0x7A/* z */:
-    case 0x6C/* l */:
-    case 0x68/* h */:
-    case 0x76/* v */:
-    case 0x63/* c */:
-    case 0x73/* s */:
-    case 0x71/* q */:
-    case 0x74/* t */:
-    case 0x61/* a */:
-    case 0x72/* r */:
+    case 0x6d /* m */:
+    case 0x7a /* z */:
+    case 0x6c /* l */:
+    case 0x68 /* h */:
+    case 0x76 /* v */:
+    case 0x63 /* c */:
+    case 0x73 /* s */:
+    case 0x71 /* q */:
+    case 0x74 /* t */:
+    case 0x61 /* a */:
+    case 0x72 /* r */:
       return true;
   }
   return false;
@@ -39,26 +47,27 @@ function isArc(code) {
 }
 
 function isDigit(code) {
-  return (code >= 48 && code <= 57);   // 0..9
+  return code >= 48 && code <= 57; // 0..9
 }
 
 function isDigitStart(code) {
-  return (code >= 48 && code <= 57) || /* 0..9 */
-          code === 0x2B || /* + */
-          code === 0x2D || /* - */
-          code === 0x2E;   /* . */
+  return (
+    (code >= 48 && code <= 57) /* 0..9 */ ||
+    code === 0x2b /* + */ ||
+    code === 0x2d /* - */ ||
+    code === 0x2e
+  ); /* . */
 }
 
-
 function State(path) {
-  this.index  = 0;
-  this.path   = path;
-  this.max    = path.length;
+  this.index = 0;
+  this.path = path;
+  this.max = path.length;
   this.result = [];
-  this.param  = 0.0;
-  this.err    = '';
+  this.param = 0.0;
+  this.err = "";
   this.segmentStart = 0;
-  this.data   = [];
+  this.data = [];
 }
 
 function skipSpaces(state) {
@@ -67,65 +76,64 @@ function skipSpaces(state) {
   }
 }
 
-
 function scanFlag(state) {
   var ch = state.path.charCodeAt(state.index);
 
-  if (ch === 0x30/* 0 */) {
+  if (ch === 0x30 /* 0 */) {
     state.param = 0;
     state.index++;
     return;
   }
 
-  if (ch === 0x31/* 1 */) {
+  if (ch === 0x31 /* 1 */) {
     state.param = 1;
     state.index++;
     return;
   }
 
-  state.err = 'SvgPath: arc flag can be 0 or 1 only (at pos ' + state.index + ')';
+  state.err = "SvgPath: arc flag can be 0 or 1 only (at pos " + state.index + ")";
 }
-
 
 function scanParam(state) {
   var start = state.index,
-      index = start,
-      max = state.max,
-      zeroFirst = false,
-      hasCeiling = false,
-      hasDecimal = false,
-      hasDot = false,
-      ch;
+    index = start,
+    max = state.max,
+    zeroFirst = false,
+    hasCeiling = false,
+    hasDecimal = false,
+    hasDot = false,
+    ch;
 
   if (index >= max) {
-    state.err = 'SvgPath: missed param (at pos ' + index + ')';
+    state.err = "SvgPath: missed param (at pos " + index + ")";
     return;
   }
   ch = state.path.charCodeAt(index);
 
-  if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
+  if (ch === 0x2b /* + */ || ch === 0x2d /* - */) {
     index++;
-    ch = (index < max) ? state.path.charCodeAt(index) : 0;
+    ch = index < max ? state.path.charCodeAt(index) : 0;
   }
 
   // This logic is shamelessly borrowed from Esprima
   // https://github.com/ariya/esprimas
   //
-  if (!isDigit(ch) && ch !== 0x2E/* . */) {
-    state.err = 'SvgPath: param should start with 0..9 or `.` (at pos ' + index + ')';
+  if (!isDigit(ch) && ch !== 0x2e /* . */) {
+    state.err = "SvgPath: param should start with 0..9 or `.` (at pos " + index + ")";
     return;
   }
 
-  if (ch !== 0x2E/* . */) {
-    zeroFirst = (ch === 0x30/* 0 */);
+  if (ch !== 0x2e /* . */) {
+    zeroFirst = ch === 0x30; /* 0 */
     index++;
 
-    ch = (index < max) ? state.path.charCodeAt(index) : 0;
+    ch = index < max ? state.path.charCodeAt(index) : 0;
 
     if (zeroFirst && index < max) {
       // decimal number starts with '0' such as '09' is illegal.
       if (ch && isDigit(ch)) {
-        state.err = 'SvgPath: numbers started with `0` such as `09` are illegal (at pos ' + start + ')';
+        state.err =
+          "SvgPath: numbers started with `0` such as `09` are illegal (at pos " + start + ")";
         return;
       }
     }
@@ -134,29 +142,29 @@ function scanParam(state) {
       index++;
       hasCeiling = true;
     }
-    ch = (index < max) ? state.path.charCodeAt(index) : 0;
+    ch = index < max ? state.path.charCodeAt(index) : 0;
   }
 
-  if (ch === 0x2E/* . */) {
+  if (ch === 0x2e /* . */) {
     hasDot = true;
     index++;
     while (isDigit(state.path.charCodeAt(index))) {
       index++;
       hasDecimal = true;
     }
-    ch = (index < max) ? state.path.charCodeAt(index) : 0;
+    ch = index < max ? state.path.charCodeAt(index) : 0;
   }
 
-  if (ch === 0x65/* e */ || ch === 0x45/* E */) {
+  if (ch === 0x65 /* e */ || ch === 0x45 /* E */) {
     if (hasDot && !hasCeiling && !hasDecimal) {
-      state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+      state.err = "SvgPath: invalid float exponent (at pos " + index + ")";
       return;
     }
 
     index++;
 
-    ch = (index < max) ? state.path.charCodeAt(index) : 0;
-    if (ch === 0x2B/* + */ || ch === 0x2D/* - */) {
+    ch = index < max ? state.path.charCodeAt(index) : 0;
+    if (ch === 0x2b /* + */ || ch === 0x2d /* - */) {
       index++;
     }
     if (index < max && isDigit(state.path.charCodeAt(index))) {
@@ -164,7 +172,7 @@ function scanParam(state) {
         index++;
       }
     } else {
-      state.err = 'SvgPath: invalid float exponent (at pos ' + index + ')';
+      state.err = "SvgPath: invalid float exponent (at pos " + index + ")";
       return;
     }
   }
@@ -172,7 +180,6 @@ function scanParam(state) {
   state.index = index;
   state.param = parseFloat(state.path.slice(start, index)) + 0.0;
 }
-
 
 function finalizeSegment(state) {
   var cmd, cmdLC;
@@ -182,24 +189,23 @@ function finalizeSegment(state) {
   // This logic is shamelessly borrowed from Raphael
   // https://github.com/DmitryBaranovskiy/raphael/
   //
-  cmd   = state.path[state.segmentStart];
+  cmd = state.path[state.segmentStart];
   cmdLC = cmd.toLowerCase();
 
   var params = state.data;
 
-  if (cmdLC === 'm' && params.length > 2) {
-    state.result.push([ cmd, params[0], params[1] ]);
+  if (cmdLC === "m" && params.length > 2) {
+    state.result.push([cmd, params[0], params[1]]);
     params = params.slice(2);
-    cmdLC = 'l';
-    cmd = (cmd === 'm') ? 'l' : 'L';
+    cmdLC = "l";
+    cmd = cmd === "m" ? "l" : "L";
   }
 
-  if (cmdLC === 'r') {
-    state.result.push([ cmd ].concat(params));
+  if (cmdLC === "r") {
+    state.result.push([cmd].concat(params));
   } else {
-
     while (params.length >= paramCounts[cmdLC]) {
-      state.result.push([ cmd ].concat(params.splice(0, paramCounts[cmdLC])));
+      state.result.push([cmd].concat(params.splice(0, paramCounts[cmdLC])));
       if (!paramCounts[cmdLC]) {
         break;
       }
@@ -207,17 +213,20 @@ function finalizeSegment(state) {
   }
 }
 
-
 function scanSegment(state) {
   var max = state.max,
-      cmdCode, is_arc, comma_found, need_params, i;
+    cmdCode,
+    is_arc,
+    comma_found,
+    need_params,
+    i;
 
   state.segmentStart = state.index;
   cmdCode = state.path.charCodeAt(state.index);
   is_arc = isArc(cmdCode);
 
   if (!isCommand(cmdCode)) {
-    state.err = 'SvgPath: bad command ' + state.path[state.index] + ' (at pos ' + state.index + ')';
+    state.err = "SvgPath: bad command " + state.path[state.index] + " (at pos " + state.index + ")";
     return;
   }
 
@@ -250,7 +259,7 @@ function scanSegment(state) {
       skipSpaces(state);
       comma_found = false;
 
-      if (state.index < max && state.path.charCodeAt(state.index) === 0x2C/* , */) {
+      if (state.index < max && state.path.charCodeAt(state.index) === 0x2c /* , */) {
         state.index++;
         skipSpaces(state);
         comma_found = true;
@@ -275,7 +284,6 @@ function scanSegment(state) {
   finalizeSegment(state);
 }
 
-
 /* Returns array of segments:
  *
  * [
@@ -293,16 +301,16 @@ export default function pathParse(svgPath) {
   }
 
   if (state.result.length) {
-    if ('mM'.indexOf(state.result[0][0]) < 0) {
-      state.err = 'SvgPath: string should start with `M` or `m`';
+    if ("mM".indexOf(state.result[0][0]) < 0) {
+      state.err = "SvgPath: string should start with `M` or `m`";
       state.result = [];
     } else {
-      state.result[0][0] = 'M';
+      state.result[0][0] = "M";
     }
   }
 
   return {
     err: state.err,
-    segments: state.result
+    segments: state.result,
   };
-};
+}

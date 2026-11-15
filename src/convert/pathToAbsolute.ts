@@ -16,9 +16,7 @@ import { iterate } from "../process/iterate.ts";
  * // => [['M', 10, 10], ['L', 90, 90]]
  * ```
  */
-export const pathToAbsolute = <T extends PathArray>(
-  pathInput: string | T,
-): AbsoluteArray => {
+export const pathToAbsolute = <T extends PathArray>(pathInput: string | T): AbsoluteArray => {
   const path = parsePathString(pathInput);
 
   return iterate(path, absolutizeSegment) as AbsoluteArray;

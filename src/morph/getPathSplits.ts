@@ -1,11 +1,6 @@
 // src/morph/getPathSplits.ts
 
-import type {
-  CSegment,
-  CurveArray,
-  PointTuple,
-  PolylineArray,
-} from "../types.ts";
+import type { CSegment, CurveArray, PointTuple, PolylineArray } from "../types.ts";
 import { getLineLength } from "../math/lineTools.ts";
 import { getCubicLength } from "../math/cubicTools.ts";
 import { getTotalLength } from "../util/getTotalLength.ts";
@@ -45,15 +40,15 @@ export function getPathSplits<T extends PolylineArray | CurveArray>(
       const segLen = isPoly
         ? getLineLength(prevX, prevY, endX, endY)
         : getCubicLength(
-          prevX,
-          prevY,
-          seg[1],
-          seg[2],
-          (seg as CSegment)[3],
-          (seg as CSegment)[4],
-          (seg as CSegment)[5],
-          (seg as CSegment)[6],
-        );
+            prevX,
+            prevY,
+            seg[1],
+            seg[2],
+            (seg as CSegment)[3],
+            (seg as CSegment)[4],
+            (seg as CSegment)[5],
+            (seg as CSegment)[6],
+          );
       lengths.push(segLen);
       splits.push(1); // placeholder
     }

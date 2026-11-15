@@ -1,5 +1,5 @@
-'use strict';
-import Matrix from './matrix.js';
+"use strict";
+import Matrix from "./matrix.js";
 
 var operations = {
   matrix: true,
@@ -7,12 +7,11 @@ var operations = {
   rotate: true,
   translate: true,
   skewX: true,
-  skewY: true
+  skewY: true,
 };
 
-var CMD_SPLIT_RE    = /\s*(matrix|translate|scale|rotate|skewX|skewY)\s*\(\s*(.+?)\s*\)[\s,]*/;
+var CMD_SPLIT_RE = /\s*(matrix|translate|scale|rotate|skewX|skewY)\s*\(\s*(.+?)\s*\)[\s,]*/;
 var PARAMS_SPLIT_RE = /[\s,]+/;
-
 
 export default function transformParse(transformString) {
   var matrix = new Matrix();
@@ -20,12 +19,13 @@ export default function transformParse(transformString) {
 
   // Split value into ['', 'translate', '10 50', '', 'scale', '2', '', 'rotate',  '-45', '']
   transformString.split(CMD_SPLIT_RE).forEach(function (item) {
-
     // Skip empty elements
-    if (!item.length) { return; }
+    if (!item.length) {
+      return;
+    }
 
     // remember operation
-    if (typeof operations[item] !== 'undefined') {
+    if (typeof operations[item] !== "undefined") {
       cmd = item;
       return;
     }
@@ -37,13 +37,13 @@ export default function transformParse(transformString) {
 
     // If params count is not correct - ignore command
     switch (cmd) {
-      case 'matrix':
+      case "matrix":
         if (params.length === 6) {
           matrix.matrix(params);
         }
         return;
 
-      case 'scale':
+      case "scale":
         if (params.length === 1) {
           matrix.scale(params[0], params[0]);
         } else if (params.length === 2) {
@@ -51,7 +51,7 @@ export default function transformParse(transformString) {
         }
         return;
 
-      case 'rotate':
+      case "rotate":
         if (params.length === 1) {
           matrix.rotate(params[0], 0, 0);
         } else if (params.length === 3) {
@@ -59,7 +59,7 @@ export default function transformParse(transformString) {
         }
         return;
 
-      case 'translate':
+      case "translate":
         if (params.length === 1) {
           matrix.translate(params[0], 0);
         } else if (params.length === 2) {
@@ -67,13 +67,13 @@ export default function transformParse(transformString) {
         }
         return;
 
-      case 'skewX':
+      case "skewX":
         if (params.length === 1) {
           matrix.skewX(params[0]);
         }
         return;
 
-      case 'skewY':
+      case "skewY":
         if (params.length === 1) {
           matrix.skewY(params[0]);
         }
@@ -82,4 +82,4 @@ export default function transformParse(transformString) {
   });
 
   return matrix;
-};
+}

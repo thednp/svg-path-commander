@@ -22,8 +22,7 @@ import type { PathSegment, RelativeCommand } from "../types.ts";
 export const scanSegment = (path: PathParser) => {
   const { max, pathValue, index, segments } = path;
   const cmdCode = pathValue.charCodeAt(index);
-  const reqParams =
-    paramsCounts[pathValue[index].toLowerCase() as RelativeCommand];
+  const reqParams = paramsCounts[pathValue[index].toLowerCase() as RelativeCommand];
 
   path.segmentStart = index;
 
@@ -37,10 +36,7 @@ export const scanSegment = (path: PathParser) => {
 
   // after a Z segment, we only expect a MoveTo path command
   const lastSegment = segments[segments.length - 1] as PathSegment | undefined;
-  if (
-    !isMoveCommand(cmdCode) &&
-    lastSegment?.[0]?.toLocaleLowerCase() === "z"
-  ) {
+  if (!isMoveCommand(cmdCode) && lastSegment?.[0]?.toLocaleLowerCase() === "z") {
     path.err = `${error}: ${invalidPathValue} "${
       pathValue[index]
     }" is not a MoveTo path command at index ${index}`;
@@ -71,10 +67,7 @@ export const scanSegment = (path: PathParser) => {
       skipSpaces(path);
 
       // after ',' param is mandatory
-      if (
-        path.index < max &&
-        pathValue.charCodeAt(path.index) === 0x2c /* , */
-      ) {
+      if (path.index < max && pathValue.charCodeAt(path.index) === 0x2c /* , */) {
         path.index += 1;
         skipSpaces(path);
       }

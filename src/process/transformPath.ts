@@ -60,9 +60,9 @@ const transform2D = (
     const pathCommand = seg[0] as string;
     const commandCode = pathCommand.charCodeAt(0);
     const isRelative = commandCode >= 97;
-    const absCommand = (isRelative
-      ? String.fromCharCode(commandCode - 32)
-      : pathCommand) as AbsoluteCommand;
+    const absCommand = (
+      isRelative ? String.fromCharCode(commandCode - 32) : pathCommand
+    ) as AbsoluteCommand;
     const outCommand = i === 0 && isRelative ? pathCommand : absCommand;
 
     if (absCommand === "Z") {
@@ -74,8 +74,8 @@ const transform2D = (
 
     if (absCommand === "V") {
       const absY = (seg[1] as number) + (isRelative ? oy : 0);
-      lx = (a * ox + c * absY + e - originX) + originX;
-      ly = (b * ox + d * absY + f - originY) + originY;
+      lx = a * ox + c * absY + e - originX + originX;
+      ly = b * ox + d * absY + f - originY + originY;
       /* istanbul ignore else @preserve */
       if (x !== lx && y !== ly) {
         result.push(["L", lx, ly] as LSegment);
@@ -94,8 +94,8 @@ const transform2D = (
 
     if (absCommand === "H") {
       const absX = (seg[1] as number) + (isRelative ? ox : 0);
-      lx = (a * absX + c * oy + e - originX) + originX;
-      ly = (b * absX + d * oy + f - originY) + originY;
+      lx = a * absX + c * oy + e - originX + originX;
+      ly = b * absX + d * oy + f - originY + originY;
       /* istanbul ignore else @preserve */
       if (x !== lx && y !== ly) {
         result.push(["L", lx, ly] as LSegment);
@@ -134,8 +134,8 @@ const transform2D = (
           const piece = ["C"] as unknown as CSegment;
           const end = k + 6;
           for (let j = k; j < end; j += 2) {
-            lx = (a * cubics[j] + c * cubics[j + 1] + e - originX) + originX;
-            ly = (b * cubics[j] + d * cubics[j + 1] + f - originY) + originY;
+            lx = a * cubics[j] + c * cubics[j + 1] + e - originX + originX;
+            ly = b * cubics[j] + d * cubics[j + 1] + f - originY + originY;
             piece.push(lx, ly);
           }
           result.push(piece);
@@ -163,8 +163,8 @@ const transform2D = (
     if (absCommand === "L") {
       const absX = (seg[1] as number) + (isRelative ? ox : 0);
       const absY = (seg[2] as number) + (isRelative ? oy : 0);
-      lx = (a * absX + c * absY + e - originX) + originX;
-      ly = (b * absX + d * absY + f - originY) + originY;
+      lx = a * absX + c * absY + e - originX + originX;
+      ly = b * absX + d * absY + f - originY + originY;
       /* istanbul ignore else @preserve */
       if (x !== lx && y !== ly) {
         result.push(["L", lx, ly] as LSegment);
@@ -188,8 +188,8 @@ const transform2D = (
       for (let j = 1; j < segLen; j += 2) {
         const absX = (seg[j] as number) + (isRelative ? ox : 0);
         const absY = (seg[j + 1] as number) + (isRelative ? oy : 0);
-        lx = (a * absX + c * absY + e - originX) + originX;
-        ly = (b * absX + d * absY + f - originY) + originY;
+        lx = a * absX + c * absY + e - originX + originX;
+        ly = b * absX + d * absY + f - originY + originY;
         piece.push(lx, ly);
       }
       result.push(piece as AbsoluteSegment);
@@ -277,25 +277,26 @@ export const transformPath = <T extends PathArray>(
       ? absolutizeSegment(seg, index, lastX, lastY)
       : (seg.slice(0) as AbsoluteSegment);
 
-    let result = absCommand === "A"
-      ? (["C" as string | number].concat(
-        arcToCubic(
-          lastX,
-          lastY,
-          absoluteSegment[1] as number,
-          absoluteSegment[2] as number,
-          absoluteSegment[3] as number,
-          absoluteSegment[4] as number,
-          absoluteSegment[5] as number,
-          absoluteSegment[6] as number,
-          absoluteSegment[7] as number,
-        ),
-      ) as CSegment)
-      : absCommand === "V"
-      ? (["L", lastX, absoluteSegment[1]] as LSegment)
-      : absCommand === "H"
-      ? (["L", absoluteSegment[1], lastY] as LSegment)
-      : absoluteSegment;
+    let result =
+      absCommand === "A"
+        ? (["C" as string | number].concat(
+            arcToCubic(
+              lastX,
+              lastY,
+              absoluteSegment[1] as number,
+              absoluteSegment[2] as number,
+              absoluteSegment[3] as number,
+              absoluteSegment[4] as number,
+              absoluteSegment[5] as number,
+              absoluteSegment[6] as number,
+              absoluteSegment[7] as number,
+            ),
+          ) as CSegment)
+        : absCommand === "V"
+          ? (["L", lastX, absoluteSegment[1]] as LSegment)
+          : absCommand === "H"
+            ? (["L", absoluteSegment[1], lastY] as LSegment)
+            : absoluteSegment;
 
     // update pathCommand
     const isLongArc = result[0] === "C" && result.length > 7;
@@ -305,9 +306,7 @@ export const transformPath = <T extends PathArray>(
       path.splice(
         index + 1,
         0,
-        ["C" as typeof result[0] | number].concat(
-          result.slice(7),
-        ) as CSegment,
+        ["C" as (typeof result)[0] | number].concat(result.slice(7)) as CSegment,
       );
       result = tempSegment;
     }
@@ -329,11 +328,7 @@ export const transformPath = <T extends PathArray>(
       }
     } else {
       for (j = 1, jj = result.length; j < jj; j += 2) {
-        [lx, ly] = projection2d(
-          matrixInstance,
-          [+result[j], +result[j + 1]],
-          origin,
-        );
+        [lx, ly] = projection2d(matrixInstance, [+result[j], +result[j + 1]], origin);
         result[j] = lx;
         result[j + 1] = ly;
       }

@@ -10,8 +10,8 @@ export default function getMarkup() {
   </div>`;
 
   const domParser = new DOMParser();
-  let tempDocument = domParser.parseFromString(markup, 'text/html');
-  const container = tempDocument.querySelector('div')!;
+  let tempDocument = domParser.parseFromString(markup, "text/html");
+  const container = tempDocument.querySelector("div")!;
 
   return container;
 }

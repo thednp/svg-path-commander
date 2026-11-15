@@ -12,10 +12,7 @@ import { error } from "../util/error.ts";
  * @param target - The desired number of line segments
  * @returns The modified polyline array with the target segment count
  */
-export function splitLinePathToCount<T extends PolylineArray>(
-  path: T,
-  target: number,
-): T {
+export function splitLinePathToCount<T extends PolylineArray>(path: T, target: number): T {
   if (path.length < 2 || target <= 1) return path;
 
   const splits = getPathSplits(path, target);

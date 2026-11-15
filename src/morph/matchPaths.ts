@@ -11,10 +11,7 @@ interface CandidateScore {
   centeredDistance: number;
 }
 
-function getBestMatch(
-  target: PathFeature,
-  candidates: PathFeature[],
-): PathFeature | null {
+function getBestMatch(target: PathFeature, candidates: PathFeature[]): PathFeature | null {
   const targetBBox = target.bbox;
 
   // Single pass: collect metrics for every candidate
@@ -27,16 +24,13 @@ function getBestMatch(
     const dy = targetBBox.cy - bbox.cy;
     const centeredDistance = Math.sqrt(dx * dx + dy * dy);
 
-    const sizeDifference = Math.abs(target.size - size) /
-      Math.max(target.size, size, 1e-6);
+    const sizeDifference = Math.abs(target.size - size) / Math.max(target.size, size, 1e-6);
 
-    const hasOverlap = isPointInsideBBox(
-      [targetBBox.x, targetBBox.y, targetBBox.x2, targetBBox.y2],
-      [bbox.cx, bbox.cy],
-    ) || isPointInsideBBox(
-      [bbox.x, bbox.y, bbox.x2, bbox.y2],
-      [targetBBox.cx, targetBBox.cy],
-    );
+    const hasOverlap =
+      isPointInsideBBox(
+        [targetBBox.x, targetBBox.y, targetBBox.x2, targetBBox.y2],
+        [bbox.cx, bbox.cy],
+      ) || isPointInsideBBox([bbox.x, bbox.y, bbox.x2, bbox.y2], [targetBBox.cx, targetBBox.cy]);
 
     const boxIntersect = boundingBoxIntersect(
       [targetBBox.x, targetBBox.y, targetBBox.x2, targetBBox.y2],
@@ -53,9 +47,7 @@ function getBestMatch(
   }
 
   // Filter phase: strict overlap — pick smallest distance
-  const overlaping = potentialCandidates.filter((c) =>
-    c.hasOverlap && c.boxIntersect
-  );
+  const overlaping = potentialCandidates.filter((c) => c.hasOverlap && c.boxIntersect);
   if (overlaping.length > 0) {
     let best = overlaping[0];
     for (let i = 1; i < overlaping.length; i++) {

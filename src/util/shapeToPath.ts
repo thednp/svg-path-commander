@@ -55,19 +55,14 @@ export const shapeToPath = (
   }
 
   const path = doc.createElementNS("http://www.w3.org/2000/svg", "path");
-  const type =
-    (targetIsElement ? tagName : (element as ShapeOps).type) as ShapeOps[
-      "type"
-    ];
+  const type = (targetIsElement ? tagName : (element as ShapeOps).type) as ShapeOps["type"];
   const shapeAttrs = shapeParams[type] as string[];
   const config = { type } as Record<string, string>;
 
   // set d
   const round = defaultOptions.round as number;
   const pathArray = shapeToPathArray(element);
-  const description = pathArray && pathArray.length
-    ? pathToString(pathArray, round)
-    : "";
+  const description = pathArray && pathArray.length ? pathToString(pathArray, round) : "";
 
   if (targetIsElement) {
     shapeAttrs.forEach((p) => {

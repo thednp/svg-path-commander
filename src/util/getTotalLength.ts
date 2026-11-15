@@ -19,9 +19,7 @@ import { absolutizeSegment } from "../process/absolutizeSegment.ts";
  * // => 300
  * ```
  */
-export const getTotalLength = <T extends PathArray>(
-  pathInput: string | T,
-): number => {
+export const getTotalLength = <T extends PathArray>(pathInput: string | T): number => {
   const path = parsePathString(pathInput);
   let paramX1 = 0;
   let paramY1 = 0;
@@ -43,11 +41,12 @@ export const getTotalLength = <T extends PathArray>(
       ? absolutizeSegment(seg, index, lastX, lastY)
       : (seg.slice(0) as typeof seg);
 
-    const normalSegment = absCommand === "V"
-      ? (["L", lastX, absoluteSegment[1]] as LSegment)
-      : absCommand === "H"
-      ? (["L", absoluteSegment[1], lastY] as LSegment)
-      : absoluteSegment;
+    const normalSegment =
+      absCommand === "V"
+        ? (["L", lastX, absoluteSegment[1]] as LSegment)
+        : absCommand === "H"
+          ? (["L", absoluteSegment[1], lastY] as LSegment)
+          : absoluteSegment;
     [pathCommand] = normalSegment;
 
     if (!"TQ".includes(absCommand)) {
@@ -133,14 +132,13 @@ export const getTotalLength = <T extends PathArray>(
     }
 
     // update params
-    [paramX1, paramY1] = pathCommand === "Z"
-      ? [mx, my]
-      : (normalSegment.slice(-2) as PointTuple);
-    [paramX2, paramY2] = pathCommand === "C"
-      ? ([normalSegment[3], normalSegment[4]] as PointTuple)
-      : pathCommand === "S"
-      ? ([normalSegment[1], normalSegment[2]] as PointTuple)
-      : [paramX1, paramY1];
+    [paramX1, paramY1] = pathCommand === "Z" ? [mx, my] : (normalSegment.slice(-2) as PointTuple);
+    [paramX2, paramY2] =
+      pathCommand === "C"
+        ? ([normalSegment[3], normalSegment[4]] as PointTuple)
+        : pathCommand === "S"
+          ? ([normalSegment[1], normalSegment[2]] as PointTuple)
+          : [paramX1, paramY1];
   });
 
   return totalLength;

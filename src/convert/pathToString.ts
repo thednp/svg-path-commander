@@ -25,13 +25,14 @@ export const pathToString = <T extends PathArray>(
   let result = "";
 
   // allow for ZERO decimals
-  round = roundOption === "off"
-    ? roundOption
-    : typeof roundOption === "number" && roundOption >= 0
-    ? roundOption
-    : typeof round === "number" && round >= 0
-    ? round
-    : "off";
+  round =
+    roundOption === "off"
+      ? roundOption
+      : typeof roundOption === "number" && roundOption >= 0
+        ? roundOption
+        : typeof round === "number" && round >= 0
+          ? round
+          : "off";
 
   const pow = round === "off" ? 0 : 10 ** round;
 

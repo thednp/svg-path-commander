@@ -9,10 +9,6 @@ import type { PointTuple } from "../types.ts";
  * @param t the ratio
  * @returns the midpoint coordinates
  */
-export const midPoint = (
-  [ax, ay]: PointTuple,
-  [bx, by]: PointTuple,
-  t: number,
-): PointTuple => {
+export const midPoint = ([ax, ay]: PointTuple, [bx, by]: PointTuple, t: number): PointTuple => {
   return [ax + (bx - ax) * t, ay + (by - ay) * t];
 };

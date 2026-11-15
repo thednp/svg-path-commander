@@ -4,11 +4,7 @@ import type {
   IntersectionPoint,
   PointAtLength,
 } from "../types.ts";
-import {
-  getCubicBBox,
-  getCubicLength,
-  getPointAtCubicLength,
-} from "../math/cubicTools.ts";
+import { getCubicBBox, getCubicLength, getPointAtCubicLength } from "../math/cubicTools.ts";
 import { distanceEpsilon } from "../util.ts";
 import { roundTo } from "../math/roundTo.ts";
 import { boundingBoxIntersect } from "./boundingBoxIntersect.ts";
@@ -72,13 +68,16 @@ export const interHelper = (
 ) => {
   const bbox1 = getCubicBBox(...bez1);
   const bbox2 = getCubicBBox(...bez2);
-  const { justCount, epsilon } = Object.assign({
-    justCount: true,
-    epsilon: distanceEpsilon,
-  }, config);
+  const { justCount, epsilon } = Object.assign(
+    {
+      justCount: true,
+      epsilon: distanceEpsilon,
+    },
+    config,
+  );
 
   if (!boundingBoxIntersect(bbox1, bbox2)) {
-    return justCount ? 0 : [] as IntersectionPoint[];
+    return justCount ? 0 : ([] as IntersectionPoint[]);
   }
   const l1 = getCubicLength(...bez1),
     l2 = getCubicLength(...bez2),
@@ -88,7 +87,7 @@ export const interHelper = (
     points2: PointAtLength[] = [],
     xy: Record<string, string> = {};
   // deno-lint-ignore prefer-const
-  let res = justCount ? 0 : [] as IntersectionPoint[];
+  let res = justCount ? 0 : ([] as IntersectionPoint[]);
   for (let i = 0; i < n1 + 1; i++) {
     const p = getPointAtCubicLength(...bez1, (i / n1) * l1);
     points1.push({ x: p.x, y: p.y, t: i / n1 });
@@ -104,8 +103,8 @@ export const interHelper = (
         di1 = points1[i + 1],
         dj = points2[j],
         dj1 = points2[j + 1],
-        ci = Math.abs(di1.x - di.x) < .001 ? "y" : "x",
-        cj = Math.abs(dj1.x - dj.x) < .001 ? "y" : "x",
+        ci = Math.abs(di1.x - di.x) < 0.001 ? "y" : "x",
+        cj = Math.abs(dj1.x - dj.x) < 0.001 ? "y" : "x",
         is = intersect(di.x, di.y, di1.x, di1.y, dj.x, dj.y, dj1.x, dj1.y);
       if (is) {
         // istanbul ignore next 2
@@ -113,10 +112,8 @@ export const interHelper = (
           continue;
         }
         xy[is.x.toFixed(4)] = is.y.toFixed(4);
-        const t1 = di.t +
-            Math.abs((is[ci] - di[ci]) / (di1[ci] - di[ci])) * (di1.t - di.t),
-          t2 = dj.t +
-            Math.abs((is[cj] - dj[cj]) / (dj1[cj] - dj[cj])) * (dj1.t - dj.t);
+        const t1 = di.t + Math.abs((is[ci] - di[ci]) / (di1[ci] - di[ci])) * (di1.t - di.t),
+          t2 = dj.t + Math.abs((is[cj] - dj[cj]) / (dj1[cj] - dj[cj])) * (dj1.t - dj.t);
 
         // istanbul ignore else
         if (t1 >= 0 && t1 <= maxLimit && t2 >= 0 && t2 <= maxLimit) {

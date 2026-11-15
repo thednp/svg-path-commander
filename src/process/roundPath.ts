@@ -11,19 +11,17 @@ import { roundSegment } from "./roundSegment.ts";
  * @param roundOption the amount of decimals to round numbers to
  * @returns the resulted `pathArray` with rounded values
  */
-export const roundPath = <T extends PathArray>(
-  path: T,
-  roundOption?: number | "off",
-): T => {
+export const roundPath = <T extends PathArray>(path: T, roundOption?: number | "off"): T => {
   let { round } = defaultOptions;
   // allow for ZERO decimals
-  round = roundOption === "off"
-    ? roundOption
-    : typeof roundOption === "number" && roundOption >= 0
-    ? roundOption
-    : typeof round === "number" && round >= 0
-    ? round
-    : "off";
+  round =
+    roundOption === "off"
+      ? roundOption
+      : typeof roundOption === "number" && roundOption >= 0
+        ? roundOption
+        : typeof round === "number" && round >= 0
+          ? round
+          : "off";
 
   /* istanbul ignore else @preserve */
   if (round === "off") return path.slice(0) as T;

@@ -111,12 +111,7 @@ const getQuadBBox = (
 ): [number, number, number, number] => {
   const cxMinMax = minmaxQ([x1, cx, x2]);
   const cyMinMax = minmaxQ([y1, cy, y2]);
-  return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]] as [
-    number,
-    number,
-    number,
-    number,
-  ];
+  return [cxMinMax[0], cyMinMax[0], cxMinMax[1], cyMinMax[1]] as [number, number, number, number];
 };
 /** The tools for quadratic Bezier computation. */
 const quadTools = {
@@ -126,10 +121,4 @@ const quadTools = {
   getQuadLength,
 };
 
-export {
-  getPointAtQuadLength,
-  getPointAtQuadSegmentLength,
-  getQuadBBox,
-  getQuadLength,
-  quadTools,
-};
+export { getPointAtQuadLength, getPointAtQuadSegmentLength, getQuadBBox, getQuadLength, quadTools };

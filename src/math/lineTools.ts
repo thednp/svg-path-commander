@@ -10,12 +10,7 @@ import { distanceSquareRoot } from "./distanceSquareRoot.ts";
  * @param y2 the ending point Y
  * @returns the line segment length
  */
-const getLineLength = (
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-): number => {
+const getLineLength = (x1: number, y1: number, x2: number, y2: number): number => {
   return distanceSquareRoot([x1, y1], [x2, y2]);
 };
 
@@ -70,12 +65,7 @@ const getLineBBox = (
 ): [number, number, number, number] => {
   const { min, max } = Math;
 
-  return [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)] as [
-    number,
-    number,
-    number,
-    number,
-  ];
+  return [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)] as [number, number, number, number];
 };
 
 /** The tools for line segment computation. */

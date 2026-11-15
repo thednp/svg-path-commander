@@ -49,9 +49,10 @@ export const getSVGMatrix = (transform: TransformObjectValues): CSSMatrix => {
 
     // set skew(s)
     if (
-      Array.isArray(skew) && skew.length === 2 && skew.every((x) =>
-        !Number.isNaN(+x)
-      ) && skew.some((x) => x !== 0)
+      Array.isArray(skew) &&
+      skew.length === 2 &&
+      skew.every((x) => !Number.isNaN(+x)) &&
+      skew.some((x) => x !== 0)
     ) {
       matrix = skew[0] ? matrix.skewX(skew[0]) : matrix;
       matrix = skew[1] ? matrix.skewY(skew[1]) : matrix;
@@ -61,9 +62,10 @@ export const getSVGMatrix = (transform: TransformObjectValues): CSSMatrix => {
 
     // set scale
     if (
-      Array.isArray(scale) && scale.length >= 2 && scale.every((x) =>
-        !Number.isNaN(+x)
-      ) && scale.some((x) => x !== 1)
+      Array.isArray(scale) &&
+      scale.length >= 2 &&
+      scale.every((x) => !Number.isNaN(+x)) &&
+      scale.some((x) => x !== 1)
     ) {
       matrix = matrix.scale(...(scale as [number, number, number?]));
     } else if (typeof scale === "number" && !Number.isNaN(scale)) {

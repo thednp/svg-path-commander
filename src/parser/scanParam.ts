@@ -19,8 +19,7 @@ export const scanParam = (path: PathParser) => {
   let ch;
 
   if (index >= max) {
-    path.err =
-      `${error}: ${invalidPathValue} at index ${index}, "pathValue" is missing param`;
+    path.err = `${error}: ${invalidPathValue} at index ${index}, "pathValue" is missing param`;
     return;
   }
   ch = pathValue.charCodeAt(index);
@@ -42,7 +41,7 @@ export const scanParam = (path: PathParser) => {
   }
 
   if (ch !== 0x2e /* . */) {
-    zeroFirst = ch === 0x30 /* 0 */;
+    zeroFirst = ch === 0x30; /* 0 */
     index += 1;
 
     ch = pathValue.charCodeAt(index);
@@ -180,5 +179,5 @@ const scanNumber = (str: string, start: number, end: number): number => {
   if (scale >= 0) {
     return sign * param * 10 ** scale;
   }
-  return sign * param / 10 ** -scale;
+  return (sign * param) / 10 ** -scale;
 };

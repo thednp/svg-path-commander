@@ -1,23 +1,39 @@
 body {
-  padding: 1rem 2rem; margin: 0;
-  background: #222; color: #999; 
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
+  padding: 1rem 2rem;
+  margin: 0;
+  background: #222;
+  color: #999;
+  font-family:
+    "Lucida Sans", "Lucida Sans Regular", "Lucida Grande", "Lucida Sans Unicode", Geneva, Verdana,
+    sans-serif;
 }
 h1 {
   border-bottom: 1px solid #555;
   margin-bottom: 0.75rem;
   padding-bottom: 0.75rem;
-  font-size: calc(1.5rem + .9vw);
+  font-size: calc(1.5rem + 0.9vw);
 }
-h1,h2,h3,h4,h5,b {color: #fff;}
-h1 small,h2 small,h3 small,h4 small,h5 small {
+h1,
+h2,
+h3,
+h4,
+h5,
+b {
+  color: #fff;
+}
+h1 small,
+h2 small,
+h3 small,
+h4 small,
+h5 small {
   color: #ddd;
-  display:inline-block; 
-  font-weight: normal; font-size: 75%
+  display: inline-block;
+  font-weight: normal;
+  font-size: 75%;
 }
 #svg-path-commander {
   width: 380px;
-  max-width: 100%
+  max-width: 100%;
 }
 .row {
   display: flex;
@@ -33,10 +49,14 @@ h1 small,h2 small,h3 small,h4 small,h5 small {
   padding-left: 1rem;
 }
 
-.form-input { 
-  background: #333; border: 1px solid #555; color: #eee; 
-  width: calc(100% - 1.5rem) !important; padding: 0.5rem 0.75rem;
-  font-size: 14px; line-height: 1.5 
+.form-input {
+  background: #333;
+  border: 1px solid #555;
+  color: #eee;
+  width: calc(100% - 1.5rem) !important;
+  padding: 0.5rem 0.75rem;
+  font-size: 14px;
+  line-height: 1.5;
 }
 div.form-input {
   min-height: 100px;
@@ -44,73 +64,113 @@ div.form-input {
   overflow: auto;
   white-space: pre-wrap;
 }
-button { 
-  background: #222; 
-  border: 1px solid #555; color: #777; 
-  padding: 0.25rem 0.75rem; margin: 0 0.5rem 0.5rem 0 
+button {
+  background: #222;
+  border: 1px solid #555;
+  color: #777;
+  padding: 0.25rem 0.75rem;
+  margin: 0 0.5rem 0.5rem 0;
 }
-button:hover, button:focus { 
-  outline:none; 
-  background: #eee; border-color: #fff; color: #222
+button:hover,
+button:focus {
+  outline: none;
+  background: #eee;
+  border-color: #fff;
+  color: #222;
 }
-a { color: #eee; text-decoration: none;}
-a:hover { color: cyan; text-decoration: none;}
-a.active { color: cyan;}
+a {
+  color: #eee;
+  text-decoration: none;
+}
+a:hover {
+  color: cyan;
+  text-decoration: none;
+}
+a.active {
+  color: cyan;
+}
 
 .nav a {
   font-size: 14px;
   line-height: 1.2;
 }
 
-.copy {font-size: 12px;}
+.copy {
+  font-size: 12px;
+}
 .row.copy .col {
   flex: 1 0 0%;
   flex-shrink: 0;
 }
 
-.p-0 {padding: 0 !important}
-.m-0 {margin: 0 !important}
-
+.p-0 {
+  padding: 0 !important;
+}
+.m-0 {
+  margin: 0 !important;
+}
 
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
 }
 
-svg { max-height: 50%; overflow: visible}
-path {transition: fill 0.5s ease}
-
-@media (min-width: 1200px){
-  svg { max-width: 60%; }
+svg {
+  max-height: 50%;
+  overflow: visible;
+}
+path {
+  transition: fill 0.5s ease;
 }
 
-.d-inline {display: inline}
-.d-block {display: block}
-.d-none {display: none}
-.text-right { text-align: right;}
+@media (min-width: 1200px) {
+  svg {
+    max-width: 60%;
+  }
+}
+
+.d-inline {
+  display: inline;
+}
+.d-block {
+  display: block;
+}
+.d-none {
+  display: none;
+}
+.text-right {
+  text-align: right;
+}
 
 .form-input.d-inline {
   width: 2.2rem !important;
   padding: 0.25rem 0.75rem;
   line-height: inherit;
   margin: 0 0.15rem 0.5rem 0;
-  outline: none
+  outline: none;
 }
 
 /* .d-md-block {display: none}
 .d-md-none {display: block} */
 
-@media (min-width:768px){
-  .d-md-inline {display: inline}
-  .d-md-block {display: block}
-  .d-md-none {display: none}
-  body {
-    padding: 3rem 5rem; margin: 0;
+@media (min-width: 768px) {
+  .d-md-inline {
+    display: inline;
   }
-  .row-lg { 
+  .d-md-block {
+    display: block;
+  }
+  .d-md-none {
+    display: none;
+  }
+  body {
+    padding: 3rem 5rem;
+    margin: 0;
+  }
+  .row-lg {
     margin-right: -3rem;
     margin-left: -3rem;
-   }
+  }
   .col {
     flex: 1 0 0%;
     flex-shrink: 0;
@@ -119,8 +179,16 @@ path {transition: fill 0.5s ease}
     padding-right: 3rem;
     padding-left: 3rem;
   }
-  .col-md-3 { width: 25%;  max-width: 25%; }
-  .col-md-4 { width: 33%;  max-width: 33%; }
+  .col-md-3 {
+    width: 25%;
+    max-width: 25%;
+  }
+  .col-md-4 {
+    width: 33%;
+    max-width: 33%;
+  }
 
-  .text-center { text-align: center;}
+  .text-center {
+    text-align: center;
+  }
 }

@@ -8,9 +8,7 @@ import { isPathArray } from "./isPathArray.ts";
  * @param path - 'M10,10 L20,20 Z M30,30 L40,40' → true
  * @returns boolean
  */
-export const isMultiPath = <T extends PathArray>(
-  path: string | T,
-): boolean => {
+export const isMultiPath = <T extends PathArray>(path: string | T): boolean => {
   if (typeof path === "string") {
     // Count all 'M' and 'm' occurrences
     const matches = path.match(/[Mm]/g);

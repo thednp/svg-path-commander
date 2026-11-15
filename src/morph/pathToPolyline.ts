@@ -25,9 +25,7 @@ export const pathToPolyline = <T extends PolygonArray | PolylineArray>(
 ): PolylineArray => {
   const normal = normalizePath(path);
   if (!isPolygonArray(normal) && !isPolylineArray(normal)) {
-    throw TypeError(
-      `${error}: pathValue is not a polyline/polygon`,
-    );
+    throw TypeError(`${error}: pathValue is not a polyline/polygon`);
   }
 
   // If not closed, return as-is (already a polyline)

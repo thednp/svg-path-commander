@@ -7,11 +7,7 @@
  * @param rad the radian vector angle
  * @returns the rotated vector
  */
-export const rotateVector = (
-  x: number,
-  y: number,
-  rad: number,
-): { x: number; y: number } => {
+export const rotateVector = (x: number, y: number, rad: number): { x: number; y: number } => {
   const { sin, cos } = Math;
   const X = x * cos(rad) - y * sin(rad);
   const Y = x * sin(rad) + y * cos(rad);

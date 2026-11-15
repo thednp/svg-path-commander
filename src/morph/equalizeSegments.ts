@@ -50,8 +50,13 @@ export const equalizeSegments = (
   path2: PathArray | string,
   initialCfg: EqualizationOptions = {},
 ): [MorphPathArray, MorphPathArray] => {
-  const { close, mode, reverse, roundValues, target: initialTarget } = Object
-    .assign(equalizeSegmentsDefaults, initialCfg);
+  const {
+    close,
+    mode,
+    reverse,
+    roundValues,
+    target: initialTarget,
+  } = Object.assign(equalizeSegmentsDefaults, initialCfg);
   let p1 = normalizePath(path1) as MorphPathArray;
   let p2 = normalizePath(path2) as MorphPathArray;
 
@@ -59,8 +64,8 @@ export const equalizeSegments = (
   fixPath(p1);
   fixPath(p2);
 
-  let bothPoly = (isPolygonArray(p1) || isPolylineArray(p1)) &&
-    (isPolygonArray(p2) || isPolylineArray(p2));
+  let bothPoly =
+    (isPolygonArray(p1) || isPolylineArray(p1)) && (isPolygonArray(p2) || isPolylineArray(p2));
 
   if (bothPoly && mode === "auto") {
     p1 = pathToPolyline(p1 as PolylineArray);
@@ -75,7 +80,7 @@ export const equalizeSegments = (
   const area1 = polygonArea(samplePolygon(p1));
   const area2 = polygonArea(samplePolygon(p2));
 
-  if (reverse !== false && (Math.sign(area1) !== Math.sign(area2))) {
+  if (reverse !== false && Math.sign(area1) !== Math.sign(area2)) {
     p2 = reversePath(p2);
   }
 
@@ -91,17 +96,13 @@ export const equalizeSegments = (
     const avgLen = (len1 + len2) / 2;
     const maxSegCount = Math.max(segCount1, segCount2);
     const avgSegLen = avgLen / maxSegCount;
-    const idealSegCount = Math.max(
-      minTarget,
-      Math.round(avgLen / Math.max(avgSegLen, 1)),
-    );
+    const idealSegCount = Math.max(minTarget, Math.round(avgLen / Math.max(avgSegLen, 1)));
     target = Math.min(idealSegCount, Math.max(segCount1, segCount2) * 3);
   } else {
     if (initialTarget >= minTarget) target = initialTarget;
     else {
       console.warn(
-        'equalizeSegments "target" option: ' + initialTarget +
-          ", expected >= " + minTarget,
+        'equalizeSegments "target" option: ' + initialTarget + ", expected >= " + minTarget,
       );
     }
   }
@@ -110,14 +111,8 @@ export const equalizeSegments = (
   let equalP2: MorphPathArray = p2;
 
   if (bothPoly) {
-    equalP1 = splitLinePathToCount(
-      p1 as PolylineArray,
-      target,
-    ) as MorphPathArray;
-    equalP2 = splitLinePathToCount(
-      p2 as PolylineArray,
-      target,
-    ) as MorphPathArray;
+    equalP1 = splitLinePathToCount(p1 as PolylineArray, target) as MorphPathArray;
+    equalP2 = splitLinePathToCount(p2 as PolylineArray, target) as MorphPathArray;
   } else {
     equalP1 = splitCurvePathToCount(p1 as CurveArray, target) as MorphPathArray;
     equalP2 = splitCurvePathToCount(p2 as CurveArray, target) as MorphPathArray;

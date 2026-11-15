@@ -1,8 +1,4 @@
-import type {
-  MorphPathArray,
-  PathArray,
-  PathsEqualizationOptions,
-} from "../types.ts";
+import type { MorphPathArray, PathArray, PathsEqualizationOptions } from "../types.ts";
 import { isMultiPath } from "../util/isMultiPath.ts";
 import { splitPath } from "../process/splitPath.ts";
 import { equalizeSegments } from "./equalizeSegments.ts";

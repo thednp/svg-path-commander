@@ -23,7 +23,5 @@ export const scanFlag = (path: PathParser) => {
     return;
   }
 
-  path.err = `${error}: invalid Arc flag "${
-    pathValue[index]
-  }", expecting 0 or 1 at index ${index}`;
+  path.err = `${error}: invalid Arc flag "${pathValue[index]}", expecting 0 or 1 at index ${index}`;
 };

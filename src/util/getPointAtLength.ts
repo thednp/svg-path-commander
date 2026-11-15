@@ -49,13 +49,7 @@ export const getPointAtLength = <T extends PathArray>(
       point = { x: mx, y: my };
       length = 0;
     } else if (pathCommand === "L") {
-      point = getPointAtLineLength(
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        distance - totalLength,
-      );
+      point = getPointAtLineLength(data[0], data[1], data[2], data[3], distance - totalLength);
       length = getLineLength(data[0], data[1], data[2], data[3]);
     } else if (pathCommand === "A") {
       point = getPointAtArcLength(
@@ -113,23 +107,10 @@ export const getPointAtLength = <T extends PathArray>(
         data[5],
         distance - totalLength,
       );
-      length = getQuadLength(
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        data[4],
-        data[5],
-      );
+      length = getQuadLength(data[0], data[1], data[2], data[3], data[4], data[5]);
     } else if (pathCommand === "Z") {
       data = [lastX, lastY, mx, my];
-      point = getPointAtLineLength(
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        distance - totalLength,
-      );
+      point = getPointAtLineLength(data[0], data[1], data[2], data[3], distance - totalLength);
 
       length = getLineLength(data[0], data[1], data[2], data[3]);
     }

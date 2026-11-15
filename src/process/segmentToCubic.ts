@@ -11,10 +11,7 @@ import type { ParserParams } from "../interface.ts";
  * @param params the source segment parameters
  * @returns the cubic-bezier segment
  */
-export const segmentToCubic = (
-  segment: PathSegment,
-  params: ParserParams,
-): MSegment | CSegment => {
+export const segmentToCubic = (segment: PathSegment, params: ParserParams): MSegment | CSegment => {
   const pathCommand = segment[0];
   const values = segment.slice(1).map(Number);
   const [x, y] = values;
@@ -54,13 +51,9 @@ export const segmentToCubic = (
       quadToCubic(px1, py1, values[0], values[1], values[2], values[3]),
     ) as CSegment;
   } else if (pathCommand === "L") {
-    return ["C" as string | number].concat(
-      lineToCubic(px1, py1, x, y),
-    ) as CSegment;
+    return ["C" as string | number].concat(lineToCubic(px1, py1, x, y)) as CSegment;
   } else if (pathCommand === "Z") {
-    return ["C" as string | number].concat(
-      lineToCubic(px1, py1, params.mx, params.my),
-    ) as CSegment;
+    return ["C" as string | number].concat(lineToCubic(px1, py1, params.mx, params.my)) as CSegment;
   }
 
   return segment as MSegment | CSegment;

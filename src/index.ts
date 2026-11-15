@@ -7,4 +7,3 @@ export * from "./interface.ts";
 
 export { SVGPathCommander };
 export default SVGPathCommander;
-export {};

@@ -64,7 +64,5 @@ export const getPropertiesAtLength = <T extends PathArray>(
     index -= 1;
   }
 
-  return segments.find(
-    ({ lengthAtSegment: l }) => l <= distance,
-  ) as SegmentProperties;
+  return segments.find(({ lengthAtSegment: l }) => l <= distance) as SegmentProperties;
 };

@@ -72,18 +72,17 @@ export const getPathBBox = <T extends PathArray>(
     [pathCommand] = seg;
     const commandCode = pathCommand.charCodeAt(0);
     const isRelative = commandCode >= 97; // a-z
-    const absCommand = (isRelative
-      ? String.fromCharCode(commandCode - 32)
-      : pathCommand) as typeof pathCommand;
-    const absoluteSegment = isRelative
-      ? absolutizeSegment(seg, index, lastX, lastY)
-      : seg;
+    const absCommand = (
+      isRelative ? String.fromCharCode(commandCode - 32) : pathCommand
+    ) as typeof pathCommand;
+    const absoluteSegment = isRelative ? absolutizeSegment(seg, index, lastX, lastY) : seg;
 
-    const normalSegment = absCommand === "V"
-      ? (["L", lastX, absoluteSegment[1]] as LSegment)
-      : absCommand === "H"
-      ? (["L", absoluteSegment[1], lastY] as LSegment)
-      : absoluteSegment;
+    const normalSegment =
+      absCommand === "V"
+        ? (["L", lastX, absoluteSegment[1]] as LSegment)
+        : absCommand === "H"
+          ? (["L", absoluteSegment[1], lastY] as LSegment)
+          : absoluteSegment;
 
     [pathCommand] = normalSegment;
 

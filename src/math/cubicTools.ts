@@ -21,10 +21,8 @@ const getPointAtCubicSegmentLength = (
 ): { x: number; y: number } => {
   const t1 = 1 - t;
   return {
-    x: t1 ** 3 * x1 + 3 * t1 ** 2 * t * c1x + 3 * t1 * t ** 2 * c2x +
-      t ** 3 * x2,
-    y: t1 ** 3 * y1 + 3 * t1 ** 2 * t * c1y + 3 * t1 * t ** 2 * c2y +
-      t ** 3 * y2,
+    x: t1 ** 3 * x1 + 3 * t1 ** 2 * t * c1x + 3 * t1 * t ** 2 * c2x + t ** 3 * x2,
+    y: t1 ** 3 * y1 + 3 * t1 ** 2 * t * c1y + 3 * t1 * t ** 2 * c2y + t ** 3 * y2,
   };
 };
 

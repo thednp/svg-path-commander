@@ -66,10 +66,7 @@ export function getRotatedPath<T extends MorphPathArray>(
   const segCountB = pathB.length;
 
   if (segCountA !== segCountB) {
-    throw new TypeError(
-      error +
-        ": paths must have the same number of segments after equalization",
-    );
+    throw new TypeError(error + ": paths must have the same number of segments after equalization");
   }
 
   let bestIndex = 0;

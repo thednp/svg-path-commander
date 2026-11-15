@@ -11,10 +11,7 @@ import { error } from "../util/error.ts";
  * @param target - The desired number of cubic segments
  * @returns The modified curve array with the target segment count
  */
-export function splitCurvePathToCount<T extends CurveArray>(
-  path: T,
-  target: number,
-): T {
+export function splitCurvePathToCount<T extends CurveArray>(path: T, target: number): T {
   // istanbul ignore else
   if (path.length < 2 || target <= 1) return path;
 
@@ -27,7 +24,7 @@ export function splitCurvePathToCount<T extends CurveArray>(
   let currentY = path[0][2];
 
   for (let i = 1; i < pathLen; i++) {
-    const seg = path[i] as CSegment /*| ZSegment*/;
+    const seg = path[i] as CSegment; /*| ZSegment*/
     const [endX, endY] = seg.slice(-2) as PointTuple;
 
     const count = splits[i];
@@ -58,9 +55,7 @@ export function splitCurvePathToCount<T extends CurveArray>(
   // Final safety: if somehow still wrong, log it
   // istanbul ignore if
   if (newPath.length !== target) {
-    console.warn(
-      `${error}: requested ${target} segments, got ${newPath.length}.`,
-    );
+    console.warn(`${error}: requested ${target} segments, got ${newPath.length}.`);
   }
 
   return newPath;

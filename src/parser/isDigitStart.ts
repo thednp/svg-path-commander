@@ -8,9 +8,8 @@ import type { DigitNumber } from "../types.ts";
  * @param code the character to check
  * @returns check result
  */
-export const isDigitStart = (
-  code: number,
-): code is DigitNumber | 0x2b | 0x2d | 0x2e => {
-  return isDigit(code) /* 0..9 */ || code === 0x2b /* + */ ||
-    code === 0x2d /* - */ || code === 0x2e; /* . */
+export const isDigitStart = (code: number): code is DigitNumber | 0x2b | 0x2d | 0x2e => {
+  return (
+    isDigit(code) /* 0..9 */ || code === 0x2b /* + */ || code === 0x2d /* - */ || code === 0x2e
+  ); /* . */
 };

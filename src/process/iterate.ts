@@ -28,10 +28,7 @@ import type { AbsoluteCommand, IteratorCallback, PathArray } from "../types.ts";
  *   if (seg[0] === 'L') return ['C', x, y, seg[1], seg[2], seg[1], seg[2]];
  * });
  */
-export const iterate = <T extends PathArray>(
-  path: T,
-  iterator: IteratorCallback<T>,
-): T => {
+export const iterate = <T extends PathArray>(path: T, iterator: IteratorCallback<T>): T => {
   let x = 0;
   let y = 0;
   let mx = 0;
@@ -43,9 +40,9 @@ export const iterate = <T extends PathArray>(
     const [pathCommand] = segment;
     const commandCode = pathCommand.charCodeAt(0);
     const isRelative = commandCode >= 97; // a-z
-    const absCommand = (isRelative
-      ? String.fromCharCode(commandCode - 32)
-      : pathCommand) as AbsoluteCommand;
+    const absCommand = (
+      isRelative ? String.fromCharCode(commandCode - 32) : pathCommand
+    ) as AbsoluteCommand;
 
     const iteratorResult = iterator(segment, i, x, y);
     // some methods like getPointAtLength would like to break

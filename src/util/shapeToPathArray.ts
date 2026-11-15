@@ -60,9 +60,7 @@ export const getPolyPath = (attr: PolyAttr): PathArray => {
     index += 2;
   }
 
-  return (
-    attr.type === "polygon" ? [...pathArray, ["z"]] : pathArray
-  ) as PathArray;
+  return (attr.type === "polygon" ? [...pathArray, ["z"]] : pathArray) as PathArray;
 };
 
 /**
@@ -169,9 +167,7 @@ export const getRectanglePath = (attr: RectAttr): PathArray => {
  * @param element target shape
  * @returns the newly created `<path>` element
  */
-export const shapeToPathArray = (
-  element: ShapeTypes | ShapeOps,
-): false | PathArray => {
+export const shapeToPathArray = (element: ShapeTypes | ShapeOps): false | PathArray => {
   const supportedShapes = Object.keys(shapeParams) as (keyof ShapeParams)[];
   const targetIsElement = isElement(element);
   const tagName = targetIsElement ? element.tagName : null;
@@ -180,9 +176,7 @@ export const shapeToPathArray = (
     throw TypeError(`${error}: "${tagName}" is not SVGElement`);
   }
 
-  const type = (
-    targetIsElement ? tagName : (element as ShapeOps).type
-  ) as ShapeOps["type"];
+  const type = (targetIsElement ? tagName : (element as ShapeOps).type) as ShapeOps["type"];
   const shapeAttrs = shapeParams[type] as string[];
   const config = { type } as Record<string, string>;
 

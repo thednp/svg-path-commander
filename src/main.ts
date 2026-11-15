@@ -14,11 +14,7 @@ import { rotateVector } from "./math/rotateVector.ts";
 import { roundTo } from "./math/roundTo.ts";
 
 import type { PathArray, PointTuple, TransformObjectValues } from "./types.ts";
-import type {
-  Options,
-  TransformEntries,
-  TransformObject,
-} from "./interface.ts";
+import type { Options, TransformEntries, TransformObject } from "./interface.ts";
 import { defaultOptions } from "./options/options.ts";
 
 import { pathToAbsolute } from "./convert/pathToAbsolute.ts";
@@ -126,9 +122,7 @@ export class SVGPathCommander {
     const undefPath = typeof pathValue === "undefined";
 
     if (undefPath || !pathValue.length) {
-      throw TypeError(
-        `${error}: "pathValue" is ${undefPath ? "undefined" : "empty"}`,
-      );
+      throw TypeError(`${error}: "pathValue" is ${undefPath ? "undefined" : "empty"}`);
     }
 
     this.segments = parsePathString(pathValue);
@@ -307,11 +301,11 @@ export class SVGPathCommander {
 
     const absoluteMultiPath = subPath
       ? subPath.map((x, i) => {
-        if (onlySubpath) {
-          return i ? reversePath(x) : x.slice(0);
-        }
-        return reversePath(x);
-      })
+          if (onlySubpath) {
+            return i ? reversePath(x) : x.slice(0);
+          }
+          return reversePath(x);
+        })
       : segments.slice(0);
 
     let path = [] as unknown as PathArray;
@@ -397,10 +391,7 @@ export class SVGPathCommander {
       if (k === "skew" && Array.isArray(v)) {
         transform[k] = v.map(Number) as PointTuple;
       } else if (
-        (k === "rotate" ||
-          k === "translate" ||
-          k === "origin" ||
-          k === "scale") &&
+        (k === "rotate" || k === "translate" || k === "origin" || k === "scale") &&
         Array.isArray(v)
       ) {
         transform[k] = v.map(Number) as [number, number, number];

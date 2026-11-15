@@ -1,11 +1,5 @@
 import { segmentToCubic } from "../process/segmentToCubic.ts";
-import type {
-  AbsoluteCommand,
-  CSegment,
-  CurveArray,
-  PathArray,
-  PathCommand,
-} from "../types.ts";
+import type { AbsoluteCommand, CSegment, CurveArray, PathArray, PathCommand } from "../types.ts";
 import { iterate } from "../process/iterate.ts";
 import { parsePathString } from "../parser/parsePathString.ts";
 import { normalizeSegment } from "../process/normalizeSegment.ts";
@@ -24,9 +18,7 @@ import { paramsParser } from "../parser/paramsParser.ts";
  * // => [['M', 10, 50], ['C', 25, 25, 40, 50, 40, 50]]
  * ```
  */
-export const pathToCurve = <T extends PathArray>(
-  pathInput: string | T,
-): CurveArray => {
+export const pathToCurve = <T extends PathArray>(pathInput: string | T): CurveArray => {
   const params = { ...paramsParser };
   const path = parsePathString(pathInput);
   let prevCommand: PathCommand | null = null;

@@ -61,9 +61,7 @@ export const projection2d = (
 
   return [
     // protect against division by ZERO
-    relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) +
-    originX,
-    relativePositionY * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) +
-    originY,
+    relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originX,
+    relativePositionY * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originY,
   ];
 };

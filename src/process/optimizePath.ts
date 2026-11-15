@@ -1,9 +1,4 @@
-import type {
-  AbsoluteSegment,
-  PathArray,
-  PathCommand,
-  PathSegment,
-} from "../types.ts";
+import type { AbsoluteSegment, PathArray, PathCommand, PathSegment } from "../types.ts";
 import { pathToAbsolute } from "../convert/pathToAbsolute.ts";
 import { shortenSegment } from "./shortenSegment.ts";
 import { paramsParser } from "../parser/paramsParser.ts";
@@ -33,9 +28,7 @@ export const optimizePath = <T extends string | PathArray>(
 ): PathArray => {
   const path = pathToAbsolute(pathInput);
   // allow for ZERO decimals or use an aggressive value of 2
-  const round = typeof roundOption === "number" && roundOption >= 0
-    ? roundOption
-    : 2;
+  const round = typeof roundOption === "number" && roundOption >= 0 ? roundOption : 2;
   // this utility overrides the iterator params
   const optimParams = { ...paramsParser };
 
@@ -55,11 +48,7 @@ export const optimizePath = <T extends string | PathArray>(
       // Get previous path command for `shortenSegment`
       prevCommand = allPathCommands[i - 1];
     }
-    const normalizedSegment = normalizeSegment(
-      seg,
-      optimParams,
-      i ? prevCommand : null,
-    );
+    const normalizedSegment = normalizeSegment(seg, optimParams, i ? prevCommand : null);
     if (i) {
       const shortSegment = shortenSegment(
         seg as AbsoluteSegment,

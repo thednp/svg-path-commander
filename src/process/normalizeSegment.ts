@@ -41,24 +41,15 @@ export const normalizeSegment = (
 
   // istanbul ignore else @preserve
   if (absCommand === "A") {
-    absValues = values.slice(0, -2).concat(
-      values[5] + (isRelative ? x : 0),
-      values[6] + (isRelative ? y : 0),
-    );
+    absValues = values
+      .slice(0, -2)
+      .concat(values[5] + (isRelative ? x : 0), values[6] + (isRelative ? y : 0));
 
     return ["A" as PathCommand | number].concat(absValues) as ASegment;
   } else if (absCommand === "H") {
-    return [
-      "L",
-      (segment as HSegment)[1] + (isRelative ? x : 0),
-      y,
-    ] as LSegment;
+    return ["L", (segment as HSegment)[1] + (isRelative ? x : 0), y] as LSegment;
   } else if (absCommand === "V") {
-    return [
-      "L",
-      x,
-      (segment as VSegment)[1] + (isRelative ? y : 0),
-    ] as LSegment;
+    return ["L", x, (segment as VSegment)[1] + (isRelative ? y : 0)] as LSegment;
   } else if (absCommand === "L") {
     return [
       "L",

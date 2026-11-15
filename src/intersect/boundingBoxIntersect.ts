@@ -23,7 +23,7 @@ export const boundingBoxIntersect = (a: BBoxMaxima, b: BBoxMaxima): boolean => {
     isPointInsideBBox(a, [bx1, by2]) ||
     isPointInsideBBox(a, [bx2, by2]) ||
     // edge overlap without corner inside
-    (ax1 < bx2 && ax1 > bx1 || bx1 < ax2 && bx1 > ax1) &&
-      (ay1 < by2 && ay1 > by1 || by1 < ay2 && by1 > ay1)
+    (((ax1 < bx2 && ax1 > bx1) || (bx1 < ax2 && bx1 > ax1)) &&
+      ((ay1 < by2 && ay1 > by1) || (by1 < ay2 && by1 > ay1)))
   );
 };

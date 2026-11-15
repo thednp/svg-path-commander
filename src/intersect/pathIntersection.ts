@@ -1,8 +1,4 @@
-import type {
-  CubicCoordinates,
-  IntersectionPoint,
-  PathArray,
-} from "../types.ts";
+import type { CubicCoordinates, IntersectionPoint, PathArray } from "../types.ts";
 import { pathToCurve } from "../convert/pathToCurve.ts";
 import { interHelper } from "./interHelper.ts";
 
@@ -71,16 +67,7 @@ export const pathsIntersection = <T extends string | PathArray>(
           x2m = x2;
           y2m = y2;
         } else if (seg2[0] == "C") {
-          bez2 = [
-            x2,
-            y2,
-            seg2[1],
-            seg2[2],
-            seg2[3],
-            seg2[4],
-            seg2[5],
-            seg2[6],
-          ];
+          bez2 = [x2, y2, seg2[1], seg2[2], seg2[3], seg2[4], seg2[5], seg2[6]];
           x2 = bez2[6];
           y2 = bez2[7];
           // dead code, pathToCurve is almost always made of M/C
@@ -103,7 +90,7 @@ export const pathsIntersection = <T extends string | PathArray>(
           //   intr[k].bez2 = bez2;
           // }
           // (res as IntersectionPoint[]) = (res as IntersectionPoint[]).concat(intr);
-          pointsResult.push(...intr as IntersectionPoint[]);
+          pointsResult.push(...(intr as IntersectionPoint[]));
         }
       }
     }

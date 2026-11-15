@@ -28,7 +28,6 @@ const bench = (fn) => {
 const results = {};
 console.log("\n\nStarting SVGPathCommander Benchmarks...");
 
-
 {
   // console.log("\n\nSVGPathCommander static");
   const cmdInstance1 = SVGPathCommander.parsePathString(samplePath);
@@ -94,7 +93,6 @@ console.log("\n\nStarting SVGPathCommander Benchmarks...");
 }
 console.log("\n\nShowing results...");
 
-
 const format = (v) => (Math.round(v * 10) / 10).toString();
 const cell = (r) => (r ? `${format(r.avg)} / ${format(r.best)}` : "n/a");
 const bold = (v) => `**${v}**`;
@@ -142,7 +140,11 @@ const content = `${MARK_START}\n${table}\n${MARK_END}`;
 const start = readme.indexOf(MARK_START);
 if (start !== -1) {
   const end = readme.indexOf(MARK_END);
-  writeFileSync(README, `${readme.slice(0, start)}${content}${readme.slice(end + MARK_END.length)}`, "utf8");
+  writeFileSync(
+    README,
+    `${readme.slice(0, start)}${content}${readme.slice(end + MARK_END.length)}`,
+    "utf8",
+  );
 } else {
   const anchor = "# Special Thanks";
   const pos = readme.indexOf(anchor);

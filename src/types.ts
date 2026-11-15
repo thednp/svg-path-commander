@@ -36,34 +36,13 @@ export type SpaceNumber =
   | 0x09
   | 0x0b
   | 0x0c
-  | 0xa0
-  | 0x1680;
+  | 0xa0;
 
 /** Character codes of all SVG path command letters. */
-export type PathCommandNumber =
-  | 0x6d
-  | 0x7a
-  | 0x6c
-  | 0x68
-  | 0x76
-  | 0x63
-  | 0x73
-  | 0x71
-  | 0x74
-  | 0x61;
+export type PathCommandNumber = 0x6d | 0x7a | 0x6c | 0x68 | 0x76 | 0x63 | 0x73 | 0x71 | 0x74 | 0x61;
 
 /** Character codes of the decimal digits 0-9. */
-export type DigitNumber =
-  | 0x30
-  | 0x31
-  | 0x32
-  | 0x33
-  | 0x34
-  | 0x35
-  | 0x36
-  | 0x37
-  | 0x38
-  | 0x39;
+export type DigitNumber = 0x30 | 0x31 | 0x32 | 0x33 | 0x34 | 0x35 | 0x36 | 0x37 | 0x38 | 0x39;
 
 // custom types
 /** The absolute moveto command letter. */
@@ -181,25 +160,9 @@ export type zSegment = [zCommand];
 export type CloseSegment = ZSegment | zSegment;
 
 /** The absolute cubic Bezier segment tuple `[C, x1, y1, x2, y2, x, y]`. */
-export type CSegment = [
-  CCommand,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-];
+export type CSegment = [CCommand, number, number, number, number, number, number];
 /** The relative cubic Bezier segment tuple `[c, dx1, dy1, dx2, dy2, dx, dy]`. */
-export type cSegment = [
-  cCommand,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-];
+export type cSegment = [cCommand, number, number, number, number, number, number];
 /** The cubic Bezier segment, absolute or relative. */
 export type CubicSegment = CSegment | cSegment;
 
@@ -225,27 +188,9 @@ export type tSegment = [tCommand, number, number];
 export type ShortQuadSegment = TSegment | tSegment;
 
 /** The absolute elliptical arc segment tuple `[A, rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y]`. */
-export type ASegment = [
-  ACommand,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-];
+export type ASegment = [ACommand, number, number, number, number, number, number, number];
 /** The relative elliptical arc segment tuple `[a, rx, ry, xAxisRotation, largeArcFlag, sweepFlag, dx, dy]`. */
-export type aSegment = [
-  aCommand,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-];
+export type aSegment = [aCommand, number, number, number, number, number, number, number];
 /** The elliptical arc segment, absolute or relative. */
 export type ArcSegment = ASegment | aSegment;
 
@@ -297,13 +242,7 @@ export type RelativeSegment =
   | zSegment;
 
 /** The path segments used by the normalized form (no shorthand commands). */
-export type NormalSegment =
-  | MSegment
-  | LSegment
-  | CSegment
-  | QSegment
-  | ASegment
-  | ZSegment;
+export type NormalSegment = MSegment | LSegment | CSegment | QSegment | ASegment | ZSegment;
 
 /** A parsed SVG path string as an array of path segments. */
 export type PathArray = [MSegment | mSegment, ...PathSegment[]];
@@ -322,11 +261,7 @@ export type PolygonArray = [MSegment, ...LSegment[], ZSegment];
 /** A `PathArray` describing an open polyline (moveto and lineto). */
 export type PolylineArray = [MSegment, ...LSegment[]];
 /** The `PathArray` shapes supported by path morphing. */
-export type MorphPathArray =
-  | PolygonArray
-  | PolylineArray
-  | CurveArray
-  | ClosedCurveArray;
+export type MorphPathArray = PolygonArray | PolylineArray | CurveArray | ClosedCurveArray;
 
 /** The SVG element types that can be converted to a path. */
 export type ShapeTypes =
@@ -338,24 +273,10 @@ export type ShapeTypes =
   | SVGRectElement;
 
 /** The tag names of the SVG elements that can be converted to a path. */
-export type ShapeTags =
-  | "line"
-  | "polyline"
-  | "polygon"
-  | "ellipse"
-  | "circle"
-  | "rect"
-  | "glyph";
+export type ShapeTags = "line" | "polyline" | "polygon" | "ellipse" | "circle" | "rect" | "glyph";
 
 /** The shape attributes mapped to each supported SVG element type. */
-export type ShapeOps =
-  | LineAttr
-  | PolyAttr
-  | PolyAttr
-  | EllipseAttr
-  | CircleAttr
-  | RectAttr
-  | GlyphAttr;
+export type ShapeOps = LineAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
 
 /** A `TransformObject` with a required 3D origin. */
 export type TransformObjectValues = Partial<TransformObject> & {
@@ -382,16 +303,7 @@ export type DerivedPoint = Point & {
 /** The six points of a quadratic Bezier curve (on-curve and off-curve control points). */
 export type QuadPoints = [Point, Point, Point, Point, Point, Point];
 /** The eight points of a cubic Bezier curve (on-curve and off-curve control points). */
-export type CubicPoints = [
-  Point,
-  Point,
-  Point,
-  Point,
-  Point,
-  Point,
-  Point,
-  Point,
-];
+export type CubicPoints = [Point, Point, Point, Point, Point, Point, Point, Point];
 /** The six derived points of a quadratic Bezier curve, each with a `t` parameter. */
 export type DerivedQuadPoints = [
   DerivedPoint,
@@ -415,16 +327,7 @@ export type DerivedCubicPoints = [
 /** The six coordinates of a quadratic Bezier segment `[x1, y1, cx, cy, x, y]`. */
 export type QuadCoordinates = [number, number, number, number, number, number];
 /** The eight coordinates of a cubic Bezier segment. */
-export type CubicCoordinates = [
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-];
+export type CubicCoordinates = [number, number, number, number, number, number, number, number];
 /** The coordinates of an arc segment (the eight numbers after the command letter). */
 export type ArcCoordinates = [
   number,
@@ -444,10 +347,7 @@ export type LineCoordinates = [number, number, number, number];
 export type DeriveCallback = (t: number) => Point;
 
 /** A callback invoked for each segment while iterating over a `PathArray`. */
-export type IteratorCallback<
-  T extends PathArray,
-  K extends keyof T = number,
-> = (
+export type IteratorCallback<T extends PathArray, K extends keyof T = number> = (
   segment: PathSegment & T[K],
   index: number,
   lastX: number,
@@ -455,12 +355,7 @@ export type IteratorCallback<
 ) => PathSegment | T[K] | false | void | undefined;
 
 /** The bounding box extremes `[minX, minY, maxX, maxY]`. */
-export type BBoxMaxima = [
-  minX: number,
-  minY: number,
-  maxX: number,
-  maxY: number,
-];
+export type BBoxMaxima = [minX: number, minY: number, maxX: number, maxY: number];
 /** A point on the path at a given length, including the `t` ratio. */
 export type PointAtLength = {
   /** The X coordinate. */
@@ -518,10 +413,7 @@ export interface EqualizationOptions {
 }
 
 /** `EqualizationOptions` without `reverse` and `target`, used for path pairs. */
-export type PathsEqualizationOptions = Omit<
-  EqualizationOptions,
-  "reverse" | "target"
->;
+export type PathsEqualizationOptions = Omit<EqualizationOptions, "reverse" | "target">;
 
 /** The geometric features of a path used for matching during morphing. */
 export interface PathFeature {

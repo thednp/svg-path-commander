@@ -17,9 +17,7 @@ import type { PathArray } from "../types.ts";
  * @param pathInput the string to be parsed
  * @returns the resulted `pathArray` or error string
  */
-export const parsePathString = <T extends PathArray>(
-  pathInput: string | T,
-): PathArray => {
+export const parsePathString = <T extends PathArray>(pathInput: string | T): PathArray => {
   if (typeof pathInput !== "string") {
     return pathInput.slice(0) as T;
   }

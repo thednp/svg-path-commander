@@ -27,9 +27,7 @@ export const shortenSegment = (
 ): ShortSegment => {
   const [pathCommand] = segment;
   const { round: defaultRound } = defaultOptions;
-  const round = typeof defaultRound === "number"
-    ? defaultRound
-    : /* istanbul ignore next */ 4;
+  const round = typeof defaultRound === "number" ? defaultRound : /* istanbul ignore next */ 4;
   const normalValues = normalSegment.slice(1) as number[];
   const { x2, y2, x, y } = params;
   const [nx, ny] = normalValues.slice(-2);
@@ -52,17 +50,12 @@ export const shortenSegment = (
 
     if (
       "CS".includes(prevCommand) &&
-      x2 != null && y2 != null &&
+      x2 != null &&
+      y2 != null &&
       roundTo(nx1, round) === roundTo(x * 2 - x2, round) &&
       roundTo(ny1, round) === roundTo(y * 2 - y2, round)
     ) {
-      return [
-        "S",
-        normalValues[2],
-        normalValues[3],
-        normalValues[4],
-        normalValues[5],
-      ] as SSegment;
+      return ["S", normalValues[2], normalValues[3], normalValues[4], normalValues[5]] as SSegment;
     }
   } else if (pathCommand === "Q") {
     const [qx, qy] = normalValues;
@@ -71,7 +64,8 @@ export const shortenSegment = (
 
     if (
       "QT".includes(prevCommand) &&
-      x2 != null && y2 != null &&
+      x2 != null &&
+      y2 != null &&
       roundTo(qx, round) === roundTo(x * 2 - x2, round) &&
       roundTo(qy, round) === roundTo(y * 2 - y2, round)
     ) {

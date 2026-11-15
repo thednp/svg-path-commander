@@ -46,17 +46,7 @@ export function splitCubicToCount(
   let i = 0;
   while (i < count) {
     const t = 1 / (count - i);
-    const [first, second] = splitCubicSegment(
-      cx1,
-      cy1,
-      cx2,
-      cy2,
-      cx3,
-      cy3,
-      cx4,
-      cy4,
-      t,
-    );
+    const [first, second] = splitCubicSegment(cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4, t);
 
     result.push(first);
 
