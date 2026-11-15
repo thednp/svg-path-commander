@@ -1,11 +1,11 @@
 /*!
-* SVGPathCommander ESM v2.3.4 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander ESM v2.3.5 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 import CSSMatrix from "@thednp/dommatrix";
 // package.json
-var version = "2.3.4";
+var version = "2.3.5";
 // src/math/midPoint.ts
 /**
 * Returns the coordinates of a specified distance

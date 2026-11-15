@@ -1,6 +1,6 @@
 {
   "name": "svg-path-commander",
-  "version": "2.3.4",
+  "version": "2.3.5",
   "description": "🛹 Modern TypeScript tools for SVG",
   "keywords": [
     "absolute",

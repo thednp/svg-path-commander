@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.3.5] - 2026-11-14
+
+### Changed
+
+- Updated dependencies: `@thednp/dommatrix` `^3.1.2`
+
+### Fixed
+
+- Fixed tooling so now no `dist` file contains istanbul related comments.
+
+
 ## [2.3.4] - 2026-11-14
 
 ### Fixed
