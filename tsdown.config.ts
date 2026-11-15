@@ -44,7 +44,7 @@ export default defineConfig([
       // onlyBundle: false
     },
     dts: false,
-    outputOptions(options, format) {
+    outputOptions(options) {
       return {
         ...options,
         dir: undefined,
