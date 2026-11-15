@@ -7,20 +7,22 @@ SVGPathCommander v2.3.4 — TypeScript library for manipulating SVG `<path>` `d`
 ## Commands
 
 ```bash
-pnpm install          # Install dependencies
-pnpm dev              # Serve docs on localhost:3000
-pnpm test             # Run all tests (vitest + Istanbul coverage)
-pnpm test-ui          # Run tests with UI
-pnpm test -- -t "Test name"    # Run a single test by name
-pnpm test -- class.test.ts     # Run a single test file
-pnpm bench            # Benchmark vs svgpath (results embedded in README)
-pnpm lint             # Deno lint + tsc type check
-pnpm lint:ts          # Deno lint only
-pnpm fix:ts           # Deno lint --fix
-pnpm format           # Deno format
-pnpm build            # Build with tsdown
-pnpm check:ts         # tsc --noEmit (type check only)
+vp install                      # Install dependencies
+vpr dev                         # Serve docs on localhost:3000
+vpr test                        # Run all tests (Vitest + Istanbul coverage)
+vpr test-ui                     # Run tests with UI
+vpr test -- class.test.ts       # Run a single test file
+vpr test -- -t "Test name"      # Run a single test by name
+vpr bench                       # Benchmark vs svgpath (results embedded in README)
+vpr lint                        # oxlint src + tsc --noEmit
+vpr lint:ts                     # oxlint src
+vpr fix:ts                      # oxlint src --fix
+vpr format                      # oxfmt src
+vpr build                       # Build with tsdown (vp pack) + copy the bundle to docs/
+vpr check:ts                    # tsc --noEmit (type check only)
 ```
+
+Always run `vpr lint` and `vpr test` after making changes.
 
 Deno equivalents (via `deno.json`):
 
@@ -28,51 +30,64 @@ Deno equivalents (via `deno.json`):
 deno task test       # vitest run
 deno task lint       # deno lint src
 deno task check      # deno check src (no --sloppy-imports needed)
-deno task build      # tsdown via node
-deno publish         # JSR dry run: deno publish --dry-run --allow-dirty
+deno task format     # deno fmt src
+deno publish --dry-run --allow-dirty   # JSR dry run
 ```
+
+## CI Workflows
+
+The GitHub Actions workflows are driven by Vite+; they use the `voidzero-dev/setup-vp` action (pinned to the exact release that ships with the pinned Vite+ version — never the frozen `v1` tag), which installs the `vp`/`vpr`/`vpx` binaries, the Node.js runtime, the package manager and the dependency cache.
+
+- `.github/workflows/ci.yml` — runs on pushes and pull requests; `vpr lint`, `vpr build` and `vpr test` (with `vp exec playwright install` for the browsers), then uploads the coverage report to Coveralls.
+- `.github/workflows/publish.yml` — runs on a published GitHub Release; sets up Deno as well, then publishes to npm with `vp pm publish` (provenance, `--ignore-scripts` so the release is built from the committed sources instead of the `prepublishOnly` dependency bump) and to JSR with `deno publish --allow-dirty` (the build step regenerates the committed `dist/` and `docs/` artifacts).
+- `.github/workflows/codeql.yml` — CodeQL analysis; the build step uses `vpr build` so the job has the same toolchain as the other workflows.
+
+Keep the `paths` filters of all three workflows in sync when adding a file that affects the build, the tests or the toolchain.
 
 ## Tech Stack
 
 - **Language:** TypeScript (strict, ES2020 target, `allowImportingTsExtensions`)
-- **Package manager:** pnpm (v11.x)
-- **Build:** tsdown (ESM + UMD outputs)
-- **Test:** Vitest + Istanbul coverage (`test/class.test.ts`, `test/static.test.ts`)
-- **Lint/Format:** Deno (`deno lint`, `deno fmt`)
+- **Package manager:** vite-plus aka vp — dependencies are pinned through the `catalog:` in `pnpm-workspace.yaml`
+- **Build:** tsdown via `vp pack` (ESM + UMD outputs), wired through `vite.config.ts`
+- **Test:** Vitest 5 in **browser mode** (Playwright + Chromium, headless) + Istanbul coverage (`test/class.test.ts`, `test/static.test.ts`)
+- **Lint/Format:** Vite+ (oxlint / oxfmt via `vp lint src` and `vp fmt src`) — not Deno; `deno lint` / `deno fmt` still gate the JSR publish
 - **JSR:** `deno.json` publishes as `@thednp/svg-path-commander` — `deno check src`, `deno lint src` and `deno publish --dry-run --allow-dirty` must all pass
-- **Dependency:** `@thednp/dommatrix` `^3.1.1` (DOMMatrix shim)
+- **Dependency:** `@thednp/dommatrix` `^3.1.3` (DOMMatrix shim)
 
 ## Source Structure (`src/`)
 
-| Directory | Purpose |
-|---|---|
-| `index.ts` | Main entry — exports SVGPathCommander class + all types |
-| `main.ts` | SVGPathCommander class (core, chainable instance methods) |
-| `types.ts` | TypeScript type definitions (PathCommand, PathSegment, PathArray, etc.) |
-| `interface.ts` | Interfaces (Options, TransformObject, PathBBox, shape attrs) |
-| `util.ts` | Re-export of all static methods (tree-shakeable entry) |
-| `convert/` | Path format conversion (absolute, relative, curve, string) |
-| `parser/` | SVG path string tokenizer/scanner |
-| `process/` | Manipulation algorithms (normalize, optimize, reverse, transform, etc.) |
-| `math/` | Low-level math (bezier, cubic, quad, line, arc, polygon tools) |
-| `morph/` | Path morphing (equalize, split, sample, classify, match) |
-| `util/` | Query helpers (bbox, length, point-at-length, intersection, etc.) |
-| `options/` | Default configuration |
+| Directory      | Purpose                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `index.ts`     | Main entry — exports SVGPathCommander class + all types                 |
+| `main.ts`      | SVGPathCommander class (core, chainable instance methods)               |
+| `types.ts`     | TypeScript type definitions (PathCommand, PathSegment, PathArray, etc.) |
+| `interface.ts` | Interfaces (Options, TransformObject, PathBBox, shape attrs)            |
+| `util.ts`      | Re-export of all static methods (tree-shakeable entry)                  |
+| `convert/`     | Path format conversion (absolute, relative, curve, string)              |
+| `parser/`      | SVG path string tokenizer/scanner                                       |
+| `process/`     | Manipulation algorithms (normalize, optimize, reverse, transform, etc.) |
+| `math/`        | Low-level math (bezier, cubic, quad, line, arc, polygon tools)          |
+| `morph/`       | Path morphing (equalize, split, sample, classify, match)                |
+| `util/`        | Query helpers (bbox, length, point-at-length, intersection, etc.)       |
+| `options/`     | Default configuration                                                   |
 
 ## Code Conventions
 
 ### Imports
+
 - Use `.ts` extension on all imports: `import { foo } from "./bar.ts"`
 - Path alias `~/*` maps to `src/` (e.g., `import SVGPathCommander from '~/index'`)
 - Group imports: external libs → internal modules → types
 - Use `import type` for type-only imports
 
 ### Formatting & Linting
+
 - **No comments** unless explicitly asked
-- Run `pnpm format` then `pnpm lint:ts` before committing
-- Deno formatter and linter enforced (`deno fmt`, `deno lint`)
+- Run `vpr format` then `vpr lint:ts` before committing
+- Vite+ formatter and linter enforced (`vp fmt`, `vp lint`); `deno fmt` / `deno lint` still gate the JSR publish
 
 ### TypeScript
+
 - Strict mode enabled — no `any`, no implicit `any`
 - `noUnusedLocals` and `noUnusedParameters` enforced
 - `noImplicitReturns` enforced
@@ -80,6 +95,7 @@ deno publish         # JSR dry run: deno publish --dry-run --allow-dirty
 - Use `type` aliases for unions, `interface` for object shapes
 
 ### Naming Conventions
+
 - **Classes:** PascalCase (`SVGPathCommander`, `PathParser`)
 - **Functions/Methods:** camelCase (`parsePathString`, `normalizePath`)
 - **Types:** PascalCase ending in semantic suffix (`PathArray`, `NormalSegment`, `IteratorCallback`)
@@ -88,19 +104,22 @@ deno publish         # JSR dry run: deno publish --dry-run --allow-dirty
 - **Test descriptions:** Start with `Test` (`Test init with no parameter`)
 
 ### Error Handling
+
 - Throw `TypeError` with descriptive message for invalid inputs
 - Use the shared `error` prefix from `~/util/error.ts`
 - Validate inputs early, fail fast with clear messages
 - Static methods return safe defaults for empty/invalid input (e.g., `getPathBBox('')`)
 
 ### Class Design
+
 - Instance methods are chainable — always `return this`
 - Expose functionality as both instance methods and static methods
 - Use getters for computed properties (`get bbox()`, `get length()`)
 - Instance options validated in constructor with fallback to `defaultOptions`
 
 ### Testing
-- Tests run with Vitest + Istanbul coverage via `pnpm test`
+
+- Tests run with Vitest + Istanbul coverage via `vpr test`
 - Test files: `test/class.test.ts` (instance API), `test/static.test.ts` (static methods)
 - Fixtures in `test/fixtures/`
 - Use `expect().to.deep.equal()` for object comparison, `expect().to.equal()` for primitives
@@ -108,9 +127,41 @@ deno publish         # JSR dry run: deno publish --dry-run --allow-dirty
 
 ## Build Outputs
 
-| File | Description |
-|---|---|
+| File                | Description                                              |
+| ------------------- | -------------------------------------------------------- |
 | `dist/index.min.js` | UMD bundle (minified, browser-ready, includes dommatrix) |
-| `dist/index.js` | ESM bundle (tree-shakeable, neutral platform) |
-| `dist/util.js` | Static methods only (tree-shakeable) |
-| `dist/index.d.ts` | Type declarations |
+| `dist/index.js`     | ESM bundle (tree-shakeable, neutral platform)            |
+| `dist/util.js`      | Static methods only (tree-shakeable)                     |
+| `dist/index.d.ts`   | Type declarations                                        |
+
+<!--VITE PLUS START-->
+
+# Using Vite+, the Unified Toolchain for the Web
+
+This project is using Vite+, a unified toolchain built on top of Vite, Rolldown, Vitest, tsdown, Oxlint, Oxfmt, and Vite Task. Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite, and it invokes Vite through `vp dev` and `vp build`. Run `vp help` to print a list of commands and `vp <command> --help` for information about a specific command.
+
+Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
+
+## Built-in Commands vs Scripts
+
+`vp <name>` runs a built-in command. `vp run <name>` runs a `package.json` script or a `vite.config.ts` task. Scripts cannot overwrite built-ins, so `vp dev` and `vp run dev` may do different things. Check `package.json` and `vite.config.ts` first, and run `vp run <name>` when the project defines a script or task with that name.
+
+## Running Scripts
+
+Run TypeScript and JavaScript files with `vpx <file>`, for example `vpx ./scripts/seed.ts --dry-run`. It handles enums, decorators, JSX, and tsconfig `paths`, so do not add `tsx` or `ts-node` to run scripts. `vpx --watch <file>` reruns the file when a file it uses changes, in place of `tsx watch`. `vp node <file>` runs plain Node.js.
+
+## Tool Versions
+
+Run `vp toolchain` to show versions and relationships in the active Vite+
+release. Add a tool name to select part of the graph. For example, run
+`vp toolchain vite`. Use `--global` to ignore the local `vite-plus` package. Use
+`vp why <package>` to show the package-manager dependency graph.
+
+## Review Checklist
+
+- [ ] Run `vp install` after pulling remote changes and before getting started.
+- [ ] Run `vp check` and `vp test` to format, lint, type check and test changes.
+- [ ] Check if there are `vite.config.ts` tasks or `package.json` scripts necessary for validation, run via `vp run <script>`.
+- [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
+
+<!--VITE PLUS END-->
