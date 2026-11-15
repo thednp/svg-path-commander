@@ -14,6 +14,14 @@ export default defineConfig({
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: { "vite-plus/prefer-vite-plus-imports": "error" },
     options: { typeAware: true, typeCheck: true },
+    overrides: [
+      {
+        // the chai assertions are property getters (`to.be.true`, `to.exist`),
+        // the base rule reports them as unused expressions
+        files: ["test/**"],
+        rules: { "no-unused-expressions": "off" },
+      },
+    ],
   },
   pack: tsdownConfig,
 });
