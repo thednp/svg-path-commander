@@ -24,7 +24,11 @@
     "./util": "./src/util.ts"
   },
   "compilerOptions": {
-    "lib": ["DOM", "ESNext", "DOM.Iterable"],
+    "lib": [
+      "DOM",
+      "ESNext",
+      "DOM.Iterable"
+    ],
     "strict": true
   },
   "minimumDependencyAge": "0",

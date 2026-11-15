@@ -49,7 +49,7 @@
   },
   "scripts": {
     "pre-test": "vpr clean-coverage",
-    "dev": "vite serve docs --port 3000",
+    "dev": "vp dev docs --port 3000",
     "test": "vp test",
     "test-ui": "vp test --ui",
     "clean-coverage": "rm -rf coverage .nyc_output",
