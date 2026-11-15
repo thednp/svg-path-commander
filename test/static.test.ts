@@ -266,14 +266,14 @@ describe("SVGPathCommander Static Methods", () => {
 
     const path2 = pathToString(transformPath(reversePath(simpleShapes.initial[3]), { rotate: 45 }));
     expect(path2).to.equal(
-      "M2.8284 16.9706C0.4208 16.6064 -2.0433 14.1423 -2.8284 11.3137M2.8284 16.9706C2.0433 14.1419 -0.4208 11.6779 -2.8284 11.3137M2.8284 16.9706C6.3778 17.5074 7.6385 13.3604 5.0977 9.506C2.5569 5.6516 -1.8798 4.9805 -2.8884 8.2981C-3.153 9.1684 -3.1321 10.2198 -2.8284 11.3137M2.8284 16.9706C3.9859 21.1405 0.9528 23.5152 -2.631 21.245C-6.2148 18.9748 -7.6616 13.7624 -5.2352 11.8626C-4.5986 11.3642 -3.7596 11.1729 -2.8284 11.3137",
+      "M2.8284 16.9706C3.9859 21.1405 0.9528 23.5152 -2.631 21.245C-6.2148 18.9748 -7.6616 13.7624 -5.2352 11.8626C-4.5986 11.3642 -3.7596 11.1729 -2.8284 11.3137M2.8284 16.9706C6.3778 17.5074 7.6385 13.3604 5.0977 9.506C2.5569 5.6516 -1.8798 4.9805 -2.8884 8.2981C-3.153 9.1684 -3.1321 10.2198 -2.8284 11.3137M2.8284 16.9706C2.0433 14.1419 -0.4208 11.6779 -2.8284 11.3137M2.8284 16.9706C0.4208 16.6064 -2.0433 14.1423 -2.8284 11.3137",
     );
 
     const path3 = pathToString(
       transformPath(reversePath(simpleShapes.initial[3]), { rotate: -45 }),
     );
     expect(path3).to.equal(
-      "M16.9706 -2.8284C16.6064 -0.4208 14.1423 2.0433 11.3137 2.8284M16.9706 -2.8284C14.1419 -2.0433 11.6779 0.4208 11.3137 2.8284M16.9706 -2.8284C17.5074 -6.3778 13.3604 -7.6385 9.506 -5.0977C5.6516 -2.5569 4.9805 1.8798 8.2981 2.8884C9.1684 3.153 10.2198 3.1321 11.3137 2.8284M16.9706 -2.8284C21.1405 -3.9859 23.5152 -0.9528 21.245 2.631C18.9748 6.2148 13.7624 7.6616 11.8626 5.2352C11.3642 4.5986 11.1729 3.7596 11.3137 2.8284",
+      "M16.9706 -2.8284C21.1405 -3.9859 23.5152 -0.9528 21.245 2.631C18.9748 6.2148 13.7624 7.6616 11.8626 5.2352C11.3642 4.5986 11.1729 3.7596 11.3137 2.8284M16.9706 -2.8284C17.5074 -6.3778 13.3604 -7.6385 9.506 -5.0977C5.6516 -2.5569 4.9805 1.8798 8.2981 2.8884C9.1684 3.153 10.2198 3.1321 11.3137 2.8284M16.9706 -2.8284C14.1419 -2.0433 11.6779 0.4208 11.3137 2.8284M16.9706 -2.8284C16.6064 -0.4208 14.1423 2.0433 11.3137 2.8284",
     );
   });
 
@@ -1415,7 +1415,34 @@ describe("S/s shorthand and arc bounds fixes", () => {
   test("Can reverse a path with a trailing moveto without NaN values", () => {
     const reversed = pathToString(reversePath("M0 0L10 0L10 10Zm4 4"));
     expect(reversed).to.not.contain("NaN");
-    expect(reversed).to.equal("M4 4M0 0M10 10L10 0L0 0");
+    expect(reversed).to.equal("M10 10L10 0L0 0ZM4 4");
+  });
+
+  test("Can reverse every sub-path of a path on its own", () => {
+    const path = "M0 0L10 0L10 10ZM4 4L8 8Z";
+    const reversed = pathToString(reversePath(path));
+    expect(reversed).to.equal("M10 10L10 0L0 0ZM8 8L4 4Z");
+    expect(reversed).to.equal(new SVGPathCommander(path).reverse().toString());
+    expect(getTotalLength(reversed)).to.be.closeTo(getTotalLength(path), 0.001);
+  });
+
+  test("Can reverse a path with sub-paths without changing the sub-path order", () => {
+    const path = "M0 0L10 0L10 10ZM4 4L8 8ZM20 20L30 20Z";
+    const reversed = pathToString(reversePath(path));
+    expect(reversed).to.equal("M10 10L10 0L0 0ZM8 8L4 4ZM30 20L20 20Z");
+    expect(pathToString(reversePath(reversePath(path)))).to.equal(path);
+  });
+
+  test("Can reverse a path with sub-paths and keep the length", () => {
+    const path = "M0 0L10 0L10 10Zm4 4";
+    const reversed = pathToString(reversePath(path));
+    expect(reversed).to.equal("M10 10L10 0L0 0ZM4 4");
+    expect(getTotalLength(reversed)).to.be.closeTo(getTotalLength(path), 0.001);
+    expect(pathToString(reversePath(reversePath(path)))).to.equal("M0 0L10 0L10 10ZM4 4");
+  });
+
+  test("Can reverse an empty path without throwing", () => {
+    expect(reversePath("")).to.deep.equal([]);
   });
 
   test("Can reverse an S segment that is not preceded by a cubic", () => {

@@ -240,7 +240,7 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   ]);
   // => [['M', 0, 0], ['L', 1.1235, 2.9877]]
   ```
-- **SVGPathCommander.reversePath(_path_: string | PathArray)** - returns a new _PathArray_ with all path commands having absolute values and in reverse order, but only for a single M->Z shape, for paths having sub-path(s) you need to use the **SVGPathCommander** constructor itself;
+- **SVGPathCommander.reversePath(_path_: string | PathArray)** - returns a new _PathArray_ with all path commands having absolute values and in reverse order; every sub-path is reversed on its own, so the `M` and the `Z` of a sub-path are swapped with each other, and the sub-paths keep their original order;
 - **SVGPathCommander.optimizePath(_path_: PathArray)** - returns a new _PathArray_ with all segments that have the shortest strings from either absolute or relative `PathArray` segments;
 - **SVGPathCommander.transformPath(_path_: PathArray | string, _transformObject_: TransformObject)** - returns a new _PathArray_ with all segments transformed according to the properties defined in the `transformObject`;
 - **SVGPathCommander.normalizePath(_path_: string | PathArray)** - returns a new _PathArray_ with all shorthand path command segments such as `S`, `T` are converted to `C` and `Q` respectively, `V` and `H` to `L`, all in absolute values; the utility is used by `pathToCurve` and `reversePath`;
