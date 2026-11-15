@@ -2,6 +2,7 @@
 node_modules
 experiments
 coverage
+TMP
 test/__screenshots__
 .vitest-attachments
 .vitest/

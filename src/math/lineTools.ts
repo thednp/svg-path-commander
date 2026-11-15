@@ -33,7 +33,7 @@ const getPointAtLineLength = (
 ): { x: number; y: number } => {
   let point = { x: x1, y: y1 };
 
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore else */
   if (typeof distance === "number") {
     const length = distanceSquareRoot([x1, y1], [x2, y2]);
     if (distance <= 0) {

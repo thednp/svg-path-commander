@@ -136,9 +136,9 @@ export const getRectanglePath = (attr: RectAttr): PathArray => {
     // rx = !rx ? ry : rx;
     // ry = !ry ? rx : ry;
 
-    /* istanbul ignore else @preserve */
+    /* istanbul ignore else */
     if (rx * 2 > w) rx -= (rx * 2 - w) / 2;
-    /* istanbul ignore else @preserve */
+    /* istanbul ignore else */
     if (ry * 2 > h) ry -= (ry * 2 - h) / 2;
 
     return [
@@ -205,7 +205,7 @@ export const shapeToPathArray = (element: ShapeTypes | ShapeOps): false | PathAr
   } else if (["glyph", "path"].includes(type)) {
     pathArray = parsePathString(
       targetIsElement
-        ? element.getAttribute("d") || /* istanbul ignore next @preserve */ ""
+        ? element.getAttribute("d") || /* istanbul ignore next */ ""
         : (element as GlyphAttr).d || "",
     );
   }

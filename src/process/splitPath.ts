@@ -59,10 +59,10 @@ export const splitPath = <T extends PathArray>(pathInput: T | string): T[] => {
         y = my;
       } else if (absCommand === "H") {
         [, x] = seg as HSegment;
-        x += isRelative ? prevX : /* istanbul ignore next @preserve */ 0;
+        x += isRelative ? prevX : /* istanbul ignore next */ 0;
       } else if (absCommand === "V") {
         [, y] = seg as VSegment;
-        y += isRelative ? prevY : /* istanbul ignore next @preserve */ 0;
+        y += isRelative ? prevY : /* istanbul ignore next */ 0;
       } else {
         [x, y] = seg.slice(-2) as PointTuple;
         x += isRelative ? prevX : 0;

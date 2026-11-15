@@ -79,7 +79,7 @@ const getPointAtCubicLength = (
 ): { x: number; y: number } => {
   const distanceIsNumber = typeof distance === "number";
   let point = { x: x1, y: y1 };
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore else */
   if (distanceIsNumber) {
     const coords = [x1, y1, c1x, c1y, c2x, c2y, x2, y2] as CubicCoordinates;
     const currentLength = getBezierLength(coords);

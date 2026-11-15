@@ -76,7 +76,7 @@ const transform2D = (
       const absY = (seg[1] as number) + (isRelative ? oy : 0);
       lx = a * ox + c * absY + e - originX + originX;
       ly = b * ox + d * absY + f - originY + originY;
-      /* istanbul ignore else @preserve */
+      /* istanbul ignore else */
       if (x !== lx && y !== ly) {
         result.push(["L", lx, ly] as LSegment);
       } else if (y === ly) {
@@ -96,7 +96,7 @@ const transform2D = (
       const absX = (seg[1] as number) + (isRelative ? ox : 0);
       lx = a * absX + c * oy + e - originX + originX;
       ly = b * absX + d * oy + f - originY + originY;
-      /* istanbul ignore else @preserve */
+      /* istanbul ignore else */
       if (x !== lx && y !== ly) {
         result.push(["L", lx, ly] as LSegment);
       } else if (y === ly) {
@@ -128,7 +128,7 @@ const transform2D = (
       );
       const cubicsLen = cubics.length;
       let k = 0;
-      /* istanbul ignore else @preserve */
+      /* istanbul ignore else */
       if (cubicsLen > 0) {
         do {
           const piece = ["C"] as unknown as CSegment;
@@ -142,17 +142,17 @@ const transform2D = (
           k = end;
         } while (k < cubicsLen);
       } else {
-        /* istanbul ignore next @preserve */
+        /* istanbul ignore next */
         result.push(["C"] as unknown as AbsoluteSegment);
       }
-      /* istanbul ignore else @preserve */
+      /* istanbul ignore else */
       if (cubicsLen > 0) {
         ox = cubics[cubicsLen - 2];
         oy = cubics[cubicsLen - 1];
       } else {
-        /* istanbul ignore next @preserve */
+        /* istanbul ignore next */
         ox = absX;
-        /* istanbul ignore next @preserve */
+        /* istanbul ignore next */
         oy = absY;
       }
       x = lx;
@@ -165,7 +165,7 @@ const transform2D = (
       const absY = (seg[2] as number) + (isRelative ? oy : 0);
       lx = a * absX + c * absY + e - originX + originX;
       ly = b * absX + d * absY + f - originY + originY;
-      /* istanbul ignore else @preserve */
+      /* istanbul ignore else */
       if (x !== lx && y !== ly) {
         result.push(["L", lx, ly] as LSegment);
       } else if (y === ly) {
@@ -318,7 +318,7 @@ export const transformPath = <T extends PathArray>(
         origin,
       );
 
-      /* istanbul ignore else @preserve */
+      /* istanbul ignore else */
       if (x !== lx && y !== ly) {
         result = ["L", lx, ly];
       } else if (y === ly) {

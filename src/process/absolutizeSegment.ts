@@ -32,7 +32,7 @@ export const absolutizeSegment = (
   const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
   const isAbsolute = absCommand === pathCommand;
 
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore else */
   if (index === 0 || isAbsolute) return segment as MSegment | AbsoluteSegment;
   // const values = segment.slice(1) as number[];
   if (absCommand === "A") {

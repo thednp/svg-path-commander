@@ -23,7 +23,7 @@ export const roundPath = <T extends PathArray>(path: T, roundOption?: number | "
           ? round
           : "off";
 
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore else */
   if (round === "off") return path.slice(0) as T;
 
   return iterate(path, (segment) => {

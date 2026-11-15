@@ -93,7 +93,7 @@ export const getPathBBox = <T extends PathArray>(
     }
 
     // this segment is always ZERO
-    /* istanbul ignore else @preserve */
+    /* istanbul ignore else */
     if (pathCommand === "M") {
       [, mx, my] = normalSegment as MSegment;
       minX = mx;

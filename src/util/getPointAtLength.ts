@@ -42,7 +42,7 @@ export const getPointAtLength = <T extends PathArray>(
     data = !isM ? [lastX, lastY].concat(seg.slice(1) as number[]) : data;
 
     // this segment is always ZERO
-    /* istanbul ignore else @preserve */
+    /* istanbul ignore else */
     if (isM) {
       // remember mx, my for Z
       [, mx, my] = seg as MSegment;

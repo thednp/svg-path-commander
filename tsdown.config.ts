@@ -4,7 +4,7 @@ const pkg = await import("./package.json", { with: { type: "json" } }).then((m) 
 
 const year = new Date().getFullYear();
 const banner = `/*!
-* SVGPathCommander v${pkg.version} (${pkg.homepage})
+* SVGPathCommander $package v${pkg.version} (${pkg.homepage})
 * Copyright ${year} © ${pkg.author}
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */`;
@@ -38,7 +38,7 @@ export default defineConfig([
     target: "esnext",
     platform: "browser",
     banner: miniBanner.replace("$package", "UMD"),
-    plugins: [stripComments({ type: "none" })],
+    plugins: [stripComments({ type: "keep-legal" })],
     deps: {
       alwaysBundle: ["@thednp/dommatrix"],
       // onlyBundle: false
@@ -47,6 +47,7 @@ export default defineConfig([
     outputOptions(options) {
       return {
         ...options,
+        comments: { legal: false }, // temp
         dir: undefined,
         file: "dist/index.min.js",
         exports: "default",

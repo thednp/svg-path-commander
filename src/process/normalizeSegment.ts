@@ -39,7 +39,7 @@ export const normalizeSegment = (
     params.qy = null;
   }
 
-  // istanbul ignore else @preserve
+  // istanbul ignore else
   if (absCommand === "A") {
     absValues = values
       .slice(0, -2)
@@ -87,6 +87,6 @@ export const normalizeSegment = (
     return ["Z"] as NormalSegment;
   }
 
-  // istanbul ignore next @preserve
+  // istanbul ignore next
   return segment as NormalSegment;
 };

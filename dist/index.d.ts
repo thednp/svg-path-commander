@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v2.3.4 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander ESM v2.3.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -1012,6 +1012,10 @@ declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOp
 /**
  * Reverses all segments of a PathArray and returns a new PathArray
  * with absolute values.
+ *
+ * Every sub-path is reversed on its own, so the `M` and the `Z` of a
+ * sub-path are swapped with each other and the sub-paths keep their
+ * original order.
  *
  * @param pathInput - The source PathArray
  * @returns The reversed PathArray

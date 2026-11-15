@@ -165,3 +165,17 @@ release. Add a tool name to select part of the graph. For example, run
 - [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
 
 <!--VITE PLUS END-->
+
+## Workflow notes
+- **Harness folders**: dev repro/harness scaffolding (debugging the Vite plugin,
+  a compiler, or the browser) goes in `TMP/`; fixtures imported by vitest suites
+  go in `tests/fixtures/` — **never** in the root or in OS temp dirs. Root-level
+  harness files break `tsdown`/`vitest` path resolution, and temp dirs outside
+  the project get swept by OS cleaners and leave stale `node_modules`/`.vite`
+  state that corrupts the next run. (`tests/fixtures/` is covered by
+  `vp lint` + `tsc` like the rest of `tests/` — keep fixtures valid;
+  intentionally-broken inputs don't belong there.)
+- **Never delete files**: do not `rm` source/test files. If a file must be
+  removed from the tree, **rename it to `<name>-bak.<ext>`** (e.g. `foo.ts` →
+  `foo-bak.ts`) and leave it in place. The `-bak` suffix is the only sanctioned
+  way to retire a file; the repo may be scanned for history or references later.

@@ -143,7 +143,7 @@ const getArcProps = (
   const xRot = ((angle % 360) + 360) % 360;
   const xRotRad = xRot * (PI / 180);
 
-  // istanbul ignore next @preserve
+  // istanbul ignore next
   if (x1 === x && y1 === y) {
     return {
       rx,
@@ -184,7 +184,7 @@ const getArcProps = (
   const cSquareRootDenom = rx ** 2 * transformedPoint.y ** 2 + ry ** 2 * transformedPoint.x ** 2;
 
   let cRadicand = cSquareNumerator / cSquareRootDenom;
-  /* istanbul ignore next @preserve */
+  /* istanbul ignore next */
   cRadicand = cRadicand < 0 ? 0 : cRadicand;
   const cCoef = (LAF !== SF ? 1 : -1) * sqrt(cRadicand);
   const transformedCenter = {
@@ -304,7 +304,7 @@ const getPointAtArcLength = (
     y,
   );
 
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore else */
   if (typeof distance === "number") {
     const sweepAngle = endAngle - startAngle;
     const length = Math.abs(arcLengthBetween(rx, ry, startAngle, endAngle));
@@ -313,11 +313,11 @@ const getPointAtArcLength = (
     } else if (distance >= length) {
       point = { x, y };
     } else {
-      /* istanbul ignore next @preserve */
+      /* istanbul ignore next */
       if (x1 === x && y1 === y) {
         return { x, y };
       }
-      /* istanbul ignore next @preserve */
+      /* istanbul ignore next */
       if (rx === 0 || ry === 0) {
         return getPointAtLineLength(x1, y1, x, y, distance);
       }

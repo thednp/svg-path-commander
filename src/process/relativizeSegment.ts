@@ -32,7 +32,7 @@ export const relativizeSegment = (
   const relCommand = pathCommand.toLowerCase() as RelativeCommand;
   const isRelative = pathCommand === relCommand;
 
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore else */
   if (index === 0 || isRelative) return segment as MSegment | RelativeSegment;
 
   if (relCommand === "a") {

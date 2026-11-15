@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander v2.3.4 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander ESM v2.3.4 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
@@ -3192,20 +3192,13 @@ const optimizePath = (pathInput, roundOption) => {
 };
 // src/process/reversePath.ts
 /**
-* Reverses all segments of a PathArray and returns a new PathArray
+* Reverses the segments of a single sub-path and returns a new PathArray
 * with absolute values.
 *
-* @param pathInput - The source PathArray
+* @param absolutePath - The absolute PathArray of a single sub-path
 * @returns The reversed PathArray
-*
-* @example
-* ```ts
-* reversePath([['M', 0, 0], ['L', 100, 0], ['L', 100, 100], ['L', 0, 100], ['Z']])
-* // => [['M', 0, 100], ['L', 0, 0], ['L', 100, 0], ['L', 100, 100], ['Z']]
-* ```
 */
-const reversePath = (pathInput) => {
-	const absolutePath = pathToAbsolute(pathInput);
+const reverseSubPath = (absolutePath) => {
 	const normalizedPath = normalizePath(absolutePath);
 	const pLen = absolutePath.length;
 	const isClosed = absolutePath[pLen - 1][0] === "Z";
@@ -3340,6 +3333,38 @@ const reversePath = (pathInput) => {
 		return result;
 	});
 	return isClosed ? reversedPath.reverse() : [reversedPath[0]].concat(reversedPath.slice(1).reverse());
+};
+/**
+* Reverses all segments of a PathArray and returns a new PathArray
+* with absolute values.
+*
+* Every sub-path is reversed on its own, so the `M` and the `Z` of a
+* sub-path are swapped with each other and the sub-paths keep their
+* original order.
+*
+* @param pathInput - The source PathArray
+* @returns The reversed PathArray
+*
+* @example
+* ```ts
+* reversePath([['M', 0, 0], ['L', 100, 0], ['L', 100, 100], ['L', 0, 100], ['Z']])
+* // => [['M', 0, 100], ['L', 0, 0], ['L', 100, 0], ['L', 100, 100], ['Z']]
+* ```
+*/
+const reversePath = (pathInput) => {
+	const absolutePath = pathToAbsolute(pathInput);
+	const subPaths = [];
+	let subPath = [];
+	for (const segment of absolutePath) {
+		if (segment[0] === "M" && subPath.length) {
+			subPaths.push(subPath);
+			subPath = [];
+		}
+		subPath.push(segment);
+	}
+	if (subPath.length) subPaths.push(subPath);
+	const reversed = subPaths.map((path) => reverseSubPath(path));
+	return reversed.length === 1 ? reversed[0] : reversed.flat();
 };
 // src/process/splitPath.ts
 /**

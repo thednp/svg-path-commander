@@ -140,7 +140,7 @@ export class SVGPathCommander {
     // set instance options.origin
     // the SVGPathCommander class will always override the default origin
     let origin = defaultOptions.origin as [number, number, number];
-    /* istanbul ignore else @preserve */
+    /* istanbul ignore else */
     if (Array.isArray(originOption) && originOption.length >= 2) {
       const [originX, originY, originZ] = originOption.map(Number);
       origin = [
@@ -387,7 +387,7 @@ export class SVGPathCommander {
     } = this;
     const transform = {} as TransformObjectValues;
     for (const [k, v] of Object.entries(source) as TransformEntries) {
-      // istanbul ignore else @preserve
+      // istanbul ignore else
       if (k === "skew" && Array.isArray(v)) {
         transform[k] = v.map(Number) as PointTuple;
       } else if (

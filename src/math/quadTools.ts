@@ -73,7 +73,7 @@ const getPointAtQuadLength = (
   const distanceIsNumber = typeof distance === "number";
   let point = { x: x1, y: y1 };
 
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore else */
   if (distanceIsNumber) {
     const coords = [x1, y1, cx, cy, x2, y2] as QuadCoordinates;
     const currentLength = getBezierLength(coords);

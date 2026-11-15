@@ -63,7 +63,7 @@ const deriveBezier = (
  */
 const computeBezier = (points: DerivedQuadPoints | DerivedCubicPoints, t: number): DerivedPoint => {
   // shortcuts
-  /* istanbul ignore next @preserve */
+  /* istanbul ignore next */
   if (t === 0) {
     points[0].t = 0;
     return points[0];
@@ -71,7 +71,7 @@ const computeBezier = (points: DerivedQuadPoints | DerivedCubicPoints, t: number
 
   const order = points.length - 1;
 
-  /* istanbul ignore next @preserve */
+  /* istanbul ignore next */
   if (t === 1) {
     points[order].t = 1;
     return points[order];
@@ -81,14 +81,14 @@ const computeBezier = (points: DerivedQuadPoints | DerivedCubicPoints, t: number
   let p = points as typeof points | [DerivedPoint, DerivedPoint, DerivedPoint, DerivedPoint];
 
   // constant?
-  /* istanbul ignore next @preserve */
+  /* istanbul ignore next */
   if (order === 0) {
     points[0].t = t;
     return points[0];
   }
 
   // linear?
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore else */
   if (order === 1) {
     return {
       x: mt * p[0].x + t * p[1].x,
@@ -104,7 +104,7 @@ const computeBezier = (points: DerivedQuadPoints | DerivedCubicPoints, t: number
   let b = 0;
   let c = 0;
   let d = 0;
-  /* istanbul ignore else @preserve */
+  /* istanbul ignore else */
   if (order === 2) {
     p = [p[0], p[1], p[2], { x: 0, y: 0 } as DerivedPoint];
     a = mt2;
@@ -253,7 +253,7 @@ const minmaxQ = ([v1, cp, v2]: [number, number, number]): PointTuple => {
   const min = Math.min(v1, v2);
   const max = Math.max(v1, v2);
 
-  /* istanbul ignore next @preserve */
+  /* istanbul ignore next */
   if (cp >= v1 ? v2 >= cp : v2 <= cp) {
     // if no extremum in ]0,1[
     return [min, max] as PointTuple;
@@ -273,7 +273,7 @@ const minmaxC = ([v1, cp1, cp2, v2]: [number, number, number, number]): PointTup
   const K = v1 - 3 * cp1 + 3 * cp2 - v2;
 
   // if the polynomial is (almost) quadratic and not cubic
-  /* istanbul ignore next @preserve */
+  /* istanbul ignore next */
   if (Math.abs(K) < CBEZIER_MINMAX_EPSILON) {
     if (v1 === v2 && v1 === cp1) {
       // no curve, point targeting same location
@@ -299,7 +299,7 @@ const minmaxC = ([v1, cp1, cp2, v2]: [number, number, number, number]): PointTup
   const L = v1 - 2 * cp1 + cp2;
   // check local extrema
   for (let R = (L + S) / K, i = 1; i <= 2; R = (L - S) / K, i++) {
-    // istanbul ignore next @preserve
+    // istanbul ignore next
     if (R > 0 && R < 1) {
       // if the extrema is for R in [0,1]
       const Q =

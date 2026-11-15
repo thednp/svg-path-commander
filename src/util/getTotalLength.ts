@@ -56,7 +56,7 @@ export const getTotalLength = <T extends PathArray>(pathInput: string | T): numb
     }
 
     // this segment is always ZERO
-    /* istanbul ignore else @preserve */
+    /* istanbul ignore else */
     if (pathCommand === "M") {
       // remember mx, my for Z
       [, mx, my] = normalSegment as MSegment;
