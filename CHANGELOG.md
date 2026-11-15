@@ -16,11 +16,12 @@
 
 - `ParserParams.x2` / `ParserParams.y2` are now `number | null`, `null` marks a previous segment without a reflectable control point (the same sentinel used by `ParserParams.qx` / `ParserParams.qy`)
 - `normalizeSegment()` accepts the command of the previous segment as an optional third argument, required to tell a reflectable control point from a missing one
-- Migrated the toolchain from pnpm to Vite+ (`vp`) — the `package.json` scripts now run through `vp` / `vpr` (`vp test`, `vp pack`, `vp lint src`, `vp fmt src`), the shared dependencies are pinned through the `catalog:` in `pnpm-workspace.yaml` and the GitHub Actions workflows are driven by the `voidzero-dev/setup-vp` action (`vpr lint`, `vpr build`, `vpr test`, `vp pm publish`)
+- Migrated the toolchain from pnpm to Vite+ (`vp`) — the `package.json` scripts now run through `vp` / `vpr` (`vp test`, `vp pack`, `vp lint src`, `vp fmt src`), the docs are served with `vp dev docs --port 3000`, the shared dependencies are pinned through the `catalog:` in `pnpm-workspace.yaml` and the GitHub Actions workflows are driven by the `voidzero-dev/setup-vp` action (`vpr lint`, `vpr build`, `vpr test`, `vp pm publish`)
 - The source is now formatted with oxfmt (`vp fmt src`) instead of `deno fmt src`, and linted with oxlint (`vp lint src`) instead of `deno lint src`; `deno lint` / `deno check` still gate the JSR publish
 - The `lint` script now runs the type check as well (`vpr lint:ts && vpr check:ts`), so `vpr lint` covers both oxlint and `tsc --noEmit`
-- Updated dev dependencies: `vitest` / `@vitest/*` `^5.1.0`, `vite` `^8.3.8`, `happy-dom` `^21.0.4`, `playwright` `^1.65.1`, `tsdown` `0.23.7`, `@types/node` `^26.6.6`
-- Updated dependencies: `@thednp/dommatrix` `^3.1.3`
+- Updated dev dependencies: `vitest` / `@vitest/*` `5.1.0`, `vite-plus` `1.6.0`, `happy-dom` `^21.0.4`, `playwright` `^1.65.1`, `@types/node` `^26.6.6` — the `vite` and `tsdown` packages are no longer direct dev dependencies, `vite-plus` provides them, and the browser provider comes from `vite-plus/test/browser-playwright`
+- The `istanbul` coverage hints no longer carry the `@preserve` suffix — the suffix is a legal-comment marker for the bundlers, not a coverage hint, so it kept the comments alive in the bundles
+- Updated dependencies: `@thednp/dommatrix` `^3.1.4` — the dependency is now published with its comments stripped, so the `dist` bundles no longer carry its `istanbul` comments
 - Rebuilt `dist` and `docs` bundles
 
 ## [2.3.3] - 2026-09-02
