@@ -17,6 +17,7 @@ export const finalizeSegment = (path: PathParser): void => {
     // overloaded `moveTo`
     // https://github.com/rveciana/svg-path-properties/blob/master/src/parse.ts
     if (relativeCommand === "m" && data.length - index > 2) {
+      // oxlint-disable-next-line unicorn/no-new-array -- preallocated for a faster fill
       const segment = new Array<number | PathCommand>(3);
       segment[0] = pathCommand;
       segment[1] = data[index] as number;
@@ -27,6 +28,7 @@ export const finalizeSegment = (path: PathParser): void => {
       pathCommand = pathCommand === "m" ? "l" : "L";
     } else {
       const paramCount = paramsCounts[relativeCommand];
+      // oxlint-disable-next-line unicorn/no-new-array -- preallocated for a faster fill
       const segment = new Array<number | PathCommand>(paramCount + 1);
       segment[0] = pathCommand;
       for (let i = 0; i < paramCount; i += 1) {
