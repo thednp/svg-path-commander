@@ -14,7 +14,6 @@
     "npm:happy-dom@^21.0.4": "21.0.4",
     "npm:playwright@^1.65.1": "1.65.1",
     "npm:typescript@^7.0.2": "7.0.2",
-    "npm:vite-plugin-strip-comments@^0.0.10": "0.0.10",
     "npm:vite-plus@1.6.0": "1.6.0_@vitest+browser-playwright@5.1.0_playwright@1.65.1_@types+node@26.6.6_typescript@7.0.2",
     "npm:vitest@5.1.0": "5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8_playwright@1.65.1",
     "npm:vitest@^5.1.0": "5.1.0_@types+node@26.6.6_@vitest+browser-playwright@5.1.0_@vitest+browser-preview@5.1.0_@vitest+coverage-istanbul@5.1.0_@vitest+ui@5.1.0_happy-dom@21.0.4_vite@8.3.8_playwright@1.65.1"
@@ -1404,7 +1403,6 @@
         "npm:happy-dom@^21.0.4",
         "npm:playwright@^1.65.1",
         "npm:typescript@^7.0.2",
-        "npm:vite-plugin-strip-comments@^0.0.10",
         "npm:vite-plus@1.6.0",
         "npm:vitest@5.1.0"
       ]

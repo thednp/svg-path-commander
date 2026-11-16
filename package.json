@@ -51,7 +51,8 @@
     "pre-test": "vpr clean-coverage",
     "dev": "vp dev docs --port 3000",
     "test": "vp test",
-    "test-ui": "vp test --ui",
+    "test:ui": "vp test --ui --watch",
+    "test:watch": "vp test --watch",
     "clean-coverage": "rm -rf coverage .nyc_output",
     "format": "vp fmt src",
     "lint": "vpr lint:ts && vpr check:ts",
@@ -76,7 +77,6 @@
     "happy-dom": "^21.0.4",
     "playwright": "^1.65.1",
     "typescript": "^7.0.2",
-    "vite-plugin-strip-comments": "^0.0.10",
     "vite-plus": "catalog:",
     "vitest": "catalog:"
   },

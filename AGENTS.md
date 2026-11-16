@@ -10,7 +10,8 @@ SVGPathCommander v2.3.4 — TypeScript library for manipulating SVG `<path>` `d`
 vp install                      # Install dependencies
 vpr dev                         # Serve docs on localhost:3000
 vpr test                        # Run all tests (Vitest + Istanbul coverage)
-vpr test-ui                     # Run tests with UI
+vpr test:ui                     # Run tests with UI and --watch option
+vpr test:watch                  # Run tests with --watch option
 vpr test -- class.test.ts       # Run a single test file
 vpr test -- -t "Test name"      # Run a single test by name
 vpr bench                       # Benchmark vs svgpath (results embedded in README)

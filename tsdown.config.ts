@@ -1,5 +1,4 @@
 import { defineConfig, type UserConfig } from "vite-plus/pack";
-import stripComments from "vite-plugin-strip-comments";
 const pkg = await import("./package.json", { with: { type: "json" } }).then((m) => m.default);
 
 const year = new Date().getFullYear();
@@ -21,9 +20,6 @@ const config: UserConfig = {
   },
   // clean: true,
   sourcemap: true,
-  // skipNodeModulesBundle: true,
-  // outDir: "dist",
-  // plugins: [stripComments({ type: "keep-jsdoc" })],
   globalName: "SVGPathCommander",
 };
 
@@ -38,16 +34,15 @@ export default defineConfig([
     target: "esnext",
     platform: "browser",
     banner: miniBanner.replace("$package", "UMD"),
-    plugins: [stripComments({ type: "keep-legal" })],
     deps: {
       alwaysBundle: ["@thednp/dommatrix"],
-      // onlyBundle: false
+      onlyBundle: false
     },
     dts: false,
     outputOptions(options) {
       return {
         ...options,
-        comments: { legal: false }, // temp
+        comments: false, // temp
         dir: undefined,
         file: "dist/index.min.js",
         exports: "default",
@@ -62,15 +57,16 @@ export default defineConfig([
     platform: "neutral",
     treeshake: true,
     format: ["esm"],
-    plugins: [stripComments({ type: "keep-jsdoc" })],
     banner: banner.replace("$package", "ESM"),
     deps: {
-      // skipNodeModulesBundle: true,
       neverBundle: ["@thednp/dommatrix"],
     },
-    // outputOptions: {
-    //   dir: "dist",
-    // },
+    outputOptions(options) {
+      return {
+        ...options,
+        comments: { legal: true, annotation: false, jsdoc: true }, // temp
+      };
+    },
   },
   {
     // UTIL
@@ -82,10 +78,12 @@ export default defineConfig([
     platform: "neutral",
     target: "esnext",
     treeshake: true,
-    plugins: [stripComments({ type: "keep-jsdoc" })],
     banner: banner.replace("$package", "UTIL"),
-    // outputOptions: {
-    //   dir: "dist",
-    // },
+    outputOptions(options) {
+      return {
+        ...options,
+        comments: { legal: true, annotation: false, jsdoc: true }, // temp
+      };
+    },
   },
 ]);
