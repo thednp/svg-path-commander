@@ -1,25 +1,27 @@
 # Changelog
 
-## [2.3.5] - 2026-11-14
-
-### Changed
-
-- Updated dependencies: `@thednp/dommatrix` `^3.1.2`
+## [2.3.5] - 2026-11-16
 
 ### Fixed
 
-- Fixed tooling so now no `dist` file contains istanbul related comments.
+- `reversePath()` no longer loses the `Z` of a sub-path ([#65](https://github.com/thednp/svg-path-commander/issues/65)) — the reversal was applied to the whole path as a single shape, so the `M`/`Z` pairs of the sub-paths were mixed up and the closing command was dropped; e.g. `reversePath("M0 0L10 0L10 10Zm4 4")` returned `M4 4M0 0M10 10L10 0L0 0` instead of `M10 10L10 0L0 0ZM4 4`; every sub-path is now reversed on its own and the sub-paths keep their original order, so the static method returns the same result as the `reverse()` instance method (this was still broken in 2.3.4)
+- `reversePath()` no longer throws for an empty path — it returns an empty array, like the other static methods
+- No `dist` bundle contains `istanbul` comments anymore (except for the source maps) — the bundled `@thednp/dommatrix` shipped its coverage hints with the `@preserve` suffix, which the bundlers treat as a legal-comment marker, so the comment survived the minification of the UMD bundle
 
+### Changed
 
-## [2.3.4] - 2026-11-14
+- The `istanbul` coverage hints no longer carry the `@preserve` suffix — the suffix is a legal-comment marker for the bundlers, not a coverage hint
+- Removed dependencies: `vite-plugin-strip-comments` — the comments are now stripped by the bundler itself through `outputOptions.comments`; the `vite` and `tsdown` packages are no longer direct dev dependencies (`vite-plus` provides them), and the browser provider comes from `vite-plus/test/browser-playwright`
+- Updated dependencies: `@thednp/dommatrix` `^3.1.4` — the dependency is now published with its comments stripped, so the `dist` bundles no longer carry its `istanbul` comments
+- Rebuilt `dist` and `docs` bundles
+
+## [2.3.4] - 2026-11-15
 
 ### Fixed
 
 - `getPathBBox()` returned mirrored extrema for elliptical arcs rotated by more than 90 degrees ([#65](https://github.com/thednp/svg-path-commander/issues/65)) — `getArcBBox()` (`src/math/arcTools.ts:440`) assumed the same extremum order for the X and Y axis, but the extrema swap sides when `cos(alpha) < 0`, so e.g. `M-4 0A22 5 156 0 0 3 -21` reported `[-34.21, -21, 3, 6.26]` instead of `[-4, -27.26, 33.21, 0]`
 - `S`/`s` smooth-cubic shorthand no longer reflects a control point that does not exist ([#65](https://github.com/thednp/svg-path-commander/issues/65)) — per the SVG spec the control point of an `S` is only reflected when the previous command is a `C`/`c`/`S`/`s`, otherwise it coincides with the current point; `normalizePath()`, `pathToCurve()` and `optimizePath()` read the reflectable control point from the previous segment whatever its type, so an `S` after a `Q` or an `A` reflected a quadratic control point or even an arc flag, and a legitimate `0` coordinate was treated as a missing value
 - `reversePath()` no longer produces `NaN` coordinates for a path with a trailing moveto or a segment following a `Z` ([#65](https://github.com/thednp/svg-path-commander/issues/65)) — the previous point was read from the previous segment, which has no coordinates for a `Z` segment
-- `reversePath()` no longer loses the `Z` of a sub-path ([#65](https://github.com/thednp/svg-path-commander/issues/65)) — the reversal was applied to the whole path as a single shape, so the `M`/`Z` pairs of the sub-paths were mixed up and the closing command was dropped; every sub-path is now reversed on its own and the sub-paths keep their original order, so the static method returns the same result as the `reverse()` instance method
-- `reversePath()` no longer throws for an empty path — it returns an empty array, like the other static methods
 - `reverse()` no longer collapses the control points of an `S` segment that is not preceded by a cubic ([#66](https://github.com/thednp/svg-path-commander/issues/66)) — the reversed segment kept the `S` shorthand although the reflected control point cannot be recovered from the previous segment of the reversed path, so the control points collapsed onto the current point and the path length changed
 - `optimize()` no longer rewrites a cubic as a smooth cubic when the control points do not match ([#66](https://github.com/thednp/svg-path-commander/issues/66)) — `shortenSegment()` (`src/process/shortenSegment.ts:54`) checked a second, unrelated condition that ignored the control points of the cubic, so any cubic following a segment whose control point matched its end point was shortened to an `s`, changing the shape of the path
 
@@ -30,9 +32,8 @@
 - Migrated the toolchain from pnpm to Vite+ (`vp`) — the `package.json` scripts now run through `vp` / `vpr` (`vp test`, `vp pack`, `vp lint src`, `vp fmt src`), the docs are served with `vp dev docs --port 3000`, the shared dependencies are pinned through the `catalog:` in `pnpm-workspace.yaml` and the GitHub Actions workflows are driven by the `voidzero-dev/setup-vp` action (`vpr lint`, `vpr build`, `vpr test`, `vp pm publish`)
 - The source is now formatted with oxfmt (`vp fmt src`) instead of `deno fmt src`, and linted with oxlint (`vp lint src`) instead of `deno lint src`; `deno lint` / `deno check` still gate the JSR publish
 - The `lint` script now runs the type check as well (`vpr lint:ts && vpr check:ts`), so `vpr lint` covers both oxlint and `tsc --noEmit`
-- Updated dev dependencies: `vitest` / `@vitest/*` `5.1.0`, `vite-plus` `1.6.0`, `happy-dom` `^21.0.4`, `playwright` `^1.65.1`, `@types/node` `^26.6.6` — the `vite` and `tsdown` packages are no longer direct dev dependencies, `vite-plus` provides them, and the browser provider comes from `vite-plus/test/browser-playwright`
-- The `istanbul` coverage hints no longer carry the `@preserve` suffix — the suffix is a legal-comment marker for the bundlers, not a coverage hint, so it kept the comments alive in the bundles
-- Updated dependencies: `@thednp/dommatrix` `^3.1.4` — the dependency is now published with its comments stripped, so the `dist` bundles no longer carry its `istanbul` comments
+- Updated dev dependencies: `vitest` / `@vitest/*` `5.1.0`, `vite-plus` `1.6.0`, `happy-dom` `^21.0.4`, `playwright` `^1.65.1`, `@types/node` `^26.6.6` — `tsdown` is no longer a direct dev dependency, `vite-plus` provides it, and the browser provider comes from `vite-plus/test/browser-playwright`
+- Updated dependencies: `@thednp/dommatrix` `^3.1.3`
 - Rebuilt `dist` and `docs` bundles
 
 ## [2.3.3] - 2026-09-02
