@@ -49,6 +49,15 @@ type OffsetOptions = {
   /** The number of the decimals of the result. @default 4 */
   precision?: number;
 };
+/** The rule that decides if a point is inside a path. */
+type FillRule = "nonzero" | "evenodd";
+/** The options of the point in path test. */
+type PointInPathOptions = {
+  /** The fill rule of the path, the SVG `fill-rule` attribute. @default "nonzero" */
+  fillRule?: FillRule;
+  /** The maximum distance between the path and its polygon approximation. @default 0.1 */
+  tolerance?: number;
+};
 /** The closest point on the path to a given point, with the distance and optional segment. */
 type PointProperties = {
   /** The closest point on the path to the given point. */
@@ -1220,6 +1229,31 @@ export declare const isPointInStroke: <T extends PathArray>(pathInput: string | 
   y: number;
 }) => boolean;
 /**
+ * Checks if a given point is inside a path.
+ *
+ * The path is flattened into polygons and the point is tested against them
+ * with the fill rule of the path: the `nonzero` rule counts the windings of
+ * the polygons around the point, the `evenodd` rule counts the crossings of
+ * the polygons with a ray from the point. A point on the boundary of the
+ * shape is inside of it, the way the browser answers it.
+ *
+ * The curves of the path are approximated with chords that stay within the
+ * tolerance of the curve, so the answer is exact except for the points that
+ * are within the tolerance of the boundary of a curve.
+ *
+ * @param pathInput target path
+ * @param point the given `{x,y}` point
+ * @param options the options of the test
+ * @returns the query result
+ *
+ * @example
+ * ```ts
+ * isPointInPath('M0 0L100 0L100 100L0 100Z', { x: 50, y: 50 });
+ * // => true
+ * ```
+ */
+export declare const isPointInPath: <T extends PathArray>(pathInput: string | T, point: Point, options?: PointInPathOptions) => boolean;
+/**
  * Checks if a path is a polygon (only M, L, H, V, Z commands).
  * @param pathArray PathArray (pre-normalize if needed)
  * @returns boolean
@@ -1378,9 +1412,9 @@ export declare const optimizePath: <T extends string | PathArray>(pathInput: T, 
  * ```ts
  * joinPath('M0 0L100 0', 'M0 100L100 100')
  * // => [
- * // //   ['M', 0, 0], ['L', 100, 0],
- * // //   ['M', 0, 100], ['L', 100, 100]
- * // // ]
+ * //   ['M', 0, 0], ['L', 100, 0],
+ * //   ['M', 0, 100], ['L', 100, 100]
+ * // ]
  * ```
  */
 export declare const joinPath: (pathA: string | PathArray, pathB: string | PathArray) => PathArray;
@@ -1416,9 +1450,9 @@ export declare const reversePath: <T extends PathArray>(pathInput: T | string) =
  * ```ts
  * reverseSubPath('M0 0L100 0ZM0 100L100 100', 1)
  * // => [
- * // //   ['M', 0, 0], ['L', 100, 0],
- * // //   ['M', 100, 100], ['L', 0, 100]
- * // // ]
+ * //   ['M', 0, 0], ['L', 100, 0], ['Z'],
+ * //   ['M', 100, 100], ['L', 0, 100]
+ * // ]
  * ```
  */
 export declare const reverseSubPath: (pathInput: string | PathArray, index: number) => PathArray;

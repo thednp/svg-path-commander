@@ -273,6 +273,41 @@ SVGPathCommander.offsetPath("M0 0L100 0L100 100", 10, {
 The offset is not cleaned up: an offset distance larger than the local radius of
 curvature of the path produces a self-crossing curve.
 
+# Point In Path
+
+`SVGPathCommander.isPointInPath()` tells if a point is inside the filled shape
+of a path — the counterpart of `isPointInStroke()`, which tells if a point is
+along the path itself.
+
+```js
+SVGPathCommander.isPointInPath("M0 0L100 0L100 100L0 100Z", { x: 50, y: 50 });
+// => true
+
+SVGPathCommander.isPointInPath("M0 0L100 0L100 100L0 100Z", { x: 150, y: 50 });
+// => false
+```
+
+The path is flattened into polygons and the point is tested against them with
+the fill rule of the path: the `nonzero` rule (the default) counts the windings
+of the polygons around the point, the `evenodd` rule counts the crossings of the
+polygons with a ray from the point. The two rules are the rules of the SVG
+`fill-rule` attribute, and they tell a hole from a shape:
+
+```js
+const shape = "M0 0L100 0L100 100L0 100ZM25 25L75 25L75 75L25 75Z";
+
+SVGPathCommander.isPointInPath(shape, { x: 50, y: 50 });
+// => true — the inner square is drawn in the same direction, it is not a hole
+
+SVGPathCommander.isPointInPath(shape, { x: 50, y: 50 }, { fillRule: "evenodd" });
+// => false — every shape counts once with the evenodd rule
+```
+
+A point on the boundary of the shape is inside of it, the way the browser
+answers it with `isPointInFill()`, and the curves of the path are approximated
+with chords, so the answer can differ from the exact geometry for the points
+that are within the `tolerance` (0.1 by default) of the boundary of a curve.
+
 # Advanced Usage
 
 In most cases, you can import only the tools you need, without importing the entire library. All static methods are exposed as named exports from the tree-shakeable `svg-path-commander/util` entry, with proper TypeScript definitions.

@@ -19,6 +19,7 @@ While you may find familiar tools inside, this library brings _**new additions**
 - `simplifyPath` reduces the number of points of a path with the Douglas-Peucker algorithm, within a tolerance you choose;
 - `resamplePath` spreads the points of a path evenly over its length, so the distance between two points is the same over the whole path, and the corners of the path are kept;
 - `offsetPath` offsets a path along its normals, with the joins and the caps of a stroke, so a path can be expanded or outlined;
+- `isPointInPath` tells if a point is inside a filled shape, with the `nonzero` and the `evenodd` fill rules of the SVG `fill-rule` attribute;
 - `equalize` brings two paths to the same shape, so they can be morphed into each other;
 - a tool that can _reverse path draw direction_ without altering path commands, even with specific shorthand path commands;
 - a unique tool that can _reverse path draw direction_ for path strings with only 'C' path commands;
@@ -378,6 +379,15 @@ const myJoinedPath = SVGPathCommander.joinPath("M0 0L100 0", "M0 100L100 100");
 
 const myReversedSubPath = SVGPathCommander.reverseSubPath("M0 0L100 0ZM0 100L100 100", 1);
 // result => [["M", 0, 0], ["L", 100, 0], ["Z"], ["M", 100, 100], ["L", 0, 100]]
+```
+
+Tell if a point is inside a filled shape — the `nonzero` and the `evenodd` fill rules of the
+SVG `fill-rule` attribute are both supported, and a point on the boundary of the shape is
+inside of it:
+
+```js
+const myHitTest = SVGPathCommander.isPointInPath("M0 0L100 0L100 100L0 100Z", { x: 50, y: 50 });
+// result => true
 ```
 
 Find intersection points between two paths:

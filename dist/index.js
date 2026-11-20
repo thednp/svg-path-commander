@@ -3062,6 +3062,222 @@ const isPointInStroke = (pathInput, point) => {
 	const { distance } = getPropertiesAtPoint(pathInput, point);
 	return Math.abs(distance) < DISTANCE_EPSILON;
 };
+// src/process/flattenPath.ts
+/**
+* Returns the number of intervals a cubic segment is split into.
+*
+* The second differences of the control points bound the distance of the
+* curve to its chord, and the distance of a piece of the curve to the chord
+* of the piece falls with the square of the number of the pieces, so the
+* number of the intervals is the square root of the ratio of the bound to
+* the tolerance.
+*
+* @param coords - the coordinates of the cubic segment
+* @param tolerance - the maximum distance between the curve and its chords
+* @returns the number of intervals
+*/
+const getIntervalCount = (coords, tolerance) => {
+	const [x1, y1, c1x, c1y, c2x, c2y, x2, y2] = coords;
+	const d1 = Math.hypot(x1 - 2 * c1x + c2x, y1 - 2 * c1y + c2y);
+	const d2 = Math.hypot(c1x - 2 * c2x + x2, c1y - 2 * c2y + y2);
+	const flatness = .75 * Math.max(d1, d2);
+	if (flatness <= tolerance) return 1;
+	return Math.ceil(Math.sqrt(flatness / tolerance));
+};
+/**
+* Flattens a path into polygons, one for every sub-path.
+*
+* The curves of the path are split into chords that stay within the
+* tolerance of the curve, and every sub-path is closed, the way a fill
+* closes an open path.
+*
+* @param path - the curve path to flatten
+* @param tolerance - the maximum distance between the curve and its chords
+* @returns the polygons of the path
+*/
+const flattenPath = (path, tolerance) => {
+	const polygons = [];
+	let points = [];
+	let current = {
+		x: 0,
+		y: 0
+	};
+	for (const segment of path) {
+		if (segment[0] === "M") {
+			if (points.length > 1) polygons.push(points);
+			current = {
+				x: segment[1],
+				y: segment[2]
+			};
+			points = [current];
+			continue;
+		}
+		const coords = [
+			current.x,
+			current.y,
+			segment[1],
+			segment[2],
+			segment[3],
+			segment[4],
+			segment[5],
+			segment[6]
+		];
+		const count = getIntervalCount(coords, tolerance);
+		for (let i = 1; i <= count; i += 1) {
+			const point = getPointAtCubicSegmentLength(coords, i / count);
+			points.push(point);
+		}
+		current = {
+			x: segment[5],
+			y: segment[6]
+		};
+	}
+	if (points.length > 1) polygons.push(points);
+	return polygons;
+};
+// src/math/distanceToSegment.ts
+/**
+* Returns the distance from a point to a line segment.
+*
+* The distance is the one to the segment, not to the infinite line: a point
+* beyond the end of the segment is at the distance to that end.
+*
+* @param point - the point to measure
+* @param start - the start of the segment
+* @param end - the end of the segment
+* @returns the distance from the point to the segment
+*/
+const distanceToSegment = (point, start, end) => {
+	const dx = end.x - start.x;
+	const dy = end.y - start.y;
+	const lengthSquared = dx * dx + dy * dy;
+	if (lengthSquared === 0) {
+		const px = point.x - start.x;
+		const py = point.y - start.y;
+		return Math.sqrt(px * px + py * py);
+	}
+	let ratio = ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared;
+	ratio = ratio < 0 ? 0 : ratio > 1 ? 1 : ratio;
+	const px = point.x - (start.x + dx * ratio);
+	const py = point.y - (start.y + dy * ratio);
+	return Math.sqrt(px * px + py * py);
+};
+// src/math/pointInPolygon.ts
+/**
+* Returns the number of times a ray from a point crosses a polygon.
+*
+* The ray goes to the right, so every edge of the polygon that crosses the
+* height of the point after it is counted. The parity of the count is the
+* answer of the `evenodd` fill rule.
+*
+* @param polygon - the polygon to test
+* @param point - the point to test
+* @returns the number of crossings
+*/
+const getPolygonCrossings = (polygon, point) => {
+	const { x, y } = point;
+	const count = polygon.length;
+	let crossings = 0;
+	for (let i = 0; i < count; i += 1) {
+		const j = (i + 1) % count;
+		const current = polygon[i];
+		const next = polygon[j];
+		if (current.y > y === next.y > y) continue;
+		if (x < (next.x - current.x) * (y - current.y) / (next.y - current.y) + current.x) crossings += 1;
+	}
+	return crossings;
+};
+/**
+* Returns the winding number of a polygon around a point.
+*
+* Every edge that crosses the height of the point counts, the direction of
+* the crossing decides the sign of the count. The winding number is zero
+* outside of the polygon and it is not zero inside of it, whatever the
+* direction of the polygon is, so its sign is the direction of the shape.
+*
+* @param polygon - the polygon to test
+* @param point - the point to test
+* @returns the winding number
+*/
+const getPolygonWindingNumber = (polygon, point) => {
+	const { x, y } = point;
+	const count = polygon.length;
+	let winding = 0;
+	for (let i = 0; i < count; i += 1) {
+		const j = (i + 1) % count;
+		const current = polygon[i];
+		const next = polygon[j];
+		const side = (next.x - current.x) * (y - current.y) - (next.y - current.y) * (x - current.x);
+		if (current.y <= y) {
+			if (next.y > y && side > 0) winding += 1;
+		} else if (next.y <= y && side < 0) winding -= 1;
+	}
+	return winding;
+};
+/**
+* Checks if a point is on the boundary of a polygon.
+*
+* @param polygon - the polygon to test
+* @param point - the point to test
+* @param epsilon - the maximum distance to the boundary
+* @returns whether the point is on the boundary
+*/
+const isPointOnPolygon = (polygon, point, epsilon) => {
+	const count = polygon.length;
+	for (let i = 0; i < count; i += 1) {
+		const j = (i + 1) % count;
+		if (distanceToSegment(point, polygon[i], polygon[j]) <= epsilon) return true;
+	}
+	return false;
+};
+// src/util/isPointInPath.ts
+/**
+* The distance a point can be from the boundary of a shape and still be on it.
+*
+* The tolerance of the flattening is the error of the approximation, not the
+* width of the boundary, so the boundary is tested with a tight distance.
+*/
+const boundaryEpsilon = 1e-9;
+/**
+* Checks if a given point is inside a path.
+*
+* The path is flattened into polygons and the point is tested against them
+* with the fill rule of the path: the `nonzero` rule counts the windings of
+* the polygons around the point, the `evenodd` rule counts the crossings of
+* the polygons with a ray from the point. A point on the boundary of the
+* shape is inside of it, the way the browser answers it.
+*
+* The curves of the path are approximated with chords that stay within the
+* tolerance of the curve, so the answer is exact except for the points that
+* are within the tolerance of the boundary of a curve.
+*
+* @param pathInput target path
+* @param point the given `{x,y}` point
+* @param options the options of the test
+* @returns the query result
+*
+* @example
+* ```ts
+* isPointInPath('M0 0L100 0L100 100L0 100Z', { x: 50, y: 50 });
+* // => true
+* ```
+*/
+const isPointInPath = (pathInput, point, options) => {
+	const { fillRule = "nonzero", tolerance = .1 } = options ?? {};
+	if (fillRule !== "nonzero" && fillRule !== "evenodd") throw TypeError(`${error}: fillRule must be "nonzero" or "evenodd"`);
+	if (typeof tolerance !== "number" || !Number.isFinite(tolerance) || tolerance <= 0) throw TypeError(`${error}: tolerance must be a positive number`);
+	const path = pathToCurve(pathInput);
+	if (!path.length) return false;
+	const polygons = flattenPath(path, tolerance);
+	let crossings = 0;
+	let winding = 0;
+	for (const polygon of polygons) {
+		if (isPointOnPolygon(polygon, point, boundaryEpsilon)) return true;
+		crossings += getPolygonCrossings(polygon, point);
+		winding += getPolygonWindingNumber(polygon, point);
+	}
+	return fillRule === "evenodd" ? crossings % 2 === 1 : winding !== 0;
+};
 // src/util/isRelativeArray.ts
 /**
 * Iterates an array to check if it's a `pathArray`
@@ -4066,9 +4282,9 @@ const offsetPath = (pathInput, distance, options) => {
 * ```ts
 * joinPath('M0 0L100 0', 'M0 100L100 100')
 * // => [
-* // //   ['M', 0, 0], ['L', 100, 0],
-* // //   ['M', 0, 100], ['L', 100, 100]
-* // // ]
+* //   ['M', 0, 0], ['L', 100, 0],
+* //   ['M', 0, 100], ['L', 100, 100]
+* // ]
 * ```
 */
 const joinPath = (pathA, pathB) => {
@@ -4338,9 +4554,9 @@ const splitPath = (pathInput) => {
 * ```ts
 * reverseSubPath('M0 0L100 0ZM0 100L100 100', 1)
 * // => [
-* // //   ['M', 0, 0], ['L', 100, 0],
-* // //   ['M', 100, 100], ['L', 0, 100]
-* // // ]
+* //   ['M', 0, 0], ['L', 100, 0], ['Z'],
+* //   ['M', 100, 100], ['L', 0, 100]
+* // ]
 * ```
 */
 const reverseSubPath = (pathInput, index) => {
@@ -4805,32 +5021,6 @@ const samplePath = (path, step) => {
 	return samples;
 };
 // src/process/douglasPeucker.ts
-/**
-* Returns the distance from a point to a line segment.
-*
-* The distance is the one to the segment, not to the infinite line: a point
-* beyond the end of the segment is at the distance to that end.
-*
-* @param point - the point to measure
-* @param start - the start of the segment
-* @param end - the end of the segment
-* @returns the distance from the point to the segment
-*/
-const distanceToSegment = (point, start, end) => {
-	const dx = end.x - start.x;
-	const dy = end.y - start.y;
-	const lengthSquared = dx * dx + dy * dy;
-	if (lengthSquared === 0) {
-		const px = point.x - start.x;
-		const py = point.y - start.y;
-		return Math.sqrt(px * px + py * py);
-	}
-	let ratio = ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared;
-	ratio = ratio < 0 ? 0 : ratio > 1 ? 1 : ratio;
-	const px = point.x - (start.x + dx * ratio);
-	const py = point.y - (start.y + dy * ratio);
-	return Math.sqrt(px * px + py * py);
-};
 /**
 * Returns the indexes of the points that have to be kept to approximate a
 * polyline within a given tolerance, with the Douglas-Peucker algorithm.
@@ -6514,6 +6704,29 @@ var SVGPathCommander = class {
 		return getPropertiesAtLength(this.segments, length);
 	}
 	/**
+	* Checks if a given point is inside the path.
+	*
+	* The path is flattened into polygons and the point is tested against them
+	* with the fill rule of the path: the `nonzero` rule counts the windings
+	* of the polygons around the point, the `evenodd` rule counts the
+	* crossings of the polygons with a ray from the point. A point on the
+	* boundary of the shape is inside of it.
+	*
+	* @example
+	* ```ts
+	* new SVGPathCommander('M0 0L100 0L100 100L0 100Z').isPointInPath({ x: 50, y: 50 })
+	* // => true
+	* ```
+	*
+	* @public
+	* @param point the given `{x,y}` point
+	* @param options the options of the test
+	* @returns the query result
+	*/
+	isPointInPath(point, options) {
+		return isPointInPath(this.segments, point, options);
+	}
+	/**
 	* Convert path to absolute values.
 	*
 	* @example
@@ -6596,7 +6809,7 @@ var SVGPathCommander = class {
 	* @example
 	* ```ts
 	* new SVGPathCommander('M0 0L100 0ZM0 100L100 100').reverseSubPath(1).toString()
-	* // => 'M0 0L100 0M100 100L0 100'
+	* // => 'M0 0L100 0ZM100 100L0 100'
 	* ```
 	*
 	* @param index - the zero-based index of the sub-path to reverse
@@ -6936,6 +7149,8 @@ var SVGPathCommander = class {
 	static isPathArray = isPathArray;
 	/** Checks if a given point is in the stroke of a path. */
 	static isPointInStroke = isPointInStroke;
+	/** Checks if a given point is inside a path. */
+	static isPointInPath = isPointInPath;
 	/** Iterates an array to check if it's a `pathArray` */
 	static isRelativeArray = isRelativeArray;
 	/** Parses a path string value to determine its validity */

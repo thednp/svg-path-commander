@@ -49,6 +49,15 @@ export type OffsetOptions = {
   /** The number of the decimals of the result. @default 4 */
   precision?: number;
 };
+/** The rule that decides if a point is inside a path. */
+export type FillRule = "nonzero" | "evenodd";
+/** The options of the point in path test. */
+export type PointInPathOptions = {
+  /** The fill rule of the path, the SVG `fill-rule` attribute. @default "nonzero" */
+  fillRule?: FillRule;
+  /** The maximum distance between the path and its polygon approximation. @default 0.1 */
+  tolerance?: number;
+};
 /** The closest point on the path to a given point, with the distance and optional segment. */
 export type PointProperties = {
   /** The closest point on the path to the given point. */
@@ -956,6 +965,31 @@ declare const isPointInStroke: <T extends PathArray>(pathInput: string | T, poin
   y: number;
 }) => boolean;
 /**
+ * Checks if a given point is inside a path.
+ *
+ * The path is flattened into polygons and the point is tested against them
+ * with the fill rule of the path: the `nonzero` rule counts the windings of
+ * the polygons around the point, the `evenodd` rule counts the crossings of
+ * the polygons with a ray from the point. A point on the boundary of the
+ * shape is inside of it, the way the browser answers it.
+ *
+ * The curves of the path are approximated with chords that stay within the
+ * tolerance of the curve, so the answer is exact except for the points that
+ * are within the tolerance of the boundary of a curve.
+ *
+ * @param pathInput target path
+ * @param point the given `{x,y}` point
+ * @param options the options of the test
+ * @returns the query result
+ *
+ * @example
+ * ```ts
+ * isPointInPath('M0 0L100 0L100 100L0 100Z', { x: 50, y: 50 });
+ * // => true
+ * ```
+ */
+declare const isPointInPath: <T extends PathArray>(pathInput: string | T, point: Point, options?: PointInPathOptions) => boolean;
+/**
  * Iterates an array to check if it's a `pathArray`
  * with relative values.
  *
@@ -1114,9 +1148,9 @@ declare const offsetPath: <T extends PathArray>(pathInput: string | T, distance:
  * ```ts
  * joinPath('M0 0L100 0', 'M0 100L100 100')
  * // => [
- * // //   ['M', 0, 0], ['L', 100, 0],
- * // //   ['M', 0, 100], ['L', 100, 100]
- * // // ]
+ * //   ['M', 0, 0], ['L', 100, 0],
+ * //   ['M', 0, 100], ['L', 100, 100]
+ * // ]
  * ```
  */
 declare const joinPath: (pathA: string | PathArray, pathB: string | PathArray) => PathArray;
@@ -1152,9 +1186,9 @@ declare const reversePath: <T extends PathArray>(pathInput: T | string) => T;
  * ```ts
  * reverseSubPath('M0 0L100 0ZM0 100L100 100', 1)
  * // => [
- * // //   ['M', 0, 0], ['L', 100, 0],
- * // //   ['M', 100, 100], ['L', 0, 100]
- * // // ]
+ * //   ['M', 0, 0], ['L', 100, 0], ['Z'],
+ * //   ['M', 100, 100], ['L', 0, 100]
+ * // ]
  * ```
  */
 declare const reverseSubPath: (pathInput: string | PathArray, index: number) => PathArray;
@@ -1655,6 +1689,27 @@ export declare class SVGPathCommander {
    */
   getPropertiesAtLength(length: number): SegmentProperties;
   /**
+   * Checks if a given point is inside the path.
+   *
+   * The path is flattened into polygons and the point is tested against them
+   * with the fill rule of the path: the `nonzero` rule counts the windings
+   * of the polygons around the point, the `evenodd` rule counts the
+   * crossings of the polygons with a ray from the point. A point on the
+   * boundary of the shape is inside of it.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L100 0L100 100L0 100Z').isPointInPath({ x: 50, y: 50 })
+   * // => true
+   * ```
+   *
+   * @public
+   * @param point the given `{x,y}` point
+   * @param options the options of the test
+   * @returns the query result
+   */
+  isPointInPath(point: Point, options?: PointInPathOptions): boolean;
+  /**
    * Convert path to absolute values.
    *
    * @example
@@ -1716,7 +1771,7 @@ export declare class SVGPathCommander {
    * @example
    * ```ts
    * new SVGPathCommander('M0 0L100 0ZM0 100L100 100').reverseSubPath(1).toString()
-   * // => 'M0 0L100 0M100 100L0 100'
+   * // => 'M0 0L100 0ZM100 100L0 100'
    * ```
    *
    * @param index - the zero-based index of the sub-path to reverse
@@ -2052,6 +2107,8 @@ export declare class SVGPathCommander {
   static isPathArray: typeof isPathArray;
   /** Checks if a given point is in the stroke of a path. */
   static isPointInStroke: typeof isPointInStroke;
+  /** Checks if a given point is inside a path. */
+  static isPointInPath: typeof isPointInPath;
   /** Iterates an array to check if it's a `pathArray` */
   static isRelativeArray: typeof isRelativeArray;
   /** Parses a path string value to determine its validity */

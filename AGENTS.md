@@ -113,6 +113,20 @@ Only `offsetPath` is public — it is re-exported from `src/util.ts`. The offset
 The offset is not cleaned up: an offset distance larger than the local radius of curvature produces
 a self-crossing curve, and the removal of the self-intersections needs a polygon clipping pass.
 
+The hit test of a filled shape lives in `util/` and is built from three modules:
+
+| Module                   | Purpose                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| `util/isPointInPath.ts`  | The public API — validates the options, flattens the path and tests the point |
+| `process/flattenPath.ts` | Flattens a curve path into one polygon per sub-path, within a tolerance       |
+| `math/pointInPolygon.ts` | The crossings, the winding number and the boundary test of a polygon          |
+
+Only `isPointInPath` is public — it is re-exported from `src/util.ts`. The `nonzero` and the
+`evenodd` fill rules of the SVG `fill-rule` attribute are both supported, and a point on the
+boundary of a shape is inside of it, the way the browser answers it with `isPointInFill()`. The
+answer is checked against the browser in `test/static.test.ts`, with a fixed set of points and
+with a seeded sweep of the points, so the two answers cannot drift apart.
+
 The morphing toolkit lives in `morph/` and is built from four modules:
 
 | Module                      | Purpose                                                                      |

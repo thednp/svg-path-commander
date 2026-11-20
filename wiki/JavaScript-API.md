@@ -186,6 +186,23 @@ The offset accepts the `join` option (`"miter"`, the default, `"bevel"` or `"rou
 
 The offset is not cleaned up: an offset distance larger than the local radius of curvature of the path produces a self-crossing curve.
 
+### instance.isPointInPath(_point_: { x: number; y: number }, _options_: PointInPathOptions)
+
+Checks if a given point is inside the filled shape of the path.
+
+```js
+new SVGPathCommander("M0 0L100 0L100 100L0 100Z").isPointInPath({ x: 50, y: 50 });
+// => true
+```
+
+The path is flattened into polygons and the point is tested against them with the fill rule of the path: the `nonzero` rule (the default) counts the windings of the polygons around the point, the `evenodd` rule counts the crossings of the polygons with a ray from the point. A point on the boundary of the shape is inside of it, the way the browser answers it with `isPointInFill()`, and the curves of the path are approximated with chords, so the answer can differ from the exact geometry for the points that are within the `tolerance` (0.1 by default) of the boundary of a curve.
+
+```js
+const shape = new SVGPathCommander("M0 0L100 0L100 100L0 100ZM25 25L75 25L75 75L25 75Z");
+shape.isPointInPath({ x: 50, y: 50 }); // => true — the inner square is not a hole
+shape.isPointInPath({ x: 50, y: 50 }, { fillRule: "evenodd" }); // => false
+```
+
 ### instance.transform(_transform_: TransformObject)
 
 Will normalize all path commands and apply a 2D transformation matrix to all path commands.
@@ -400,6 +417,11 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   ```js
   SVGPathCommander.isPointInStroke("M10 90C25 80,25 50,40 10", { x: 10, y: 90 }); // => true
   ```
+- **SVGPathCommander.isPointInPath(_path_: PathArray | string, _point_: { x: number, y: number }, _options_: PointInPathOptions)** - checks if a given _{x,y}_ point is inside the filled shape of a path, with the `nonzero` or the `evenodd` fill rule of the SVG `fill-rule` attribute;
+  ```js
+  SVGPathCommander.isPointInPath("M0 0L100 0L100 100L0 100Z", { x: 50, y: 50 }); // => true
+  SVGPathCommander.isPointInPath("M0 0L100 0L100 100L0 100Z", { x: 150, y: 50 }); // => false
+  ```
 - **SVGPathCommander.getSegmentOfPoint(_path_: PathArray | string, _point_: { x: number, y: number })** - returns the segment that contains a given _{x,y}_ point;
   ```js
   SVGPathCommander.getSegmentOfPoint("M10 90C25 80,25 50,40 10", { x: 10, y: 90 });
@@ -522,6 +544,7 @@ caller had nothing to give it:
 | `getSegmentOfPoint([], { x: 0, y: 0 })`    | `undefined`                                       |
 | `isClosedPath([])`                         | `false`                                           |
 | `isPointInStroke([], { x: 0, y: 0 })`      | `false`                                           |
+| `isPointInPath([], { x: 0, y: 0 })`        | `false`                                           |
 | `isValidPath("   ")`                       | `false`                                           |
 
 A negative distance is not an error either — it takes the same early return as a distance of `0`.
@@ -598,6 +621,7 @@ import { pathsIntersection } from "svg-path-commander/intersect";
 | `getPathArea`           | Returns the total area of a shape                               |
 | `getDrawDirection`      | Returns `true` if a shape draws clockwise                       |
 | `isPointInStroke`       | Checks if a point is along the stroke                           |
+| `isPointInPath`         | Checks if a point is inside the filled shape of a path          |
 | `isPointInsideBBox`     | Checks if a point is inside a bounding box                      |
 | `isPathArray`           | Checks if a value is a `PathArray`                              |
 | `isAbsoluteArray`       | Checks for absolute path commands only                          |

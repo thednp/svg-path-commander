@@ -45,6 +45,21 @@
   // => [["M", 0, 0], ["L", 100, 0], ["Z"], ["M", 100, 100], ["L", 0, 100]]
   ```
 - `SVGPathCommander#join(path)` and `SVGPathCommander#reverseSubPath(index)` — the instance methods of the two, chainable like the rest of the class API
+- `isPointInPath()` — the hit test of a filled shape: the path is flattened into polygons and the point is tested against them with the `nonzero` or the `evenodd` fill rule, the two rules of the SVG `fill-rule` attribute:
+  ```js
+  SVGPathCommander.isPointInPath("M0 0L100 0L100 100L0 100Z", { x: 50, y: 50 });
+  // => true
+  SVGPathCommander.isPointInPath(
+    "M0 0L100 0L100 100L0 100ZM25 25L75 25L75 75L25 75Z",
+    { x: 50, y: 50 },
+    {
+      fillRule: "evenodd",
+    },
+  );
+  // => false — the inner square is a hole with the evenodd rule
+  ```
+  A point on the boundary of the shape is inside of it, the way the browser answers it with `isPointInFill()`, and the curves of the path are approximated with chords, so the answer can differ from the exact geometry for the points that are within the `tolerance` (0.1 by default) of the boundary of a curve.
+- `SVGPathCommander#isPointInPath(point, options)` — the instance method of the hit test, the counterpart of `isPointInStroke()`
 
 ### Fixed
 
