@@ -1,5 +1,5 @@
 import { pathToCurve } from "../convert/pathToCurve.ts";
-import type { PathArray, PointTuple } from "../types.ts";
+import type { CurveArray, PathArray, PointTuple } from "../types.ts";
 
 /**
  * Returns the area of a single cubic-bezier segment.
@@ -54,12 +54,25 @@ const getCubicSegArea = (
  * // => -10000 (counter-clockwise square)
  * ```
  */
-export const getPathArea = <T extends PathArray | string>(path: T): number => {
+export const getPathArea = <T extends PathArray | string>(path: T): number =>
+  getCurveArea(pathToCurve(path));
+
+/**
+ * Returns the signed area of a path that is already made of cubic beziers.
+ *
+ * The conversion is the expensive part of the area calculation, so it is
+ * kept out of this function: a caller that already has a curve array does
+ * not have to convert it a second time.
+ *
+ * @param path - The curve PathArray
+ * @returns The signed area of the shape
+ */
+export const getCurveArea = (path: CurveArray): number => {
   let x = 0;
   let y = 0;
   let len = 0;
 
-  return pathToCurve(path)
+  return path
     .map((seg) => {
       switch (seg[0]) {
         case "M":

@@ -1,6 +1,23 @@
 import type { SpaceNumber } from "../types.ts";
 
 /**
+ * The characters the SVG path grammar accepts as white space.
+ *
+ * The set is built once, at module level: the parser calls `isSpace` for
+ * every single character of a path, and building the list on every call
+ * made the tokenizer allocate its way through a path.
+ */
+const spaces = new Set<number>([
+  // Special spaces
+  0x1680, 0x180e, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007, 0x2008, 0x2009,
+  0x200a, 0x202f, 0x205f, 0x3000, 0xfeff,
+  // Line terminators
+  0x0a, 0x0d, 0x2028, 0x2029,
+  // White spaces
+  0x20, 0x09, 0x0b, 0x0c, 0xa0,
+]);
+
+/**
  * Checks if the character is a space.
  *
  * @param ch the character to check
@@ -8,15 +25,5 @@ import type { SpaceNumber } from "../types.ts";
  */
 
 export const isSpace = (ch: number): ch is SpaceNumber => {
-  const allSpaces = [
-    // Special spaces
-    0x1680, 0x180e, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007, 0x2008, 0x2009,
-    0x200a, 0x202f, 0x205f, 0x3000, 0xfeff,
-    // Line terminators
-    0x0a, 0x0d, 0x2028, 0x2029,
-    // White spaces
-    0x20, 0x09, 0x0b, 0x0c, 0xa0,
-  ];
-
-  return allSpaces.includes(ch);
+  return spaces.has(ch);
 };

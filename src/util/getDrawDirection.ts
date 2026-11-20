@@ -1,4 +1,4 @@
-import { getPathArea } from "./getPathArea.ts";
+import { getCurveArea } from "./getPathArea.ts";
 import { pathToCurve } from "../convert/pathToCurve.ts";
 import type { PathArray } from "../types.ts";
 
@@ -10,5 +10,5 @@ import type { PathArray } from "../types.ts";
  * @returns true when clockwise or false if not
  */
 export const getDrawDirection = (path: string | PathArray): boolean => {
-  return getPathArea(pathToCurve(path)) >= 0;
+  return getCurveArea(pathToCurve(path)) >= 0;
 };
