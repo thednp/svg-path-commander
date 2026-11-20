@@ -1,8 +1,7 @@
 import type { PathArray, Point } from "../types.ts";
 import type { PointProperties } from "../interface.ts";
-import { getPointAtNormalizedLength } from "./getPointAtLength.ts";
+import { buildPathLengthTable, getPointAtTable } from "./pathLengthTable.ts";
 import { getPropertiesAtLength } from "./getPropertiesAtLength.ts";
-import { getTotalLength } from "./getTotalLength.ts";
 import { parsePathString } from "../parser/parsePathString.ts";
 import { normalizePath } from "../process/normalizePath.ts";
 
@@ -26,7 +25,9 @@ export const getPropertiesAtPoint = <T extends PathArray>(
     return { closest: { x: 0, y: 0 }, distance: Infinity };
   }
   const normalPath = normalizePath(path);
-  const pathLength = getTotalLength(normalPath);
+  // the length table is built once and serves every sample of the search
+  const table = buildPathLengthTable(normalPath);
+  const pathLength = table.totalLength;
   const distanceTo = (p: Point) => {
     const dx = p.x - point.x;
     const dy = p.y - point.y;
@@ -41,7 +42,7 @@ export const getPropertiesAtPoint = <T extends PathArray>(
 
   // linear scan for coarse approximation
   for (let scanLength = 0; scanLength <= pathLength; scanLength += precision) {
-    scan = getPointAtNormalizedLength(normalPath, scanLength);
+    scan = getPointAtTable(table, scanLength);
     scanDistance = distanceTo(scan);
 
     if (scanDistance < bestDistance) {
@@ -62,10 +63,10 @@ export const getPropertiesAtPoint = <T extends PathArray>(
 
   while (precision > 0.000001) {
     beforeLength = bestLength - precision;
-    before = getPointAtNormalizedLength(normalPath, beforeLength);
+    before = getPointAtTable(table, beforeLength);
     beforeDistance = distanceTo(before);
     afterLength = bestLength + precision;
-    after = getPointAtNormalizedLength(normalPath, afterLength);
+    after = getPointAtTable(table, afterLength);
     afterDistance = distanceTo(after);
 
     if (beforeLength >= 0 && beforeDistance < bestDistance) {

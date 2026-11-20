@@ -19,6 +19,7 @@ import splitLineToCount from "../src/morph/splitLineToCount";
 import { classifyPaths } from "../src/morph/classifyPaths";
 import { matchPaths } from "../src/morph/matchPaths";
 import { getPolyPath } from "../src/util/shapeToPathArray";
+import { iterate } from "../src/process/iterate";
 import type { IntersectionPoint, PathFeature } from "../src/types";
 
 import getMarkup from "./fixtures/getMarkup";
@@ -1981,5 +1982,42 @@ describe("Parser and input edge cases", () => {
       length: 14.142135623730951,
       lengthAtSegment: 0,
     });
+  });
+});
+
+describe("Length table edge cases", () => {
+  const { getPointAtLength, lineTools, quadTools, arcTools } = SVGPathCommander;
+
+  test("Can get the point of a path that ends with a moveto", () => {
+    // the moveto is the last segment of the path, so it holds the point
+    expect(getPointAtLength("M0 0L10 10M20 20", 100)).to.deep.equal({ x: 20, y: 20 });
+  });
+
+  test("Can get the point of a path that ends with a close segment", () => {
+    // the close segment returns to the start of the sub-path
+    expect(getPointAtLength("M0 0L10 10Z", 100)).to.deep.equal({ x: 0, y: 0 });
+  });
+
+  test("Can clamp a negative distance to the start of a segment", () => {
+    expect(lineTools.getPointAtLineLength(0, 0, 10, 10, -1)).to.deep.equal({ x: 0, y: 0 });
+    expect(quadTools.getPointAtQuadLength(0, 0, 5, 5, 10, 0, -1)).to.deep.equal({ x: 0, y: 0 });
+    expect(arcTools.getPointAtArcLength(0, 0, 10, 10, 0, 0, 1, 10, 0, -1)).to.deep.equal({
+      x: 0,
+      y: 0,
+    });
+  });
+
+  test("Can stop the iteration over a path early", () => {
+    const path = [
+      ["M", 0, 0],
+      ["L", 10, 10],
+      ["L", 20, 20],
+    ] as PathArray;
+    const visited: number[] = [];
+    iterate(path, (_segment, index) => {
+      visited.push(index);
+      return index === 0 ? false : undefined;
+    });
+    expect(visited).to.deep.equal([0]);
   });
 });

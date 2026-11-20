@@ -1,11 +1,6 @@
-import DISTANCE_EPSILON from "./distanceEpsilon.ts";
-import type { MSegment, PathArray, PointTuple } from "../types.ts";
-import { iterate } from "../process/iterate.ts";
-import { getLineLength, getPointAtLineLength } from "../math/lineTools.ts";
-import { getArcLength, getPointAtArcLength } from "../math/arcTools.ts";
-import { getCubicLength, getPointAtCubicLength } from "../math/cubicTools.ts";
-import { getPointAtQuadLength, getQuadLength } from "../math/quadTools.ts";
+import type { NormalArray, PathArray } from "../types.ts";
 import { normalizePath } from "../process/normalizePath.ts";
+import { buildPathLengthTable, getPointAtTable } from "./pathLengthTable.ts";
 
 /**
  * Returns [x,y] coordinates of a point at a given length along a path.
@@ -40,118 +35,8 @@ export const getPointAtLength = <T extends PathArray>(
  * @returns The requested {x, y} point coordinates
  */
 export const getPointAtNormalizedLength = (
-  path: PathArray,
+  path: NormalArray,
   distance?: number,
 ): { x: number; y: number } => {
-  // an empty path has no point to return
-  if (!path.length) return { x: 0, y: 0 };
-  let isM = false;
-  let data = [] as number[];
-  let [mx, my] = path[0].slice(1) as PointTuple;
-  const distanceIsNumber = typeof distance === "number";
-  let point = { x: mx, y: my };
-  let length = 0;
-  let POINT = point;
-  let totalLength = 0;
-
-  if (!distanceIsNumber || distance < DISTANCE_EPSILON) return point;
-
-  iterate(path, (seg, _, lastX, lastY) => {
-    const pathCommand = seg[0];
-    isM = pathCommand === "M";
-    data = !isM ? [lastX, lastY].concat(seg.slice(1) as number[]) : data;
-
-    // this segment is always ZERO
-    /* istanbul ignore else */
-    if (isM) {
-      // remember mx, my for Z
-      [, mx, my] = seg as MSegment;
-      point = { x: mx, y: my };
-      length = 0;
-    } else if (pathCommand === "L") {
-      point = getPointAtLineLength(data[0], data[1], data[2], data[3], distance - totalLength);
-      length = getLineLength(data[0], data[1], data[2], data[3]);
-    } else if (pathCommand === "A") {
-      point = getPointAtArcLength(
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        data[4],
-        data[5],
-        data[6],
-        data[7],
-        data[8],
-        distance - totalLength,
-      );
-      length = getArcLength(
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        data[4],
-        data[5],
-        data[6],
-        data[7],
-        data[8],
-      );
-    } else if (pathCommand === "C") {
-      point = getPointAtCubicLength(
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        data[4],
-        data[5],
-        data[6],
-        data[7],
-        distance - totalLength,
-      );
-      length = getCubicLength(
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        data[4],
-        data[5],
-        data[6],
-        data[7],
-      );
-    } else if (pathCommand === "Q") {
-      point = getPointAtQuadLength(
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        data[4],
-        data[5],
-        distance - totalLength,
-      );
-      length = getQuadLength(data[0], data[1], data[2], data[3], data[4], data[5]);
-    } else if (pathCommand === "Z") {
-      data = [lastX, lastY, mx, my];
-      point = getPointAtLineLength(data[0], data[1], data[2], data[3], distance - totalLength);
-
-      length = getLineLength(data[0], data[1], data[2], data[3]);
-    }
-
-    if (totalLength < distance) {
-      POINT = point;
-    } else {
-      // totalLength >= distance
-      // stop right here
-      // stop iterator now!
-      return false;
-    }
-
-    totalLength += length;
-    return;
-  });
-
-  // native `getPointAtLength` behavior when the given distance
-  // is higher than total length: clamp to the last point on path
-  // (captured by POINT in the last processed segment; using x, y
-  // would erroneously reflect the start of the *next* segment at
-  // interior segment boundaries — see #61).
-  return POINT;
+  return getPointAtTable(buildPathLengthTable(path), distance);
 };
