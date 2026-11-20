@@ -9,6 +9,21 @@ import { parsePathString } from "../parser/parsePathString.ts";
 import { absolutizeSegment } from "../process/absolutizeSegment.ts";
 
 /**
+ * The bounding box of an empty path.
+ */
+const emptyBBox = {
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+  x2: 0,
+  y2: 0,
+  cx: 0,
+  cy: 0,
+  cz: 0,
+};
+
+/**
  * Calculates the bounding box of a path.
  *
  * @param pathInput - The path string or PathArray
@@ -34,20 +49,16 @@ export const getPathBBox = <T extends PathArray>(
   cz: number;
 } => {
   if (!pathInput) {
-    return {
-      x: 0,
-      y: 0,
-      width: 0,
-      height: 0,
-      x2: 0,
-      y2: 0,
-      cx: 0,
-      cy: 0,
-      cz: 0,
-    };
+    return { ...emptyBBox };
   }
 
   const path = parsePathString(pathInput);
+
+  // an empty path has no bounds, but it still needs a usable result
+  if (!path.length) {
+    return { ...emptyBBox };
+  }
+
   let pathCommand = "M";
   let mx = 0;
   let my = 0;

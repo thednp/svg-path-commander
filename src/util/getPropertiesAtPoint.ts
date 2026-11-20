@@ -21,6 +21,10 @@ export const getPropertiesAtPoint = <T extends PathArray>(
   point: Point,
 ): PointProperties => {
   const path = parsePathString(pathInput);
+  // an empty path has no closest point
+  if (!path.length) {
+    return { closest: { x: 0, y: 0 }, distance: Infinity };
+  }
   const normalPath = normalizePath(path);
   const pathLength = getTotalLength(normalPath);
   const distanceTo = (p: Point) => {

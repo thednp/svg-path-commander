@@ -6,5 +6,6 @@ import type { PathArray } from "../types.ts";
  * @returns true if the path is closed
  */
 export const isClosedPath = <T extends PathArray>(path: T): boolean => {
+  if (!path.length) return false;
   return path[path.length - 1][0].toUpperCase() === "Z";
 };

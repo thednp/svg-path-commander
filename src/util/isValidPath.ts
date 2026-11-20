@@ -22,5 +22,5 @@ export const isValidPath = (pathString: string): boolean => {
     scanSegment(path);
   }
 
-  return !path.err.length && "mM".includes(path.segments[0][0]);
+  return !path.err.length && !!path.segments.length && "mM".includes(path.segments[0][0]);
 };

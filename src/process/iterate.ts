@@ -1,5 +1,6 @@
 // import paramsParser from "../parser/paramsParser.ts";
 import type { AbsoluteCommand, IteratorCallback, PathArray } from "../types.ts";
+import { error } from "../util/error.ts";
 
 /**
  * Iterates over a `PathArray`, executing a callback for each segment.
@@ -38,6 +39,9 @@ export const iterate = <T extends PathArray>(path: T, iterator: IteratorCallback
   while (i < path.length) {
     const segment = path[i];
     const [pathCommand] = segment;
+    if (typeof pathCommand !== "string") {
+      throw new TypeError(`${error}: invalid path segment at index ${i}`);
+    }
     const commandCode = pathCommand.charCodeAt(0);
     const isRelative = commandCode >= 97; // a-z
     const absCommand = (

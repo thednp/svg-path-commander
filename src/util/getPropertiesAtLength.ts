@@ -22,10 +22,11 @@ export const getPropertiesAtLength = <T extends PathArray>(
   let index = pathTemp.length - 1;
   let lengthAtSegment = 0;
   let length = 0;
-  let segment = pathArray[0] as PathSegment;
+  // an empty path has no segment, but the result still has to be well formed
+  let segment = (pathArray[0] ?? ["M", 0, 0]) as PathSegment;
 
   // If the path is empty, return 0.
-  if (index <= 0 || !distance || !Number.isFinite(distance)) {
+  if (index <= 0 || !distance || !Number.isFinite(distance) || distance < 0) {
     return {
       segment,
       index: 0,

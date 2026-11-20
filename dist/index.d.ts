@@ -1095,12 +1095,12 @@ declare const arcToCubic: (X1: number, Y1: number, RX: number, RY: number, angle
 /**
  * Returns a transformation matrix to apply to `<path>` elements.
  *
- * @see TransformObjectValues
+ * @see TransformObject
  *
  * @param transform the `transformObject`
  * @returns a new transformation matrix
  */
-declare const getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix;
+declare const getSVGMatrix: (transform: Partial<TransformObject>) => CSSMatrix;
 /**
  * Iterates over a `PathArray`, executing a callback for each segment.
  * The callback can:

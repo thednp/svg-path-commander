@@ -1644,3 +1644,147 @@ describe("Arc conversion fixes", () => {
     expect(getTotalLength(pathToCurve(negative))).to.be.closeTo(getTotalLength(negative), 0.1);
   });
 });
+
+describe("Empty input contract", () => {
+  const {
+    getClosestPoint,
+    getPathBBox,
+    getPointAtLength,
+    getPropertiesAtLength,
+    getPropertiesAtPoint,
+    getSegmentAtLength,
+    getSegmentOfPoint,
+    getSVGMatrix,
+    isClosedPath,
+    isPointInStroke,
+    isValidPath,
+    roundPath,
+    transformPath,
+  } = SVGPathCommander;
+
+  const emptyInputs = ["", [], "   "] as unknown[];
+
+  test("Can get the bounding box of an empty path", () => {
+    const expected = {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      x2: 0,
+      y2: 0,
+      cx: 0,
+      cy: 0,
+      cz: 0,
+    };
+    emptyInputs.forEach((input) => {
+      expect(getPathBBox(input as PathArray)).to.deep.equal(expected);
+    });
+  });
+
+  test("Can reject a malformed path segment with a descriptive error", () => {
+    [[[]], [[1, 2, 3]], [[null]]].forEach((input) => {
+      try {
+        expect(getPathBBox(input as unknown as PathArray));
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+        expect(e).to.have.property("message", `${error}: invalid path segment at index 0`);
+      }
+    });
+  });
+
+  test("Can get a point of an empty path", () => {
+    emptyInputs.forEach((input) => {
+      expect(getPointAtLength(input as PathArray, 10)).to.deep.equal({ x: 0, y: 0 });
+    });
+  });
+
+  test("Can tell that an empty path is not closed", () => {
+    emptyInputs.forEach((input) => {
+      expect(isClosedPath(input as PathArray)).to.be.false;
+    });
+  });
+
+  test("Can get the properties of a point of an empty path", () => {
+    emptyInputs.forEach((input) => {
+      expect(getPropertiesAtPoint(input as PathArray, { x: 1, y: 1 })).to.deep.equal({
+        closest: { x: 0, y: 0 },
+        distance: Infinity,
+      });
+      expect(getSegmentOfPoint(input as PathArray, { x: 1, y: 1 })).to.be.undefined;
+      expect(getClosestPoint(input as PathArray, { x: 1, y: 1 })).to.deep.equal({ x: 0, y: 0 });
+      // an empty path has no stroke
+      expect(isPointInStroke(input as PathArray, { x: 1, y: 1 })).to.be.false;
+    });
+  });
+
+  test("Can get the properties of an empty path at a length", () => {
+    emptyInputs.forEach((input) => {
+      expect(getPropertiesAtLength(input as PathArray)).to.deep.equal({
+        segment: ["M", 0, 0],
+        index: 0,
+        length: 0,
+        lengthAtSegment: 0,
+      });
+      expect(getSegmentAtLength(input as PathArray)).to.deep.equal(["M", 0, 0]);
+    });
+  });
+
+  test("Can get the properties of a path at a negative length", () => {
+    [-5, -0.0001].forEach((distance) => {
+      expect(getPropertiesAtLength("M0 0L10 10", distance)).to.deep.equal({
+        segment: ["M", 0, 0],
+        index: 0,
+        length: 0,
+        lengthAtSegment: 0,
+      });
+      expect(getSegmentAtLength("M0 0L10 10", distance)).to.deep.equal(["M", 0, 0]);
+    });
+  });
+
+  test("Can round a path without modifying the source array", () => {
+    const source: PathArray = [
+      ["M", 0, 0],
+      ["L", 1.23456, 2.34567],
+    ];
+    const rounded = roundPath(source, 2);
+    expect(rounded).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 1.23, 2.35],
+    ]);
+    expect(source).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 1.23456, 2.34567],
+    ]);
+    expect(rounded).to.not.equal(source);
+  });
+
+  test("Can transform a path without modifying the source transform", () => {
+    const transform = { scale: 2 };
+    expect(transformPath("M0 0L10 10", transform)).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 20, 20],
+    ]);
+    expect(transform).to.deep.equal({ scale: 2 });
+    expect("origin" in transform).to.be.false;
+  });
+
+  test("Can transform a path without modifying the global default origin", () => {
+    const transform = { scale: 2, origin: [1, 2, 3] };
+    transformPath("M0 0L10 10", transform);
+    transform.origin[0] = 999;
+    expect(SVGPathCommander.options.origin).to.deep.equal([0, 0, 0]);
+  });
+
+  test("Can get a transformation matrix without an origin", () => {
+    const matrix = getSVGMatrix({ scale: 2 });
+    expect(matrix.a).to.equal(2);
+    expect(matrix.d).to.equal(2);
+  });
+
+  test("Can tell that a whitespace only path is invalid", () => {
+    expect(isValidPath("   ")).to.be.false;
+    expect(isValidPath("")).to.be.false;
+    expect(isValidPath(" M0 0 ")).to.be.true;
+    expect(isValidPath("L0 0")).to.be.false;
+  });
+});

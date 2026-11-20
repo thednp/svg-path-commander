@@ -306,11 +306,6 @@ type MorphPathArray = PolygonArray | PolylineArray | CurveArray | ClosedCurveArr
 type ShapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;
 /** The shape attributes mapped to each supported SVG element type. */
 type ShapeOps = LineAttr | PolyAttr | EllipseAttr | CircleAttr | RectAttr | GlyphAttr;
-/** A `TransformObject` with a required 3D origin. */
-type TransformObjectValues = Partial<TransformObject> & {
-  /** The transform origin. */
-  origin: [number, number, number];
-};
 /** A 2D point with `x` and `y` coordinates. */
 type Point = {
   /** The X coordinate. */
@@ -1415,12 +1410,12 @@ export declare const arcToCubic: (X1: number, Y1: number, RX: number, RY: number
 /**
  * Returns a transformation matrix to apply to `<path>` elements.
  *
- * @see TransformObjectValues
+ * @see TransformObject
  *
  * @param transform the `transformObject`
  * @returns a new transformation matrix
  */
-export declare const getSVGMatrix: (transform: TransformObjectValues) => CSSMatrix;
+export declare const getSVGMatrix: (transform: Partial<TransformObject>) => CSSMatrix;
 /**
  * Iterates over a `PathArray`, executing a callback for each segment.
  * The callback can:

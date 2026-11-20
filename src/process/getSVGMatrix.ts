@@ -1,23 +1,21 @@
 import CSSMatrix from "@thednp/dommatrix";
-// import type { TransformObject } from "../interface.ts";
-import type { TransformObjectValues } from "../types.ts";
+import { defaultOptions } from "../options/options.ts";
+import type { TransformObject } from "../interface.ts";
 
 /**
  * Returns a transformation matrix to apply to `<path>` elements.
  *
- * @see TransformObjectValues
+ * @see TransformObject
  *
  * @param transform the `transformObject`
  * @returns a new transformation matrix
  */
-export const getSVGMatrix = (transform: TransformObjectValues): CSSMatrix => {
+export const getSVGMatrix = (transform: Partial<TransformObject>): CSSMatrix => {
   let matrix = new CSSMatrix();
-  const { origin } = transform;
-  const [originX, originY] = origin as [number, number, number];
-  const { translate } = transform;
-  const { rotate } = transform;
-  const { skew } = transform;
-  const { scale } = transform;
+  // the transform origin is always needed, fall back to the default one
+  const origin = (transform.origin ?? defaultOptions.origin) as [number, number, number];
+  const [originX, originY] = origin;
+  const { translate, rotate, skew, scale } = transform;
 
   // set translate
   if (

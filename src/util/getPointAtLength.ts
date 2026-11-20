@@ -25,6 +25,8 @@ export const getPointAtLength = <T extends PathArray>(
   distance?: number,
 ): { x: number; y: number } => {
   const path = normalizePath(pathInput);
+  // an empty path has no point to return
+  if (!path.length) return { x: 0, y: 0 };
   let isM = false;
   let data = [] as number[];
   let [mx, my] = path[0].slice(1) as PointTuple;

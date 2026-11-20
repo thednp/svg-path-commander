@@ -1582,6 +1582,7 @@ const iterate = (path, iterator) => {
 	while (i < path.length) {
 		const segment = path[i];
 		const [pathCommand] = segment;
+		if (typeof pathCommand !== "string") throw new TypeError(`${error}: invalid path segment at index ${i}`);
 		const commandCode = pathCommand.charCodeAt(0);
 		const isRelative = commandCode >= 97;
 		const absCommand = isRelative ? String.fromCharCode(commandCode - 32) : pathCommand;
@@ -2042,6 +2043,20 @@ const pathToString = (path, roundOption) => {
 };
 // src/util/getPathBBox.ts
 /**
+* The bounding box of an empty path.
+*/
+const emptyBBox = {
+	x: 0,
+	y: 0,
+	width: 0,
+	height: 0,
+	x2: 0,
+	y2: 0,
+	cx: 0,
+	cy: 0,
+	cz: 0
+};
+/**
 * Calculates the bounding box of a path.
 *
 * @param pathInput - The path string or PathArray
@@ -2054,18 +2069,9 @@ const pathToString = (path, roundOption) => {
 * ```
 */
 const getPathBBox = (pathInput) => {
-	if (!pathInput) return {
-		x: 0,
-		y: 0,
-		width: 0,
-		height: 0,
-		x2: 0,
-		y2: 0,
-		cx: 0,
-		cy: 0,
-		cz: 0
-	};
+	if (!pathInput) return { ...emptyBBox };
 	const path = parsePathString(pathInput);
+	if (!path.length) return { ...emptyBBox };
 	let pathCommand = "M";
 	let mx = 0;
 	let my = 0;
@@ -2311,6 +2317,10 @@ const normalizePath = (pathInput) => {
 */
 const getPointAtLength = (pathInput, distance) => {
 	const path = normalizePath(pathInput);
+	if (!path.length) return {
+		x: 0,
+		y: 0
+	};
 	let isM = false;
 	let data = [];
 	let [mx, my] = path[0].slice(1);
@@ -2378,8 +2388,12 @@ const getPropertiesAtLength = (pathInput, distance) => {
 	let index = pathTemp.length - 1;
 	let lengthAtSegment = 0;
 	let length = 0;
-	let segment = pathArray[0];
-	if (index <= 0 || !distance || !Number.isFinite(distance)) return {
+	let segment = pathArray[0] ?? [
+		"M",
+		0,
+		0
+	];
+	if (index <= 0 || !distance || !Number.isFinite(distance) || distance < 0) return {
 		segment,
 		index: 0,
 		length,
@@ -2427,6 +2441,13 @@ const getPropertiesAtLength = (pathInput, distance) => {
 */
 const getPropertiesAtPoint = (pathInput, point) => {
 	const path = parsePathString(pathInput);
+	if (!path.length) return {
+		closest: {
+			x: 0,
+			y: 0
+		},
+		distance: Infinity
+	};
 	const normalPath = normalizePath(path);
 	const pathLength = getTotalLength(normalPath);
 	const distanceTo = (p) => {
@@ -2671,7 +2692,7 @@ const isValidPath = (pathString) => {
 	const path = new PathParser(pathString);
 	skipSpaces(path);
 	while (path.index < path.max && !path.err.length) scanSegment(path);
-	return !path.err.length && "mM".includes(path.segments[0][0]);
+	return !path.err.length && !!path.segments.length && "mM".includes(path.segments[0][0]);
 };
 // src/morph/samplePolygon.ts
 /**
@@ -3107,6 +3128,7 @@ function isPolylineArray(path) {
 * @returns true if the path is closed
 */
 const isClosedPath = (path) => {
+	if (!path.length) return false;
 	return path[path.length - 1][0].toUpperCase() === "Z";
 };
 // src/process/shortenSegment.ts
@@ -3468,19 +3490,15 @@ const splitPath = (pathInput) => {
 /**
 * Returns a transformation matrix to apply to `<path>` elements.
 *
-* @see TransformObjectValues
+* @see TransformObject
 *
 * @param transform the `transformObject`
 * @returns a new transformation matrix
 */
 const getSVGMatrix = (transform) => {
 	let matrix = new CSSMatrix();
-	const { origin } = transform;
-	const [originX, originY] = origin;
-	const { translate } = transform;
-	const { rotate } = transform;
-	const { skew } = transform;
-	const { scale } = transform;
+	const [originX, originY] = transform.origin ?? defaultOptions.origin;
+	const { translate, rotate, skew, scale } = transform;
 	if (Array.isArray(translate) && translate.length >= 2 && translate.every((x) => !Number.isNaN(+x)) && translate.some((x) => x !== 0)) matrix = matrix.translate(...translate);
 	else if (typeof translate === "number" && !Number.isNaN(translate)) matrix = matrix.translate(translate);
 	if (rotate || skew || scale) {
@@ -3729,9 +3747,11 @@ const transformPath = (pathInput, transform) => {
 	const path = parsePathString(pathInput);
 	const transformProps = transform && Object.keys(transform);
 	if (!transform || transformProps && !transformProps.length) return path.slice(0);
-	if (!transform.origin) Object.assign(transform, { origin: defaultOptions.origin });
-	const origin = transform.origin;
-	const matrixInstance = getSVGMatrix(transform);
+	const origin = (transform.origin ?? defaultOptions.origin).slice(0);
+	const matrixInstance = getSVGMatrix({
+		...transform,
+		origin
+	});
 	if (matrixInstance.isIdentity) return path.slice(0);
 	if (matrixInstance.is2D) return transform2D(path, matrixInstance.a, matrixInstance.b, matrixInstance.c, matrixInstance.d, matrixInstance.e, matrixInstance.f, origin[0], origin[1]);
 	let x = 0;
@@ -3802,7 +3822,7 @@ const roundPath = (path, roundOption) => {
 	let { round } = defaultOptions;
 	round = roundOption === "off" ? roundOption : typeof roundOption === "number" && roundOption >= 0 ? roundOption : typeof round === "number" && round >= 0 ? round : "off";
 	if (round === "off") return path.slice(0);
-	return iterate(path, (segment) => {
+	return iterate(path.slice(0), (segment) => {
 		return roundSegment(segment, round);
 	});
 };

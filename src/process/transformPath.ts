@@ -10,7 +10,6 @@ import type {
   LSegment,
   PathArray,
   PathSegment,
-  TransformObjectValues,
   VSegment,
 } from "../types.ts";
 import type { TransformObject } from "../interface.ts";
@@ -236,12 +235,10 @@ export const transformPath = <T extends PathArray>(
     return path.slice(0) as T;
   }
 
-  // transform origin is extremely important
-  if (!transform.origin) {
-    Object.assign(transform, { origin: defaultOptions.origin });
-  }
-  const origin = transform.origin as [number, number, number];
-  const matrixInstance = getSVGMatrix(transform as TransformObjectValues);
+  // transform origin is extremely important, the caller's object must not
+  // be modified and the global default must not be aliased
+  const origin = (transform.origin ?? defaultOptions.origin).slice(0) as [number, number, number];
+  const matrixInstance = getSVGMatrix({ ...transform, origin });
 
   if (matrixInstance.isIdentity) return path.slice(0) as T;
 
