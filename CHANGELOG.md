@@ -87,6 +87,7 @@
 
 ### Performance
 
+- `optimizePath()` is **2.3x** faster on a 4 000 segment path (4.1 ms -> 1.8 ms) — the rounded segment was built with three arrays (a copy, a map and a concatenation) and the absolute and the relative form of a segment were compared by building their strings; the rounded segment is now built in one pass and the length of the string of a segment is computed without building it. The optimizer answers the same paths.
 - `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` measure the path **once** — the search built a length table from a normalized copy of the path and then asked `getPropertiesAtLength()` for the segment at the answer, which measured the path a second time; the length table is now built from the shared measure pass, so the normalization and the second measurement are gone: **1.5x** faster on a 4 000 segment path (3.3 ms -> 2.2 ms), with the same answers — the two implementations agree on every path of a 1 000 case random corpus
 
 ### Changed

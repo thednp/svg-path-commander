@@ -6,6 +6,7 @@ import { iterate } from "./iterate.ts";
 import { normalizeSegment } from "./normalizeSegment.ts";
 import { relativizeSegment } from "./relativizeSegment.ts";
 import { roundSegment } from "./roundSegment.ts";
+import { segmentStringLength } from "./segmentStringLength.ts";
 
 /**
  * Optimizes a PathArray:
@@ -57,11 +58,11 @@ export const optimizePath = <T extends string | PathArray>(
         prevCommand,
       );
       const absSegment = roundSegment(shortSegment, round);
-      const absString = absSegment.join("");
+      const absLength = segmentStringLength(absSegment);
       const relativeSegment = relativizeSegment(shortSegment, i, lastX, lastY);
       const relSegment = roundSegment(relativeSegment, round);
-      const relString = relSegment.join("");
-      result = absString.length < relString.length ? absSegment : relSegment;
+      const relLength = segmentStringLength(relSegment);
+      result = absLength < relLength ? absSegment : relSegment;
     }
 
     const seglen = normalizedSegment.length;

@@ -24,6 +24,7 @@ import {
   buildPathLengthTableFromMeasures,
 } from "../src/util/pathLengthTable";
 import { measureSegments } from "../src/util/measureSegments";
+import { segmentStringLength } from "../src/process/segmentStringLength";
 import { iterate } from "../src/process/iterate";
 import { distanceToSegment } from "../src/math/distanceToSegment";
 import type {
@@ -2545,6 +2546,14 @@ describe("Empty input contract", () => {
       ["L", 1.23456, 2.34567],
     ]);
     expect(rounded).to.not.equal(source);
+  });
+
+  test("Can measure the length of the string of a segment", () => {
+    // the length of the string of a segment is the length of its command
+    // plus the length of its values
+    expect(segmentStringLength(["L", 100, 0])).to.equal("L1000".length);
+    expect(segmentStringLength(["l", -1.5, 0.25])).to.equal("l-1.50.25".length);
+    expect(segmentStringLength(["M", 0, 0])).to.equal("M00".length);
   });
 
   test("Can transform a path without modifying the source transform", () => {

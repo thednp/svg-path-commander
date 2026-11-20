@@ -1,4 +1,4 @@
-import type { PathCommand, PathSegment } from "../types.ts";
+import type { PathSegment } from "../types.ts";
 import { roundTo } from "../math/roundTo.ts";
 
 /**
@@ -9,6 +9,11 @@ import { roundTo } from "../math/roundTo.ts";
  * @returns The rounded segment
  */
 export const roundSegment = <T extends PathSegment>(segment: T, roundOption: number): T => {
-  const values = (segment.slice(1) as number[]).map((n) => roundTo(n, roundOption));
-  return [segment[0] as PathCommand | number].concat(values) as T;
+  // the rounded segment is built in one pass: a copy of the segment, a map
+  // over its values and a concatenation would allocate three arrays
+  const result = new Array(segment.length) as unknown as T;
+  for (let i = 0; i < segment.length; i += 1) {
+    result[i] = (i === 0 ? segment[0] : roundTo(segment[i] as number, roundOption)) as T[number];
+  }
+  return result;
 };
