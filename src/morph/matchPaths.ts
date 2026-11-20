@@ -75,25 +75,26 @@ export function matchPaths(
 ): [NormalArray, NormalArray][] {
   const pairs: [NormalArray, NormalArray][] = [];
 
-  fromPaths.sort((a, b) => b.size - a.size);
-  toPaths.sort((a, b) => b.size - a.size);
+  // the caller's arrays must not be sorted or emptied
+  const from = [...fromPaths].sort((a, b) => b.size - a.size);
+  const to = [...toPaths].sort((a, b) => b.size - a.size);
 
-  while (fromPaths.length > 0) {
-    const from = fromPaths.shift()!;
-    const bestTo = getBestMatch(from, toPaths);
+  while (from.length > 0) {
+    const fromPath = from.shift()!;
+    const bestTo = getBestMatch(fromPath, to);
 
     if (bestTo) {
-      pairs.push([from.path, bestTo.path]);
+      pairs.push([fromPath.path, bestTo.path]);
     } else {
-      const fromCentroid: PointTuple = [from.bbox.cx, from.bbox.cy];
-      pairs.push([from.path, createPlaceholder(fromCentroid)]);
+      const fromCentroid: PointTuple = [fromPath.bbox.cx, fromPath.bbox.cy];
+      pairs.push([fromPath.path, createPlaceholder(fromCentroid)]);
     }
   }
 
-  while (toPaths.length > 0) {
-    const to = toPaths.shift()!;
-    const toCentroid: PointTuple = [to.bbox.cx, to.bbox.cy];
-    pairs.push([createPlaceholder(toCentroid), to.path]);
+  while (to.length > 0) {
+    const toPath = to.shift()!;
+    const toCentroid: PointTuple = [toPath.bbox.cx, toPath.bbox.cy];
+    pairs.push([createPlaceholder(toCentroid), toPath.path]);
   }
 
   return pairs;

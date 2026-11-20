@@ -95,6 +95,23 @@ import { isPointInsideBBox } from "./intersect/isPointInsideBBox.ts";
 import distanceEpsilon from "./util/distanceEpsilon.ts";
 
 /**
+ * Returns the segments of the first sub-path of a path.
+ *
+ * @param segments - The source path segments
+ * @returns The segments of the first sub-path
+ */
+const getFirstSubPath = (segments: PathArray): PathArray => {
+  let end = segments.length;
+  for (let i = 1; i < segments.length; i++) {
+    if (segments[i][0].toUpperCase() === "M") {
+      end = i;
+      break;
+    }
+  }
+  return segments.slice(0, end) as PathArray;
+};
+
+/**
  * Creates a new SVGPathCommander instance with the following properties:
  * * segments: `pathArray`
  * * round: number
@@ -299,18 +316,13 @@ export class SVGPathCommander {
     const split = splitPath(segments);
     const subPath = split.length > 1 ? split : false;
 
-    const absoluteMultiPath = subPath
-      ? subPath.map((x, i) => {
-          if (onlySubpath) {
-            return i ? reversePath(x) : x.slice(0);
-          }
-          return reversePath(x);
-        })
-      : segments.slice(0);
-
     let path = [] as unknown as PathArray;
     if (subPath) {
-      path = absoluteMultiPath.flat(1) as PathArray;
+      // the first sub-path is left untouched, so it is taken from the source
+      // segments and not from the absolute split
+      const first = onlySubpath ? getFirstSubPath(segments) : reversePath(subPath[0]);
+      const rest = subPath.slice(1).map((x) => reversePath(x));
+      path = [first, ...rest].flat(1) as PathArray;
     } else {
       path = onlySubpath ? segments : reversePath(segments);
     }

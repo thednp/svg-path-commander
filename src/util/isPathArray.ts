@@ -11,7 +11,9 @@ export const isPathArray = (path: unknown): path is PathArray => {
   return (
     Array.isArray(path) &&
     path.every((seg: PathSegment) => {
-      const lk = seg[0].toLowerCase() as RelativeCommand;
+      const command = (seg as PathSegment | undefined)?.[0];
+      if (typeof command !== "string") return false;
+      const lk = command.toLowerCase() as RelativeCommand;
       return (
         paramsCounts[lk] === seg.length - 1 &&
         "achlmqstvz".includes(lk) &&

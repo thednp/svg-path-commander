@@ -5,10 +5,12 @@ import type {
   HSegment,
   MSegment,
   PathArray,
+  PathSegment,
   PointTuple,
   VSegment,
 } from "../types.ts";
 import { iterate } from "./iterate.ts";
+import { absolutizeSegment } from "./absolutizeSegment.ts";
 
 /**
  * Split a path string or PathArray into an array of sub-paths.
@@ -31,6 +33,12 @@ import { iterate } from "./iterate.ts";
 export const splitPath = <T extends PathArray>(pathInput: T | string): T[] => {
   const composite: T[] = [];
   const parsedPath = parsePathString(pathInput);
+  // a path that does not start with a moveto gets an implicit one at the
+  // origin, so the leading segments are not lost
+  const segments: PathArray =
+    parsedPath.length && parsedPath[0][0].toUpperCase() !== "M"
+      ? ([["M", 0, 0] as MSegment, ...parsedPath] as PathArray)
+      : parsedPath;
   let path = [] as unknown as T;
   let pi = -1;
   let x = 0;
@@ -38,7 +46,7 @@ export const splitPath = <T extends PathArray>(pathInput: T | string): T[] => {
   let mx = 0;
   let my = 0;
 
-  iterate(parsedPath, (seg, _, prevX, prevY) => {
+  iterate(segments, (seg, index, prevX, prevY) => {
     const cmd = seg[0];
     const absCommand = cmd.toUpperCase() as AbsoluteCommand;
     const isRelative = cmd === cmd.toLowerCase();
@@ -52,7 +60,8 @@ export const splitPath = <T extends PathArray>(pathInput: T | string): T[] => {
       y += isRelative ? prevY : 0;
       mx = x;
       my = y;
-      path = [(isRelative ? [absCommand, mx, my] : seg) as MSegment] as unknown as T;
+      // the moveto is always absolute, even when the source is relative
+      path = [["M", x, y] as MSegment] as unknown as T;
     } else {
       if (absCommand === "Z") {
         x = mx;
@@ -68,7 +77,7 @@ export const splitPath = <T extends PathArray>(pathInput: T | string): T[] => {
         x += isRelative ? prevX : 0;
         y += isRelative ? prevY : 0;
       }
-      path.push(seg);
+      path.push(absolutizeSegment(seg, index, prevX, prevY) as PathSegment);
     }
 
     composite[pi] = path;

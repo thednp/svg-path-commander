@@ -23,8 +23,6 @@ export default function splitLineToCount(
   if (count <= 1) return [[x1, y1, x2, y2]];
 
   const result: Array<[number, number, number, number]> = [];
-  const dx = x2 - x1;
-  const dy = y2 - y1;
 
   let currentX = x1;
   let currentY = y1;
@@ -34,8 +32,10 @@ export default function splitLineToCount(
   let i = 0;
   while (i < count) {
     const t = 1 / (count - i);
-    const nextX = x1 + t * dx;
-    const nextY = y1 + t * dy;
+    // cut the *remaining* part of the segment, so every piece has the
+    // same length
+    const nextX = currentX + t * (x2 - currentX);
+    const nextY = currentY + t * (y2 - currentY);
 
     result.push([currentX, currentY, nextX, nextY]);
 

@@ -59,9 +59,11 @@ export const projection2d = (
   const relativePositionY = y - originY;
   const relativePositionZ = z - originZ;
 
-  return [
-    // protect against division by ZERO
-    relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originX,
-    relativePositionY * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originY,
-  ];
+  // protect against division by ZERO, and against a zero origin distance
+  // which means there is no perspective scaling at all
+  const numerator = Math.abs(originZ);
+  const denominator = Math.abs(relativePositionZ);
+  const factor = numerator === 0 || denominator === 0 ? 1 : numerator / denominator;
+
+  return [relativePositionX * factor + originX, relativePositionY * factor + originY];
 };

@@ -2607,7 +2607,9 @@ const getSegmentOfPoint = (path, point) => {
 */
 const isPathArray = (path) => {
 	return Array.isArray(path) && path.every((seg) => {
-		const lk = seg[0].toLowerCase();
+		const command = seg?.[0];
+		if (typeof command !== "string") return false;
+		const lk = command.toLowerCase();
 		return paramsCounts[lk] === seg.length - 1 && "achlmqstvz".includes(lk) && seg.slice(1).every(Number.isFinite);
 	}) && path.length > 0;
 };
@@ -3414,13 +3416,18 @@ const reversePath = (pathInput) => {
 const splitPath = (pathInput) => {
 	const composite = [];
 	const parsedPath = parsePathString(pathInput);
+	const segments = parsedPath.length && parsedPath[0][0].toUpperCase() !== "M" ? [[
+		"M",
+		0,
+		0
+	], ...parsedPath] : parsedPath;
 	let path = [];
 	let pi = -1;
 	let x = 0;
 	let y = 0;
 	let mx = 0;
 	let my = 0;
-	iterate(parsedPath, (seg, _, prevX, prevY) => {
+	iterate(segments, (seg, index, prevX, prevY) => {
 		const cmd = seg[0];
 		const absCommand = cmd.toUpperCase();
 		const isRelative = cmd === cmd.toLowerCase();
@@ -3432,11 +3439,11 @@ const splitPath = (pathInput) => {
 			y += isRelative ? prevY : 0;
 			mx = x;
 			my = y;
-			path = [isRelative ? [
-				absCommand,
-				mx,
-				my
-			] : seg];
+			path = [[
+				"M",
+				x,
+				y
+			]];
 		} else {
 			if (absCommand === "Z") {
 				x = mx;
@@ -3452,7 +3459,7 @@ const splitPath = (pathInput) => {
 				x += isRelative ? prevX : 0;
 				y += isRelative ? prevY : 0;
 			}
-			path.push(seg);
+			path.push(absolutizeSegment(seg, index, prevX, prevY));
 		}
 		composite[pi] = path;
 	});
@@ -3541,7 +3548,10 @@ const projection2d = (m, point2D, origin) => {
 	const relativePositionX = x - originX;
 	const relativePositionY = y - originY;
 	const relativePositionZ = z - originZ;
-	return [relativePositionX * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originX, relativePositionY * (Math.abs(originZ) / Math.abs(relativePositionZ) || 1) + originY];
+	const numerator = Math.abs(originZ);
+	const denominator = Math.abs(relativePositionZ);
+	const factor = numerator === 0 || denominator === 0 ? 1 : numerator / denominator;
+	return [relativePositionX * factor + originX, relativePositionY * factor + originY];
 };
 // src/process/transformPath.ts
 /**
@@ -3914,15 +3924,13 @@ function splitLineToCount(x1, y1, x2, y2, count) {
 		y2
 	]];
 	const result = [];
-	const dx = x2 - x1;
-	const dy = y2 - y1;
 	let currentX = x1;
 	let currentY = y1;
 	let i = 0;
 	while (i < count) {
 		const t = 1 / (count - i);
-		const nextX = x1 + t * dx;
-		const nextY = y1 + t * dy;
+		const nextX = currentX + t * (x2 - currentX);
+		const nextY = currentY + t * (y2 - currentY);
 		result.push([
 			currentX,
 			currentY,
@@ -4403,21 +4411,21 @@ function getBestMatch(target, candidates) {
 */
 function matchPaths(fromPaths, toPaths) {
 	const pairs = [];
-	fromPaths.sort((a, b) => b.size - a.size);
-	toPaths.sort((a, b) => b.size - a.size);
-	while (fromPaths.length > 0) {
-		const from = fromPaths.shift();
-		const bestTo = getBestMatch(from, toPaths);
-		if (bestTo) pairs.push([from.path, bestTo.path]);
+	const from = [...fromPaths].sort((a, b) => b.size - a.size);
+	const to = [...toPaths].sort((a, b) => b.size - a.size);
+	while (from.length > 0) {
+		const fromPath = from.shift();
+		const bestTo = getBestMatch(fromPath, to);
+		if (bestTo) pairs.push([fromPath.path, bestTo.path]);
 		else {
-			const fromCentroid = [from.bbox.cx, from.bbox.cy];
-			pairs.push([from.path, createPlaceholder(fromCentroid)]);
+			const fromCentroid = [fromPath.bbox.cx, fromPath.bbox.cy];
+			pairs.push([fromPath.path, createPlaceholder(fromCentroid)]);
 		}
 	}
-	while (toPaths.length > 0) {
-		const to = toPaths.shift();
-		const toCentroid = [to.bbox.cx, to.bbox.cy];
-		pairs.push([createPlaceholder(toCentroid), to.path]);
+	while (to.length > 0) {
+		const toPath = to.shift();
+		const toCentroid = [toPath.bbox.cx, toPath.bbox.cy];
+		pairs.push([createPlaceholder(toCentroid), toPath.path]);
 	}
 	return pairs;
 }
@@ -4425,16 +4433,20 @@ function matchPaths(fromPaths, toPaths) {
 /**
 * Classifies paths into outer (containing) and inner (hole) paths.
 *
+* A path is an inner path when it is contained by another path of the
+* same set. The winding of a contour is not used for the classification:
+* the shoelace sign only tells the direction of the contour, and in the
+* SVG coordinate system (y pointing down) the usual outer contour has a
+* *negative* signed area.
+*
 * @param paths - Array of normalized path arrays to classify
 * @returns Object with `outers` (containing shapes) and `inners` (holes)
 */
 const classifyPaths = (paths) => {
-	const outers = [];
-	const inners = [];
-	for (const path of paths) {
+	const features = paths.map((path) => {
 		const signedArea = polygonArea(samplePolygon(path));
 		const bbox = getPathBBox(path);
-		const feature = {
+		return {
 			isPoly: isPolygonArray(path) || isPolylineArray(path),
 			size: bbox.width * bbox.height,
 			path,
@@ -4442,9 +4454,16 @@ const classifyPaths = (paths) => {
 			area: Math.abs(signedArea),
 			bbox
 		};
-		if (signedArea > 0) outers.push(feature);
-		else inners.push(feature);
-	}
+	});
+	const outers = [];
+	const inners = [];
+	for (const feature of features) if (features.some((other) => other !== feature && other.area > feature.area && isPointInsideBBox([
+		other.bbox.x,
+		other.bbox.y,
+		other.bbox.x2,
+		other.bbox.y2
+	], [feature.bbox.cx, feature.bbox.cy]))) inners.push(feature);
+	else outers.push(feature);
 	return {
 		outers,
 		inners

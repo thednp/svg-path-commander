@@ -1,4 +1,5 @@
 import { expect, test, describe, beforeEach, vi } from "vite-plus/test";
+import CSSMatrix from "@thednp/dommatrix";
 import SVGPathCommander, {
   type PathArray,
   type CurveArray,
@@ -14,6 +15,8 @@ import { getPathSplits } from "../src/morph/getPathSplits";
 import { pathToPolyline } from "../src/morph/pathToPolyline";
 import { splitCurvePathToCount } from "../src/morph/splitCurvePathToCount";
 import { splitLinePathToCount } from "../src/morph/splitLinePathToCount";
+import splitLineToCount from "../src/morph/splitLineToCount";
+import { classifyPaths } from "../src/morph/classifyPaths";
 import { matchPaths } from "../src/morph/matchPaths";
 import type { IntersectionPoint, PathFeature } from "../src/types";
 
@@ -1786,5 +1789,121 @@ describe("Empty input contract", () => {
     expect(isValidPath("")).to.be.false;
     expect(isValidPath(" M0 0 ")).to.be.true;
     expect(isValidPath("L0 0")).to.be.false;
+  });
+});
+
+describe("Morph and path utility fixes", () => {
+  const { getPathBBox, isPathArray, normalizePath, projection2d, splitPath } = SVGPathCommander;
+
+  test("Can split a line into segments of equal length", () => {
+    [2, 3, 4, 10].forEach((count) => {
+      const pieces = splitLineToCount(0, 0, 90, 0, count);
+      expect(pieces).to.have.lengthOf(count);
+      pieces.forEach(([x1, y1, x2, y2]) => {
+        expect(Math.hypot(x2 - x1, y2 - y1)).to.be.closeTo(90 / count, 1e-9);
+      });
+      // the pieces must cover the whole line
+      expect(pieces[0][0]).to.equal(0);
+      expect(pieces[count - 1][2]).to.equal(90);
+    });
+  });
+
+  test("Can match paths without destroying the source arrays", () => {
+    const makeFeature = (path: string): PathFeature => {
+      const p = normalizePath(path);
+      const bbox = getPathBBox(path);
+      return {
+        path: p,
+        bbox,
+        size: bbox.width * bbox.height,
+        signedArea: 0,
+        area: 0,
+        isPoly: false,
+      };
+    };
+
+    const from = [makeFeature("M0 0L10 0"), makeFeature("M5 5L20 5")];
+    const to = [makeFeature("M0 0L12 0"), makeFeature("M7 7L22 7")];
+    const fromBefore = JSON.stringify(from);
+    const toBefore = JSON.stringify(to);
+
+    expect(matchPaths(from, to)).to.have.lengthOf(3);
+    expect(JSON.stringify(from)).to.equal(fromBefore);
+    expect(JSON.stringify(to)).to.equal(toBefore);
+  });
+
+  test("Can split a path that does not start with a moveto", () => {
+    const split = splitPath([
+      ["L", 0, 0],
+      ["M", 10, 10],
+      ["L", 20, 20],
+    ] as unknown as PathArray);
+    expect(Object.keys(split)).to.deep.equal(["0", "1"]);
+    expect(split[0]).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 0, 0],
+    ]);
+    expect(split[1]).to.deep.equal([
+      ["M", 10, 10],
+      ["L", 20, 20],
+    ]);
+  });
+
+  test("Can split a relative path into absolute sub-paths", () => {
+    expect(splitPath("M0 0l100 0l0 100z")).to.deep.equal([
+      [["M", 0, 0], ["L", 100, 0], ["L", 100, 100], ["Z"]],
+    ]);
+  });
+
+  test("Can split a path that starts with a relative moveto", () => {
+    expect(splitPath("m10 10l20 0")).to.deep.equal([
+      [
+        ["M", 10, 10],
+        ["L", 30, 10],
+      ],
+    ]);
+    expect(splitPath("M0 0m50 50l10 0")).to.deep.equal([
+      [["M", 0, 0]],
+      [
+        ["M", 50, 50],
+        ["L", 60, 50],
+      ],
+    ]);
+  });
+
+  test("Can tell that a malformed path array is not a path array", () => {
+    [[[]], [[1, 2, 3]], [[null]], [null], ["M0 0"]].forEach((input) => {
+      expect(isPathArray(input)).to.be.false;
+    });
+    expect(
+      isPathArray([
+        ["M", 0, 0],
+        ["L", 10, 10],
+      ]),
+    ).to.be.true;
+  });
+
+  test("Can project a point without producing NaN", () => {
+    const matrix = new CSSMatrix();
+    matrix.m43 = 500;
+    const projected = projection2d(matrix, [10, 20], [0, 0, 500]);
+    expect(projected[0]).to.be.a("number").and.not.NaN;
+    expect(projected[1]).to.be.a("number").and.not.NaN;
+  });
+
+  test("Can classify an outer path and its hole", () => {
+    const squareWithHole = "M0 0L100 0L100 100L0 100ZM25 25L75 25L75 75L25 75Z";
+    const { outers, inners } = classifyPaths(splitPath(squareWithHole) as never);
+    expect(outers).to.have.lengthOf(1);
+    expect(inners).to.have.lengthOf(1);
+    expect(outers[0].area).to.equal(10000);
+    expect(inners[0].area).to.equal(2500);
+  });
+
+  test("Can classify two separate paths as two outers", () => {
+    const twoSquares = "M0 0L100 0L100 100L0 100ZM500 500L600 500L600 600L500 600Z";
+    const { outers, inners } = classifyPaths(splitPath(twoSquares) as never);
+    expect(outers).to.have.lengthOf(2);
+    expect(inners).to.have.lengthOf(0);
   });
 });
