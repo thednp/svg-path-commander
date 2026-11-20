@@ -1910,7 +1910,8 @@ describe("Morph and path utility fixes", () => {
 });
 
 describe("Parser and input edge cases", () => {
-  const { getSegmentAtLength, parsePathString, pathToAbsolute } = SVGPathCommander;
+  const { getPropertiesAtLength, getSegmentAtLength, parsePathString, pathToAbsolute } =
+    SVGPathCommander;
 
   test("Can parse a number with a leading zero", () => {
     // the SVG path grammar allows any digit sequence, "09" is a valid number
@@ -1961,5 +1962,24 @@ describe("Parser and input edge cases", () => {
   test("Can clamp an infinite distance to the last segment", () => {
     expect(getSegmentAtLength("M0 0L10 10L20 20", Infinity)).to.deep.equal(["L", 20, 20]);
     expect(getSegmentAtLength("M0 0L10 10L20 20", 1e9)).to.deep.equal(["L", 20, 20]);
+  });
+
+  test("Can get the properties of a length inside the first segment", () => {
+    // a path that does not start with a moveto is not a valid path, but the
+    // result still has to be well formed
+    expect(
+      getPropertiesAtLength(
+        [
+          ["L", 10, 10],
+          ["L", 20, 20],
+        ] as unknown as PathArray,
+        5,
+      ),
+    ).to.deep.equal({
+      segment: ["L", 10, 10],
+      index: 0,
+      length: 14.142135623730951,
+      lengthAtSegment: 0,
+    });
   });
 });
