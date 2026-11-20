@@ -186,6 +186,22 @@ The offset accepts the `join` option (`"miter"`, the default, `"bevel"` or `"rou
 
 The offset is not cleaned up: an offset distance larger than the local radius of curvature of the path produces a self-crossing curve.
 
+### instance.isPointInStroke(_point_: { x: number; y: number }, _options_: StrokeOptions)
+
+Checks if a given point is in the stroke of the path.
+
+```js
+new SVGPathCommander("M0 0L100 0").isPointInStroke({ x: 50, y: 5 });
+// => false — the point is not on the path
+```
+
+Without a width the point has to be on the path itself, within the distance epsilon of it. With a width the stroke is the band around the path: the point is in the stroke when it is at most half the width away from the path. The ends of an open path are treated as if the stroke had round caps.
+
+```js
+new SVGPathCommander("M0 0L100 0").isPointInStroke({ x: 50, y: 5 }, { width: 10 });
+// => true — the point is inside the stroke
+```
+
 ### instance.isPointInPath(_point_: { x: number; y: number }, _options_: PointInPathOptions)
 
 Checks if a given point is inside the filled shape of the path.
@@ -413,9 +429,14 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   SVGPathCommander.getClosestPoint("M10 90C25 80,25 50,40 10", { x: 10, y: 90 });
   // => { x: 10, y: 90 }
   ```
-- _*SVGPathCommander.isPointInStroke(*path*: PathArray | string*, *point*: { x: number, y: number })_* - checks if a given _{x,y}_ point is along the stroke of a path;
+- _*SVGPathCommander.isPointInStroke(*path*: PathArray | string*, *point*: { x: number, y: number }, *options*: StrokeOptions)_* - checks if a given _{x,y}_ point is along the stroke of a path;
   ```js
   SVGPathCommander.isPointInStroke("M10 90C25 80,25 50,40 10", { x: 10, y: 90 }); // => true
+  ```
+  Without a width the point has to be on the path itself, within the distance epsilon of it. With a width the stroke is the band around the path: the point is in the stroke when it is at most half the width away from the path. The ends of an open path are treated as if the stroke had round caps.
+  ```js
+  SVGPathCommander.isPointInStroke("M0 0L100 0", { x: 50, y: 5 }); // => false
+  SVGPathCommander.isPointInStroke("M0 0L100 0", { x: 50, y: 5 }, { width: 10 }); // => true
   ```
 - **SVGPathCommander.isPointInPath(_path_: PathArray | string, _point_: { x: number, y: number }, _options_: PointInPathOptions)** - checks if a given _{x,y}_ point is inside the filled shape of a path, with the `nonzero` or the `evenodd` fill rule of the SVG `fill-rule` attribute;
   ```js

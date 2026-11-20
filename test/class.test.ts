@@ -361,6 +361,15 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(hole.isPointInPath({ x: 50, y: 50 }, { fillRule: "evenodd" })).to.equal(false);
   });
 
+  test("Test isPointInStroke", () => {
+    const line = new SVGPathCommander("M0 0L100 0");
+    expect(line.isPointInStroke({ x: 50, y: 0 })).to.equal(true);
+    expect(line.isPointInStroke({ x: 50, y: 5 })).to.equal(false);
+    // the width of the stroke is the band around the path
+    expect(line.isPointInStroke({ x: 50, y: 5 }, { width: 10 })).to.equal(true);
+    expect(line.isPointInStroke({ x: 50, y: 6 }, { width: 10 })).to.equal(false);
+  });
+
   test("Test toAbsolute", async () => {
     const container = getMarkup();
     wrapper.append(container);

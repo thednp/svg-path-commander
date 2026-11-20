@@ -308,6 +308,17 @@ answers it with `isPointInFill()`, and the curves of the path are approximated
 with chords, so the answer can differ from the exact geometry for the points
 that are within the `tolerance` (0.1 by default) of the boundary of a curve.
 
+`isPointInStroke()` tells if a point is along the path, and with the `width`
+option it tells if a point is inside the band a stroke paints around the path:
+
+```js
+SVGPathCommander.isPointInStroke("M0 0L100 0", { x: 50, y: 5 });
+// => false — the point is not on the path
+
+SVGPathCommander.isPointInStroke("M0 0L100 0", { x: 50, y: 5 }, { width: 10 });
+// => true — the point is inside the stroke
+```
+
 # Advanced Usage
 
 In most cases, you can import only the tools you need, without importing the entire library. All static methods are exposed as named exports from the tree-shakeable `svg-path-commander/util` entry, with proper TypeScript definitions.

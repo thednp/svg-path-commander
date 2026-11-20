@@ -60,6 +60,14 @@
   ```
   A point on the boundary of the shape is inside of it, the way the browser answers it with `isPointInFill()`, and the curves of the path are approximated with chords, so the answer can differ from the exact geometry for the points that are within the `tolerance` (0.1 by default) of the boundary of a curve.
 - `SVGPathCommander#isPointInPath(point, options)` — the instance method of the hit test, the counterpart of `isPointInStroke()`
+- `isPointInStroke()` accepts the `width` option — the tool answered whether a point is _on_ the path, which is the path itself and not the band a stroke paints around it, so the hit test of a stroked shape was impossible. With a width the stroke is the band around the path: the point is in the stroke when it is at most half the width away from the path. The ends of an open path are treated as if the stroke had round caps:
+  ```js
+  SVGPathCommander.isPointInStroke("M0 0L100 0", { x: 50, y: 5 });
+  // => false — the point is not on the path
+  SVGPathCommander.isPointInStroke("M0 0L100 0", { x: 50, y: 5 }, { width: 10 });
+  // => true — the point is inside the stroke
+  ```
+  The answer without a width is the same as before, so the change is additive.
 
 ### Fixed
 

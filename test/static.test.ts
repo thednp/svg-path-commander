@@ -502,6 +502,36 @@ describe("SVGPathCommander Static Methods", () => {
     expect(isPointInStroke(simpleShapes.initial[1], { x: 50, y: 10 })).to.be.true;
   });
 
+  test(`Can do isPointInStroke with a width`, () => {
+    const { isPointInStroke } = SVGPathCommander;
+    const line = "M0 0L100 0";
+    // without a width the point has to be on the path
+    expect(isPointInStroke(line, { x: 50, y: 0 })).to.be.true;
+    expect(isPointInStroke(line, { x: 50, y: 5 })).to.be.false;
+    // with a width the stroke is the band around the path
+    expect(isPointInStroke(line, { x: 50, y: 5 }, { width: 10 })).to.be.true;
+    expect(isPointInStroke(line, { x: 50, y: 6 }, { width: 10 })).to.be.false;
+    expect(isPointInStroke(line, { x: 50, y: 0 }, { width: 10 })).to.be.true;
+    // the ends of an open path are treated as round caps
+    expect(isPointInStroke(line, { x: 105, y: 0 }, { width: 10 })).to.be.true;
+    expect(isPointInStroke(line, { x: 106, y: 0 }, { width: 10 })).to.be.false;
+    // a width of zero is the path itself
+    expect(isPointInStroke(line, { x: 50, y: 0 }, { width: 0 })).to.be.true;
+    expect(isPointInStroke(line, { x: 50, y: 5 }, { width: 0 })).to.be.false;
+  });
+
+  test(`Can reject an invalid stroke width`, () => {
+    const { isPointInStroke } = SVGPathCommander;
+    [-1, Number.NaN, Number.POSITIVE_INFINITY, "10"].forEach((width) => {
+      try {
+        isPointInStroke("M0 0L100 0", { x: 50, y: 0 }, { width: width as never });
+        expect.fail("should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+      }
+    });
+  });
+
   test(`Can do getDrawDirection`, () => {
     const { getDrawDirection } = SVGPathCommander;
     expect(getDrawDirection(simpleShapes.reversed[1])).to.be.true;

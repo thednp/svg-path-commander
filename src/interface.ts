@@ -62,6 +62,12 @@ export type PointInPathOptions = {
   tolerance?: number;
 };
 
+/** The options of the point in stroke test. */
+export type StrokeOptions = {
+  /** The width of the stroke, the band painted around the path. @default 0 */
+  width?: number;
+};
+
 /** The closest point on the path to a given point, with the distance and optional segment. */
 export type PointProperties = {
   /** The closest point on the path to the given point. */

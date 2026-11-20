@@ -20,6 +20,7 @@ While you may find familiar tools inside, this library brings _**new additions**
 - `resamplePath` spreads the points of a path evenly over its length, so the distance between two points is the same over the whole path, and the corners of the path are kept;
 - `offsetPath` offsets a path along its normals, with the joins and the caps of a stroke, so a path can be expanded or outlined;
 - `isPointInPath` tells if a point is inside a filled shape, with the `nonzero` and the `evenodd` fill rules of the SVG `fill-rule` attribute;
+- `isPointInStroke` tells if a point is along a path, or inside the band a stroke paints around it when you give it a width;
 - `equalize` brings two paths to the same shape, so they can be morphed into each other;
 - a tool that can _reverse path draw direction_ without altering path commands, even with specific shorthand path commands;
 - a unique tool that can _reverse path draw direction_ for path strings with only 'C' path commands;
