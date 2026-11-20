@@ -443,6 +443,21 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     ).to.equal(simpleShapes.initial[2]);
   });
 
+  test("Test simplify", async () => {
+    const container = getMarkup();
+    wrapper.append(container);
+    await vi.waitFor(() => container.querySelector("svg"), { timeout: 200 });
+    const path = await vi.waitFor(() => container.querySelector("path") as SVGPathElement, {
+      timeout: 200,
+    });
+
+    const simplified = new SVGPathCommander("M0 0L10 0L20 0L30 0").simplify(1);
+    path.setAttribute("d", simplified.toString());
+    expect(path.getAttribute("d")).to.equal("M0 0L30 0");
+    // the method is chainable
+    expect(simplified.simplify({ tolerance: 1 })).to.equal(simplified);
+  });
+
   test("Test reverse single path", async () => {
     const container = getMarkup();
     wrapper.append(container);

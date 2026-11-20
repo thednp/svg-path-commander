@@ -20,6 +20,12 @@ export type SegmentProperties = {
   angle: number;
 };
 
+/** The options of the path simplification. */
+export type SimplifyOptions = {
+  /** The maximum distance between the simplified path and the original one. @default 1 */
+  tolerance?: number;
+};
+
 /** The closest point on the path to a given point, with the distance and optional segment. */
 export type PointProperties = {
   /** The closest point on the path to the given point. */

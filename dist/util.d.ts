@@ -23,6 +23,11 @@ type SegmentProperties = {
   /** The angle of the tangent at the given length, in degrees. */
   angle: number;
 };
+/** The options of the path simplification. */
+type SimplifyOptions = {
+  /** The maximum distance between the simplified path and the original one. @default 1 */
+  tolerance?: number;
+};
 /** The closest point on the path to a given point, with the distance and optional segment. */
 type PointProperties = {
   /** The closest point on the path to the given point. */
@@ -1559,6 +1564,28 @@ export declare const segmentToCubic: (segment: PathSegment, params: ParserParams
  * @returns the shortened segment
  */
 export declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSegment, params: ParserParams, prevCommand: PathCommand) => ShortSegment;
+/**
+ * Simplifies a path, with the Douglas-Peucker algorithm.
+ *
+ * The path is sampled along its length and the points that are needed to
+ * keep its shape within the tolerance are kept: the result is a path of
+ * straight lines, one sub-path for every sub-path of the source.
+ *
+ * The tolerance is the maximum distance between the result and the source:
+ * every point of the source stays within the tolerance of the result. A
+ * smaller tolerance keeps more points, a bigger one removes more.
+ *
+ * @param pathInput - the target path string or PathArray
+ * @param options - the tolerance of the simplification, or the options
+ * @returns the simplified path
+ *
+ * @example
+ * ```ts
+ * simplifyPath("M0 0L10 0L20 0L30 0", 1)
+ * // => [['M', 0, 0], ['L', 30, 0]]
+ * ```
+ */
+export declare const simplifyPath: (pathInput: string | PathArray, options?: number | SimplifyOptions) => PathArray;
 /**
  * Checks a `PathArray` for an unnecessary `Z` segment
  * and removes it. The `PathArray` is modified in place.

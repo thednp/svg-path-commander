@@ -23,6 +23,11 @@ export type SegmentProperties = {
   /** The angle of the tangent at the given length, in degrees. */
   angle: number;
 };
+/** The options of the path simplification. */
+export type SimplifyOptions = {
+  /** The maximum distance between the simplified path and the original one. @default 1 */
+  tolerance?: number;
+};
 /** The closest point on the path to a given point, with the distance and optional segment. */
 export type PointProperties = {
   /** The closest point on the path to the given point. */
@@ -1245,6 +1250,28 @@ declare const segmentToCubic: (segment: PathSegment, params: ParserParams) => MS
  */
 declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSegment, params: ParserParams, prevCommand: PathCommand) => ShortSegment;
 /**
+ * Simplifies a path, with the Douglas-Peucker algorithm.
+ *
+ * The path is sampled along its length and the points that are needed to
+ * keep its shape within the tolerance are kept: the result is a path of
+ * straight lines, one sub-path for every sub-path of the source.
+ *
+ * The tolerance is the maximum distance between the result and the source:
+ * every point of the source stays within the tolerance of the result. A
+ * smaller tolerance keeps more points, a bigger one removes more.
+ *
+ * @param pathInput - the target path string or PathArray
+ * @param options - the tolerance of the simplification, or the options
+ * @returns the simplified path
+ *
+ * @example
+ * ```ts
+ * simplifyPath("M0 0L10 0L20 0L30 0", 1)
+ * // => [['M', 0, 0], ['L', 30, 0]]
+ * ```
+ */
+declare const simplifyPath: (pathInput: string | PathArray, options?: number | SimplifyOptions) => PathArray;
+/**
  * Checks a `PathArray` for an unnecessary `Z` segment
  * and removes it. The `PathArray` is modified in place.
  * In short, if the segment before `Z` extends to `M`,
@@ -1525,6 +1552,24 @@ export declare class SVGPathCommander {
    * @public
    */
   optimize(): this;
+  /**
+   * Simplify path with the Douglas-Peucker algorithm.
+   *
+   * The path is measured along its length and the points that are needed to
+   * keep its shape within the tolerance are kept: the result is a path of
+   * straight lines.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L10 0L20 0L30 0').simplify(1).toString()
+   * // => 'M0 0L30 0'
+   * ```
+   *
+   * @param options - the tolerance of the simplification, or the options
+   * @returns this for chaining
+   * @public
+   */
+  simplify(options?: number | SimplifyOptions): this;
   /**
    * Transform path using values from an `Object` defined as `transformObject`.
    *
@@ -1807,6 +1852,8 @@ export declare class SVGPathCommander {
   static segmentToCubic: typeof segmentToCubic;
   /** Shorten a single segment of a `pathArray` object. */
   static shortenSegment: typeof shortenSegment;
+  /** Simplifies a path, with the Douglas-Peucker algorithm. */
+  static simplifyPath: typeof simplifyPath;
   /** Split a path string or PathArray into an array of sub-paths. */
   static splitPath: typeof splitPath;
   /** Equalizes two paths for morphing (single/multi subpath). */

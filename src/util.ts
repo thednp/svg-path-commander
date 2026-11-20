@@ -77,6 +77,7 @@ export { roundPath } from "./process/roundPath.ts";
 export { roundSegment } from "./process/roundSegment.ts";
 export { segmentToCubic } from "./process/segmentToCubic.ts";
 export { shortenSegment } from "./process/shortenSegment.ts";
+export { simplifyPath } from "./process/simplifyPath.ts";
 
 export { fixPath } from "./morph/fixPath.ts";
 export { splitCubicSegment } from "./morph/splitCubicSegment.ts";

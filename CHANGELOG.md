@@ -12,6 +12,16 @@
   //      point: { x: 50, y: 0 }, tangent: { x: 1, y: 0 },
   //      normal: { x: 0, y: 1 }, angle: 0 }
   ```
+- `simplifyPath()` — the Douglas-Peucker simplification of a path: the path is measured along its length and the points that are needed to keep its shape within the tolerance are kept, the result is a path of straight lines, one sub-path for every sub-path of the source:
+  ```js
+  SVGPathCommander.simplifyPath("M0 0L10 0L20 0L30 0", 1);
+  // => [["M", 0, 0], ["L", 30, 0]]
+  ```
+- `SVGPathCommander#simplify(tolerance)` — the instance method of the simplification, the counterpart of `normalize()`:
+  ```js
+  new SVGPathCommander("M0 0L10 0L20 0L30 0").simplify(1).toString();
+  // => "M0 0L30 0"
+  ```
 
 ### Fixed
 
@@ -54,6 +64,7 @@
 ### Changed
 
 - The frame of `getPropertiesAtLength()` shares one `t` ratio between the point and the tangent — the point and the frame are computed from the very same spot on the curve, which is **1.9x - 3.7x** faster than looking both up separately
+- The Douglas-Peucker simplification splits a range at its worst point _and_ in its middle when the worst point sits at the edge of the range — a split at the edge alone makes the recursion as deep as the range is long, which was quadratic on a path that alternates between two sides of a line: a 4 000 curve path went from **1 090 ms** to **17 ms**, and the result keeps the same shape within the tolerance
 - `getTotalLength()` and `getPathSplits()` now share one length measurement pass — `measureSegments()` yields the length of every segment together with the length accumulated before it, so the two can no longer disagree and `getPathSplits()` no longer computes every segment length twice; the pass handles every command the way `getTotalLength()` does, where the old `getPathSplits()` measured `H`, `V` and `Z` segments as cubics and produced `NaN` for them
 - `equalizeSegments("", "")` returns `[[], []]` instead of `[[], null]` — an empty path has no rotation, and the morph facade no longer reports a `null` one
 - The benchmark harness (`scripts/bench.js`) measures with `performance.now()` instead of `new Date().getTime()` (1 ms resolution, on operations that take single-digit milliseconds), runs 30 times after 5 warmups and reports the **median** and the **best** of the runs in separate columns; it only rewrites the README when `--write` is passed, so `vpr bench` no longer leaves the working tree dirty

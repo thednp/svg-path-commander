@@ -20,6 +20,7 @@ import { classifyPaths } from "../src/morph/classifyPaths";
 import { matchPaths } from "../src/morph/matchPaths";
 import { getPolyPath } from "../src/util/shapeToPathArray";
 import { iterate } from "../src/process/iterate";
+import { distanceToSegment } from "../src/process/douglasPeucker";
 import type { IntersectionPoint, MorphPathArray, PathFeature } from "../src/types";
 import type { SegmentProperties } from "../src/interface";
 
@@ -2272,6 +2273,199 @@ describe("Tangent, normal and angle at length", () => {
         const length = Math.sqrt(dx * dx + dy * dy);
         // the derivative of the path and the tangent point the same way
         expect((dx / length) * tangent.x + (dy / length) * tangent.y).to.be.closeTo(1, 1e-6);
+      }
+    });
+  });
+});
+
+describe("Path simplification", () => {
+  const { simplifyPath, getTotalLength, getPointAtLength } = SVGPathCommander;
+
+  /**
+   * Returns the maximum distance between the points of a path and a polyline.
+   *
+   * @param path - the path to sample
+   * @param polyline - the polyline to measure against
+   * @returns the maximum distance
+   */
+  const maxDeviation = (path: string, polyline: PathArray): number => {
+    const points: { x: number; y: number }[] = [];
+    const length = getTotalLength(path);
+    const samples = 500;
+    for (let i = 0; i <= samples; i += 1) {
+      points.push(getPointAtLength(path, (length * i) / samples));
+    }
+
+    const segments: [{ x: number; y: number }, { x: number; y: number }][] = [];
+    let current = { x: 0, y: 0 };
+    let start = { x: 0, y: 0 };
+    for (const segment of polyline) {
+      const command = segment[0];
+      if (command === "M" || command === "m") {
+        current = { x: segment[1] as number, y: segment[2] as number };
+        start = current;
+      } else if (command === "L" || command === "l") {
+        const end = { x: segment[1] as number, y: segment[2] as number };
+        segments.push([current, end]);
+        current = end;
+      } else if (command === "Z" || command === "z") {
+        // the close segment returns to the start of the sub-path
+        segments.push([current, start]);
+        current = start;
+      }
+    }
+
+    let max = 0;
+    for (const point of points) {
+      // the distance to the polyline is the closest of its segments
+      let closest = Infinity;
+      for (const [from, to] of segments) {
+        closest = Math.min(closest, distanceToSegment(point, from, to));
+      }
+      max = Math.max(max, closest);
+    }
+    return max;
+  };
+
+  test("Can simplify a straight line", () => {
+    expect(simplifyPath("M0 0L10 0L20 0L30 0", 1)).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 30, 0],
+    ]);
+  });
+
+  test("Can simplify a path that does not start with a moveto", () => {
+    expect(
+      simplifyPath(
+        [
+          ["L", 10, 10],
+          ["L", 20, 20],
+        ] as unknown as PathArray,
+        1,
+      ),
+    ).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 20, 20],
+    ]);
+  });
+
+  test("Can simplify a closed path", () => {
+    expect(simplifyPath("M0 0L100 0L100 100L0 100Z", 1)).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 100, 0],
+      ["L", 100, 100],
+      ["L", 0, 100],
+      ["Z"],
+    ]);
+  });
+
+  test("Can simplify a path with multiple sub-paths", () => {
+    expect(simplifyPath("M0 0L10 0L20 0ZM100 100L110 100L120 100Z", 1)).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 20, 0],
+      ["Z"],
+      ["M", 100, 100],
+      ["L", 120, 100],
+      ["Z"],
+    ]);
+  });
+
+  test("Can keep the shape of a path within the tolerance", () => {
+    const paths = [
+      "M0 0C50 100 100 100 150 0",
+      "M0 0Q50 100 100 0",
+      "M0 0A50 50 0 0 1 100 0",
+      "M0 0C10 0 20 100 30 100C40 100 50 0 60 0",
+      "M0 0L100 0L100 100L0 100Z",
+    ];
+    paths.forEach((path) => {
+      [0.1, 1, 5, 20].forEach((tolerance) => {
+        const simplified = simplifyPath(path, tolerance);
+        expect(maxDeviation(path, simplified)).to.be.at.most(tolerance);
+      });
+    });
+  });
+
+  test("Can remove the points of a curve that overshoots its chord", () => {
+    // the curve goes beyond the end of the chord and before its start
+    const path = "M0 0C300 100 300 100 200 0";
+    const simplified = simplifyPath(path, 1);
+    expect(simplified.length).to.be.above(2);
+    expect(maxDeviation(path, simplified)).to.be.at.most(1);
+
+    const back = "M100 0C300 100 300 100 -100 0";
+    const simplifiedBack = simplifyPath(back, 1);
+    expect(simplifiedBack.length).to.be.above(2);
+    expect(maxDeviation(back, simplifiedBack)).to.be.at.most(1);
+  });
+
+  test("A tiny tolerance keeps the corners of a path", () => {
+    expect(simplifyPath("M0 0L10 0L10 10", 0.001)).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 10, 0],
+      ["L", 10, 10],
+    ]);
+  });
+
+  test("Can simplify a path with the options object", () => {
+    expect(simplifyPath("M0 0L10 0L20 0L30 0", { tolerance: 1 })).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 30, 0],
+    ]);
+  });
+
+  test("Can simplify a path with the default tolerance", () => {
+    expect(simplifyPath("M0 0L10 0L20 0L30 0")).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 30, 0],
+    ]);
+  });
+
+  test("Can simplify an empty path", () => {
+    expect(simplifyPath("", 1)).to.deep.equal([]);
+  });
+
+  test("Can simplify a path with a sharp corner at the edge of a range", () => {
+    // the worst point of the range is at its edge, so the range is split
+    // in the middle as well
+    const spike = `M0 0L0 100${"L10 100L20 100L30 100L40 100L50 100L60 100L70 100L80 100L90 100L100 100L110 100L120 100L130 100L140 100L150 100L160 100L170 100L180 100L190 100L200 100"}`;
+    expect(simplifyPath(spike, 1)).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 0, 100],
+      ["L", 90, 100],
+      ["L", 200, 100],
+    ]);
+
+    // the same, with the worst point at the other edge of the range
+    const tail = `${"L10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80L90 90L100 100L110 110L120 120L130 130L140 140L150 150L160 160L170 170L180 180L190 190L0 100"}`;
+    expect(simplifyPath(`M0 0${tail}`, 1)).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 100, 100],
+      ["L", 190, 190],
+      ["L", 0, 100],
+    ]);
+  });
+
+  test("Can simplify a path with a single moveto", () => {
+    expect(simplifyPath("M10 10", 1)).to.deep.equal([["M", 10, 10]]);
+  });
+
+  test("Can simplify a path with a zero radius arc", () => {
+    // a zero radius is a straight line to the end point
+    expect(simplifyPath("M0 0A0 5 0 0 1 10 10", 1)).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 10, 10],
+    ]);
+  });
+
+  test("Can reject a tolerance that is not a positive number", () => {
+    [0, -1, Number.NaN, Number.POSITIVE_INFINITY].forEach((tolerance) => {
+      try {
+        simplifyPath("M0 0L10 10", tolerance);
+        expect.fail("should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+        expect(e).to.have.property("message", `${error}: tolerance must be a positive number`);
       }
     });
   });

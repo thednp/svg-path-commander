@@ -76,6 +76,16 @@ Keep the `paths` filters of all three workflows in sync when adding a file that 
 | `util/`        | Query helpers (bbox, length, point-at-length, intersection, etc.)       |
 | `options/`     | Default configuration                                                   |
 
+The Douglas-Peucker simplification lives in `process/` and is built from three modules:
+
+| Module                      | Purpose                                                              |
+| --------------------------- | -------------------------------------------------------------------- |
+| `process/simplifyPath.ts`   | The public API — normalizes, splits and rebuilds the simplified path |
+| `process/samplePath.ts`     | Samples a normalized path along its own parameterization             |
+| `process/douglasPeucker.ts` | The Douglas-Peucker core — the indexes of the points to keep         |
+
+Only `simplifyPath` is public — it is re-exported from `src/util.ts`.
+
 Two modules in `util/` are the backbone of the length machinery and are shared by every query:
 
 | Module                    | Purpose                                                                      |

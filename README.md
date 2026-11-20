@@ -16,6 +16,7 @@ While you may find familiar tools inside, this library brings _**new additions**
 - the build in `getBBox`, `getPointAtLength` and `getTotalLength` are more reliable and much more accurate than the native methods, not to mention their high [performance](https://github.com/thednp/svg-path-commander/issues/44) ratings;
 - thanks to the community contributions we've implemented useful tools like `getPropertiesAtLength`, `getSegmentOfPoint` or `isPointInStroke`;
 - `getPropertiesAtLength` returns the frame of the path at a given length — the point, the unit tangent vector, the unit normal vector and the angle of the tangent in degrees;
+- `simplifyPath` reduces the number of points of a path with the Douglas-Peucker algorithm, within a tolerance you choose;
 - a tool that can _reverse path draw direction_ without altering path commands, even with specific shorthand path commands;
 - a unique tool that can _reverse path draw direction_ for path strings with only 'C' path commands;
 - a new and unique tool to _apply transform functions to path commands_ via the modern _DOMMatrix_ API;
@@ -318,6 +319,13 @@ Get the path bounding box:
 ```js
 const myPathBBox = SVGPathCommander.getPathBBox("M0 0L50 0L25 50z");
 // result => {width: 50, height: 50, x: 0, y: 0, x2: 50, y2: 50, cx: 25, cy: 25, cz: 75}
+```
+
+Simplify the path, within a tolerance:
+
+```js
+const mySimplifiedPath = SVGPathCommander.simplifyPath("M0 0L10 0L20 0L30 0", 1);
+// result => [["M", 0, 0], ["L", 30, 0]]
 ```
 
 Find intersection points between two paths:

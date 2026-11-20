@@ -4184,6 +4184,296 @@ const roundPath = (path, roundOption) => {
 		return roundSegment(segment, round);
 	});
 };
+// src/process/samplePath.ts
+/**
+* Returns the number of samples of a segment.
+*
+* The samples are spread over the parameter of the segment, so their number
+* grows with the length of the segment: a straight segment needs none, a
+* curve needs one every step.
+*
+* @param length - the length of the segment
+* @param step - the maximum distance between two samples
+* @returns the number of samples of the segment
+*/
+const sampleCount = (length, step) => Math.max(2, Math.ceil(length / step));
+/**
+* Returns the points of a normalized path, sampled along its segments.
+*
+* The samples are the points the simplification measures: they sit on the
+* path itself, so the distance between the path and the result is measured
+* against the path and not against an approximation of it.
+*
+* A straight segment needs no sample of its own, the chord of a straight
+* segment is the segment: the same goes for the close segment, the
+* deviation of a chord from a straight line is at its ends and the ends are
+* the samples of the segments around it.
+*
+* @param path - the normalized path to sample
+* @param step - the maximum distance between two samples
+* @returns the samples of the path, in path order
+*/
+const samplePath = (path, step) => {
+	const { measures } = buildPathLengthTable(path);
+	const samples = [];
+	for (const measure of measures) {
+		const { segment, startX, startY, endX, endY, length } = measure;
+		const command = segment[0];
+		if (command === "Z") {
+			samples.push({
+				x: endX,
+				y: endY
+			});
+			continue;
+		}
+		if (command === "M" || command === "L") samples.push({
+			x: endX,
+			y: endY
+		});
+		else if (command === "C") {
+			const count = sampleCount(length, step);
+			const coords = [
+				startX,
+				startY,
+				segment[1],
+				segment[2],
+				segment[3],
+				segment[4],
+				endX,
+				endY
+			];
+			for (let i = 1; i < count; i += 1) samples.push(getPointAtCubicSegmentLength(coords, i / count));
+			samples.push({
+				x: endX,
+				y: endY
+			});
+		} else if (command === "Q") {
+			const count = sampleCount(length, step);
+			const coords = [
+				startX,
+				startY,
+				segment[1],
+				segment[2],
+				endX,
+				endY
+			];
+			for (let i = 1; i < count; i += 1) samples.push(getPointAtQuadSegmentLength(coords, i / count));
+			samples.push({
+				x: endX,
+				y: endY
+			});
+		} else {
+			const rx = segment[1];
+			const ry = segment[2];
+			const angle = segment[3];
+			if (rx === 0 || ry === 0) {
+				samples.push({
+					x: endX,
+					y: endY
+				});
+				continue;
+			}
+			const { center, rx: radiusX, ry: radiusY, startAngle, endAngle } = getArcProps(startX, startY, rx, ry, angle, segment[4], segment[5], endX, endY);
+			const count = sampleCount(length, step);
+			const alpha = (angle % 360 + 360) % 360 * (Math.PI / 180);
+			const sweep = endAngle - startAngle;
+			for (let i = 1; i < count; i += 1) {
+				const [x, y] = arcPoint(center.x, center.y, radiusX, radiusY, alpha, startAngle + sweep * i / count);
+				samples.push({
+					x,
+					y
+				});
+			}
+			samples.push({
+				x: endX,
+				y: endY
+			});
+		}
+	}
+	return samples;
+};
+// src/process/douglasPeucker.ts
+/**
+* Returns the distance from a point to a line segment.
+*
+* The distance is the one to the segment, not to the infinite line: a point
+* beyond the end of the segment is at the distance to that end.
+*
+* @param point - the point to measure
+* @param start - the start of the segment
+* @param end - the end of the segment
+* @returns the distance from the point to the segment
+*/
+const distanceToSegment = (point, start, end) => {
+	const dx = end.x - start.x;
+	const dy = end.y - start.y;
+	const lengthSquared = dx * dx + dy * dy;
+	if (lengthSquared === 0) {
+		const px = point.x - start.x;
+		const py = point.y - start.y;
+		return Math.sqrt(px * px + py * py);
+	}
+	let ratio = ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared;
+	ratio = ratio < 0 ? 0 : ratio > 1 ? 1 : ratio;
+	const px = point.x - (start.x + dx * ratio);
+	const py = point.y - (start.y + dy * ratio);
+	return Math.sqrt(px * px + py * py);
+};
+/**
+* Returns the indexes of the points that have to be kept to approximate a
+* polyline within a given tolerance, with the Douglas-Peucker algorithm.
+*
+* The first and the last point of the polyline are always kept, the points
+* in between are kept when they are further from the chord between the two
+* points around them than the tolerance.
+*
+* @see https://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
+*
+* @param points - the points of the polyline
+* @param tolerance - the maximum distance from the simplified polyline
+* @returns the indexes of the points to keep, in order
+*/
+const douglasPeucker = (points, tolerance) => {
+	if (points.length < 3) return points.map((_point, index) => index);
+	const keep = points.map(() => false);
+	keep[0] = true;
+	keep[points.length - 1] = true;
+	const stack = [0, points.length - 1];
+	while (stack.length) {
+		const last = stack.pop();
+		const first = stack.pop();
+		const start = points[first];
+		const end = points[last];
+		let maxDistance = 0;
+		let index = -1;
+		for (let i = first + 1; i < last; i += 1) {
+			const distance = distanceToSegment(points[i], start, end);
+			if (distance > maxDistance) {
+				maxDistance = distance;
+				index = i;
+			}
+		}
+		if (index === -1 || maxDistance <= tolerance) continue;
+		keep[index] = true;
+		const span = last - first;
+		const edge = span >> 3;
+		if (span > 8 && (index - first < edge || last - index < edge)) {
+			const middle = first + (span >> 1);
+			keep[middle] = true;
+			if (index < middle) stack.push(middle, last, index, middle, first, index);
+			else stack.push(index, last, middle, index, first, middle);
+		} else stack.push(index, last, first, index);
+	}
+	return points.map((_point, index) => index).filter((index) => keep[index]);
+};
+// src/process/simplifyPath.ts
+/**
+* The default tolerance of the simplification.
+*/
+const defaultTolerance = 1;
+/**
+* The maximum number of samples of a path.
+*
+* The samples are the measurements of the algorithm, so their number grows
+* with the length of the path and shrinks with the tolerance: a very long
+* path with a very small tolerance would need millions of samples, so the
+* sampling is capped and the step grows to fit.
+*/
+const MAX_SAMPLES = 2e4;
+/**
+* The share of the tolerance the samples are spread with.
+*
+* The curve is sampled with a step of a sixteenth of the tolerance, so the
+* deviation of the curve between two samples is a fraction of the tolerance
+* itself: a range is only accepted when the curve stays within four fifths
+* of the tolerance from the chord, so the result cannot exceed it.
+*/
+const SAMPLE_SHARE = 16;
+/**
+* The share of the tolerance a range of the path may use.
+*
+* The samples are a discretization of the path, so the deviation between two
+* samples is not measured: the range is accepted at four fifths of the
+* tolerance, so the result stays within the tolerance even when the curve
+* bulges a little between two samples.
+*/
+const ACCEPTANCE = .8;
+/**
+* Splits a normalized path into its sub-paths.
+*
+* A path that does not start with a moveto starts at the origin, so the
+* missing moveto is added and the leading segments are not lost.
+*
+* @param path - the normalized path to split
+* @returns the sub-paths of the path
+*/
+const splitSubPaths = (path) => {
+	const source = path[0]?.[0] === "M" ? path : [[
+		"M",
+		0,
+		0
+	], ...path];
+	const result = [];
+	let current = [];
+	for (const segment of source) if (segment[0] === "M") {
+		if (current.length) result.push(current);
+		current = [segment];
+	} else current.push(segment);
+	result.push(current);
+	return result;
+};
+/**
+* Simplifies a path, with the Douglas-Peucker algorithm.
+*
+* The path is sampled along its length and the points that are needed to
+* keep its shape within the tolerance are kept: the result is a path of
+* straight lines, one sub-path for every sub-path of the source.
+*
+* The tolerance is the maximum distance between the result and the source:
+* every point of the source stays within the tolerance of the result. A
+* smaller tolerance keeps more points, a bigger one removes more.
+*
+* @param pathInput - the target path string or PathArray
+* @param options - the tolerance of the simplification, or the options
+* @returns the simplified path
+*
+* @example
+* ```ts
+* simplifyPath("M0 0L10 0L20 0L30 0", 1)
+* // => [['M', 0, 0], ['L', 30, 0]]
+* ```
+*/
+const simplifyPath = (pathInput, options) => {
+	const tolerance = typeof options === "number" ? options : options?.tolerance ?? defaultTolerance;
+	if (!Number.isFinite(tolerance) || tolerance <= 0) throw new TypeError(`${error}: tolerance must be a positive number`);
+	const normalized = normalizePath(pathInput);
+	if (!normalized.length) return [];
+	const result = [];
+	for (const subPath of splitSubPaths(normalized)) {
+		const { totalLength } = buildPathLengthTable(subPath);
+		const step = Math.max(tolerance / SAMPLE_SHARE, totalLength / MAX_SAMPLES);
+		const samples = samplePath(subPath, step);
+		const kept = douglasPeucker(samples, tolerance * ACCEPTANCE);
+		const start = samples[0];
+		result.push([
+			"M",
+			start.x,
+			start.y
+		]);
+		const closed = subPath[subPath.length - 1][0] === "Z";
+		const end = closed ? kept.length - 1 : kept.length;
+		for (let i = 1; i < end; i += 1) {
+			const point = samples[kept[i]];
+			result.push([
+				"L",
+				point.x,
+				point.y
+			]);
+		}
+		if (closed) result.push(["Z"]);
+	}
+	return result;
+};
 // src/morph/fixPath.ts
 /**
 * Checks a `PathArray` for an unnecessary `Z` segment
@@ -5143,6 +5433,6 @@ const pathsIntersection = (pathInput1, pathInput2, justCount = true) => {
 	}
 	return justCount ? countResult : pointsResult;
 };
-export { PathParser, absolutizeSegment, arcToCubic, arcTools, bezierTools, boundingBoxIntersect, cubicTools, DISTANCE_EPSILON as distanceEpsilon, distanceSquareRoot, equalizePaths, equalizeSegments, finalizeSegment, fixPath, getClosestPoint, getDrawDirection, getPathArea, getPathBBox, getPointAtLength, getPropertiesAtLength, getPropertiesAtPoint, getSVGMatrix, getSegmentAtLength, getSegmentOfPoint, getTotalLength, invalidPathValue, isAbsoluteArray, isArcCommand, isClosedPath, isCurveArray, isDigit, isDigitStart, isMoveCommand, isMultiPath, isNormalizedArray, isPathArray, isPathCommand, isPointInStroke, isPointInsideBBox, isPolygonArray, isPolylineArray, isRelativeArray, isSpace, isValidPath, iterate, lineToCubic, lineTools, midPoint, normalizePath, normalizeSegment, optimizePath, paramsCounts, paramsParser, parsePathString, pathToAbsolute, pathToCurve, pathToRelative, pathToString, pathsIntersection, polygonTools, projection2d, quadToCubic, quadTools, relativizeSegment, reverseCurve, reversePath, rotateVector, roundPath, roundSegment, roundTo, scanFlag, scanParam, scanSegment, segmentToCubic, shapeParams, shapeToPath, shapeToPathArray, shortenSegment, skipSpaces, splitCubicSegment, splitPath, transformPath };
+export { PathParser, absolutizeSegment, arcToCubic, arcTools, bezierTools, boundingBoxIntersect, cubicTools, DISTANCE_EPSILON as distanceEpsilon, distanceSquareRoot, equalizePaths, equalizeSegments, finalizeSegment, fixPath, getClosestPoint, getDrawDirection, getPathArea, getPathBBox, getPointAtLength, getPropertiesAtLength, getPropertiesAtPoint, getSVGMatrix, getSegmentAtLength, getSegmentOfPoint, getTotalLength, invalidPathValue, isAbsoluteArray, isArcCommand, isClosedPath, isCurveArray, isDigit, isDigitStart, isMoveCommand, isMultiPath, isNormalizedArray, isPathArray, isPathCommand, isPointInStroke, isPointInsideBBox, isPolygonArray, isPolylineArray, isRelativeArray, isSpace, isValidPath, iterate, lineToCubic, lineTools, midPoint, normalizePath, normalizeSegment, optimizePath, paramsCounts, paramsParser, parsePathString, pathToAbsolute, pathToCurve, pathToRelative, pathToString, pathsIntersection, polygonTools, projection2d, quadToCubic, quadTools, relativizeSegment, reverseCurve, reversePath, rotateVector, roundPath, roundSegment, roundTo, scanFlag, scanParam, scanSegment, segmentToCubic, shapeParams, shapeToPath, shapeToPathArray, shortenSegment, simplifyPath, skipSpaces, splitCubicSegment, splitPath, transformPath };
 
 //# sourceMappingURL=util.js.map

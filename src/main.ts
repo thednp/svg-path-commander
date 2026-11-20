@@ -14,7 +14,13 @@ import { rotateVector } from "./math/rotateVector.ts";
 import { roundTo } from "./math/roundTo.ts";
 
 import type { PathArray, PointTuple, TransformObjectValues } from "./types.ts";
-import type { Options, SegmentProperties, TransformEntries, TransformObject } from "./interface.ts";
+import type {
+  Options,
+  SegmentProperties,
+  SimplifyOptions,
+  TransformEntries,
+  TransformObject,
+} from "./interface.ts";
 import { defaultOptions } from "./options/options.ts";
 
 import { pathToAbsolute } from "./convert/pathToAbsolute.ts";
@@ -84,6 +90,7 @@ import { roundPath } from "./process/roundPath.ts";
 import { roundSegment } from "./process/roundSegment.ts";
 import { segmentToCubic } from "./process/segmentToCubic.ts";
 import { shortenSegment } from "./process/shortenSegment.ts";
+import { simplifyPath } from "./process/simplifyPath.ts";
 
 import { fixPath } from "./morph/fixPath.ts";
 import { splitCubicSegment } from "./morph/splitCubicSegment.ts";
@@ -396,6 +403,29 @@ export class SVGPathCommander {
   }
 
   /**
+   * Simplify path with the Douglas-Peucker algorithm.
+   *
+   * The path is measured along its length and the points that are needed to
+   * keep its shape within the tolerance are kept: the result is a path of
+   * straight lines.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L10 0L20 0L30 0').simplify(1).toString()
+   * // => 'M0 0L30 0'
+   * ```
+   *
+   * @param options - the tolerance of the simplification, or the options
+   * @returns this for chaining
+   * @public
+   */
+  simplify(options?: number | SimplifyOptions): this {
+    const { segments } = this;
+    this.segments = simplifyPath(segments, options) as PathArray;
+    return this;
+  }
+
+  /**
    * Transform path using values from an `Object` defined as `transformObject`.
    *
    * @see TransformObject for a quick reference
@@ -669,6 +699,8 @@ export class SVGPathCommander {
   static segmentToCubic = segmentToCubic;
   /** Shorten a single segment of a `pathArray` object. */
   static shortenSegment = shortenSegment;
+  /** Simplifies a path, with the Douglas-Peucker algorithm. */
+  static simplifyPath = simplifyPath;
   /** Split a path string or PathArray into an array of sub-paths. */
   static splitPath = splitPath;
   /** Equalizes two paths for morphing (single/multi subpath). */

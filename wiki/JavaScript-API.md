@@ -133,6 +133,21 @@ const opt = new SVGPathCommander(
 // => "M2 0A2 2 0 0 0 0 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2V2A2 2 0 0 0 14 0H2z"
 ```
 
+### instance.simplify(_tolerance_: number | SimplifyOptions)
+
+Simplifies the path with the Douglas-Peucker algorithm: the path is measured along its length and the points that are needed to keep its shape within the tolerance are kept, the result is a path of straight lines, one sub-path for every sub-path of the source.
+
+```js
+const simplified = new SVGPathCommander("M0 0L10 0L20 0L30 0").simplify(1).toString();
+// => "M0 0L30 0"
+```
+
+The tolerance is the maximum distance between the result and the source: every point of the source stays within the tolerance of the result. A smaller tolerance keeps more points, a bigger one removes more. The tolerance defaults to `1` and it can be given as an object too:
+
+```js
+new SVGPathCommander("M0 0L10 0L20 0L30 0").simplify({ tolerance: 1 });
+```
+
 ### instance.transform(_transform_: TransformObject)
 
 Will normalize all path commands and apply a 2D transformation matrix to all path commands.
@@ -267,6 +282,12 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   SVGPathCommander.normalizePath("M2 0V16");
   // => [['M', 2, 0], ['L', 2, 16]]
   ```
+- **SVGPathCommander.simplifyPath(_path_: string | PathArray, _tolerance_: number | SimplifyOptions)** - returns a new _PathArray_ simplified with the Douglas-Peucker algorithm: the path is measured along its length and the points that are needed to keep its shape within the tolerance are kept, the result is a path of straight lines, one sub-path for every sub-path of the source;
+  ```js
+  SVGPathCommander.simplifyPath("M0 0L10 0L20 0L30 0", 1);
+  // => [['M', 0, 0], ['L', 30, 0]]
+  ```
+  The tolerance is the maximum distance between the result and the source: every point of the source stays within the tolerance of the result. A smaller tolerance keeps more points, a bigger one removes more. The tolerance defaults to `1`.
 - **SVGPathCommander.getDrawDirection(_path_: PathArray)** - converts the _PathArray_ to curve and returns _TRUE_ if a shape draw direction is **clockwise**, it _should work_ for shapes with sub-paths, but it might skew your results, so make sure you split your path and test each sub-path separately;
   ```js
   SVGPathCommander.getDrawDirection("M0 0L100 0L50 100Z"); // => true
@@ -461,6 +482,7 @@ parsePathString("M0 0L50 0");
 | `pathToCurve`           | Returns a new `PathArray` with `C` segments and absolute values |
 | `normalizePath`         | Returns a new `PathArray` without shorthand segments            |
 | `optimizePath`          | Returns a new `PathArray` with shortest-string segments         |
+| `simplifyPath`          | Returns a new `PathArray` simplified within a tolerance         |
 | `reversePath`           | Returns a new `PathArray` with reversed segments                |
 | `reverseCurve`          | Returns a new reversed `PathArray` of curve segments only       |
 | `transformPath`         | Returns a new `PathArray` with transformed segments             |
