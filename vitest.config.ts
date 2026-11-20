@@ -1,6 +1,6 @@
-import { defineConfig } from "vite-plus";
 import { resolve } from "node:path";
 import process from "node:process";
+import { defineConfig } from "vite-plus";
 import { playwright } from "vite-plus/test/browser-playwright";
 
 export default defineConfig({

@@ -24,11 +24,7 @@
     "./util": "./src/util.ts"
   },
   "compilerOptions": {
-    "lib": [
-      "DOM",
-      "ESNext",
-      "DOM.Iterable"
-    ],
+    "lib": ["DOM", "ESNext", "DOM.Iterable"],
     "strict": true
   },
   "minimumDependencyAge": "0",
@@ -43,7 +39,8 @@
   },
   "tasks": {
     "test": "deno task clean-coverage && vitest --browser.headless",
-    "test-ui": "deno task clean-coverage && vitest --browser --ui",
+    "test:ui": "deno task clean-coverage && vitest --browser --ui --watch",
+    "test:watch": "deno task clean-coverage && vitest --browser --watch",
     "clean-coverage": "rm -rf coverage .nyc_output",
     "lint": "deno lint src",
     "check": "deno check src",

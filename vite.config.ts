@@ -1,4 +1,5 @@
-import tsdownConfig from "./tsdown.config.js";
+import tsdownConfig from "./tsdown.config.ts";
+import vitestConfig from "./vitest.config.ts";
 
 import { defineConfig } from "vite-plus";
 
@@ -24,4 +25,5 @@ export default defineConfig({
     ],
   },
   pack: tsdownConfig,
+  ...vitestConfig,
 });

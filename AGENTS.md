@@ -168,6 +168,7 @@ release. Add a tool name to select part of the graph. For example, run
 <!--VITE PLUS END-->
 
 ## Workflow notes
+
 - **Harness folders**: dev repro/harness scaffolding (debugging the Vite plugin,
   a compiler, or the browser) goes in `TMP/`; fixtures imported by vitest suites
   go in `tests/fixtures/` — **never** in the root or in OS temp dirs. Root-level

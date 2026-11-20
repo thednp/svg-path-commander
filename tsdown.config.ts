@@ -36,7 +36,7 @@ export default defineConfig([
     banner: miniBanner.replace("$package", "UMD"),
     deps: {
       alwaysBundle: ["@thednp/dommatrix"],
-      onlyBundle: false
+      onlyBundle: false,
     },
     dts: false,
     outputOptions(options) {
