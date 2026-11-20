@@ -219,7 +219,7 @@ const transform2D = (
  * @example
  * ```ts
  * transformPath('M0 0L100 0L100 100L0 100Z', { translate: [10, 20], scale: 2 })
- * // => [['M', 10, 20], ['L', 210, 20], ['L', 210, 220], ['L', 10, 220], ['Z']]
+ * // => [['M', 10, 20], ['H', 210], ['V', 220], ['H', 10], ['Z']]
  * ```
  */
 export const transformPath = <T extends PathArray>(

@@ -51,7 +51,7 @@ const getCubicSegArea = (
  * @example
  * ```ts
  * getPathArea([['M', 0, 0], ['L', 100, 0], ['L', 100, 100], ['L', 0, 100], ['Z']])
- * // => -10000 (counter-clockwise square)
+ * // => 10000 (clockwise square)
  * ```
  */
 export const getPathArea = <T extends PathArray | string>(path: T): number =>

@@ -286,7 +286,7 @@ export class SVGPathCommander {
    * @example
    * ```ts
    * new SVGPathCommander('M10 50q15 -25 30 0').toCurve().toString()
-   * // => 'M10 50C25 25 40 50 40 50'
+   * // => 'M10 50C20 33.3333 30 33.3333 40 50'
    * ```
    *
    * @returns this for chaining
@@ -339,7 +339,7 @@ export class SVGPathCommander {
    * @example
    * ```ts
    * new SVGPathCommander('M10 90s20 -80 40 -80s20 80 40 80').normalize().toString()
-   * // => 'M10 90C30 90 25 10 50 10C75 10 70 90 90 90'
+   * // => 'M10 90C10 90 30 10 50 10C70 10 70 90 90 90'
    * ```
    *
    * @returns this for chaining

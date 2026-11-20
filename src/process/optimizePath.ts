@@ -19,7 +19,7 @@ import { roundSegment } from "./roundSegment.ts";
  * @example
  * ```ts
  * optimizePath('M10 10L10 10L90 90', 2)
- * // => [['M', 10, 10], ['l', 0, 0], ['l', 80, 80]]
+ * // => [['M', 10, 10], ['v', 0], ['l', 80, 80]]
  * ```
  */
 export const optimizePath = <T extends string | PathArray>(

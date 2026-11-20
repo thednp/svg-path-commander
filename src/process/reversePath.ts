@@ -167,7 +167,7 @@ const reverseSubPath = (absolutePath: PathArray): PathArray => {
  * @example
  * ```ts
  * reversePath([['M', 0, 0], ['L', 100, 0], ['L', 100, 100], ['L', 0, 100], ['Z']])
- * // => [['M', 0, 100], ['L', 0, 0], ['L', 100, 0], ['L', 100, 100], ['Z']]
+ * // => [['M', 0, 100], ['L', 100, 100], ['L', 100, 0], ['L', 0, 0], ['Z']]
  * ```
  */
 export const reversePath = <T extends PathArray>(pathInput: T | string): T => {

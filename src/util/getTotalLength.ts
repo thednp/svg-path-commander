@@ -10,7 +10,7 @@ import { measureSegments } from "./measureSegments.ts";
  * @example
  * ```ts
  * getTotalLength('M0 0L100 0L100 100L0 100Z')
- * // => 300
+ * // => 400
  * ```
  */
 export const getTotalLength = <T extends PathArray>(pathInput: string | T): number => {

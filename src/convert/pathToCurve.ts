@@ -15,7 +15,7 @@ import { paramsParser } from "../parser/paramsParser.ts";
  * @example
  * ```ts
  * pathToCurve('M10 50q15 -25 30 0')
- * // => [['M', 10, 50], ['C', 25, 25, 40, 50, 40, 50]]
+ * // => [['M', 10, 50], ['C', 20, 33.3333, 30, 33.3333, 40, 50]]
  * ```
  */
 export const pathToCurve = <T extends PathArray>(pathInput: string | T): CurveArray => {
