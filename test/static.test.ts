@@ -1617,6 +1617,18 @@ describe("SVGPathCommander Static Methods", () => {
       expect(eq2.length).to.equal(6);
     });
 
+    test(`Can do equalize with an empty path`, () => {
+      // an empty path has no sub-path, so it is not a multi path and the
+      // equalization of two empty paths is empty too
+      expect(equalize("", "")).to.deep.equal([[], []]);
+      expect(equalize("", "", { strategy: "arcLength" })).to.deep.equal([[], []]);
+      // an empty path cannot be equalized with a path that has a shape
+      expect(() => equalize("", "M0 0L10 10")).to.throw(
+        TypeError,
+        `${error}: paths must have the same number of segments after equalization`,
+      );
+    });
+
     test(`Can do equalize with the arc length strategy and the curve mode`, () => {
       const [eq1, eq2] = equalize(triangle, square, {
         strategy: "arcLength",
@@ -2599,6 +2611,30 @@ describe("Morph and path utility fixes", () => {
     expect(matchPaths(from, to)).to.have.lengthOf(3);
     expect(JSON.stringify(from)).to.equal(fromBefore);
     expect(JSON.stringify(to)).to.equal(toBefore);
+  });
+
+  test("Can tell a multi sub-path from an empty or malformed path", () => {
+    const { isMultiPath } = SVGPathCommander;
+    // an empty path has no sub-path at all
+    expect(isMultiPath("")).to.be.false;
+    expect(isMultiPath([] as unknown as PathArray)).to.be.false;
+    // a malformed path is not a path either
+    expect(isMultiPath([["X", 1]] as unknown as PathArray)).to.be.false;
+    // a path with one sub-path is not a multi path
+    expect(
+      isMultiPath([
+        ["M", 0, 0],
+        ["L", 10, 10],
+      ]),
+    ).to.be.false;
+    // a path with two sub-paths is
+    expect(
+      isMultiPath([
+        ["M", 0, 0],
+        ["L", 10, 10],
+        ["M", 20, 20],
+      ]),
+    ).to.be.true;
   });
 
   test("Can split a path that does not start with a moveto", () => {

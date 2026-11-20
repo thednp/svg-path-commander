@@ -15,17 +15,20 @@ export const isMultiPath = <T extends PathArray>(path: string | T): boolean => {
     return matches ? matches.length > 1 : false;
   }
 
-  // istanbul ignore else
-  if (isPathArray(path)) {
-    let moveCount = 0;
-    for (const segment of path) {
-      if (segment[0].toUpperCase() === "M") {
-        moveCount++;
-        if (moveCount > 1) return true;
-      }
-    }
-    return false;
+  // a value that is not a path at all is a type error
+  if (!Array.isArray(path)) {
+    throw new TypeError(error + ": expected string or PathArray");
   }
 
-  throw new TypeError(error + ": expected string or PathArray");
+  // an empty path and a malformed path have no sub-paths
+  if (!isPathArray(path)) return false;
+
+  let moveCount = 0;
+  for (const segment of path) {
+    if (segment[0].toUpperCase() === "M") {
+      moveCount++;
+      if (moveCount > 1) return true;
+    }
+  }
+  return false;
 };

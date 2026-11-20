@@ -71,6 +71,7 @@
 
 ### Fixed
 
+- `isMultiPath()` answers `false` for an empty or a malformed path array instead of throwing — `isPathArray()` rejects an empty array, so the predicate fell through to its `TypeError` and `equalize("", "")` and `equalizePaths("", "")` failed with "expected string or PathArray" for an input that is a path; a malformed segment is now answered `false` too, as the 2.3.6 entry of `isPathArray()` promised, and only a value that is not a path at all throws
 - `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` now find the closest point on the closing segment of a closed sub-path of a **multi-subpath** path — the coarse scan of the path samples the start of a closed sub-path twice, once at the start of the sub-path and once at the end of its closing segment, and it kept the first of the two equally close samples, so the refinement walked away from the closing segment and the point was reported at the distance of the start of the sub-path:
   ```js
   SVGPathCommander.getPropertiesAtPoint("M0 0L100 0L100 100L0 100ZM50 50L150 50", { x: 0, y: 1 });
