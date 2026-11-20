@@ -35,7 +35,7 @@ export type PathFrame = {
  * @param value the value to clean
  * @returns the value without a negative zero
  */
-const cleanZero = (value: number): number => (value === 0 ? 0 : value);
+export const cleanZero = (value: number): number => (value === 0 ? 0 : value);
 
 /**
  * Returns the unit vector of a direction.

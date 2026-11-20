@@ -26,6 +26,31 @@ export type SimplifyOptions = {
   tolerance?: number;
 };
 
+/** The side of a path an offset is created on. */
+export type OffsetSide = "left" | "right" | "both";
+
+/** The join type used at a corner of an offset path. */
+export type OffsetJoin = "round" | "miter" | "bevel";
+
+/** The cap type used at the end of an open offset path. */
+export type OffsetCap = "butt" | "square" | "round";
+
+/** The options of the path offsetting. */
+export type OffsetOptions = {
+  /** The side of the path to offset, the left normal of the direction of travel. @default "left" */
+  side?: OffsetSide;
+  /** The join type at a corner of the path. @default "miter" */
+  join?: OffsetJoin;
+  /** The ratio of the miter length to the offset distance. @default 4 */
+  miterLimit?: number;
+  /** The cap type at the end of an open path. @default "butt" */
+  cap?: OffsetCap;
+  /** The number of the intervals a curve is sampled with. @default 16 */
+  steps?: number;
+  /** The number of the decimals of the result. @default 4 */
+  precision?: number;
+};
+
 /** The closest point on the path to a given point, with the distance and optional segment. */
 export type PointProperties = {
   /** The closest point on the path to the given point. */

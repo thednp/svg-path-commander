@@ -59,6 +59,7 @@ export { shapeToPath } from "./util/shapeToPath.ts";
 export { shapeToPathArray } from "./util/shapeToPathArray.ts";
 
 export { normalizePath } from "./process/normalizePath.ts";
+export { offsetPath } from "./process/offsetPath.ts";
 export { optimizePath } from "./process/optimizePath.ts";
 export { reversePath } from "./process/reversePath.ts";
 export { splitPath } from "./process/splitPath.ts";

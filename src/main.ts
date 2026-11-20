@@ -16,6 +16,7 @@ import { roundTo } from "./math/roundTo.ts";
 import type { PathArray, PointTuple, TransformObjectValues } from "./types.ts";
 import type {
   Options,
+  OffsetOptions,
   SegmentProperties,
   SimplifyOptions,
   TransformEntries,
@@ -73,6 +74,7 @@ import { isClosedPath } from "./util/isClosedPath.ts";
 
 import { normalizePath } from "./process/normalizePath.ts";
 import { optimizePath } from "./process/optimizePath.ts";
+import { offsetPath } from "./process/offsetPath.ts";
 import { reversePath } from "./process/reversePath.ts";
 import { splitPath } from "./process/splitPath.ts";
 import { transformPath } from "./process/transformPath.ts";
@@ -428,6 +430,38 @@ export class SVGPathCommander {
   }
 
   /**
+   * Offset the path along its normals.
+   *
+   * The path is sampled along its length, every sample is shifted along the
+   * normal of the path and the result is a path of straight lines. The
+   * corners of the path are joined and the ends of an open path are capped.
+   *
+   * The `side` option is literal: the left side is the left normal of the
+   * direction of travel, the same normal `getPropertiesAtLength()` returns.
+   * The `both` side is the outline of the stroke, the band between the two
+   * sides of the path.
+   *
+   * The offset is not cleaned up: an offset distance larger than the local
+   * radius of curvature of the path produces a self-crossing curve.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L100 0').offset(10).toString()
+   * // => 'M0 10L100 10'
+   * ```
+   *
+   * @param distance - the offset distance
+   * @param options - the options of the offset
+   * @returns this for chaining
+   * @public
+   */
+  offset(distance: number, options?: OffsetOptions): this {
+    const { segments } = this;
+    this.segments = offsetPath(segments, distance, options);
+    return this;
+  }
+
+  /**
    * Transform path using values from an `Object` defined as `transformObject`.
    *
    * @see TransformObject for a quick reference
@@ -681,6 +715,8 @@ export class SVGPathCommander {
   static normalizePath = normalizePath;
   /** Normalizes a single segment of a `pathArray` object. */
   static normalizeSegment = normalizeSegment;
+  /** Offsets a path along its normals. */
+  static offsetPath = offsetPath;
   /** Optimizes a PathArray: */
   static optimizePath = optimizePath;
   /** Transforms a specified point using a matrix, returning a new */

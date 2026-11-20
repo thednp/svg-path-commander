@@ -2904,3 +2904,383 @@ describe("Path simplification", () => {
     });
   });
 });
+
+describe("Path offsetting", () => {
+  const { offsetPath, getPointAtLength, getTotalLength } = SVGPathCommander;
+
+  /**
+   * Returns the distance between a point and a polyline.
+   *
+   * @param point - the point to measure
+   * @param polyline - the polyline to measure against
+   * @returns the distance to the closest segment of the polyline
+   */
+  const distanceToPolyline = (point: { x: number; y: number }, polyline: PathArray): number => {
+    const segments: [{ x: number; y: number }, { x: number; y: number }][] = [];
+    let current = { x: 0, y: 0 };
+    let start = { x: 0, y: 0 };
+    for (const segment of polyline) {
+      const command = segment[0];
+      if (command === "M") {
+        current = { x: segment[1] as number, y: segment[2] as number };
+        start = current;
+      } else if (command === "L") {
+        const end = { x: segment[1] as number, y: segment[2] as number };
+        segments.push([current, end]);
+        current = end;
+      } else if (command === "Z") {
+        segments.push([current, start]);
+        current = start;
+      }
+    }
+
+    let closest = Infinity;
+    for (const [from, to] of segments) {
+      closest = Math.min(closest, distanceToSegment(point, from, to));
+    }
+    return closest;
+  };
+
+  test("Can offset a straight line to the left", () => {
+    expect(offsetPath("M0 0L100 0", 10)).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 100, 10],
+    ]);
+  });
+
+  test("Can offset a straight line to the right", () => {
+    expect(offsetPath("M0 0L100 0", 10, { side: "right" })).to.deep.equal([
+      ["M", 0, -10],
+      ["L", 100, -10],
+    ]);
+  });
+
+  test("Can offset a closed path to the left", () => {
+    expect(offsetPath("M0 0L100 0L100 100L0 100Z", 10)).to.deep.equal([
+      ["M", 10, 10],
+      ["L", 90, 10],
+      ["L", 90, 90],
+      ["L", 10, 90],
+      ["Z"],
+    ]);
+  });
+
+  test("Can offset a closed path to the right", () => {
+    expect(offsetPath("M0 0L100 0L100 100L0 100Z", 10, { side: "right" })).to.deep.equal([
+      ["M", 0, -10],
+      ["L", 100, -10],
+      ["L", 110, -10],
+      ["L", 110, 0],
+      ["L", 110, 100],
+      ["L", 110, 110],
+      ["L", 100, 110],
+      ["L", 0, 110],
+      ["L", -10, 110],
+      ["L", -10, 100],
+      ["L", -10, 0],
+      ["L", -10, -10],
+      ["Z"],
+    ]);
+  });
+
+  test("Can offset a path with a round join", () => {
+    expect(
+      offsetPath("M0 0L100 0L100 100L0 100Z", 10, { side: "right", join: "round" }),
+    ).to.deep.equal([
+      ["M", 0, -10],
+      ["L", 100, -10],
+      ["L", 103.8268, -9.2388],
+      ["L", 107.0711, -7.0711],
+      ["L", 109.2388, -3.8268],
+      ["L", 110, 0],
+      ["L", 110, 100],
+      ["L", 109.2388, 103.8268],
+      ["L", 107.0711, 107.0711],
+      ["L", 103.8268, 109.2388],
+      ["L", 100, 110],
+      ["L", 0, 110],
+      ["L", -3.8268, 109.2388],
+      ["L", -7.0711, 107.0711],
+      ["L", -9.2388, 103.8268],
+      ["L", -10, 100],
+      ["L", -10, 0],
+      ["L", -9.2388, -3.8268],
+      ["L", -7.0711, -7.0711],
+      ["L", -3.8268, -9.2388],
+      ["Z"],
+    ]);
+  });
+
+  test("Can offset a path with a bevel join", () => {
+    expect(
+      offsetPath("M0 0L100 0L100 100L0 100Z", 10, { side: "right", join: "bevel" }),
+    ).to.deep.equal([
+      ["M", 0, -10],
+      ["L", 100, -10],
+      ["L", 110, 0],
+      ["L", 110, 100],
+      ["L", 100, 110],
+      ["L", 0, 110],
+      ["L", -10, 100],
+      ["L", -10, 0],
+      ["Z"],
+    ]);
+  });
+
+  test("Can fall back to a bevel when the miter is too long", () => {
+    expect(
+      offsetPath("M0 0L100 0L100 100L0 100Z", 10, { side: "right", miterLimit: 1 }),
+    ).to.deep.equal([
+      ["M", 0, -10],
+      ["L", 100, -10],
+      ["L", 110, 0],
+      ["L", 110, 100],
+      ["L", 100, 110],
+      ["L", 0, 110],
+      ["L", -10, 100],
+      ["L", -10, 0],
+      ["Z"],
+    ]);
+  });
+
+  test("Can create the outline of an open path", () => {
+    expect(offsetPath("M0 0L100 0", 10, { side: "both" })).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 100, 10],
+      ["L", 100, -10],
+      ["L", 0, -10],
+      ["Z"],
+    ]);
+  });
+
+  test("Can create the outline of an open path with a square cap", () => {
+    expect(offsetPath("M0 0L100 0", 10, { side: "both", cap: "square" })).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 100, 10],
+      ["L", 110, 10],
+      ["L", 110, -10],
+      ["L", 100, -10],
+      ["L", 0, -10],
+      ["L", -10, -10],
+      ["L", -10, 10],
+      ["Z"],
+    ]);
+  });
+
+  test("Can create the outline of an open path with a round cap", () => {
+    const outline = offsetPath("M0 0L100 0", 10, { side: "both", cap: "round" });
+    expect(outline[0]).to.deep.equal(["M", 0, 10]);
+    expect(outline[1]).to.deep.equal(["L", 100, 10]);
+    // the cap is a half circle around the end of the path
+    expect(outline[2]).to.deep.equal(["L", 103.8268, 9.2388]);
+    expect(outline[5]).to.deep.equal(["L", 110, 0]);
+    expect(outline[8]).to.deep.equal(["L", 103.8268, -9.2388]);
+    expect(outline[9]).to.deep.equal(["L", 100, -10]);
+    expect(outline[10]).to.deep.equal(["L", 0, -10]);
+    // the cap at the start of the path bulges backwards
+    expect(outline[11]).to.deep.equal(["L", -3.8268, -9.2388]);
+    expect(outline[14]).to.deep.equal(["L", -10, 0]);
+    expect(outline[17]).to.deep.equal(["L", -3.8268, 9.2388]);
+    expect(outline[18]).to.deep.equal(["Z"]);
+  });
+
+  test("Can create the outline of a closed path", () => {
+    expect(offsetPath("M0 0L100 0L100 100L0 100Z", 10, { side: "both" })).to.deep.equal([
+      ["M", 0, -10],
+      ["L", 100, -10],
+      ["L", 110, -10],
+      ["L", 110, 0],
+      ["L", 110, 100],
+      ["L", 110, 110],
+      ["L", 100, 110],
+      ["L", 0, 110],
+      ["L", -10, 110],
+      ["L", -10, 100],
+      ["L", -10, 0],
+      ["L", -10, -10],
+      ["Z"],
+      ["M", 10, 10],
+      ["L", 10, 90],
+      ["L", 90, 90],
+      ["L", 90, 10],
+      ["Z"],
+    ]);
+  });
+
+  test("Can offset a curve", () => {
+    const path = "M0 0C50 100 100 100 150 0";
+    const offset = offsetPath(path, 10, { steps: 64 });
+    // the offset of a curve is a polyline
+    expect(offset.length).to.be.above(10);
+    // every point of the curve is at the offset distance from the offset path
+    const length = getTotalLength(path);
+    for (let i = 0; i <= 100; i += 1) {
+      const point = getPointAtLength(path, (length * i) / 100);
+      expect(distanceToPolyline(point, offset)).to.be.closeTo(10, 0.1);
+    }
+  });
+
+  test("Can offset an arc", () => {
+    const path = "M0 0A50 50 0 0 1 100 0";
+    const offset = offsetPath(path, 10);
+    expect(offset.length).to.be.above(10);
+    const length = getTotalLength(path);
+    for (let i = 0; i <= 100; i += 1) {
+      const point = getPointAtLength(path, (length * i) / 100);
+      expect(distanceToPolyline(point, offset)).to.be.closeTo(10, 0.2);
+    }
+  });
+
+  test("Can offset a path with multiple sub-paths", () => {
+    expect(offsetPath("M0 0L100 0M0 100L100 100", 10)).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 100, 10],
+      ["M", 0, 110],
+      ["L", 100, 110],
+    ]);
+  });
+
+  test("Can offset a path with a closed sub-path", () => {
+    expect(offsetPath("M0 0L100 0ZM0 100L100 100", 10)).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 100, 10],
+      ["L", 100, -10],
+      ["L", 0, -10],
+      ["Z"],
+      ["M", 0, 110],
+      ["L", 100, 110],
+    ]);
+  });
+
+  test("Can offset a path with a spike", () => {
+    // the two offset lines of a spike are parallel, the corner is beveled
+    expect(offsetPath("M0 0L100 0L0 0", 10, { side: "right" })).to.deep.equal([
+      ["M", 0, -10],
+      ["L", 100, -10],
+      ["L", 100, 10],
+      ["L", 0, 10],
+    ]);
+    // the inner side of the spike has no intersection to trim at
+    expect(offsetPath("M0 0L100 0L0 0", 10)).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 100, 10],
+      ["L", 100, -10],
+      ["L", 0, -10],
+    ]);
+  });
+
+  test("Can offset a path with a straight corner", () => {
+    // a corner without a turn does not move the path
+    expect(offsetPath("M0 0L50 0L100 0", 10)).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 50, 10],
+      ["L", 100, 10],
+    ]);
+  });
+
+  test("Can offset a path with a zero length segment", () => {
+    expect(offsetPath("M0 0L0 0L100 0", 10)).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 100, 10],
+    ]);
+  });
+
+  test("Can offset a path with two curves", () => {
+    const path = "M0 0C50 100 100 100 150 0C200 -100 250 -100 300 0";
+    const offset = offsetPath(path, 10);
+    expect(offset.length).to.be.above(20);
+  });
+
+  test("Can trim the inner side of a corner of an open path", () => {
+    expect(offsetPath("M0 0L100 0L100 100", 10)).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 90, 10],
+      ["L", 90, 100],
+    ]);
+  });
+
+  test("Can offset a path that is drawn counter clockwise", () => {
+    // the left side of the path is the outside of the shape, so the outline
+    // is the left ring and the right ring
+    expect(offsetPath("M0 0L0 100L100 100L100 0Z", 10, { side: "both" })).to.deep.equal([
+      ["M", -10, 0],
+      ["L", -10, 100],
+      ["L", -10, 110],
+      ["L", 0, 110],
+      ["L", 100, 110],
+      ["L", 110, 110],
+      ["L", 110, 100],
+      ["L", 110, 0],
+      ["L", 110, -10],
+      ["L", 100, -10],
+      ["L", 0, -10],
+      ["L", -10, -10],
+      ["Z"],
+      ["M", 10, 10],
+      ["L", 90, 10],
+      ["L", 90, 90],
+      ["L", 10, 90],
+      ["Z"],
+    ]);
+  });
+
+  test("Can offset a path array", () => {
+    expect(
+      offsetPath(
+        [
+          ["M", 0, 0],
+          ["L", 100, 0],
+        ],
+        10,
+      ),
+    ).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 100, 10],
+    ]);
+  });
+
+  test("Can offset an empty path", () => {
+    expect(offsetPath("", 10)).to.deep.equal([]);
+  });
+
+  test("Can offset a path without a distance", () => {
+    expect(offsetPath("M0 0L100 0", 0)).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 100, 0],
+    ]);
+  });
+
+  test("Can offset a path with a single moveto", () => {
+    expect(offsetPath("M10 10", 10)).to.deep.equal([["M", 10, 10]]);
+  });
+
+  test("Can reject a distance that is not a positive number", () => {
+    [-1, Number.NaN, Number.POSITIVE_INFINITY, "10"].forEach((distance) => {
+      try {
+        offsetPath("M0 0L10 10", distance as never);
+        expect.fail("should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+      }
+    });
+  });
+
+  test("Can reject an invalid option", () => {
+    const invalid = [
+      { side: "up" },
+      { join: "sharp" },
+      { cap: "point" },
+      { miterLimit: 0 },
+      { steps: 0 },
+      { precision: -1 },
+    ];
+    invalid.forEach((options) => {
+      try {
+        offsetPath("M0 0L10 10", 10, options as never);
+        expect.fail("should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+      }
+    });
+  });
+});

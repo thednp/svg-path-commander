@@ -458,6 +458,29 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(simplified.simplify({ tolerance: 1 })).to.equal(simplified);
   });
 
+  test("Test offset", async () => {
+    const container = getMarkup();
+    wrapper.append(container);
+    await vi.waitFor(() => container.querySelector("svg"), { timeout: 200 });
+    const path = await vi.waitFor(() => container.querySelector("path") as SVGPathElement, {
+      timeout: 200,
+    });
+
+    const offset = new SVGPathCommander("M0 0L100 0").offset(10);
+    path.setAttribute("d", offset.toString());
+    expect(path.getAttribute("d")).to.equal("M0 10L100 10");
+    // the method is chainable
+    expect(offset.offset(10, { side: "right" })).to.equal(offset);
+    expect(offset.toString()).to.equal("M0 0L100 0");
+  });
+
+  test("Test offset static method", () => {
+    expect(SVGPathCommander.offsetPath("M0 0L100 0", 10)).to.deep.equal([
+      ["M", 0, 10],
+      ["L", 100, 10],
+    ]);
+  });
+
   test("Test reverse single path", async () => {
     const container = getMarkup();
     wrapper.append(container);
