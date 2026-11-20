@@ -3090,9 +3090,10 @@ function samplePolygon(path) {
 			points.push([mx, my]);
 		} else if (cmd === "L") points.push([seg[1], seg[2]]);
 		else if (cmd === "C") points.push([seg[5], seg[6]]);
+		else if (cmd === "Q") points.push([seg[3], seg[4]]);
 		else if (cmd === "A") points.push([seg[6], seg[7]]);
 		else if (cmd === "Z") points.push([mx, my]);
-		else throw new TypeError(`${error}: path command "${cmd}" is not supported`);
+		else throw new TypeError(`${error}: path command "${String(cmd)}" is not supported`);
 	});
 	return points;
 }
@@ -4955,14 +4956,388 @@ function getRotatedPath(pathA, pathB, computedRotations) {
 	}
 	return getRotation(pathA, getBestRotationIndex(pathA, pathB));
 }
+// src/morph/resamplePath.ts
+/**
+* The angle the direction of a path has to change by to be a corner.
+*
+* A corner is a place where the path changes its direction abruptly: the
+* vertex of a polygon, the point of a star, the tip of a spike. The fine
+* structure of a flattened circle is not a corner — its vertices are an
+* artifact of the flattening, not a shape — so the angle has to be big
+* enough to tell the two apart.
+*/
+const CORNER_ANGLE = 10 * Math.PI / 180;
+/**
+* The share of the span of a curve its control points take.
+*
+* The control points of the cubic that replaces a span of the path sit at a
+* third of the span from its ends, the same share the control points of the
+* cubic of a circular arc have.
+*/
+const CONTROL_SHARE = 3;
+/**
+* Finds the length of the corners of a measured path.
+*
+* A corner is the end of a segment whose direction differs from the
+* direction of the segment that follows it by more than the corner angle.
+*
+* @param measures - the measured segments of the path
+* @returns the length of every corner of the path, in path order
+*/
+const findCorners = (measures) => {
+	const corners = [];
+	for (let i = 1; i < measures.length; i += 1) {
+		const previous = measures[i - 1];
+		const current = measures[i];
+		if (previous.length <= 0 || current.length <= 0) continue;
+		const incoming = getSegmentFrame(previous.segment, previous.startX, previous.startY, previous.endX, previous.endY, previous.length, previous.length).tangent;
+		const outgoing = getSegmentFrame(current.segment, current.startX, current.startY, current.endX, current.endY, 0, current.length).tangent;
+		if (!incoming.x && !incoming.y) continue;
+		if (!outgoing.x && !outgoing.y) continue;
+		const dot = incoming.x * outgoing.x + incoming.y * outgoing.y;
+		const cross = incoming.x * outgoing.y - incoming.y * outgoing.x;
+		if (Math.atan2(Math.abs(cross), dot) > CORNER_ANGLE) corners.push(current.lengthAtSegment);
+	}
+	return corners;
+};
+/**
+* Distributes a number of intervals among a number of spans.
+*
+* The intervals are shared in proportion to the length of the spans, so the
+* spacing of the intervals stays the same over the whole path. The spans
+* that lose a fraction of an interval share it out, the one with the
+* biggest fraction gets it.
+*
+* @param lengths - the length of every span
+* @param extra - the number of intervals to distribute
+* @returns the number of extra intervals of every span
+*/
+const distributeIntervals = (lengths, extra) => {
+	const shares = lengths.map(() => 0);
+	if (extra <= 0) return shares;
+	const total = lengths.reduce((sum, length) => sum + length, 0);
+	if (total <= 0) return shares;
+	const remainders = [];
+	let used = 0;
+	for (let i = 0; i < lengths.length; i += 1) {
+		const exact = lengths[i] / total * extra;
+		const whole = Math.floor(exact);
+		shares[i] = whole;
+		used += whole;
+		remainders.push({
+			index: i,
+			remainder: exact - whole
+		});
+	}
+	remainders.sort((a, b) => b.remainder - a.remainder || a.index - b.index);
+	let left = extra - used;
+	for (let i = 0; left > 0 && remainders.length; i = (i + 1) % remainders.length) {
+		shares[remainders[i].index] += 1;
+		left -= 1;
+	}
+	return shares;
+};
+/**
+* Builds the lengths of the knots of a resampled path.
+*
+* The knots are spread evenly over the length of the path, but the corners
+* of the path are knots too, so the shape of the path keeps its vertices.
+* The intervals between the corners are shared in proportion to their
+* length, so the spacing of the knots stays the same over the whole path.
+*
+* When the corners of the path are more than the intervals of the result,
+* they cannot all be knots: the knots are spread evenly then, and the shape
+* of the path is approximated by its chords.
+*
+* @param totalLength - the length of the path
+* @param intervals - the number of intervals of the result
+* @param corners - the length of every corner of the path
+* @returns the length of every knot of the result, in path order
+*/
+const buildKnots = (totalLength, intervals, corners) => {
+	const spanCount = corners.length + 1;
+	const knots = [];
+	if (spanCount > intervals) {
+		for (let i = 0; i <= intervals; i += 1) knots.push(totalLength * i / intervals);
+		return knots;
+	}
+	const breakpoints = [
+		0,
+		...corners,
+		totalLength
+	];
+	const lengths = breakpoints.slice(1).map((value, index) => value - breakpoints[index]);
+	const shares = distributeIntervals(lengths, intervals - spanCount);
+	for (let i = 0; i < spanCount; i += 1) {
+		const from = breakpoints[i];
+		const to = breakpoints[i + 1];
+		const count = shares[i] + 1;
+		for (let j = 0; j < count; j += 1) knots.push(from + (to - from) * j / count);
+	}
+	knots.push(totalLength);
+	return knots;
+};
+/**
+* Finds the index of the segment a distance falls into.
+*
+* The segment is the last one whose accumulated length is below the
+* distance, the same segment the linear walk over the path would have
+* stopped at. A distance at the end of a segment belongs to the segment
+* before it, so the frame at that distance is the frame at the end of the
+* segment.
+*
+* @param measures - the measured segments of the path
+* @param distance - the distance along the path
+* @returns the index of the segment
+*/
+const findSegmentIndex = (measures, distance) => {
+	let low = 0;
+	let high = measures.length - 1;
+	while (low < high) {
+		const mid = low + high + 1 >> 1;
+		if (measures[mid].lengthAtSegment < distance) low = mid;
+		else high = mid - 1;
+	}
+	return low;
+};
+/**
+* Returns the direction of the path after a segment.
+*
+* The segments without a direction are skipped, so the direction of the
+* path is the direction of the first segment that has one.
+*
+* @param measures - the measured segments of the path
+* @param index - the index of the segment
+* @returns the direction of the path, or `null` when the path has none
+*/
+const findNextDirection = (measures, index) => {
+	for (let i = index + 1; i < measures.length; i += 1) {
+		const measure = measures[i];
+		if (measure.length <= 0) continue;
+		const tangent = getSegmentFrame(measure.segment, measure.startX, measure.startY, measure.endX, measure.endY, 0, measure.length).tangent;
+		if (tangent.x || tangent.y) return tangent;
+	}
+	return null;
+};
+/**
+* The share of the length of a path the end of the path can be over.
+*
+* The length of a path is the sum of the lengths of its segments, so the end
+* of the path can be a fraction over the end of its last segment. The point
+* at the end of the path is the end point of the path, not a point a
+* fraction before it.
+*/
+const END_EPSILON = 1e-9;
+/**
+* Returns the frame of a path at a given length.
+*
+* @param table - the length table of the path
+* @param distance - the distance along the path
+* @returns the frame of the path at the given length
+*/
+const getFrameAt = (table, distance) => {
+	const { measures, totalLength } = table;
+	const index = findSegmentIndex(measures, distance);
+	const measure = measures[index];
+	const rawOffset = distance - measure.lengthAtSegment;
+	const offset = totalLength - distance <= totalLength * END_EPSILON ? measure.length : Math.min(Math.max(rawOffset, 0), measure.length);
+	const frame = getSegmentFrame(measure.segment, measure.startX, measure.startY, measure.endX, measure.endY, offset, measure.length);
+	let outgoing = frame.tangent;
+	if (offset >= measure.length) {
+		const next = findNextDirection(measures, index);
+		if (next) outgoing = next;
+	}
+	return {
+		point: frame.point,
+		incoming: frame.tangent,
+		outgoing
+	};
+};
+/**
+* Returns the number of corners of a measured path.
+*
+* A corner is a place where the path changes its direction abruptly, so the
+* corners of a path are the vertices of its shape.
+*
+* @param table - the length table of the path
+* @returns the number of corners of the path
+*/
+const getTableCornerCount = (table) => findCorners(table.measures).length;
+/**
+* Resamples a measured path to a given number of points, spread evenly by
+* length.
+*
+* The path is measured along its length and the points of the result are
+* spread evenly over it, so the distance between two points of the result
+* is the same over the whole path. The corners of the path are points of
+* the result too, so the shape of the path keeps its vertices.
+*
+* The result is a polyline, or a path of cubic Bezier segments when the
+* curve mode is used: every cubic of the result starts at a point of the
+* path and ends at the next one, with the direction of the path at both
+* ends, so the curve of the path is kept.
+*
+* @param table - the length table of the path
+* @param count - the number of points of the result
+* @param mode - the type of the segments of the result
+* @returns the resampled path
+*/
+const resampleFromTable = (table, count, mode) => {
+	const { measures, totalLength } = table;
+	if (!measures.length) return [];
+	const intervals = Math.max(1, Math.floor(count)) - 1;
+	if (totalLength <= 0) return [[
+		"M",
+		measures[0].endX,
+		measures[0].endY
+	]];
+	if (intervals <= 0) return [[
+		"M",
+		table.startX,
+		table.startY
+	]];
+	const corners = findCorners(measures);
+	const knots = buildKnots(totalLength, intervals, corners);
+	const frames = knots.map((knot) => getFrameAt(table, knot));
+	const start = frames[0].point;
+	const result = [[
+		"M",
+		start.x,
+		start.y
+	]];
+	for (let i = 1; i < knots.length; i += 1) {
+		const from = frames[i - 1];
+		const to = frames[i];
+		if (mode === "curve") {
+			const share = (knots[i] - knots[i - 1]) / CONTROL_SHARE;
+			const c1x = from.point.x + from.outgoing.x * share;
+			const c1y = from.point.y + from.outgoing.y * share;
+			const c2x = to.point.x - to.incoming.x * share;
+			const c2y = to.point.y - to.incoming.y * share;
+			result.push([
+				"C",
+				c1x,
+				c1y,
+				c2x,
+				c2y,
+				to.point.x,
+				to.point.y
+			]);
+		} else result.push([
+			"L",
+			to.point.x,
+			to.point.y
+		]);
+	}
+	return mode === "curve" ? result : result;
+};
+/**
+* Resamples a normalized path to a given number of points, spread evenly by
+* length.
+*
+* @param path - the normalized path to resample
+* @param count - the number of points of the result
+* @param mode - the type of the segments of the result
+* @returns the resampled path
+*/
+const resampleNormalizedPath = (path, count, mode) => resampleFromTable(buildPathLengthTable(path), count, mode);
+/**
+* Resamples a path to a given number of points, spread evenly by length.
+*
+* The path is measured along its length and the points of the result are
+* spread evenly over it, so the distance between two points of the result
+* is the same over the whole path. The corners of the path are points of
+* the result too, so the shape of the path keeps its vertices.
+*
+* The result is a polyline, or a path of cubic Bezier segments when the
+* curve mode is used: every cubic of the result starts at a point of the
+* path and ends at the next one, with the direction of the path at both
+* ends, so the curve of the path is kept.
+*
+* @param pathInput - the target path string or PathArray
+* @param count - the number of points of the result
+* @param mode - the type of the segments of the result
+* @returns the resampled path
+*
+* @example
+* ```ts
+* resamplePath("M0 0L100 0L100 100", 3)
+* // => [['M', 0, 0], ['L', 100, 0], ['L', 100, 100]]
+* ```
+*/
+const resamplePath = (pathInput, count, mode = "line") => resampleNormalizedPath(normalizePath(pathInput), count, mode);
 // src/morph/equalizeSegments.ts
 const equalizeSegmentsDefaults = {
 	mode: "auto",
+	strategy: "segment",
+	align: true,
 	sampleSize: 10,
 	roundValues: 4,
 	reverse: true,
 	close: false,
 	target: void 0
+};
+/**
+* Returns the start and the end point of a path.
+*
+* A closed path ends at the start of its sub-path, so the end point of a
+* path that ends with a close command is the start of the sub-path it
+* belongs to.
+*
+* @param path - the path to read
+* @returns the start and the end point of the path
+*/
+const getPathEnds = (path) => {
+	const first = path[0];
+	const start = {
+		x: first[1],
+		y: first[2]
+	};
+	let subStart = start;
+	let end = start;
+	for (const segment of path) {
+		const command = segment[0];
+		if (command === "M") {
+			subStart = {
+				x: segment[1],
+				y: segment[2]
+			};
+			end = subStart;
+		} else if (command === "Z") end = subStart;
+		else end = {
+			x: segment[segment.length - 2],
+			y: segment[segment.length - 1]
+		};
+	}
+	return {
+		start,
+		end
+	};
+};
+/**
+* Returns the distance between two points.
+*
+* @param a - the first point
+* @param b - the second point
+* @returns the distance between the points
+*/
+const getDistance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+/**
+* Returns the number of points the arc length strategy uses.
+*
+* The number of points of the result is the number of the segments of the
+* bigger path, so the result holds as much of the shape of the paths as
+* their own segments do. The corners of the paths are points of the result
+* too, so the number of points is raised when the corners do not fit.
+*
+* @param table1 - the length table of the first path
+* @param table2 - the length table of the second path
+* @param target - the requested number of points
+* @returns the number of points of the result
+*/
+const getArcLengthCount = (table1, table2, target) => {
+	if (typeof target === "number") return Math.max(2, Math.floor(target));
+	return Math.max(table1.measures.length, table2.measures.length, getTableCornerCount(table1) + 2, getTableCornerCount(table2) + 2);
 };
 /**
 * Equalizes two paths for morphing (single subpath only).
@@ -4980,7 +5355,7 @@ const equalizeSegmentsDefaults = {
 * ```
 */
 const equalizeSegments = (path1, path2, initialCfg = {}) => {
-	const { close, mode, reverse, roundValues, target: initialTarget } = {
+	const { align, close, mode, reverse, roundValues, strategy, target: initialTarget } = {
 		...equalizeSegmentsDefaults,
 		...initialCfg
 	};
@@ -4988,18 +5363,44 @@ const equalizeSegments = (path1, path2, initialCfg = {}) => {
 	let p2 = normalizePath(path2);
 	fixPath(p1);
 	fixPath(p2);
-	let bothPoly = (isPolygonArray(p1) || isPolylineArray(p1)) && (isPolygonArray(p2) || isPolylineArray(p2));
-	if (bothPoly && mode === "auto") {
+	const bothPoly = (isPolygonArray(p1) || isPolylineArray(p1)) && (isPolygonArray(p2) || isPolylineArray(p2));
+	const area1 = polygonArea(samplePolygon(p1));
+	const area2 = polygonArea(samplePolygon(p2));
+	if (reverse !== false && Math.sign(area1) !== Math.sign(area2)) {
+		if (reverse === "auto") {
+			const ends1 = getPathEnds(p1);
+			const ends2 = getPathEnds(p2);
+			if (getDistance(ends1.end, ends2.start) < getDistance(ends1.start, ends2.end)) p1 = reversePath(p1);
+			else p2 = reversePath(p2);
+		} else p2 = reversePath(p2);
+	}
+	if (strategy === "arcLength") {
+		const table1 = buildPathLengthTable(p1);
+		const table2 = buildPathLengthTable(p2);
+		const count = getArcLengthCount(table1, table2, initialTarget);
+		const resampleMode = mode === "curve" ? "curve" : mode === "line" ? "line" : bothPoly ? "line" : "curve";
+		let equalP1 = resampleFromTable(table1, count, resampleMode);
+		let equalP2 = resampleFromTable(table2, count, resampleMode);
+		if (align !== false) equalP2 = getRotatedPath(equalP2, equalP1);
+		if (typeof roundValues === "number" && roundValues !== 4) {
+			equalP1 = roundPath(equalP1, roundValues);
+			equalP2 = roundPath(equalP2, roundValues);
+		}
+		if (close) {
+			equalP1.push(["Z"]);
+			equalP2.push(["Z"]);
+		}
+		return [equalP1, equalP2];
+	}
+	let bothPolyline = bothPoly;
+	if (bothPolyline && mode !== "curve") {
 		p1 = pathToPolyline(p1);
 		p2 = pathToPolyline(p2);
 	} else {
-		bothPoly = false;
+		bothPolyline = false;
 		p1 = pathToCurve(p1);
 		p2 = pathToCurve(p2);
 	}
-	const area1 = polygonArea(samplePolygon(p1));
-	const area2 = polygonArea(samplePolygon(p2));
-	if (reverse !== false && Math.sign(area1) !== Math.sign(area2)) p2 = reversePath(p2);
 	const segCount1 = p1.length;
 	const segCount2 = p2.length;
 	const minTarget = Math.max(segCount1, segCount2);
@@ -5013,14 +5414,14 @@ const equalizeSegments = (path1, path2, initialCfg = {}) => {
 	else console.warn("equalizeSegments \"target\" option: " + initialTarget + ", expected >= " + minTarget);
 	let equalP1 = p1;
 	let equalP2 = p2;
-	if (bothPoly) {
+	if (bothPolyline) {
 		equalP1 = splitLinePathToCount(p1, target);
 		equalP2 = splitLinePathToCount(p2, target);
 	} else {
 		equalP1 = splitCurvePathToCount(p1, target);
 		equalP2 = splitCurvePathToCount(p2, target);
 	}
-	equalP2 = getRotatedPath(equalP2, equalP1);
+	if (align !== false) equalP2 = getRotatedPath(equalP2, equalP1);
 	if (typeof roundValues === "number" && roundValues !== 4) {
 		equalP1 = roundPath(equalP1, roundValues);
 		equalP2 = roundPath(equalP2, roundValues);
@@ -5213,6 +5614,8 @@ const classifyPaths = (paths) => {
 // src/morph/equalizePaths.ts
 const equalizePathsDefaults = {
 	mode: "auto",
+	strategy: "segment",
+	align: true,
 	roundValues: 4,
 	close: false,
 	sampleSize: 10
@@ -5246,8 +5649,10 @@ const equalizePaths = (pathInput1, pathInput2, initialCfg = {}) => {
 	const globalArea2 = polygonArea(samplePolygon(p2));
 	let path1 = p1;
 	let path2 = p2;
-	if (Math.sign(globalArea1) < 0) path1 = reversePath(path1);
-	if (Math.sign(globalArea2) < 0) path2 = reversePath(path2);
+	if (cfg.reverse === void 0 || cfg.reverse === true) {
+		if (Math.sign(globalArea1) < 0) path1 = reversePath(path1);
+		if (Math.sign(globalArea2) < 0) path2 = reversePath(path2);
+	}
 	const multiPath1 = splitPath(path1);
 	const multiPath2 = splitPath(path2);
 	const { outers: outers1, inners: inners1 } = classifyPaths(multiPath1);
@@ -5258,11 +5663,89 @@ const equalizePaths = (pathInput1, pathInput2, initialCfg = {}) => {
 	for (const [from, to] of [...outerPairs, ...innerPairs]) {
 		const [eqFrom, eqTo] = equalizeSegments(from, to, {
 			...cfg,
-			reverse: false
+			reverse: cfg.reverse === "auto" ? "auto" : false
 		});
 		equalizedPairs.push([eqFrom, eqTo]);
 	}
 	return [equalizedPairs.map((p) => p[0]).flat(), equalizedPairs.map((p) => p[1]).flat()];
+};
+// src/morph/equalize.ts
+const equalizeDefaults = {
+	points: "auto",
+	strategy: "segment",
+	align: true,
+	reverse: "auto",
+	mode: "auto",
+	roundValues: 4,
+	close: false
+};
+/**
+* Equalizes two paths for morphing.
+*
+* The two paths are brought to the same shape, so they can be morphed into
+* each other: they hold the same number of segments of the same type, their
+* winding is the same and their points are aligned.
+*
+* A path with a single sub-path is equalized on its own, a path with more
+* sub-paths is split into sub-paths, the sub-paths are matched by their
+* shape and every pair is equalized on its own.
+*
+* The `strategy` option decides how the points of the paths are placed:
+* - `segment` splits the segments of the paths, so the points of the result
+*   are the points of the paths;
+* - `arcLength` spreads the points of the result evenly over the length of
+*   the paths, so the distance between two points of the result is the same
+*   over the whole path. The corners of the paths are points of the result
+*   too, so the shape of the paths keeps its vertices.
+*
+* The `points` option is the number of points of the result. The automatic
+* mode uses the number of points of the bigger path, raised when the corners
+* of the paths do not fit.
+*
+* The `reverse` option decides what happens when the two paths draw in
+* opposite directions: `true` reverses the second path, `false` leaves the
+* paths as they are and `auto` reverses the path that leaves the two paths
+* closest to each other.
+*
+* @see https://minus-ze.ro/posts/morphing-arbitrary-paths-in-svg/
+*
+* @param pathInput1 - First path string or PathArray
+* @param pathInput2 - Second path string or PathArray
+* @param initialCfg - Configuration options for equalization
+* @returns Tuple of two equalized MorphPathArrays
+*
+* @example
+* ```ts
+* const [eq1, eq2] = equalize('M0 0L100 0L50 100Z', 'M0 0L100 0L100 100L0 100Z')
+* // eq1.length === eq2.length — ready for morphing
+* ```
+*/
+const equalize = (pathInput1, pathInput2, initialCfg = {}) => {
+	const { align, close, mode, points, reverse, roundValues, strategy } = {
+		...equalizeDefaults,
+		...initialCfg
+	};
+	if (typeof points === "number" && (!Number.isFinite(points) || points < 2)) throw new TypeError(`${error}: points must be a number greater than 1`);
+	const p1 = normalizePath(pathInput1);
+	const p2 = normalizePath(pathInput2);
+	if (isMultiPath(p1) || isMultiPath(p2)) return equalizePaths(p1, p2, {
+		align,
+		close,
+		mode,
+		reverse,
+		roundValues,
+		strategy,
+		target: typeof points === "number" ? points : void 0
+	});
+	return equalizeSegments(p1, p2, {
+		align,
+		close,
+		mode,
+		reverse,
+		roundValues,
+		strategy,
+		target: typeof points === "number" ? points : void 0
+	});
 };
 // src/intersect/interHelper.ts
 const intersect = (x1, y1, x2, y2, x3, y3, x4, y4) => {
@@ -5961,6 +6444,10 @@ var SVGPathCommander = class {
 	static equalizePaths = equalizePaths;
 	/** Equalizes two paths for morphing (single subpath only). */
 	static equalizeSegments = equalizeSegments;
+	/** Equalizes two paths for morphing, the recommended entry point. */
+	static equalize = equalize;
+	/** Resamples a path to a given number of points, spread evenly by length. */
+	static resamplePath = resamplePath;
 	/** Split a cubic Bézier into two cubics at parameter t [0–1]. */
 	static splitCubicSegment = splitCubicSegment;
 	/** Apply a 2D / 3D transformation to a PathArray. */

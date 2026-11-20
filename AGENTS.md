@@ -86,6 +86,18 @@ The Douglas-Peucker simplification lives in `process/` and is built from three m
 
 Only `simplifyPath` is public — it is re-exported from `src/util.ts`.
 
+The morphing toolkit lives in `morph/` and is built from four modules:
+
+| Module                      | Purpose                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| `morph/equalize.ts`         | The public facade — routes single and multi sub-path pairs to the right tool |
+| `morph/equalizePaths.ts`    | Splits the paths into sub-paths, matches them and equalizes every pair       |
+| `morph/equalizeSegments.ts` | Equalizes a single sub-path pair, with the `segment` or `arcLength` strategy |
+| `morph/resamplePath.ts`     | Resamples a path to a given number of points, spread evenly over its length  |
+
+`equalize` and `resamplePath` are public — they are re-exported from `src/util.ts`, next to the
+`equalizeSegments` and `equalizePaths` they build on.
+
 Two modules in `util/` are the backbone of the length machinery and are shared by every query:
 
 | Module                    | Purpose                                                                      |

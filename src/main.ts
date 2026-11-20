@@ -96,6 +96,8 @@ import { fixPath } from "./morph/fixPath.ts";
 import { splitCubicSegment } from "./morph/splitCubicSegment.ts";
 import { equalizeSegments } from "./morph/equalizeSegments.ts";
 import { equalizePaths } from "./morph/equalizePaths.ts";
+import { equalize } from "./morph/equalize.ts";
+import { resamplePath } from "./morph/resamplePath.ts";
 import { pathsIntersection } from "./intersect/pathIntersection.ts";
 import { boundingBoxIntersect } from "./intersect/boundingBoxIntersect.ts";
 import { isPointInsideBBox } from "./intersect/isPointInsideBBox.ts";
@@ -707,6 +709,10 @@ export class SVGPathCommander {
   static equalizePaths = equalizePaths;
   /** Equalizes two paths for morphing (single subpath only). */
   static equalizeSegments = equalizeSegments;
+  /** Equalizes two paths for morphing, the recommended entry point. */
+  static equalize = equalize;
+  /** Resamples a path to a given number of points, spread evenly by length. */
+  static resamplePath = resamplePath;
   /** Split a cubic Bézier into two cubics at parameter t [0–1]. */
   static splitCubicSegment = splitCubicSegment;
   /** Apply a 2D / 3D transformation to a PathArray. */

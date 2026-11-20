@@ -214,6 +214,30 @@ const [eq1, eq2] = SVGPathCommander.equalizeSegments(
 // eq1.length === eq2.length
 ```
 
+`SVGPathCommander.equalize()` is the recommended entry point: it picks the right
+strategy for the paths, aligns their points and normalizes their winding, so
+the two paths are ready to be morphed into each other:
+
+```js
+const [eq1, eq2] = SVGPathCommander.equalize("M0 0L100 0L50 100Z", "M0 0L100 0L100 100L0 100Z", {
+  strategy: "arcLength",
+});
+// eq1.length === eq2.length
+```
+
+With the `arcLength` strategy the points of the result are spread evenly over
+the length of the paths and their corners are kept, so the two paths keep
+their shape while they are morphed:
+
+```js
+const [eq1, eq2] = SVGPathCommander.equalize("M0 0C50 100 100 100 150 0", "M0 0L150 0L150 100Z", {
+  strategy: "arcLength",
+  points: 8,
+  mode: "curve",
+});
+// eq1.length === eq2.length === 8
+```
+
 # Advanced Usage
 
 In most cases, you can import only the tools you need, without importing the entire library. All static methods are exposed as named exports from the tree-shakeable `svg-path-commander/util` entry, with proper TypeScript definitions.

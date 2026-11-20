@@ -27,12 +27,14 @@ export function samplePolygon<T extends NormalArray>(path: T): PointTuple[] {
       points.push([seg[1] as number, seg[2] as number]);
     } else if (cmd === "C") {
       points.push([seg[5] as number, seg[6] as number]);
+    } else if (cmd === "Q") {
+      points.push([seg[3] as number, seg[4] as number]);
     } else if (cmd === "A") {
       points.push([seg[6] as number, seg[7] as number]);
     } else if (cmd === "Z") {
       points.push([mx, my]);
     } else {
-      throw new TypeError(`${error}: path command "${cmd}" is not supported`);
+      throw new TypeError(`${error}: path command "${String(cmd)}" is not supported`);
     }
   });
 

@@ -11,6 +11,8 @@ import { classifyPaths } from "./classifyPaths.ts";
 
 const equalizePathsDefaults: PathsEqualizationOptions = {
   mode: "auto", // "line" | "curve" | "auto"
+  strategy: "segment", // "segment" | "arcLength"
+  align: true,
   roundValues: 4, // 4 decimals
   close: false,
   sampleSize: 10,
@@ -56,11 +58,13 @@ export const equalizePaths = (
   let path2 = p2;
 
   // all paths must be clockwise
-  if (Math.sign(globalArea1) < 0) {
-    path1 = reversePath(path1);
-  }
-  if (Math.sign(globalArea2) < 0) {
-    path2 = reversePath(path2);
+  if (cfg.reverse === undefined || cfg.reverse === true) {
+    if (Math.sign(globalArea1) < 0) {
+      path1 = reversePath(path1);
+    }
+    if (Math.sign(globalArea2) < 0) {
+      path2 = reversePath(path2);
+    }
   }
 
   // Multi-subpath: split and match
@@ -82,7 +86,9 @@ export const equalizePaths = (
   for (const [from, to] of [...outerPairs, ...innerPairs]) {
     const [eqFrom, eqTo] = equalizeSegments(from, to, {
       ...cfg,
-      reverse: false,
+      // the winding of the paths is already normalized, unless the paths
+      // are reversed by the automatic mode
+      reverse: cfg.reverse === "auto" ? "auto" : false,
     });
     equalizedPairs.push([eqFrom, eqTo]);
   }

@@ -399,21 +399,43 @@ export interface PathEqualizationOptions {
 /** Options for equalizing two paths for morphing. */
 export interface EqualizationOptions {
   /** The equalization mode. @default "auto" */
-  mode?: "curve" | "auto";
+  mode?: "auto" | "line" | "curve";
+  /** The strategy used to place the points of the equalized paths. @default "segment" */
+  strategy?: "segment" | "arcLength";
+  /** Whether the paths are aligned by rotation. @default true */
+  align?: boolean;
   /** The number of sample points for the line mode. */
   sampleSize?: number;
   /** The amount of decimals to round values to. */
   roundValues?: number;
-  /** Whether to reverse the second path before equalization. */
-  reverse?: boolean;
+  /** Whether to reverse the second path before equalization. @default true */
+  reverse?: boolean | "auto";
   /** Whether to close the path before equalization. */
   close?: boolean;
   /** The target segment count for both paths. */
   target?: number;
 }
 
-/** `EqualizationOptions` without `reverse` and `target`, used for path pairs. */
-export type PathsEqualizationOptions = Omit<EqualizationOptions, "reverse" | "target">;
+/** The options of the multi-subpath equalization. */
+export type PathsEqualizationOptions = EqualizationOptions;
+
+/** Options for equalizing two paths for morphing with the `equalize` facade. */
+export interface EqualizeOptions {
+  /** The number of points of the equalized paths. @default "auto" */
+  points?: number | "auto";
+  /** The strategy used to place the points of the equalized paths. @default "segment" */
+  strategy?: "segment" | "arcLength";
+  /** Whether the paths are aligned by rotation. @default true */
+  align?: boolean;
+  /** Whether a path is reversed to match the winding of the other one. @default "auto" */
+  reverse?: boolean | "auto";
+  /** The equalization mode. @default "auto" */
+  mode?: "auto" | "line" | "curve";
+  /** The amount of decimals to round values to. @default 4 */
+  roundValues?: number;
+  /** Whether to close the paths before equalization. */
+  close?: boolean;
+}
 
 /** The geometric features of a path used for matching during morphing. */
 export interface PathFeature {

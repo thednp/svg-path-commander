@@ -21,7 +21,14 @@ import { matchPaths } from "../src/morph/matchPaths";
 import { getPolyPath } from "../src/util/shapeToPathArray";
 import { iterate } from "../src/process/iterate";
 import { distanceToSegment } from "../src/process/douglasPeucker";
-import type { IntersectionPoint, MorphPathArray, PathFeature } from "../src/types";
+import type {
+  CSegment,
+  IntersectionPoint,
+  LSegment,
+  MorphPathArray,
+  NormalArray,
+  PathFeature,
+} from "../src/types";
 import type { SegmentProperties } from "../src/interface";
 
 import getMarkup from "./fixtures/getMarkup";
@@ -1045,6 +1052,35 @@ describe("SVGPathCommander Static Methods", () => {
       expect(eq1.length).to.equal(eq2.length);
     });
 
+    test(`Can do equalizePaths with the reverse false option`, () => {
+      const { getDrawDirection } = SVGPathCommander;
+      const opposite = "M0 0L10 0L10 10L0 10Z";
+      const other = "M0 0L0 10L10 10L10 0Z";
+
+      const [eq1, eq2] = equalizePaths(opposite, other, { reverse: false });
+      expect(eq1.length).to.equal(eq2.length);
+      // the paths keep their own winding
+      expect(getDrawDirection(eq1)).to.not.equal(getDrawDirection(eq2));
+    });
+
+    test(`Can do equalizePaths with paths that draw the same way`, () => {
+      const clockwise = "M0 0L0 10L10 10L10 0ZM20 20L20 30L30 30L30 20Z";
+      const [eq1, eq2] = equalizePaths(clockwise, clockwise);
+      expect(eq1.length).to.equal(eq2.length);
+      // the paths are not reversed, they already draw the same way
+      expect(eq1[0]).to.deep.equal(["M", 0, 0]);
+    });
+
+    test(`Can do equalizePaths with paths that draw in opposite ways`, () => {
+      const { getDrawDirection } = SVGPathCommander;
+      const opposite = "M0 0L10 0L10 10L0 10Z";
+      const other = "M0 0L0 10L10 10L10 0Z";
+      const [eq1, eq2] = equalizePaths(opposite, other);
+      expect(eq1.length).to.equal(eq2.length);
+      // the winding of the two paths is normalized, so they match
+      expect(getDrawDirection(eq1)).to.equal(getDrawDirection(eq2));
+    });
+
     test(`Can do equalizePaths without leaking the reverse option into the defaults`, () => {
       const opposite = "M0 0L10 0L10 10L0 10Z";
       const other = "M0 0L0 10L10 10L10 0Z";
@@ -1058,6 +1094,328 @@ describe("SVGPathCommander Static Methods", () => {
       // the winding of both paths is still normalized to match
       expect(after).to.deep.equal(before);
       expect(pathToString(after[0])).to.equal(pathToString(after[1]));
+    });
+  });
+
+  describe(`Can do resamplePath`, () => {
+    const { resamplePath, normalizePath } = SVGPathCommander;
+
+    test(`Can resample a path to evenly spaced points`, () => {
+      const resampled = resamplePath("M0 0L100 0L100 100", 3, "line");
+      // the corner of the path is a point of the result too
+      expect(resampled).to.deep.equal([
+        ["M", 0, 0],
+        ["L", 100, 0],
+        ["L", 100, 100],
+      ]);
+    });
+
+    test(`Can resample a path to the corners of a polygon`, () => {
+      const resampled = resamplePath("M0 0L100 0L100 100L0 100Z", 5, "line");
+      expect(resampled).to.deep.equal([
+        ["M", 0, 0],
+        ["L", 100, 0],
+        ["L", 100, 100],
+        ["L", 0, 100],
+        ["L", 0, 0],
+      ]);
+    });
+
+    test(`Can resample a path to the corners of a polygon with more points`, () => {
+      const resampled = resamplePath("M0 0L100 0L100 100L0 100Z", 8, "line");
+      // the corners are kept and the edges hold a point of their own
+      expect(resampled).to.deep.equal([
+        ["M", 0, 0],
+        ["L", 50, 0],
+        ["L", 100, 0],
+        ["L", 100, 50],
+        ["L", 100, 100],
+        ["L", 50, 100],
+        ["L", 0, 100],
+        ["L", 0, 0],
+      ]);
+    });
+
+    test(`Can resample a path to curves`, () => {
+      const resampled = resamplePath("M0 0L100 0", 2, "curve");
+      // a straight span stays a straight line, the control points sit at a
+      // third of the span
+      expect(resampled).to.deep.equal([
+        ["M", 0, 0],
+        ["C", 33.333333333333336, 0, 66.66666666666666, 0, 100, 0],
+      ]);
+    });
+
+    test(`Can resample a path with a curve`, () => {
+      const resampled = resamplePath("M0 0C50 100 100 100 150 0", 4, "curve");
+      expect(resampled).to.have.lengthOf(4);
+      expect(resampled.every((segment) => segment[0] === "M" || segment[0] === "C")).to.be.true;
+      // the ends of the path are kept
+      expect(resampled[0]).to.deep.equal(["M", 0, 0]);
+      expect((resampled[3] as CSegment).slice(-2)).to.deep.equal([150, 0]);
+    });
+
+    test(`Can resample a path with a quadratic segment`, () => {
+      const resampled = resamplePath("M0 0Q50 100 100 0", 3, "line");
+      expect(resampled).to.have.lengthOf(3);
+      expect((resampled[1] as LSegment)[1]).to.be.closeTo(50, 1e-5);
+      expect((resampled[1] as LSegment)[2]).to.be.closeTo(50, 1e-5);
+    });
+
+    test(`Can resample a path with an arc`, () => {
+      const resampled = resamplePath("M0 0A50 50 0 0 1 100 0", 3, "line");
+      expect(resampled).to.have.lengthOf(3);
+      expect((resampled[1] as LSegment)[1]).to.be.closeTo(50, 1e-5);
+      expect((resampled[1] as LSegment)[2]).to.be.closeTo(-50, 1e-5);
+    });
+
+    test(`Can resample a path without a length`, () => {
+      expect(resamplePath("M10 10", 4, "line")).to.deep.equal([["M", 10, 10]]);
+    });
+
+    test(`Can resample an empty path`, () => {
+      expect(resamplePath("", 4, "line")).to.deep.equal([]);
+    });
+
+    test(`Can resample a path with a single point`, () => {
+      expect(resamplePath("M10 10L10 10", 4, "line")).to.deep.equal([["M", 10, 10]]);
+    });
+
+    test(`Can resample a path with a fractional count`, () => {
+      expect(resamplePath("M0 0L100 0", 2.7, "line")).to.deep.equal([
+        ["M", 0, 0],
+        ["L", 100, 0],
+      ]);
+    });
+
+    test(`Can resample a path with more corners than points`, () => {
+      const resampled = resamplePath("M0 0L100 0L100 100L0 100Z", 2, "line");
+      // the corners do not fit, so the points are spread evenly
+      expect(resampled).to.deep.equal([
+        ["M", 0, 0],
+        ["L", 0, 0],
+      ]);
+    });
+
+    test(`Can sample the polygon of a path with a quadratic segment`, () => {
+      const path = normalizePath("M0 0Q50 100 100 0") as NormalArray;
+      expect(samplePolygon(path)).to.deep.equal([
+        [0, 0],
+        [100, 0],
+      ]);
+    });
+
+    test(`Can resample a path with a segment without a length`, () => {
+      const resampled = resamplePath("M0 0L0 0L10 0", 2, "line");
+      expect(resampled).to.deep.equal([
+        ["M", 0, 0],
+        ["L", 10, 0],
+      ]);
+    });
+
+    test(`Can resample a path with a segment without a direction`, () => {
+      const resampled = resamplePath("M0 0C0 0 10 0 10 0L20 0", 2, "line");
+      expect(resampled).to.have.lengthOf(2);
+      expect((resampled[1] as LSegment)[1]).to.be.closeTo(20, 1e-9);
+    });
+
+    test(`Can resample a path with a segment without a direction at its start`, () => {
+      const resampled = resamplePath("M0 0L10 0C10 0 20 0 20 0", 2, "line");
+      expect(resampled).to.have.lengthOf(2);
+      expect((resampled[1] as LSegment)[1]).to.be.closeTo(20, 1e-9);
+    });
+
+    test(`Can resample a path with the default mode`, () => {
+      expect(resamplePath("M0 0L100 0", 2)).to.deep.equal([
+        ["M", 0, 0],
+        ["L", 100, 0],
+      ]);
+    });
+
+    test(`Can resample a path to a single point`, () => {
+      expect(resamplePath("M0 0L100 0", 1)).to.deep.equal([["M", 0, 0]]);
+    });
+  });
+
+  describe(`Can do equalize`, () => {
+    const { equalize, equalizeSegments, pathToString } = SVGPathCommander;
+    const triangle = "M0 0L100 0L50 100Z";
+    const square = "M0 0L100 0L100 100L0 100Z";
+
+    test(`Can do equalize with the default options`, () => {
+      const [eq1, eq2] = equalize(triangle, square);
+      expect(eq1.length).to.equal(eq2.length);
+      expect(eq1[0][0]).to.equal("M");
+      expect(eq2[0][0]).to.equal("M");
+    });
+
+    test(`Can do equalize with the arc length strategy`, () => {
+      const [eq1, eq2] = equalize(triangle, square, { strategy: "arcLength" });
+      expect(eq1.length).to.equal(eq2.length);
+      // the corners of the paths are kept
+      expect(eq1.some((segment) => segment[0] === "L" && segment[1] === 100)).to.be.true;
+      expect(eq2.some((segment) => segment[0] === "L" && segment[1] === 100)).to.be.true;
+    });
+
+    test(`Can do equalize with the arc length strategy and a number of points`, () => {
+      const [eq1, eq2] = equalize(triangle, square, { strategy: "arcLength", points: 6 });
+      expect(eq1.length).to.equal(6);
+      expect(eq2.length).to.equal(6);
+    });
+
+    test(`Can do equalize with the arc length strategy and the curve mode`, () => {
+      const [eq1, eq2] = equalize(triangle, square, {
+        strategy: "arcLength",
+        mode: "curve",
+        points: 4,
+      });
+      expect(eq1.length).to.equal(eq2.length);
+      expect(eq1.every((segment) => segment[0] === "M" || segment[0] === "C")).to.be.true;
+      expect(eq2.every((segment) => segment[0] === "M" || segment[0] === "C")).to.be.true;
+    });
+
+    test(`Can do equalize with the arc length strategy and the line mode`, () => {
+      const [eq1, eq2] = equalize("M0 0C50 100 100 100 150 0", square, {
+        strategy: "arcLength",
+        mode: "line",
+        points: 4,
+      });
+      expect(eq1.length).to.equal(4);
+      expect(eq2.length).to.equal(4);
+      expect(eq1.every((segment) => segment[0] === "M" || segment[0] === "L")).to.be.true;
+    });
+
+    test(`Can do equalize with the reverse auto mode`, () => {
+      const path1 = "M0 0L100 0L50 100";
+      const path2 = "M10 300L300 200L200 200";
+
+      const [eq1, eq2] = equalize(path1, path2, { reverse: "auto", strategy: "arcLength" });
+      // the first path is the one that is reversed: its end is closer to the
+      // start of the second path than its start
+      expect(eq1[0]).to.deep.equal(["M", 50, 100]);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalize with the reverse auto mode and a closed path`, () => {
+      const path1 = "M0 0L100 0L50 100";
+      const path2 = "M200 200L250 300L300 200Z";
+
+      const [eq1, eq2] = equalize(path1, path2, { reverse: "auto", strategy: "arcLength" });
+      // the closed path ends at its own start, so the first path is the one
+      // that is reversed
+      expect(eq1[0]).to.deep.equal(["M", 50, 100]);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalize with the reverse true mode`, () => {
+      const path1 = "M0 0L100 0L50 100";
+      const path2 = "M10 300L300 200L200 200";
+
+      const [eq1, eq2] = equalize(path1, path2, { reverse: true, strategy: "arcLength" });
+      // the second path is the one that is reversed
+      expect(eq1[0]).to.deep.equal(["M", 0, 0]);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalize with the reverse false mode`, () => {
+      const path1 = "M0 0L100 0L50 100";
+      const path2 = "M10 300L300 200L200 200";
+
+      const [eq1, eq2] = equalize(path1, path2, { reverse: false, strategy: "arcLength" });
+      expect(eq1[0]).to.deep.equal(["M", 0, 0]);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalize without the alignment`, () => {
+      const path1 = "M0 0L100 0L50 100";
+      const path2 = "M10 300L300 200L200 200";
+
+      const [eq1, eq2] = equalize(path1, path2, {
+        align: false,
+        reverse: false,
+        strategy: "arcLength",
+      });
+      // the second path keeps its own start
+      expect(eq2[0]).to.deep.equal(["M", 10, 300]);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalize without the alignment and the segment strategy`, () => {
+      const path1 = "M0 0L100 0L50 100";
+      const path2 = "M10 300L300 200L200 200";
+
+      const [eq1, eq2] = equalize(path1, path2, { align: false, reverse: false });
+      expect(eq2[0]).to.deep.equal(["M", 10, 300]);
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalize with the arc length strategy and the auto mode`, () => {
+      // a path with a curve is not a polyline, so the result holds curves
+      const [eq1, eq2] = equalize("M0 0C50 100 100 100 150 0", square, {
+        strategy: "arcLength",
+        points: 4,
+      });
+      expect(eq1.length).to.equal(eq2.length);
+      expect(eq1.every((segment) => segment[0] === "M" || segment[0] === "C")).to.be.true;
+      expect(eq2.every((segment) => segment[0] === "M" || segment[0] === "C")).to.be.true;
+    });
+
+    test(`Can do equalize with multiple sub-paths`, () => {
+      const [eq1, eq2] = equalize(
+        equalizeFixtures.multiSubpath.twoRects1,
+        equalizeFixtures.multiSubpath.twoRects2,
+        { strategy: "arcLength" },
+      );
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalize with multiple sub-paths and a number of points`, () => {
+      const [eq1, eq2] = equalize(
+        equalizeFixtures.multiSubpath.twoRects1,
+        equalizeFixtures.multiSubpath.twoRects2,
+        { strategy: "arcLength", points: 8 },
+      );
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalize with the close option`, () => {
+      const [eq1, eq2] = equalize(triangle, square, { close: true, strategy: "arcLength" });
+      expect(eq1[eq1.length - 1][0]).to.equal("Z");
+      expect(eq2[eq2.length - 1][0]).to.equal("Z");
+    });
+
+    test(`Can do equalize with the roundValues option`, () => {
+      const [eq1, eq2] = equalize(triangle, square, {
+        roundValues: 2,
+        strategy: "arcLength",
+      });
+      expect(pathToString(eq1, 2)).to.be.a("string");
+      expect(pathToString(eq2, 2)).to.be.a("string");
+    });
+
+    test(`Can do equalize without leaking the options into the defaults`, () => {
+      const line = "M0 0L10 0L20 0L30 0";
+
+      equalize(line, line, { mode: "curve", strategy: "arcLength" });
+
+      // the default strategy is still "segment", which keeps the points of
+      // the path
+      const [eq1] = equalize(line, line);
+      expect(eq1.map((segment) => segment[0])).to.deep.equal(["M", "L", "L", "L"]);
+      // and the default mode is still "auto", which keeps the path a polyline
+      const [eq2] = equalizeSegments(line, line);
+      expect(eq2.map((segment) => segment[0])).to.deep.equal(["M", "L", "L", "L"]);
+    });
+
+    test(`Can do equalize with an invalid number of points`, () => {
+      expect(() => equalize(triangle, square, { points: 1 })).to.throw(
+        TypeError,
+        `${error}: points must be a number greater than 1`,
+      );
+      expect(() => equalize(triangle, square, { points: Number.NaN })).to.throw(
+        TypeError,
+        `${error}: points must be a number greater than 1`,
+      );
     });
   });
 

@@ -22,9 +22,26 @@
   new SVGPathCommander("M0 0L10 0L20 0L30 0").simplify(1).toString();
   // => "M0 0L30 0"
   ```
+- `equalize()` — the recommended entry point for morphing two paths: it picks the right strategy for the paths, aligns their points and normalizes their winding, so the two paths hold the same number of segments of the same type:
+  ```js
+  const [eq1, eq2] = SVGPathCommander.equalize("M0 0L100 0L50 100Z", "M0 0L100 0L100 100L0 100Z", {
+    strategy: "arcLength",
+  });
+  // eq1.length === eq2.length === 5 — ready for morphing
+  ```
+- `resamplePath()` — the resampling of a path to a given number of points, spread evenly over its length: the distance between two points of the result is the same over the whole path, and the corners of the path are points of the result too, so the shape of the path keeps its vertices:
+  ```js
+  SVGPathCommander.resamplePath("M0 0L100 0L100 100", 3);
+  // => [["M", 0, 0], ["L", 100, 0], ["L", 100, 100]]
+  ```
+- `equalizeSegments()` and `equalizePaths()` accept the `strategy` option — `segment` (the default) splits the segments of the paths, so the points of the result are the points of the paths, while `arcLength` spreads the points of the result evenly over the length of the paths and keeps their corners
+- `equalizeSegments()` and `equalizePaths()` accept the `align` option — the points of the second path are rotated onto the points of the first one by default, `align: false` keeps them where they are
+- `equalizeSegments()` and `equalizePaths()` accept `reverse: "auto"` — the path that is reversed is the one that leaves the two paths closest to each other, instead of always the second one
+- `equalizeSegments()` and `equalizePaths()` accept the `mode: "line"` option — the result of the equalization is a polyline, even when the paths hold curves
 
 ### Fixed
 
+- `samplePolygon()` no longer throws on a quadratic segment — the winding of a path with a `Q` segment could not be read, so the equalization of such a path failed with `path command "Q" is not supported`
 - `getPointAtLength()` no longer jumps to the end of a zero radius arc — the SVG spec treats a zero radius as a straight line to the end point, and the length of such an arc was already measured that way, but the point lookup returned the end point for every distance along it
 - `reversePath()` no longer corrupts the geometry of a `T` segment — a reversed `T` was emitted as the `T` shorthand whenever the original predecessor was not a `Q`/`T`, but in the reversed path the predecessor of a segment is its original _successor_, so when that successor was a `Q` the shorthand reflected the `Q`'s control point instead of the `T`'s own control point and silently changed the curve; e.g. `M0 0L10 0T20 20Q30 30 40 40` was off by up to 21 units — the shorthand is now kept wherever it is provably safe and falls back to an explicit `Q` otherwise
 - `arcToCubic()` no longer produces `NaN` control points for a zero radius arc — the SVG spec treats a zero radius as a straight line to the end point, which is what the conversion produces now
@@ -63,6 +80,7 @@
 
 ### Changed
 
+- The `mode` option of `equalizeSegments()` accepts `"line"` — the option was documented but not implemented: a `"line"` mode fell through to the curve branch, so the result of the equalization always held cubic segments
 - The frame of `getPropertiesAtLength()` shares one `t` ratio between the point and the tangent — the point and the frame are computed from the very same spot on the curve, which is **1.9x - 3.7x** faster than looking both up separately
 - The Douglas-Peucker simplification splits a range at its worst point _and_ in its middle when the worst point sits at the edge of the range — a split at the edge alone makes the recursion as deep as the range is long, which was quadratic on a path that alternates between two sides of a line: a 4 000 curve path went from **1 090 ms** to **17 ms**, and the result keeps the same shape within the tolerance
 - `getTotalLength()` and `getPathSplits()` now share one length measurement pass — `measureSegments()` yields the length of every segment together with the length accumulated before it, so the two can no longer disagree and `getPathSplits()` no longer computes every segment length twice; the pass handles every command the way `getTotalLength()` does, where the old `getPathSplits()` measured `H`, `V` and `Z` segments as cubics and produced `NaN` for them

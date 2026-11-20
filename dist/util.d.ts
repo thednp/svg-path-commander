@@ -365,17 +365,38 @@ type IntersectionPoint = {
 /** Options for equalizing two paths for morphing. */
 interface EqualizationOptions {
   /** The equalization mode. @default "auto" */
-  mode?: "curve" | "auto";
+  mode?: "auto" | "line" | "curve";
+  /** The strategy used to place the points of the equalized paths. @default "segment" */
+  strategy?: "segment" | "arcLength";
+  /** Whether the paths are aligned by rotation. @default true */
+  align?: boolean;
   /** The number of sample points for the line mode. */
   sampleSize?: number;
   /** The amount of decimals to round values to. */
   roundValues?: number;
-  /** Whether to reverse the second path before equalization. */
-  reverse?: boolean;
+  /** Whether to reverse the second path before equalization. @default true */
+  reverse?: boolean | "auto";
   /** Whether to close the path before equalization. */
   close?: boolean;
   /** The target segment count for both paths. */
   target?: number;
+}
+/** Options for equalizing two paths for morphing with the `equalize` facade. */
+interface EqualizeOptions {
+  /** The number of points of the equalized paths. @default "auto" */
+  points?: number | "auto";
+  /** The strategy used to place the points of the equalized paths. @default "segment" */
+  strategy?: "segment" | "arcLength";
+  /** Whether the paths are aligned by rotation. @default true */
+  align?: boolean;
+  /** Whether a path is reversed to match the winding of the other one. @default "auto" */
+  reverse?: boolean | "auto";
+  /** The equalization mode. @default "auto" */
+  mode?: "auto" | "line" | "curve";
+  /** The amount of decimals to round values to. @default 4 */
+  roundValues?: number;
+  /** Whether to close the paths before equalization. */
+  close?: boolean;
 }
 /**
  * Returns the signed arc length of an ellipse segment from angle `0` up to
@@ -1617,6 +1638,48 @@ export declare const fixPath: <T extends PathArray>(pathInput: T | string) => vo
  */
 export declare function splitCubicSegment(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number, t: number): [CubicCoordinates, CubicCoordinates];
 /**
+ * Equalizes two paths for morphing.
+ *
+ * The two paths are brought to the same shape, so they can be morphed into
+ * each other: they hold the same number of segments of the same type, their
+ * winding is the same and their points are aligned.
+ *
+ * A path with a single sub-path is equalized on its own, a path with more
+ * sub-paths is split into sub-paths, the sub-paths are matched by their
+ * shape and every pair is equalized on its own.
+ *
+ * The `strategy` option decides how the points of the paths are placed:
+ * - `segment` splits the segments of the paths, so the points of the result
+ *   are the points of the paths;
+ * - `arcLength` spreads the points of the result evenly over the length of
+ *   the paths, so the distance between two points of the result is the same
+ *   over the whole path. The corners of the paths are points of the result
+ *   too, so the shape of the paths keeps its vertices.
+ *
+ * The `points` option is the number of points of the result. The automatic
+ * mode uses the number of points of the bigger path, raised when the corners
+ * of the paths do not fit.
+ *
+ * The `reverse` option decides what happens when the two paths draw in
+ * opposite directions: `true` reverses the second path, `false` leaves the
+ * paths as they are and `auto` reverses the path that leaves the two paths
+ * closest to each other.
+ *
+ * @see https://minus-ze.ro/posts/morphing-arbitrary-paths-in-svg/
+ *
+ * @param pathInput1 - First path string or PathArray
+ * @param pathInput2 - Second path string or PathArray
+ * @param initialCfg - Configuration options for equalization
+ * @returns Tuple of two equalized MorphPathArrays
+ *
+ * @example
+ * ```ts
+ * const [eq1, eq2] = equalize('M0 0L100 0L50 100Z', 'M0 0L100 0L100 100L0 100Z')
+ * // eq1.length === eq2.length — ready for morphing
+ * ```
+ */
+export declare const equalize: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: EqualizeOptions) => [MorphPathArray, MorphPathArray];
+/**
  * Equalizes two paths for morphing (single subpath only).
  *
  * @see https://minus-ze.ro/posts/morphing-arbitrary-paths-in-svg/
@@ -1648,6 +1711,31 @@ export declare const equalizeSegments: (path1: PathArray | string, path2: PathAr
  * ```
  */
 export declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: {}) => [MorphPathArray, MorphPathArray];
+/**
+ * Resamples a path to a given number of points, spread evenly by length.
+ *
+ * The path is measured along its length and the points of the result are
+ * spread evenly over it, so the distance between two points of the result
+ * is the same over the whole path. The corners of the path are points of
+ * the result too, so the shape of the path keeps its vertices.
+ *
+ * The result is a polyline, or a path of cubic Bezier segments when the
+ * curve mode is used: every cubic of the result starts at a point of the
+ * path and ends at the next one, with the direction of the path at both
+ * ends, so the curve of the path is kept.
+ *
+ * @param pathInput - the target path string or PathArray
+ * @param count - the number of points of the result
+ * @param mode - the type of the segments of the result
+ * @returns the resampled path
+ *
+ * @example
+ * ```ts
+ * resamplePath("M0 0L100 0L100 100", 3)
+ * // => [['M', 0, 0], ['L', 100, 0], ['L', 100, 100]]
+ * ```
+ */
+export declare const resamplePath: (pathInput: string | PathArray, count: number, mode?: "line" | "curve") => MorphPathArray;
 /**
  * Finds intersection points between two paths.
  *

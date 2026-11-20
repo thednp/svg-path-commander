@@ -25,7 +25,8 @@
 - provides more reliable and more accurate built-in `getBBox`, `getPointAtLength` and `getTotalLength` than the native methods, plus community tools like `getPropertiesAtLength`, `getSegmentOfPoint`, `isPointInStroke`, `pathsIntersection` and `boundingBoxIntersect`;
 - returns the frame of the path at a given length — `getPropertiesAtLength` answers with the point, the unit tangent vector, the unit normal vector (the left normal of the tangent) and the angle of the tangent in degrees, next to the segment metadata;
 - simplifies a path with the Douglas-Peucker algorithm — `simplifyPath` keeps the points that are needed to hold the shape of the path within a tolerance you choose, the result is a path of straight lines;
-- supports path morphing via `equalizePaths` / `equalizeSegments` and per-segment interpolation through `samplePath` / `splitPath`;
+- resamples a path to a given number of points — `resamplePath` spreads the points evenly over the length of the path and keeps its corners, so the shape of the path keeps its vertices;
+- supports path morphing via `equalize` / `equalizePaths` / `equalizeSegments` and per-segment interpolation through `samplePath` / `splitPath`; the `equalize` facade is the recommended entry point, it aligns the points of the two paths, normalizes their winding and places their points with the `segment` or the `arcLength` strategy;
 - serves every geometry query from a shared length table — `getPropertiesAtLength`, `getPointAtLength` and the closest point search are linear in the number of segments instead of quadratic (a 4 000 segment path answers a length query in about 2 ms, and a closest point query in about 1 ms);
 - has a defined answer for an empty or malformed path: a zeroed bounding box, a `{x:0,y:0}` point, `false`, `undefined` or a synthetic `["M", 0, 0]` segment, depending on the tool — and no tool modifies the data it is given;
 - is built with [tsdown](https://tsdown.dev), producing ESM (`index.js`), UMD (`index.min.js`, global `SVGPathCommander`) and a static-methods-only `util.js` entry into `dist/`;
@@ -55,9 +56,9 @@ getPathBBox("M0 0L100 0L50 100"); // { x: 0, y: 0, width: 100, height: 100 }
 
 **Getters** — `bbox`, `length`, `string`, `segments`, `path`, `options`.
 
-**Static methods** — `parsePathString`, `pathToString`, `normalizePath`, `optimizePath`, `simplifyPath`, `pathToAbsolute`, `pathToRelative`, `pathToCurve`, `shapeToPath`, `shapeToPathArray`, `reversePath`, `reverseCurve`, `transformPath`, `roundPath`, `splitPath`, `fixPath`, `getPathBBox`, `getPathArea`, `getDrawDirection`, `getTotalLength`, `getPointAtLength`, `getSegmentAtLength`, `getSegmentOfPoint`, `getPropertiesAtLength`, `getPropertiesAtPoint`, `getClosestPoint`, `isPointInStroke`, `isValidPath`, `pathsIntersection`, `boundingBoxIntersect`, `equalizePaths`, `equalizeSegments`, plus the low-level tools in the `svg-path-commander/util` subpath entry.
+**Static methods** — `parsePathString`, `pathToString`, `normalizePath`, `optimizePath`, `simplifyPath`, `resamplePath`, `pathToAbsolute`, `pathToRelative`, `pathToCurve`, `shapeToPath`, `shapeToPathArray`, `reversePath`, `reverseCurve`, `transformPath`, `roundPath`, `splitPath`, `fixPath`, `getPathBBox`, `getPathArea`, `getDrawDirection`, `getTotalLength`, `getPointAtLength`, `getSegmentAtLength`, `getSegmentOfPoint`, `getPropertiesAtLength`, `getPropertiesAtPoint`, `getClosestPoint`, `isPointInStroke`, `isValidPath`, `pathsIntersection`, `boundingBoxIntersect`, `equalize`, `equalizePaths`, `equalizeSegments`, plus the low-level tools in the `svg-path-commander/util` subpath entry.
 
-**Types** — `PathArray`, `PathSegment`, `PathCommand`, `AbsoluteCommand`, `RelativeCommand`, `NormalSegment`, `IteratorCallback`, `Options`, `TransformObject`, `PathBBox`, `ShapePath`, `ShapeAttrs`, and per-command segment aliases (`MSegment`, `LSegment`, `CSegment`, `ArcSegment`, ...).
+**Types** — `PathArray`, `PathSegment`, `PathCommand`, `AbsoluteCommand`, `RelativeCommand`, `NormalSegment`, `IteratorCallback`, `Options`, `TransformObject`, `PathBBox`, `ShapePath`, `ShapeAttrs`, `EqualizationOptions`, `EqualizeOptions`, and per-command segment aliases (`MSegment`, `LSegment`, `CSegment`, `ArcSegment`, ...).
 
 ## Key Differences
 

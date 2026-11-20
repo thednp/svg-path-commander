@@ -288,6 +288,12 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   // => [['M', 0, 0], ['L', 30, 0]]
   ```
   The tolerance is the maximum distance between the result and the source: every point of the source stays within the tolerance of the result. A smaller tolerance keeps more points, a bigger one removes more. The tolerance defaults to `1`.
+- **SVGPathCommander.resamplePath(_path_: string | PathArray, _count_: number, _mode_: "line" | "curve")** - returns a new _PathArray_ with the given number of points, spread evenly over the length of the path: the distance between two points of the result is the same over the whole path, and the corners of the path are points of the result too, so the shape of the path keeps its vertices; the result is a polyline, or a path of cubic Bezier segments in the `curve` mode, where every cubic holds the direction of the path at both of its ends;
+  ```js
+  SVGPathCommander.resamplePath("M0 0L100 0L100 100", 3);
+  // => [['M', 0, 0], ['L', 100, 0], ['L', 100, 100]]
+  ```
+  The mode defaults to `line`. When the corners of the path are more than the points of the result, they cannot all be kept: the points are spread evenly then, and the shape of the path is approximated by its chords.
 - **SVGPathCommander.getDrawDirection(_path_: PathArray)** - converts the _PathArray_ to curve and returns _TRUE_ if a shape draw direction is **clockwise**, it _should work_ for shapes with sub-paths, but it might skew your results, so make sure you split your path and test each sub-path separately;
   ```js
   SVGPathCommander.getDrawDirection("M0 0L100 0L50 100Z"); // => true
@@ -366,6 +372,14 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   );
   // eq1.length === eq2.length === 5
   ```
+- **SVGPathCommander.equalize(_path1_: PathArray | string, _path2_: PathArray | string, _options_: EqualizeOptions)** - equalizes two paths for morphing, the recommended entry point: a path with a single sub-path is equalized on its own, a path with more sub-paths is split into sub-paths, the sub-paths are matched by their shape and every pair is equalized on its own; returns a tuple of two equalized _MorphPathArrays_;
+  ```js
+  const [eq1, eq2] = SVGPathCommander.equalize("M0 0L100 0L50 100Z", "M0 0L100 0L100 100L0 100Z", {
+    strategy: "arcLength",
+  });
+  // eq1.length === eq2.length === 5
+  ```
+  The `points` option is the number of points of the result, the `strategy` option decides how the points are placed (`segment` splits the segments of the paths, `arcLength` spreads the points evenly over the length of the paths and keeps their corners), the `align` option turns the rotation of the points of the second path off, the `reverse` option decides what happens when the two paths draw in opposite directions (`true` reverses the second path, `false` leaves the paths as they are, `auto` reverses the path that leaves the two paths closest to each other), the `mode` option decides the type of the segments of the result (`auto` uses lines when both paths are polylines and curves otherwise) and the `close` option closes the result.
 - **SVGPathCommander.pathsIntersection(_path1_: string | PathArray, _path2_: string | PathArray)** - returns an array of intersection points between two paths;
   ```js
   SVGPathCommander.pathsIntersection("M0 50C0 0,100 0,100 50", "M50 0C100 0,100 100,50 100", false);
@@ -483,6 +497,7 @@ parsePathString("M0 0L50 0");
 | `normalizePath`         | Returns a new `PathArray` without shorthand segments            |
 | `optimizePath`          | Returns a new `PathArray` with shortest-string segments         |
 | `simplifyPath`          | Returns a new `PathArray` simplified within a tolerance         |
+| `resamplePath`          | Returns a new `PathArray` with evenly spread points             |
 | `reversePath`           | Returns a new `PathArray` with reversed segments                |
 | `reverseCurve`          | Returns a new reversed `PathArray` of curve segments only       |
 | `transformPath`         | Returns a new `PathArray` with transformed segments             |
@@ -516,3 +531,4 @@ parsePathString("M0 0L50 0");
 | `boundingBoxIntersect`  | Checks if two bounding boxes intersect                          |
 | `equalizePaths`         | Equalizes two paths for morphing                                |
 | `equalizeSegments`      | Equalizes two single-subpath paths for morphing                 |
+| `equalize`              | Equalizes two paths for morphing, the recommended entry point   |

@@ -17,6 +17,8 @@ While you may find familiar tools inside, this library brings _**new additions**
 - thanks to the community contributions we've implemented useful tools like `getPropertiesAtLength`, `getSegmentOfPoint` or `isPointInStroke`;
 - `getPropertiesAtLength` returns the frame of the path at a given length — the point, the unit tangent vector, the unit normal vector and the angle of the tangent in degrees;
 - `simplifyPath` reduces the number of points of a path with the Douglas-Peucker algorithm, within a tolerance you choose;
+- `resamplePath` spreads the points of a path evenly over its length, so the distance between two points is the same over the whole path, and the corners of the path are kept;
+- `equalize` brings two paths to the same shape, so they can be morphed into each other;
 - a tool that can _reverse path draw direction_ without altering path commands, even with specific shorthand path commands;
 - a unique tool that can _reverse path draw direction_ for path strings with only 'C' path commands;
 - a new and unique tool to _apply transform functions to path commands_ via the modern _DOMMatrix_ API;
@@ -328,6 +330,13 @@ const mySimplifiedPath = SVGPathCommander.simplifyPath("M0 0L10 0L20 0L30 0", 1)
 // result => [["M", 0, 0], ["L", 30, 0]]
 ```
 
+Resample the path to a given number of points, spread evenly over its length:
+
+```js
+const myResampledPath = SVGPathCommander.resamplePath("M0 0L100 0L100 100", 3);
+// result => [["M", 0, 0], ["L", 100, 0], ["L", 100, 100]]
+```
+
 Find intersection points between two paths:
 
 ```js
@@ -365,6 +374,30 @@ const [eq1, eq2] = SVGPathCommander.equalizePaths(
   { close: true },
 );
 // Both paths now have the same number of segments
+```
+
+Equalize two paths for morphing — the recommended entry point, it picks the right
+strategy for the paths, aligns their points and normalizes their winding:
+
+```js
+const [eq1, eq2] = SVGPathCommander.equalize("M0 0L100 0L50 100Z", "M0 0L100 0L100 100L0 100Z", {
+  strategy: "arcLength",
+});
+// eq1.length === eq2.length — ready for morphing
+```
+
+The `strategy` option decides how the points of the paths are placed: `segment`
+(the default) splits the segments of the paths, so the points of the result are
+the points of the paths, while `arcLength` spreads the points of the result
+evenly over the length of the paths and keeps their corners:
+
+```js
+const [eq1, eq2] = SVGPathCommander.equalize("M0 0C50 100 100 100 150 0", "M0 0L150 0L150 100Z", {
+  strategy: "arcLength",
+  points: 8,
+  mode: "curve",
+});
+// eq1.length === eq2.length === 8 — ready for morphing
 ```
 
 # WIKI
