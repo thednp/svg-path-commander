@@ -1,6 +1,6 @@
 import type { PathArray, Point } from "../types.ts";
 import type { PointProperties } from "../interface.ts";
-import { getPointAtLength } from "./getPointAtLength.ts";
+import { getPointAtNormalizedLength } from "./getPointAtLength.ts";
 import { getPropertiesAtLength } from "./getPropertiesAtLength.ts";
 import { getTotalLength } from "./getTotalLength.ts";
 import { parsePathString } from "../parser/parsePathString.ts";
@@ -41,7 +41,7 @@ export const getPropertiesAtPoint = <T extends PathArray>(
 
   // linear scan for coarse approximation
   for (let scanLength = 0; scanLength <= pathLength; scanLength += precision) {
-    scan = getPointAtLength(normalPath, scanLength);
+    scan = getPointAtNormalizedLength(normalPath, scanLength);
     scanDistance = distanceTo(scan);
 
     if (scanDistance < bestDistance) {
@@ -62,10 +62,10 @@ export const getPropertiesAtPoint = <T extends PathArray>(
 
   while (precision > 0.000001) {
     beforeLength = bestLength - precision;
-    before = getPointAtLength(normalPath, beforeLength);
+    before = getPointAtNormalizedLength(normalPath, beforeLength);
     beforeDistance = distanceTo(before);
     afterLength = bestLength + precision;
-    after = getPointAtLength(normalPath, afterLength);
+    after = getPointAtNormalizedLength(normalPath, afterLength);
     afterDistance = distanceTo(after);
 
     if (beforeLength >= 0 && beforeDistance < bestDistance) {

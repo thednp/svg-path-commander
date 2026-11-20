@@ -24,7 +24,25 @@ export const getPointAtLength = <T extends PathArray>(
   pathInput: string | T,
   distance?: number,
 ): { x: number; y: number } => {
-  const path = normalizePath(pathInput);
+  return getPointAtNormalizedLength(normalizePath(pathInput), distance);
+};
+
+/**
+ * Returns [x,y] coordinates of a point at a given length along a path
+ * that is already normalized.
+ *
+ * The normalization is the expensive part of the lookup, so it is kept
+ * out of this function: a caller that already has a normalized path does
+ * not have to normalize it again for every point it looks up.
+ *
+ * @param path - The normalized PathArray to look into
+ * @param distance - The distance along the path
+ * @returns The requested {x, y} point coordinates
+ */
+export const getPointAtNormalizedLength = (
+  path: PathArray,
+  distance?: number,
+): { x: number; y: number } => {
   // an empty path has no point to return
   if (!path.length) return { x: 0, y: 0 };
   let isM = false;
