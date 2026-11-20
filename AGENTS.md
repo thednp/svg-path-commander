@@ -210,10 +210,11 @@ all work on copies, and the transform origin is copied before it is written to.
 ### Testing
 
 - Tests run with Vitest + Istanbul coverage via `vpr test`
-- Test files: `test/class.test.ts` (instance API), `test/static.test.ts` (static methods)
+- Test files: `test/class.test.ts` (instance API), `test/static.test.ts` (static methods),
+  `test/getPropertiesAtLength.parity.test.ts` (the parity of the length lookup)
 - Fixtures in `test/fixtures/`
 - Use `expect().to.deep.equal()` for object comparison, `expect().to.equal()` for primitives
-- Coverage provider: Istanbul
+- Coverage provider: Istanbul — the suite has to stay at 100 %
 
 ## Build Outputs
 
