@@ -1,4 +1,5 @@
 import { rotateVector } from "../math/rotateVector.ts";
+import { lineToCubic } from "./lineToCubic.ts";
 
 /**
  * Converts A (arc-to) segments to C (cubic-bezier-to).
@@ -32,13 +33,19 @@ export const arcToCubic = (
 ): number[] => {
   let x1 = X1;
   let y1 = Y1;
-  let rx = RX;
-  let ry = RY;
+  // a negative radius is an error, the absolute value is used
+  let rx = Math.abs(RX);
+  let ry = Math.abs(RY);
   let x2 = X2;
   let y2 = Y2;
   // for more information of where this Math came from visit:
   // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
   const d120 = (Math.PI * 120) / 180;
+
+  // a zero radius is treated as a straight line to the end point
+  if (!recursive && (rx === 0 || ry === 0)) {
+    return lineToCubic(X1, Y1, X2, Y2);
+  }
 
   const rad = (Math.PI / 180) * (+angle || 0);
   let res = [] as number[];

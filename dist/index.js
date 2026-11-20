@@ -577,6 +577,8 @@ const getArcProps = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
 * @returns the length of the Arc segment
 */
 const getArcLength = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
+	const { abs } = Math;
+	if (RX === 0 || RY === 0) return abs(Math.sqrt((x - x1) ** 2 + (y - y1) ** 2));
 	const { rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
 	return Math.abs(arcLengthBetween(rx, ry, startAngle, endAngle));
 };
@@ -1678,6 +1680,28 @@ const pathToRelative = (pathInput) => {
 	const path = parsePathString(pathInput);
 	return iterate(path, relativizeSegment);
 };
+// src/process/lineToCubic.ts
+/**
+* Converts an L (line-to) segment to C (cubic-bezier).
+*
+* @param x1 line start x
+* @param y1 line start y
+* @param x2 line end x
+* @param y2 line end y
+* @returns the cubic-bezier segment
+*/
+const lineToCubic = (x1, y1, x2, y2) => {
+	const c1 = midPoint([x1, y1], [x2, y2], 1 / 3);
+	const c2 = midPoint([x1, y1], [x2, y2], 2 / 3);
+	return [
+		c1[0],
+		c1[1],
+		c2[0],
+		c2[1],
+		x2,
+		y2
+	];
+};
 // src/process/arcToCubic.ts
 /**
 * Converts A (arc-to) segments to C (cubic-bezier-to).
@@ -1700,11 +1724,12 @@ const pathToRelative = (pathInput) => {
 const arcToCubic = (X1, Y1, RX, RY, angle, LAF, SF, X2, Y2, recursive) => {
 	let x1 = X1;
 	let y1 = Y1;
-	let rx = RX;
-	let ry = RY;
+	let rx = Math.abs(RX);
+	let ry = Math.abs(RY);
 	let x2 = X2;
 	let y2 = Y2;
 	const d120 = Math.PI * 120 / 180;
+	if (!recursive && (rx === 0 || ry === 0)) return lineToCubic(X1, Y1, X2, Y2);
 	const rad = Math.PI / 180 * (+angle || 0);
 	let res = [];
 	let xy;
@@ -1810,28 +1835,6 @@ const quadToCubic = (x1, y1, qx, qy, x2, y2) => {
 		r13 * y1 + r23 * qy,
 		r13 * x2 + r23 * qx,
 		r13 * y2 + r23 * qy,
-		x2,
-		y2
-	];
-};
-// src/process/lineToCubic.ts
-/**
-* Converts an L (line-to) segment to C (cubic-bezier).
-*
-* @param x1 line start x
-* @param y1 line start y
-* @param x2 line end x
-* @param y2 line end y
-* @returns the cubic-bezier segment
-*/
-const lineToCubic = (x1, y1, x2, y2) => {
-	const c1 = midPoint([x1, y1], [x2, y2], 1 / 3);
-	const c2 = midPoint([x1, y1], [x2, y2], 2 / 3);
-	return [
-		c1[0],
-		c1[1],
-		c2[0],
-		c2[1],
 		x2,
 		y2
 	];

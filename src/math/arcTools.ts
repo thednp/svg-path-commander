@@ -260,6 +260,11 @@ const getArcLength = (
   x: number,
   y: number,
 ): number => {
+  const { abs } = Math;
+  // a zero radius is treated as a straight line to the end point
+  if (RX === 0 || RY === 0) {
+    return abs(Math.sqrt((x - x1) ** 2 + (y - y1) ** 2));
+  }
   const { rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
   return Math.abs(arcLengthBetween(rx, ry, startAngle, endAngle));
 };

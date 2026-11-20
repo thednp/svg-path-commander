@@ -1501,3 +1501,44 @@ describe("S/s shorthand and arc bounds fixes", () => {
     expect(getTotalLength(transformed)).to.be.closeTo(getTotalLength(path), 0.001);
   });
 });
+
+describe("Arc conversion fixes", () => {
+  const { arcToCubic, getTotalLength, pathToCurve, pathToString } = SVGPathCommander;
+
+  test("Can convert a zero radius arc to a straight line", () => {
+    const curve = pathToCurve("M0 0A0 0 0 1 1 100 100");
+    expect(pathToString(curve)).to.equal("M0 0C33.3333 33.3333 66.6667 66.6667 100 100");
+    expect(pathToString(curve)).to.not.contain("NaN");
+  });
+
+  test("Can measure a zero radius arc as a straight line", () => {
+    expect(getTotalLength("M0 0A0 0 0 1 1 100 100")).to.be.closeTo(Math.sqrt(20000), 0.001);
+    expect(getTotalLength("M0 0A25 0 0 1 1 100 0")).to.be.closeTo(100, 0.001);
+  });
+
+  test("Can convert a zero radius arc to the same length as the arc", () => {
+    const arc = "M0 0A0 0 0 1 1 100 100";
+    expect(getTotalLength(pathToCurve(arc))).to.be.closeTo(getTotalLength(arc), 0.001);
+  });
+
+  test("Can convert an arc with negative radii using their absolute value", () => {
+    expect(arcToCubic(0, 0, -25, 25, 0, 1, 1, 50, 0)).to.deep.equal(
+      arcToCubic(0, 0, 25, 25, 0, 1, 1, 50, 0),
+    );
+    expect(arcToCubic(0, 0, 25, -25, 0, 1, 1, 50, 0)).to.deep.equal(
+      arcToCubic(0, 0, 25, 25, 0, 1, 1, 50, 0),
+    );
+  });
+
+  test("Can convert an arc with negative radii to the same length as the arc", () => {
+    const negative = "M0 0A-25 25 0 1 1 50 0";
+    const positive = "M0 0A25 25 0 1 1 50 0";
+    // a cubic is only an approximation of an elliptical arc, the same small
+    // gap exists for positive radii
+    expect(getTotalLength(pathToCurve(negative))).to.be.closeTo(
+      getTotalLength(pathToCurve(positive)),
+      0.001,
+    );
+    expect(getTotalLength(pathToCurve(negative))).to.be.closeTo(getTotalLength(negative), 0.1);
+  });
+});
