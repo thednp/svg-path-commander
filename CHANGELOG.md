@@ -71,6 +71,12 @@
 
 ### Fixed
 
+- `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` now find the closest point on the closing segment of a closed sub-path of a **multi-subpath** path — the coarse scan of the path samples the start of a closed sub-path twice, once at the start of the sub-path and once at the end of its closing segment, and it kept the first of the two equally close samples, so the refinement walked away from the closing segment and the point was reported at the distance of the start of the sub-path:
+  ```js
+  SVGPathCommander.getPropertiesAtPoint("M0 0L100 0L100 100L0 100ZM50 50L150 50", { x: 0, y: 1 });
+  // => { closest: { x: 0, y: 1 }, distance: 0, segment: { segment: ["Z"], … } }
+  ```
+  The scan now collects the local minima of the distance and the search refines around every one of them, so a path that passes near the point more than once is searched at every one of those places. A path that runs at a constant distance from the point — a circle around it — has no minimum, and the noise of the samples is not read as one.
 - `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` now find the closest point on the closing segment of a closed path — the search starts at the beginning of the path and walks towards the end, so it could not walk over the end of a path that ends where it starts, and a point on the closing segment was reported at the distance of the start of the path:
   ```js
   SVGPathCommander.getPropertiesAtPoint("M0 0L100 0L100 100L0 100Z", { x: 0, y: 1 });

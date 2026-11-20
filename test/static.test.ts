@@ -487,6 +487,41 @@ describe("SVGPathCommander Static Methods", () => {
     expect(getClosestPoint("M0 0L370 0", { x: 368, y: 1 })).to.deep.equal({ x: 368, y: 0 });
   });
 
+  test(`Can find the closest point on the closing segment of a closed sub-path`, () => {
+    const { getPropertiesAtPoint, getClosestPoint, isPointInStroke } = SVGPathCommander;
+    // the closed sub-path returns to its own start, so the point is sampled
+    // twice by the scan of the path and the search has to look at both
+    const path = "M0 0L100 0L100 100L0 100ZM50 50L150 50";
+    const props = getPropertiesAtPoint(path, { x: 0, y: 1 });
+    expect(props.closest).to.deep.equal({ x: 0, y: 1 });
+    expect(props.distance).to.equal(0);
+    expect(props.segment?.segment).to.deep.equal(["Z"]);
+    expect(getClosestPoint(path, { x: 0, y: 1 })).to.deep.equal({ x: 0, y: 1 });
+    expect(isPointInStroke(path, { x: 0, y: 1 })).to.be.true;
+    // the closing segment of a sub-path in the middle of the path
+    const middle = "M50 50L150 50M0 0L100 0L100 100L0 100Z";
+    expect(getClosestPoint(middle, { x: 0, y: 1 })).to.deep.equal({ x: 0, y: 1 });
+  });
+
+  test(`Can find the closest point where the path passes near it twice`, () => {
+    const { getPropertiesAtPoint, getClosestPoint } = SVGPathCommander;
+    // the path returns to its start, so the start of the path is sampled
+    // twice by the scan and the search has to look at both of them
+    const path = "M0 0L100 0L100 100L0 100L0 0";
+    expect(getClosestPoint(path, { x: 0, y: 1 })).to.deep.equal({ x: 0, y: 1 });
+    // a path that ends at its closest point
+    const props = getPropertiesAtPoint("M100 100L50 50L0 0", { x: 0, y: 0 });
+    expect(props.distance).to.be.closeTo(0, 1e-6);
+  });
+
+  test(`Can measure the distance to a path that runs around the point`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+    // the distance to the circle is the radius, at every point of it
+    const circle = "M50 0A50 50 0 1 0 50 100A50 50 0 1 0 50 0Z";
+    const props = getPropertiesAtPoint(circle, { x: 50, y: 50 });
+    expect(props.distance).to.be.closeTo(50, 1e-6);
+  });
+
   test(`Can do isPointInStroke`, () => {
     const { isPointInStroke } = SVGPathCommander;
     // first point
