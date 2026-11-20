@@ -1,12 +1,8 @@
 // src/morph/getPathSplits.ts
 
-import type { CSegment, CurveArray, PointTuple, PolylineArray } from "../types.ts";
-import { getLineLength } from "../math/lineTools.ts";
-import { getCubicLength } from "../math/cubicTools.ts";
-import { getTotalLength } from "../util/getTotalLength.ts";
-import { isPolylineArray } from "../util/isPolylineArray.ts";
+import type { CurveArray, PointTuple, PolylineArray } from "../types.ts";
+import { measureSegments } from "../util/measureSegments.ts";
 import { error } from "../util/error.ts";
-import { iterate } from "../process/iterate.ts";
 
 /**
  * Determine the right amount of splits for each segment in a given PathArray
@@ -22,42 +18,31 @@ export function getPathSplits<T extends PolylineArray | CurveArray>(
   path: T,
   target: number,
 ): number[] {
-  if (target <= 1) throw new TypeError(`${error}: target must be >= 2`);
+  if (!Number.isFinite(target)) {
+    throw new TypeError(`${error}: target must be a finite number`);
+  }
+  if (target < 2) throw new TypeError(`${error}: target must be >= 2`);
 
-  const totalLength = getTotalLength(path);
-  if (totalLength === 0) return Array(path.length).fill(1);
+  // one measurement pass gives the length of every segment and the total
+  const measures = measureSegments(path);
+  const segmentCount = measures.length;
+  if (!segmentCount) return [];
 
-  const idealSegLen = totalLength / target; // minus M segment
-  const isPoly = isPolylineArray(path);
+  const lengths = measures.map(({ length }) => length);
+  const totalLength = lengths.reduce((total, length) => total + length, 0);
+  if (!totalLength) return Array(segmentCount).fill(1);
 
-  const splits: number[] = [1]; // M gets 0 splits
-  const lengths: number[] = [0]; // M has 0 length
+  // the leading `M` counts as one split and every other segment needs at
+  // least one, so the smallest reachable total is one split per segment
+  const effectiveTarget = Math.max(Math.floor(target), segmentCount);
+  const idealSegLen = totalLength / effectiveTarget;
 
-  // First pass: measure each segment length
-  iterate(path, (seg, i, prevX, prevY) => {
-    if (i > 0) {
-      const [endX, endY] = seg.slice(-2) as PointTuple;
-      const segLen = isPoly
-        ? getLineLength(prevX, prevY, endX, endY)
-        : getCubicLength(
-            prevX,
-            prevY,
-            seg[1],
-            seg[2],
-            (seg as CSegment)[3],
-            (seg as CSegment)[4],
-            (seg as CSegment)[5],
-            (seg as CSegment)[6],
-          );
-      lengths.push(segLen);
-      splits.push(1); // placeholder
-    }
-  });
+  const splits: number[] = Array(segmentCount).fill(1);
 
-  // Second pass: distribute splits proportionally
+  // First pass: distribute the splits proportionally to the segment lengths
   let totalAllocated = 1; // 1 stands for first M segment
 
-  for (let i = 1; i < lengths.length; i++) {
+  for (let i = 1; i < segmentCount; i += 1) {
     const segLen = lengths[i];
     const desired = segLen > idealSegLen ? Math.round(segLen / idealSegLen) : 1;
 
@@ -65,44 +50,43 @@ export function getPathSplits<T extends PolylineArray | CurveArray>(
     totalAllocated += desired;
   }
 
-  // Third pass: adjust to hit exact target
-  let diff = target - totalAllocated;
+  // Second pass: adjust to hit the exact target
+  let diff = effectiveTarget - totalAllocated;
 
   if (diff !== 0) {
     const candidates: PointTuple[] = [];
-    for (let i = 1; i < lengths.length; i++) {
-      // istanbul ignore else
+    for (let i = 1; i < segmentCount; i += 1) {
       if (lengths[i] > 0) {
         candidates.push([i, lengths[i]]);
       }
     }
 
-    const cLen = candidates.length;
-
-    // istanbul ignore else - impossible to test that edge case
     if (diff < 0) {
-      // sort ascending
+      // take the extra splits away from the shortest segments first
       candidates.sort((a, b) => a[1] - b[1]);
-      for (let i = 0; i < cLen; i++) {
-        const idx = candidates[i][0];
-        if (splits[idx] > 1 && candidates[i][1] > 0) {
-          splits[idx]--;
-          diff++;
+      while (diff < 0) {
+        let changed = false;
+        for (const [index] of candidates) {
+          if (splits[index] > 1) {
+            splits[index] -= 1;
+            diff += 1;
+            changed = true;
+            if (diff === 0) break;
+          }
         }
-        if (diff === 0) break;
-        else if (i === cLen - 1) i = 0;
+        // nothing left to give away - the target cannot be reached
+        /* istanbul ignore if - the clamp above makes this unreachable */
+        if (!changed) break;
       }
-    } else if (diff > 0) {
-      // sort descending
+    } else {
+      // give the extra splits to the longest segments first
       candidates.sort((a, b) => b[1] - a[1]);
-      for (let i = 0; i < cLen; i++) {
-        const idx = candidates[i][0];
-        if (candidates[i][1] > 0) {
-          splits[idx]++;
-          diff--;
+      while (diff > 0) {
+        for (const [index] of candidates) {
+          splits[index] += 1;
+          diff -= 1;
+          if (diff === 0) break;
         }
-        if (diff === 0) break;
-        else if (i === cLen - 1) i = 0;
       }
     }
   }

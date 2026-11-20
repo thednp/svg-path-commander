@@ -2163,21 +2163,22 @@ const getPathBBox = (pathInput) => {
 		cz: Math.max(width, height) + Math.min(width, height) / 2
 	};
 };
-// src/util/getTotalLength.ts
+// src/util/measureSegments.ts
 /**
-* Returns the total length of a path, equivalent to `shape.getTotalLength()`.
+* Measures every segment of a path in a single pass.
 *
-* @param pathInput - The target path string or PathArray
-* @returns The total length of the path
+* This is the one source of truth for the length math: it absolutises relative
+* segments, rewrites `H`/`V` to `L` and carries the reflectable control-point
+* state for `S`/`T`, exactly like `getTotalLength` does. Every consumer that
+* needs per-segment lengths reads them from here so they cannot disagree with
+* each other.
 *
-* @example
-* ```ts
-* getTotalLength('M0 0L100 0L100 100L0 100Z')
-* // => 300
-* ```
+* @param pathInput - the target path string or `PathArray`
+* @returns the measured segments, in path order
 */
-const getTotalLength = (pathInput) => {
+const measureSegments = (pathInput) => {
 	const path = parsePathString(pathInput);
+	const measures = [];
 	let paramX1 = 0;
 	let paramY1 = 0;
 	let paramX2 = 0;
@@ -2206,27 +2207,53 @@ const getTotalLength = (pathInput) => {
 			paramQX = null;
 			paramQY = null;
 		}
+		let length = 0;
 		if (pathCommand === "M") [, mx, my] = normalSegment;
-		else if (pathCommand === "L") totalLength += getLineLength(lastX, lastY, normalSegment[1], normalSegment[2]);
-		else if (pathCommand === "A") totalLength += getArcLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4], normalSegment[5], normalSegment[6], normalSegment[7]);
+		else if (pathCommand === "L") length = getLineLength(lastX, lastY, normalSegment[1], normalSegment[2]);
+		else if (pathCommand === "A") length = getArcLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4], normalSegment[5], normalSegment[6], normalSegment[7]);
 		else if (pathCommand === "S") {
 			const cp1x = paramX1 * 2 - paramX2;
 			const cp1y = paramY1 * 2 - paramY2;
-			totalLength += getCubicLength(lastX, lastY, cp1x, cp1y, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4]);
-		} else if (pathCommand === "C") totalLength += getCubicLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4], normalSegment[5], normalSegment[6]);
+			length = getCubicLength(lastX, lastY, cp1x, cp1y, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4]);
+		} else if (pathCommand === "C") length = getCubicLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4], normalSegment[5], normalSegment[6]);
 		else if (pathCommand === "T") {
 			paramQX = paramQX === null ? lastX : paramX1 * 2 - paramQX;
 			paramQY = paramQY === null ? lastY : paramY1 * 2 - paramQY;
-			totalLength += getQuadLength(lastX, lastY, paramQX, paramQY, normalSegment[1], normalSegment[2]);
+			length = getQuadLength(lastX, lastY, paramQX, paramQY, normalSegment[1], normalSegment[2]);
 		} else if (pathCommand === "Q") {
 			paramQX = normalSegment[1];
 			paramQY = normalSegment[2];
-			totalLength += getQuadLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4]);
-		} else if (pathCommand === "Z") totalLength += getLineLength(lastX, lastY, mx, my);
+			length = getQuadLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4]);
+		} else if (pathCommand === "Z") length = getLineLength(lastX, lastY, mx, my);
+		measures.push({
+			segment: seg,
+			index,
+			length,
+			lengthAtSegment: totalLength
+		});
+		totalLength += length;
 		[paramX1, paramY1] = pathCommand === "Z" ? [mx, my] : normalSegment.slice(-2);
 		[paramX2, paramY2] = pathCommand === "C" ? [normalSegment[3], normalSegment[4]] : pathCommand === "S" ? [normalSegment[1], normalSegment[2]] : [paramX1, paramY1];
 	});
-	return totalLength;
+	return measures;
+};
+// src/util/getTotalLength.ts
+/**
+* Returns the total length of a path, equivalent to `shape.getTotalLength()`.
+*
+* @param pathInput - The target path string or PathArray
+* @returns the total length of the path
+*
+* @example
+* ```ts
+* getTotalLength('M0 0L100 0L100 100L0 100Z')
+* // => 300
+* ```
+*/
+const getTotalLength = (pathInput) => {
+	const measures = measureSegments(pathInput);
+	const last = measures[measures.length - 1];
+	return last ? last.lengthAtSegment + last.length : 0;
 };
 // src/util/distanceEpsilon.ts
 /** Small threshold value used for floating-point distance comparisons in path calculations. */
@@ -3928,54 +3955,46 @@ function splitLineToCount(x1, y1, x2, y2, count) {
 * @returns an array of numbers reprezenting the sub-segment count for each segment
 */
 function getPathSplits(path, target) {
-	if (target <= 1) throw new TypeError(`${error}: target must be >= 2`);
-	const totalLength = getTotalLength(path);
-	if (totalLength === 0) return Array(path.length).fill(1);
-	const idealSegLen = totalLength / target;
-	const isPoly = isPolylineArray(path);
-	const splits = [1];
-	const lengths = [0];
-	iterate(path, (seg, i, prevX, prevY) => {
-		if (i > 0) {
-			const [endX, endY] = seg.slice(-2);
-			const segLen = isPoly ? getLineLength(prevX, prevY, endX, endY) : getCubicLength(prevX, prevY, seg[1], seg[2], seg[3], seg[4], seg[5], seg[6]);
-			lengths.push(segLen);
-			splits.push(1);
-		}
-	});
+	if (!Number.isFinite(target)) throw new TypeError(`${error}: target must be a finite number`);
+	if (target < 2) throw new TypeError(`${error}: target must be >= 2`);
+	const measures = measureSegments(path);
+	const segmentCount = measures.length;
+	if (!segmentCount) return [];
+	const lengths = measures.map(({ length }) => length);
+	const totalLength = lengths.reduce((total, length) => total + length, 0);
+	if (!totalLength) return Array(segmentCount).fill(1);
+	const effectiveTarget = Math.max(Math.floor(target), segmentCount);
+	const idealSegLen = totalLength / effectiveTarget;
+	const splits = Array(segmentCount).fill(1);
 	let totalAllocated = 1;
-	for (let i = 1; i < lengths.length; i++) {
+	for (let i = 1; i < segmentCount; i += 1) {
 		const segLen = lengths[i];
 		const desired = segLen > idealSegLen ? Math.round(segLen / idealSegLen) : 1;
 		splits[i] = desired;
 		totalAllocated += desired;
 	}
-	let diff = target - totalAllocated;
+	let diff = effectiveTarget - totalAllocated;
 	if (diff !== 0) {
 		const candidates = [];
-		for (let i = 1; i < lengths.length; i++) if (lengths[i] > 0) candidates.push([i, lengths[i]]);
-		const cLen = candidates.length;
+		for (let i = 1; i < segmentCount; i += 1) if (lengths[i] > 0) candidates.push([i, lengths[i]]);
 		if (diff < 0) {
 			candidates.sort((a, b) => a[1] - b[1]);
-			for (let i = 0; i < cLen; i++) {
-				const idx = candidates[i][0];
-				if (splits[idx] > 1 && candidates[i][1] > 0) {
-					splits[idx]--;
-					diff++;
+			while (diff < 0) {
+				let changed = false;
+				for (const [index] of candidates) if (splits[index] > 1) {
+					splits[index] -= 1;
+					diff += 1;
+					changed = true;
+					if (diff === 0) break;
 				}
-				if (diff === 0) break;
-				else if (i === cLen - 1) i = 0;
+				if (!changed) break;
 			}
-		} else if (diff > 0) {
+		} else {
 			candidates.sort((a, b) => b[1] - a[1]);
-			for (let i = 0; i < cLen; i++) {
-				const idx = candidates[i][0];
-				if (candidates[i][1] > 0) {
-					splits[idx]++;
-					diff--;
-				}
+			while (diff > 0) for (const [index] of candidates) {
+				splits[index] += 1;
+				diff -= 1;
 				if (diff === 0) break;
-				else if (i === cLen - 1) i = 0;
 			}
 		}
 	}

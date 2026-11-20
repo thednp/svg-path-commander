@@ -1,17 +1,11 @@
-import type { LSegment, MSegment, PathArray, PointTuple } from "../types.ts";
-import { getLineLength } from "../math/lineTools.ts";
-import { getArcLength } from "../math/arcTools.ts";
-import { getCubicLength } from "../math/cubicTools.ts";
-import { getQuadLength } from "../math/quadTools.ts";
-import { iterate } from "../process/iterate.ts";
-import { parsePathString } from "../parser/parsePathString.ts";
-import { absolutizeSegment } from "../process/absolutizeSegment.ts";
+import type { PathArray } from "../types.ts";
+import { measureSegments } from "./measureSegments.ts";
 
 /**
  * Returns the total length of a path, equivalent to `shape.getTotalLength()`.
  *
  * @param pathInput - The target path string or PathArray
- * @returns The total length of the path
+ * @returns the total length of the path
  *
  * @example
  * ```ts
@@ -20,126 +14,7 @@ import { absolutizeSegment } from "../process/absolutizeSegment.ts";
  * ```
  */
 export const getTotalLength = <T extends PathArray>(pathInput: string | T): number => {
-  const path = parsePathString(pathInput);
-  let paramX1 = 0;
-  let paramY1 = 0;
-  let paramX2 = 0;
-  let paramY2 = 0;
-  // keep null check #64
-  let paramQX: number | null = null;
-  let paramQY: number | null = null;
-  let pathCommand = "M";
-  let mx = 0;
-  let my = 0;
-  let totalLength = 0;
-
-  iterate(path, (seg, index, lastX, lastY) => {
-    [pathCommand] = seg;
-    const absCommand = pathCommand.toUpperCase();
-    const isRelative = absCommand !== pathCommand;
-    const absoluteSegment = isRelative
-      ? absolutizeSegment(seg, index, lastX, lastY)
-      : (seg.slice(0) as typeof seg);
-
-    const normalSegment =
-      absCommand === "V"
-        ? (["L", lastX, absoluteSegment[1]] as LSegment)
-        : absCommand === "H"
-          ? (["L", absoluteSegment[1], lastY] as LSegment)
-          : absoluteSegment;
-    [pathCommand] = normalSegment;
-
-    if (!"TQ".includes(absCommand)) {
-      // keep null check #64
-      paramQX = null;
-      paramQY = null;
-    }
-
-    // this segment is always ZERO
-    /* istanbul ignore else */
-    if (pathCommand === "M") {
-      // remember mx, my for Z
-      [, mx, my] = normalSegment as MSegment;
-    } else if (pathCommand === "L") {
-      totalLength += getLineLength(
-        lastX,
-        lastY,
-        normalSegment[1] as number,
-        normalSegment[2] as number,
-      );
-    } else if (pathCommand === "A") {
-      totalLength += getArcLength(
-        lastX,
-        lastY,
-        normalSegment[1] as number,
-        normalSegment[2] as number,
-        normalSegment[3] as number,
-        normalSegment[4] as number,
-        normalSegment[5] as number,
-        normalSegment[6] as number,
-        normalSegment[7] as number,
-      );
-    } else if (pathCommand === "S") {
-      const cp1x = paramX1 * 2 - paramX2;
-      const cp1y = paramY1 * 2 - paramY2;
-
-      totalLength += getCubicLength(
-        lastX,
-        lastY,
-        cp1x,
-        cp1y,
-        normalSegment[1] as number,
-        normalSegment[2] as number,
-        normalSegment[3] as number,
-        normalSegment[4] as number,
-      );
-    } else if (pathCommand === "C") {
-      totalLength += getCubicLength(
-        lastX,
-        lastY,
-        normalSegment[1] as number,
-        normalSegment[2] as number,
-        normalSegment[3] as number,
-        normalSegment[4] as number,
-        normalSegment[5] as number,
-        normalSegment[6] as number,
-      );
-    } else if (pathCommand === "T") {
-      // keep null check #64
-      paramQX = paramQX === null ? lastX : paramX1 * 2 - paramQX;
-      paramQY = paramQY === null ? lastY : paramY1 * 2 - paramQY;
-      totalLength += getQuadLength(
-        lastX,
-        lastY,
-        paramQX,
-        paramQY,
-        normalSegment[1] as number,
-        normalSegment[2] as number,
-      );
-    } else if (pathCommand === "Q") {
-      paramQX = normalSegment[1] as number;
-      paramQY = normalSegment[2] as number;
-      totalLength += getQuadLength(
-        lastX,
-        lastY,
-        normalSegment[1] as number,
-        normalSegment[2] as number,
-        normalSegment[3] as number,
-        normalSegment[4] as number,
-      );
-    } else if (pathCommand === "Z") {
-      totalLength += getLineLength(lastX, lastY, mx, my);
-    }
-
-    // update params
-    [paramX1, paramY1] = pathCommand === "Z" ? [mx, my] : (normalSegment.slice(-2) as PointTuple);
-    [paramX2, paramY2] =
-      pathCommand === "C"
-        ? ([normalSegment[3], normalSegment[4]] as PointTuple)
-        : pathCommand === "S"
-          ? ([normalSegment[1], normalSegment[2]] as PointTuple)
-          : [paramX1, paramY1];
-  });
-
-  return totalLength;
+  const measures = measureSegments(pathInput);
+  const last = measures[measures.length - 1];
+  return last ? last.lengthAtSegment + last.length : 0;
 };

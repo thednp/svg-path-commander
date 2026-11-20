@@ -705,6 +705,78 @@ describe("SVGPathCommander Static Methods", () => {
       }
     });
 
+    test(`Can do equalizeSegments getPathSplits without hanging`, () => {
+      const path: PolylineArray = [
+        ["M", 0, 0],
+        ["L", 10, 0],
+        ["L", 20, 0],
+      ];
+
+      // the target is below the segment count, so it cannot be reached
+      expect(getPathSplits(path, 2)).to.deep.equal([1, 1, 1]);
+      // a fractional target used to make the adjustment loop spin forever
+      expect(getPathSplits(path, 2.5)).to.deep.equal([1, 1, 1]);
+    });
+
+    test(`Can do equalizeSegments getPathSplits without hanging on a long path`, () => {
+      const path: PolylineArray = [["M", 0, 0]];
+      for (let i = 1; i <= 10; i += 1) path.push(["L", i * 10, 0]);
+
+      expect(getPathSplits(path, 5)).to.deep.equal([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+      expect(getPathSplits(path, 5)).to.have.lengthOf(path.length);
+    });
+
+    test(`Can do equalizeSegments getPathSplits with a non finite target`, () => {
+      const path: PolylineArray = [
+        ["M", 0, 0],
+        ["L", 10, 0],
+      ];
+
+      [Infinity, -Infinity, NaN].forEach((target) => {
+        try {
+          expect(getPathSplits(path, target));
+        } catch (e) {
+          expect(e).to.be.instanceOf(TypeError);
+          expect(e).to.have.property("message", `${error}: target must be a finite number`);
+        }
+      });
+    });
+
+    test(`Can do equalizeSegments getPathSplits with the exact target`, () => {
+      const path: PolylineArray = [["M", 0, 0]];
+      for (let i = 1; i <= 9; i += 1) path.push(["L", i * 10, 0]);
+
+      for (const target of [2, 3, 5, 10, 11, 20, 50, 100, 1000]) {
+        const splits = getPathSplits(path, target);
+        expect(splits).to.have.lengthOf(path.length);
+        // the target cannot be lower than the segment count
+        expect(splits.reduce((total, count) => total + count, 0)).to.equal(
+          Math.max(target, path.length),
+        );
+      }
+    });
+
+    test(`Can do equalizeSegments getPathSplits with an empty path`, () => {
+      expect(getPathSplits([] as unknown as PolylineArray, 5)).to.deep.equal([]);
+      expect(getPathSplits([["M", 0, 0]] as unknown as PolylineArray, 5)).to.deep.equal([1]);
+    });
+
+    test(`Can do equalizeSegments getPathSplits with segments that are not lines or curves`, () => {
+      const path = parsePathString("M0 0H10V10Z") as unknown as PolylineArray;
+      const splits = getPathSplits(path, 4);
+      expect(splits).to.deep.equal([1, 1, 1, 1]);
+      expect(splits.some((count) => Number.isNaN(count))).to.be.false;
+    });
+
+    test(`Can do equalizeSegments getPathSplits with a target above the proportional share`, () => {
+      const path: PolylineArray = [["M", 0, 0]];
+      for (let i = 1; i <= 10; i += 1) path.push(["L", i, 0]);
+
+      // every segment is one unit long, so the proportional share of each is
+      // below one and the extra splits have to be handed out afterwards
+      expect(getPathSplits(path, 13)).to.deep.equal([1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1]);
+    });
+
     test(`Can do equalizeSegments pathToPolyline edge cases`, () => {
       const parsed1 = parsePathString("M0 0C0 0 0 0 5 5");
       const parsed2 = parsePathString("M0 0H50") as PolylineArray;
@@ -1205,6 +1277,11 @@ describe("Static method consistency", () => {
     const end = getPropertiesAtLength(path, total);
     expect(end.index).to.equal(parsePathString(path).length - 1);
     expect(end.lengthAtSegment + end.length).to.be.closeTo(total, 0.001);
+  });
+
+  test("Can measure the length of an empty path", () => {
+    expect(getTotalLength("")).to.equal(0);
+    expect(getTotalLength([] as unknown as PathArray)).to.equal(0);
   });
 
   test("Can do point-based lookup consistently", () => {

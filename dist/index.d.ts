@@ -739,7 +739,7 @@ declare const getPathBBox: <T extends PathArray>(pathInput: T | string) => {
  * Returns the total length of a path, equivalent to `shape.getTotalLength()`.
  *
  * @param pathInput - The target path string or PathArray
- * @returns The total length of the path
+ * @returns the total length of the path
  *
  * @example
  * ```ts
