@@ -85,6 +85,10 @@
   ```
   The length table of the path knows whether the path is a loop now, and the search walks over the end of a loop the way it walks over the end of a segment.
 
+### Performance
+
+- `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` measure the path **once** — the search built a length table from a normalized copy of the path and then asked `getPropertiesAtLength()` for the segment at the answer, which measured the path a second time; the length table is now built from the shared measure pass, so the normalization and the second measurement are gone: **1.5x** faster on a 4 000 segment path (3.3 ms -> 2.2 ms), with the same answers — the two implementations agree on every path of a 1 000 case random corpus
+
 ### Changed
 
 - `splitPath()`, `simplifyPath()` and `getPropertiesAtLength()` no longer add an implicit moveto to a path that does not begin with one — the parser rejects such a path now, so the three of them have nothing left to paper over

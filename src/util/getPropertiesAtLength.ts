@@ -55,17 +55,14 @@ const frameOf = (measure: SegmentMeasure | undefined, offset = 0): PathFrame => 
  * that point: the unit tangent vector, the unit normal vector and the angle
  * of the tangent in degrees.
  *
- * @param pathInput target `pathArray`
- * @param distance the given length
+ * @param measures - the measured segments of the path
+ * @param distance - the given length
  * @returns the requested properties
  */
-export const getPropertiesAtLength = <T extends PathArray>(
-  pathInput: string | T,
+export const getPropertiesFromMeasures = (
+  measures: SegmentMeasure[],
   distance?: number,
 ): SegmentProperties => {
-  // one pass over the path, the measure table holds the length of every
-  // segment and the length accumulated before it
-  const measures = measureSegments(pathInput);
   const lastIndex = measures.length - 1;
 
   // an empty path has no segment, but the result still has to be well formed
@@ -117,4 +114,25 @@ export const getPropertiesAtLength = <T extends PathArray>(
     lengthAtSegment: measure.lengthAtSegment,
     ...frameOf(measure, distance - measure.lengthAtSegment),
   };
+};
+
+/**
+ * Returns the segment, its index and length as well as
+ * the length to that segment at a given length in a path.
+ *
+ * The point at the given length is returned with the frame of the path at
+ * that point: the unit tangent vector, the unit normal vector and the angle
+ * of the tangent in degrees.
+ *
+ * @param pathInput target `pathArray`
+ * @param distance the given length
+ * @returns the requested properties
+ */
+export const getPropertiesAtLength = <T extends PathArray>(
+  pathInput: string | T,
+  distance?: number,
+): SegmentProperties => {
+  // one pass over the path, the measure table holds the length of every
+  // segment and the length accumulated before it
+  return getPropertiesFromMeasures(measureSegments(pathInput), distance);
 };

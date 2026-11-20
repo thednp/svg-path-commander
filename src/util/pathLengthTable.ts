@@ -1,4 +1,5 @@
 import type { NormalArray, NormalSegment, PointTuple } from "../types.ts";
+import type { SegmentMeasure } from "./measureSegments.ts";
 import { getLineLength, getPointAtLineLength } from "../math/lineTools.ts";
 import { getArcLength, getPointAtArcLength } from "../math/arcTools.ts";
 import { getCubicLength, getPointAtCubicLength } from "../math/cubicTools.ts";
@@ -142,6 +143,53 @@ export const buildPathLengthTable = (path: NormalArray): PathLengthTable => {
 
   const [startX, startY] = (path[0]?.slice(1) ?? []) as PointTuple;
   const last = measures[measures.length - 1];
+  // a path with a single sub-path that ends where it starts is a loop, so
+  // the point before the start of the path is the point before its end
+  const isLoop =
+    movetoCount === 1 &&
+    !!last &&
+    Math.hypot(last.endX - startX, last.endY - startY) <= DISTANCE_EPSILON;
+
+  return { measures, totalLength, startX, startY, isLoop };
+};
+
+/**
+ * Builds the length table of a path from the shared measure pass.
+ *
+ * The measure pass resolves the relative offsets and the shorthand control
+ * point reflections of a path and holds the length of every segment, so the
+ * table can be built from it without measuring the path a second time. The
+ * geometry of a measure is the normalized segment, so the table holds the
+ * same segments and the same lengths as the one built from a normalized path.
+ *
+ * @param segmentMeasures - the measured segments of the path
+ * @returns the length table of the path
+ */
+export const buildPathLengthTableFromMeasures = (
+  segmentMeasures: SegmentMeasure[],
+): PathLengthTable => {
+  const measures: NormalizedSegmentMeasure[] = [];
+  let movetoCount = 0;
+
+  for (const measure of segmentMeasures) {
+    if (measure.geometry[0] === "M") movetoCount += 1;
+    measures.push({
+      segment: measure.geometry,
+      startX: measure.startX,
+      startY: measure.startY,
+      endX: measure.endX,
+      endY: measure.endY,
+      length: measure.length,
+      lengthAtSegment: measure.lengthAtSegment,
+    });
+  }
+
+  const first = measures[0];
+  const last = measures[measures.length - 1];
+  // the path starts at the point of its first moveto
+  const startX = first?.endX ?? 0;
+  const startY = first?.endY ?? 0;
+  const totalLength = last ? last.lengthAtSegment + last.length : 0;
   // a path with a single sub-path that ends where it starts is a loop, so
   // the point before the start of the path is the point before its end
   const isLoop =

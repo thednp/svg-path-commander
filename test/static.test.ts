@@ -19,6 +19,11 @@ import splitLineToCount from "../src/morph/splitLineToCount";
 import { classifyPaths } from "../src/morph/classifyPaths";
 import { matchPaths } from "../src/morph/matchPaths";
 import { getPolyPath } from "../src/util/shapeToPathArray";
+import {
+  buildPathLengthTable,
+  buildPathLengthTableFromMeasures,
+} from "../src/util/pathLengthTable";
+import { measureSegments } from "../src/util/measureSegments";
 import { iterate } from "../src/process/iterate";
 import { distanceToSegment } from "../src/math/distanceToSegment";
 import type {
@@ -2861,7 +2866,23 @@ describe("Parser and input edge cases", () => {
 });
 
 describe("Length table edge cases", () => {
-  const { getPointAtLength, lineTools, quadTools, arcTools } = SVGPathCommander;
+  const { getPointAtLength, lineTools, quadTools, arcTools, normalizePath } = SVGPathCommander;
+
+  test("Can build a length table of an empty path", () => {
+    const table = buildPathLengthTableFromMeasures([]);
+    expect(table.measures).to.deep.equal([]);
+    expect(table.totalLength).to.equal(0);
+    expect(table.startX).to.equal(0);
+    expect(table.startY).to.equal(0);
+    expect(table.isLoop).to.be.false;
+  });
+
+  test("Can build the same length table from a normalized path and from the measure pass", () => {
+    const path = "M0 0L100 0C150 50 100 100 50 100Q0 75 0 0Z";
+    const fromPath = buildPathLengthTable(normalizePath(path));
+    const fromMeasures = buildPathLengthTableFromMeasures(measureSegments(path));
+    expect(fromMeasures).to.deep.equal(fromPath);
+  });
 
   test("Can get the point of a path that ends with a moveto", () => {
     // the moveto is the last segment of the path, so it holds the point

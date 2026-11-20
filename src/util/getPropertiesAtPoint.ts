@@ -1,9 +1,9 @@
 import type { PathArray, Point } from "../types.ts";
 import type { PointProperties } from "../interface.ts";
-import { buildPathLengthTable, getPointAtTable } from "./pathLengthTable.ts";
-import { getPropertiesAtLength } from "./getPropertiesAtLength.ts";
+import { buildPathLengthTableFromMeasures, getPointAtTable } from "./pathLengthTable.ts";
+import { getPropertiesFromMeasures } from "./getPropertiesAtLength.ts";
+import { measureSegments } from "./measureSegments.ts";
 import { parsePathString } from "../parser/parsePathString.ts";
-import { normalizePath } from "../process/normalizePath.ts";
 
 /**
  * The relative difference below which two distances are the same.
@@ -34,9 +34,10 @@ export const getPropertiesAtPoint = <T extends PathArray>(
   if (!path.length) {
     return { closest: { x: 0, y: 0 }, distance: Infinity };
   }
-  const normalPath = normalizePath(path);
-  // the length table is built once and serves every sample of the search
-  const table = buildPathLengthTable(normalPath);
+  // one pass over the path, the measure table holds the length of every
+  // segment and the length accumulated before it
+  const segmentMeasures = measureSegments(path);
+  const table = buildPathLengthTableFromMeasures(segmentMeasures);
   const pathLength = table.totalLength;
   // a loop ends where it starts, so the search can walk over the end of the
   // path and find the other side of the join
@@ -157,7 +158,7 @@ export const getPropertiesAtPoint = <T extends PathArray>(
     }
   }
 
-  const segment = getPropertiesAtLength(path, closestLength);
+  const segment = getPropertiesFromMeasures(segmentMeasures, closestLength);
 
   return { closest, distance: Math.sqrt(closestDistance), segment };
 };
