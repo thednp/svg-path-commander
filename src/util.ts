@@ -48,6 +48,7 @@ export { isCurveArray } from "./util/isCurveArray.ts";
 export { isNormalizedArray } from "./util/isNormalizedArray.ts";
 export { isPathArray } from "./util/isPathArray.ts";
 export { isPointInStroke } from "./util/isPointInStroke.ts";
+export { isPointInPath } from "./util/isPointInPath.ts";
 export { isPolygonArray } from "./util/isPolygonArray.ts";
 export { isPolylineArray } from "./util/isPolylineArray.ts";
 export { isRelativeArray } from "./util/isRelativeArray.ts";

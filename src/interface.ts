@@ -51,6 +51,17 @@ export type OffsetOptions = {
   precision?: number;
 };
 
+/** The rule that decides if a point is inside a path. */
+export type FillRule = "nonzero" | "evenodd";
+
+/** The options of the point in path test. */
+export type PointInPathOptions = {
+  /** The fill rule of the path, the SVG `fill-rule` attribute. @default "nonzero" */
+  fillRule?: FillRule;
+  /** The maximum distance between the path and its polygon approximation. @default 0.1 */
+  tolerance?: number;
+};
+
 /** The closest point on the path to a given point, with the distance and optional segment. */
 export type PointProperties = {
   /** The closest point on the path to the given point. */

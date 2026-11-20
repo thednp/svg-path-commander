@@ -13,10 +13,11 @@ import { midPoint } from "./math/midPoint.ts";
 import { rotateVector } from "./math/rotateVector.ts";
 import { roundTo } from "./math/roundTo.ts";
 
-import type { PathArray, PointTuple, TransformObjectValues } from "./types.ts";
+import type { PathArray, Point, PointTuple, TransformObjectValues } from "./types.ts";
 import type {
   Options,
   OffsetOptions,
+  PointInPathOptions,
   SegmentProperties,
   SimplifyOptions,
   TransformEntries,
@@ -62,6 +63,7 @@ import { isCurveArray } from "./util/isCurveArray.ts";
 import { isNormalizedArray } from "./util/isNormalizedArray.ts";
 import { isPathArray } from "./util/isPathArray.ts";
 import { isPointInStroke } from "./util/isPointInStroke.ts";
+import { isPointInPath } from "./util/isPointInPath.ts";
 import { isRelativeArray } from "./util/isRelativeArray.ts";
 import { isValidPath } from "./util/isValidPath.ts";
 import { samplePolygon } from "./morph/samplePolygon.ts";
@@ -275,6 +277,30 @@ export class SVGPathCommander {
    */
   getPropertiesAtLength(length: number): SegmentProperties {
     return getPropertiesAtLength(this.segments, length);
+  }
+
+  /**
+   * Checks if a given point is inside the path.
+   *
+   * The path is flattened into polygons and the point is tested against them
+   * with the fill rule of the path: the `nonzero` rule counts the windings
+   * of the polygons around the point, the `evenodd` rule counts the
+   * crossings of the polygons with a ray from the point. A point on the
+   * boundary of the shape is inside of it.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L100 0L100 100L0 100Z').isPointInPath({ x: 50, y: 50 })
+   * // => true
+   * ```
+   *
+   * @public
+   * @param point the given `{x,y}` point
+   * @param options the options of the test
+   * @returns the query result
+   */
+  isPointInPath(point: Point, options?: PointInPathOptions): boolean {
+    return isPointInPath(this.segments, point, options);
   }
 
   /**
@@ -731,6 +757,8 @@ export class SVGPathCommander {
   static isPathArray = isPathArray;
   /** Checks if a given point is in the stroke of a path. */
   static isPointInStroke = isPointInStroke;
+  /** Checks if a given point is inside a path. */
+  static isPointInPath = isPointInPath;
   /** Iterates an array to check if it's a `pathArray` */
   static isRelativeArray = isRelativeArray;
   /** Parses a path string value to determine its validity */

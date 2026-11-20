@@ -351,6 +351,16 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(properties.angle).to.equal(0);
   });
 
+  test("Test isPointInPath", () => {
+    const square = new SVGPathCommander("M0 0L100 0L100 100L0 100Z");
+    expect(square.isPointInPath({ x: 50, y: 50 })).to.equal(true);
+    expect(square.isPointInPath({ x: 150, y: 50 })).to.equal(false);
+    // the options of the test are passed to the tool
+    const hole = new SVGPathCommander("M0 0L100 0L100 100L0 100ZM25 25L75 25L75 75L25 75Z");
+    expect(hole.isPointInPath({ x: 50, y: 50 })).to.equal(true);
+    expect(hole.isPointInPath({ x: 50, y: 50 }, { fillRule: "evenodd" })).to.equal(false);
+  });
+
   test("Test toAbsolute", async () => {
     const container = getMarkup();
     wrapper.append(container);
@@ -819,6 +829,7 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     expect(SVGPathCommander.isNormalizedArray).toBeDefined();
     expect(SVGPathCommander.isPathArray).toBeDefined();
     expect(SVGPathCommander.isPointInStroke).toBeDefined();
+    expect(SVGPathCommander.isPointInPath).toBeDefined();
     expect(SVGPathCommander.isRelativeArray).toBeDefined();
     expect(SVGPathCommander.isValidPath).toBeDefined();
     expect(SVGPathCommander.isSpace).toBeDefined();

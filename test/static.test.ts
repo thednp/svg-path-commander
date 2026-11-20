@@ -20,7 +20,7 @@ import { classifyPaths } from "../src/morph/classifyPaths";
 import { matchPaths } from "../src/morph/matchPaths";
 import { getPolyPath } from "../src/util/shapeToPathArray";
 import { iterate } from "../src/process/iterate";
-import { distanceToSegment } from "../src/process/douglasPeucker";
+import { distanceToSegment } from "../src/math/distanceToSegment";
 import type {
   CSegment,
   IntersectionPoint,
@@ -506,6 +506,265 @@ describe("SVGPathCommander Static Methods", () => {
     const { getDrawDirection } = SVGPathCommander;
     expect(getDrawDirection(simpleShapes.reversed[1])).to.be.true;
     expect(getDrawDirection(simpleShapes.initial[1])).to.be.false;
+  });
+
+  describe("Point in path", () => {
+    const { isPointInPath } = SVGPathCommander;
+    // the native hit test of the browser, the reference of the tool
+    const nativeIsPointInFill = (path: string, x: number, y: number, fillRule = "nonzero") => {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("width", "200");
+      svg.setAttribute("height", "200");
+      const element = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      element.setAttribute("d", path);
+      element.setAttribute("fill-rule", fillRule);
+      svg.append(element);
+      document.body.append(svg);
+      // the browser answers from the rendered path, so the layout has to run
+      svg.getBoundingClientRect();
+      const result = element.isPointInFill(new DOMPoint(x, y));
+      svg.remove();
+      return result;
+    };
+
+    test("Can tell if a point is inside a shape", () => {
+      const square = "M0 0L100 0L100 100L0 100Z";
+      expect(isPointInPath(square, { x: 50, y: 50 })).to.be.true;
+      expect(isPointInPath(square, { x: 150, y: 50 })).to.be.false;
+      expect(isPointInPath(square, { x: 50, y: 150 })).to.be.false;
+      expect(isPointInPath(square, { x: -50, y: 50 })).to.be.false;
+      // a point on the boundary of the shape is inside of it
+      expect(isPointInPath(square, { x: 0, y: 50 })).to.be.true;
+      expect(isPointInPath(square, { x: 0, y: 0 })).to.be.true;
+    });
+
+    test("Can tell if a point is inside a curve", () => {
+      const curve = "M0 0C50 100 100 100 150 0";
+      expect(isPointInPath(curve, { x: 75, y: 50 })).to.be.true;
+      expect(isPointInPath(curve, { x: 75, y: 90 })).to.be.false;
+      expect(isPointInPath(curve, { x: 75, y: -10 })).to.be.false;
+    });
+
+    test("Can tell if a point is inside an arc", () => {
+      const circle = "M50 0A50 50 0 1 0 50 100A50 50 0 1 0 50 0Z";
+      expect(isPointInPath(circle, { x: 50, y: 50 })).to.be.true;
+      expect(isPointInPath(circle, { x: 150, y: 50 })).to.be.false;
+      expect(isPointInPath(circle, { x: 50, y: 150 })).to.be.false;
+    });
+
+    test("Can fill an open path as if it was closed", () => {
+      expect(isPointInPath("M0 0L100 0L100 100L0 100", { x: 50, y: 50 })).to.be.true;
+      expect(isPointInPath("M0 0L100 0L100 100L0 100", { x: 50, y: 150 })).to.be.false;
+    });
+
+    test("Can tell if a point is inside a hole", () => {
+      // the two squares are drawn in the same direction, so the inner one is
+      // not a hole with the nonzero rule
+      const same = "M0 0L100 0L100 100L0 100ZM25 25L75 25L75 75L25 75Z";
+      expect(isPointInPath(same, { x: 50, y: 50 })).to.be.true;
+      expect(isPointInPath(same, { x: 50, y: 50 }, { fillRule: "evenodd" })).to.be.false;
+      // the two squares are drawn in the opposite direction, so the inner one
+      // is a hole with both rules
+      const opposite = "M0 0L100 0L100 100L0 100ZM25 75L75 75L75 25L25 25Z";
+      expect(isPointInPath(opposite, { x: 50, y: 50 })).to.be.false;
+      expect(isPointInPath(opposite, { x: 50, y: 50 }, { fillRule: "evenodd" })).to.be.false;
+    });
+
+    test("Can tell if a point is inside a path array", () => {
+      expect(
+        isPointInPath([["M", 0, 0], ["L", 100, 0], ["L", 100, 100], ["L", 0, 100], ["Z"]], {
+          x: 50,
+          y: 50,
+        }),
+      ).to.be.true;
+    });
+
+    test("Can tell that an empty path has no inside", () => {
+      expect(isPointInPath("", { x: 0, y: 0 })).to.be.false;
+    });
+
+    test("Can tell that a moveto without a shape has no inside", () => {
+      expect(isPointInPath("M0 0L100 0M200 200", { x: 200, y: 200 })).to.be.false;
+      expect(isPointInPath("M0 0L100 0M200 200", { x: 50, y: 0 })).to.be.true;
+    });
+
+    test("Can reject an invalid fill rule", () => {
+      try {
+        isPointInPath(
+          "M0 0L100 0L100 100L0 100Z",
+          { x: 50, y: 50 },
+          {
+            fillRule: "invalid" as never,
+          },
+        );
+        expect.fail("should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+      }
+    });
+
+    test("Can reject an invalid tolerance", () => {
+      [0, -1, Number.NaN, Number.POSITIVE_INFINITY, "1"].forEach((tolerance) => {
+        try {
+          isPointInPath(
+            "M0 0L100 0L100 100L0 100Z",
+            { x: 50, y: 50 },
+            {
+              tolerance: tolerance as never,
+            },
+          );
+          expect.fail("should have thrown");
+        } catch (e) {
+          expect(e).to.be.instanceOf(TypeError);
+        }
+      });
+    });
+
+    test("Can answer like the browser does", () => {
+      // the shapes of the test, the points of every shape are chosen away
+      // from the boundaries of the curves, where the flattening of the path
+      // can answer differently than the browser
+      const cases: { path: string; points: { x: number; y: number }[] }[] = [
+        {
+          path: "M0 0L100 0L100 100L0 100Z",
+          points: [
+            { x: 50, y: 50 },
+            { x: 10, y: 10 },
+            { x: 25, y: 75 },
+            { x: 75, y: 25 },
+            { x: 120, y: 20 },
+            { x: -20, y: 120 },
+            { x: 50, y: 5 },
+            // the points of the boundary of the shape are inside of it
+            { x: 0, y: 50 },
+            { x: 50, y: 0 },
+            { x: 100, y: 50 },
+            { x: 50, y: 100 },
+            { x: 0, y: 0 },
+          ],
+        },
+        {
+          path: "M0 0C50 100 100 100 150 0",
+          points: [
+            { x: 50, y: 50 },
+            { x: 10, y: 10 },
+            { x: 75, y: 25 },
+            { x: 120, y: 20 },
+            { x: 50, y: 5 },
+            { x: 30, y: 80 },
+          ],
+        },
+        {
+          path: "M50 0A50 50 0 1 0 50 100A50 50 0 1 0 50 0Z",
+          points: [
+            { x: 50, y: 50 },
+            { x: 25, y: 75 },
+            { x: 75, y: 25 },
+            { x: 50, y: 5 },
+            { x: 5, y: 50 },
+            { x: 95, y: 50 },
+          ],
+        },
+        {
+          path: "M0 0L100 0L100 100L0 100ZM25 25L75 25L75 75L25 75Z",
+          points: [
+            { x: 50, y: 50 },
+            { x: 10, y: 10 },
+            { x: 25, y: 75 },
+            { x: 75, y: 25 },
+            { x: 120, y: 20 },
+            { x: 50, y: 5 },
+            // the boundary of the inner square is inside of the shape
+            { x: 25, y: 50 },
+            { x: 50, y: 25 },
+          ],
+        },
+        {
+          path: "M0 0L100 0L100 100L0 100ZM25 75L75 75L75 25L25 25Z",
+          points: [
+            { x: 10, y: 10 },
+            { x: 25, y: 75 },
+            { x: 75, y: 25 },
+            { x: 120, y: 20 },
+            { x: 50, y: 5 },
+            // the boundary of the hole is inside of the shape
+            { x: 25, y: 50 },
+            { x: 50, y: 25 },
+          ],
+        },
+        {
+          // the shape touches itself at (50,50), the point of the pinch is
+          // not tested, the browser answers it with false and the flattening
+          // of the path answers it with true
+          path: "M0 0Q50 100 100 0L100 50L0 50Z",
+          points: [
+            { x: 10, y: 10 },
+            { x: 75, y: 25 },
+            { x: 120, y: 20 },
+            { x: 50, y: 5 },
+            { x: 25, y: 45 },
+            { x: 75, y: 45 },
+          ],
+        },
+      ];
+      const mismatches: string[] = [];
+
+      cases.forEach(({ path, points }) => {
+        points.forEach((point) => {
+          const mine = isPointInPath(path, point);
+          const native = nativeIsPointInFill(path, point.x, point.y);
+          if (mine !== native) {
+            mismatches.push(`${path} @ ${point.x},${point.y} -> mine ${mine}, native ${native}`);
+          }
+        });
+      });
+
+      expect(mismatches).to.deep.equal([]);
+    });
+
+    test("Can answer like the browser does for a lot of points", () => {
+      // the points of the sweep are random, but the seed is fixed, so the
+      // test always asks the same questions
+      const random = (seed: number) => {
+        let state = seed;
+        return () => {
+          state = (state + 0x6d2b79f5) | 0;
+          let value = Math.imul(state ^ (state >>> 15), 1 | state);
+          value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+          return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+        };
+      };
+      const paths = [
+        "M0 0L100 0L100 100L0 100Z",
+        "M0 0C50 100 100 100 150 0",
+        "M50 0A50 50 0 1 0 50 100A50 50 0 1 0 50 0Z",
+        "M0 0L100 0L100 100L0 100ZM25 25L75 25L75 75L25 75Z",
+        "M0 0L100 0L100 100L0 100ZM25 75L75 75L75 25L25 25Z",
+        "M10 10Q80 0 90 60T30 90L20 20Z",
+      ];
+      const next = random(20241120);
+      const mismatches: string[] = [];
+
+      paths.forEach((path) => {
+        for (let i = 0; i < 60; i += 1) {
+          const point = { x: next() * 140 - 20, y: next() * 140 - 20 };
+          ["nonzero", "evenodd"].forEach((fillRule) => {
+            const rule = fillRule as "nonzero" | "evenodd";
+            // the tolerance is tight, so the flattening of the curves is
+            // closer to the shape than the points of the sweep
+            const mine = isPointInPath(path, point, { fillRule: rule, tolerance: 0.001 });
+            const native = nativeIsPointInFill(path, point.x, point.y, rule);
+            if (mine !== native) {
+              mismatches.push(
+                `${path} [${rule}] @ ${point.x},${point.y} -> mine ${mine}, native ${native}`,
+              );
+            }
+          });
+        }
+      });
+
+      expect(mismatches).to.deep.equal([]);
+    });
   });
 
   test(`Can do splitCubicSegment`, () => {
