@@ -248,6 +248,14 @@ import { pathToAbsolute, pathToString } from "svg-path-commander/util";
 let mySVGAbsolutePath = pathToString(pathToAbsolute(pathString));
 ```
 
+The morphing engine and the intersection engine have their own entries, so the `util` entry does not
+ship them:
+
+```js
+import { equalize, resamplePath } from "svg-path-commander/morph";
+import { pathsIntersection } from "svg-path-commander/intersect";
+```
+
 Most important of these tools are already exported to global and are part of the [Static Methods](JavaScript-API.md#static-methods).
 
 # Convert Shape To Path

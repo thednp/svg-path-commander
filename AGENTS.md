@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-SVGPathCommander v2.3.6 — TypeScript library for manipulating SVG `<path>` `d` attributes. Works in browser and Node.js.
+SVGPathCommander v2.4.0 — TypeScript library for manipulating SVG `<path>` `d` attributes. Works in browser and Node.js.
 
 ## Commands
 
@@ -67,7 +67,9 @@ Keep the `paths` filters of all three workflows in sync when adding a file that 
 | `main.ts`      | SVGPathCommander class (core, chainable instance methods)               |
 | `types.ts`     | TypeScript type definitions (PathCommand, PathSegment, PathArray, etc.) |
 | `interface.ts` | Interfaces (Options, TransformObject, PathBBox, shape attrs)            |
-| `util.ts`      | Re-export of all static methods (tree-shakeable entry)                  |
+| `util.ts`      | Re-export of the static methods (tree-shakeable entry)                  |
+| `morph.ts`     | Re-export of the morphing engine (tree-shakeable entry)                 |
+| `intersect.ts` | Re-export of the intersection engine (tree-shakeable entry)             |
 | `convert/`     | Path format conversion (absolute, relative, curve, string)              |
 | `parser/`      | SVG path string tokenizer/scanner                                       |
 | `process/`     | Manipulation algorithms (normalize, optimize, reverse, transform, etc.) |
@@ -75,6 +77,18 @@ Keep the `paths` filters of all three workflows in sync when adding a file that 
 | `morph/`       | Path morphing (equalize, split, sample, classify, match)                |
 | `util/`        | Query helpers (bbox, length, point-at-length, intersection, etc.)       |
 | `options/`     | Default configuration                                                   |
+
+The library ships four entry points, and every one of them is a barrel file of its own:
+
+| Entry point                    | Source             | Holds                       |
+| ------------------------------ | ------------------ | --------------------------- |
+| `svg-path-commander`           | `src/index.ts`     | the class and all the types |
+| `svg-path-commander/util`      | `src/util.ts`      | the static methods          |
+| `svg-path-commander/morph`     | `src/morph.ts`     | the morphing engine         |
+| `svg-path-commander/intersect` | `src/intersect.ts` | the intersection engine     |
+
+A new subpath entry point needs a matching entry in the `exports` map of `package.json` **and** in
+the `exports` map of `deno.json` — the JSR package has its own map.
 
 The Douglas-Peucker simplification lives in `process/` and is built from three modules:
 
@@ -95,7 +109,7 @@ The morphing toolkit lives in `morph/` and is built from four modules:
 | `morph/equalizeSegments.ts` | Equalizes a single sub-path pair, with the `segment` or `arcLength` strategy |
 | `morph/resamplePath.ts`     | Resamples a path to a given number of points, spread evenly over its length  |
 
-`equalize` and `resamplePath` are public — they are re-exported from `src/util.ts`, next to the
+`equalize` and `resamplePath` are public — they are re-exported from `src/morph.ts`, next to the
 `equalizeSegments` and `equalizePaths` they build on.
 
 Two modules in `util/` are the backbone of the length machinery and are shared by every query:
@@ -165,6 +179,10 @@ The contract is fixed — do not change it without a changelog entry:
 | empty path, `getPropertiesAtPoint`  | `{ closest: {x:0,y:0}, distance: Infinity }`              |
 | negative distance                   | the same early return as a distance of `0`                |
 | malformed segment (`[[]]`)          | `TypeError: invalid path segment at index N`              |
+| a path that does not begin with `M` | `TypeError: path data must begin with a moveto command`   |
+
+A leading relative moveto is the one exception to the last row — it is a pair of absolute
+coordinates, so the parser rewrites it as an absolute one.
 
 Static methods never modify the data they are given — `roundPath`, `matchPaths` and `transformPath`
 all work on copies, and the transform origin is copied before it is written to.
@@ -190,8 +208,12 @@ all work on copies, and the transform origin is copied before it is written to.
 | ------------------- | -------------------------------------------------------- |
 | `dist/index.min.js` | UMD bundle (minified, browser-ready, includes dommatrix) |
 | `dist/index.js`     | ESM bundle (tree-shakeable, neutral platform)            |
-| `dist/util.js`      | Static methods only (tree-shakeable)                     |
+| `dist/util.js`      | The static methods (tree-shakeable)                      |
+| `dist/morph.js`     | The morphing engine (tree-shakeable)                     |
+| `dist/intersect.js` | The intersection engine (tree-shakeable)                 |
 | `dist/index.d.ts`   | Type declarations                                        |
+
+Every entry point is built on its own, so a bundle never depends on a chunk of another one.
 
 ## Releases
 

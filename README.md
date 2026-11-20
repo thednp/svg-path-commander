@@ -23,6 +23,7 @@ While you may find familiar tools inside, this library brings _**new additions**
 - a unique tool that can _reverse path draw direction_ for path strings with only 'C' path commands;
 - a new and unique tool to _apply transform functions to path commands_ via the modern _DOMMatrix_ API;
 - the geometry queries read a shared length table, so `getPropertiesAtLength`, `getPointAtLength` and the closest point search are linear in the number of segments instead of quadratic — a 4 000 segment path answers a length query in about 2 ms;
+- the tools are split over three tree-shakeable entry points — the main one holds everything, `svg-path-commander/util` holds the tools, `svg-path-commander/morph` holds the morphing engine and `svg-path-commander/intersect` holds the intersection engine;
 - every tool has a defined answer for an empty or malformed path, and none of them touches the data you hand them.
 
 **The key differences with other libraries**:
@@ -90,6 +91,26 @@ In a Deno project, install from [JSR](https://jsr.io/@thednp/svg-path-commander)
 ```ts
 import SVGPathCommander from "jsr:@thednp/svg-path-commander";
 ```
+
+# Entry Points
+
+The library ships four entry points, so a bundle only carries the tools it uses:
+
+| Entry point                    | Holds                                                                                                                 |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `svg-path-commander`           | everything — the `SVGPathCommander` class and its static methods                                                      |
+| `svg-path-commander/util`      | the tools, without the class — the tree-shakeable entry point                                                         |
+| `svg-path-commander/morph`     | the morphing engine — `equalize`, `equalizePaths`, `equalizeSegments`, `resamplePath`, `fixPath`, `splitCubicSegment` |
+| `svg-path-commander/intersect` | the intersection engine — `pathsIntersection`, `boundingBoxIntersect`, `isPointInsideBBox`                            |
+
+```ts
+import SVGPathCommander from "svg-path-commander";
+import { getPathBBox, pathToCurve } from "svg-path-commander/util";
+import { equalize } from "svg-path-commander/morph";
+import { pathsIntersection } from "svg-path-commander/intersect";
+```
+
+The JSR package has the same subpaths: `jsr:@thednp/svg-path-commander/morph`.
 
 # CDN
 

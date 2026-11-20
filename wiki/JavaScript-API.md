@@ -449,7 +449,7 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   ```
 - **SVGPathCommander.version** - the current library version.
   ```js
-  SVGPathCommander.version; // => "2.3.6"
+  SVGPathCommander.version; // => "2.4.0"
   ```
 
 ## Empty and Malformed Input
@@ -473,6 +473,17 @@ A negative distance is not an error either — it takes the same early return as
 A malformed segment (`[[]]` or `[[1, 2, 3]]`) throws a `TypeError` naming the index of the
 offending segment.
 
+A path that does not begin with a moveto command is in error, as the SVG spec says, so the parser
+rejects it with a `TypeError` — for a path string and for a path array alike:
+
+```js
+SVGPathCommander.parsePathString("L10 10");
+// => TypeError: SVGPathCommanderError: path data must begin with a moveto command
+```
+
+A leading _relative_ moveto is the one exception: it is a pair of absolute coordinates, so it is
+rewritten as an absolute one — `parsePathString("m10 10")` answers `[["M", 10, 10]]`.
+
 None of the static methods modifies the data it is given: `roundPath`, `matchPaths` and
 `transformPath` all work on copies.
 
@@ -486,6 +497,21 @@ import { parsePathString, getPathBBox, pathToAbsolute } from "svg-path-commander
 parsePathString("M0 0L50 0");
 // => [['M', 0, 0], ['L', 50, 0]]
 ```
+
+The morphing engine and the intersection engine have their own subpaths, so the `util` entry
+point does not ship them:
+
+```js
+import { equalize, resamplePath } from "svg-path-commander/morph";
+import { pathsIntersection } from "svg-path-commander/intersect";
+```
+
+| Subpath                        | Holds                                                                                           |
+| ------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `svg-path-commander`           | the `SVGPathCommander` class and every static method                                            |
+| `svg-path-commander/util`      | the tools — the tree-shakeable entry point                                                      |
+| `svg-path-commander/morph`     | `equalize`, `equalizePaths`, `equalizeSegments`, `resamplePath`, `fixPath`, `splitCubicSegment` |
+| `svg-path-commander/intersect` | `pathsIntersection`, `boundingBoxIntersect`, `isPointInsideBBox`                                |
 
 | Function                | Description                                                     |
 | ----------------------- | --------------------------------------------------------------- |
@@ -532,3 +558,7 @@ parsePathString("M0 0L50 0");
 | `equalizePaths`         | Equalizes two paths for morphing                                |
 | `equalizeSegments`      | Equalizes two single-subpath paths for morphing                 |
 | `equalize`              | Equalizes two paths for morphing, the recommended entry point   |
+
+The morphing functions and the intersection functions are exported from the `svg-path-commander/morph`
+and the `svg-path-commander/intersect` subpaths — they are not in the `svg-path-commander/util` one
+anymore.

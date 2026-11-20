@@ -1,5 +1,5 @@
 /*!
-* SVGPathCommander INTERSECT v2.3.6 (http://thednp.github.io/svg-path-commander)
+* SVGPathCommander INTERSECT v2.4.0 (http://thednp.github.io/svg-path-commander)
 * Copyright 2026 © thednp
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */

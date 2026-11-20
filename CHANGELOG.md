@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.4.0] - 2026-11-20
+
+### Breaking
+
+- The parser rejects a path that does not begin with a moveto command — `parsePathString()` relabelled the first segment of every path as an `M`, whatever it was, without touching its parameter list, so `"h10"` became `[["M",10]]` and `"C1 2 3 4 5 6"` became `[["M",1,2,3,4,5,6]]`; the damage downstream was silent and numeric (`getPathBBox("h10")` answered a box with a `NaN` height, `getTotalLength("A5 5 0 0 1 10 10")` answered zero for an arc that is 15.7 units long). The rewrite was written for one case — the leading relative moveto of PR #49, which is a pair of absolute coordinates — and it was over-generalised to every first command. The leading `m` is rewritten and every other first command is rejected with a `TypeError`, for a path string and for a path array alike, so the parser agrees with `isValidPath()` and with the SVG spec, where a path that does not begin with a moveto is in error:
+  ```js
+  SVGPathCommander.parsePathString("m10 10");
+  // => [["M", 10, 10]] — the leading relative moveto is a pair of absolute coordinates
+  SVGPathCommander.parsePathString("L10 10");
+  // => TypeError: SVGPathCommanderError: path data must begin with a moveto command
+  ```
+- The morph engine and the intersection engine have their own entry points, and they are removed from the `svg-path-commander/util` entry point, which re-exported them and shipped them to every consumer of the tree-shakeable entry:
+  ```js
+  import { equalize, resamplePath } from "svg-path-commander/morph";
+  import { pathsIntersection } from "svg-path-commander/intersect";
+  ```
+  The `util` bundle is 128 kB now, twenty-seven percent less than before, and it holds neither engine. The main entry point still holds everything, so the class and its static methods are not affected.
+- `segmentToCubic()` returns a `PathSegment` — the function declared that it returns an `MSegment` or a `CSegment`, but it returns every other segment unchanged: the smooth cubic, the smooth quadratic, the horizontal and the vertical lineto fall through to the last line of the function. The declaration was a lie that the cast at that line told the type system to believe.
+
+### Changed
+
+- `splitPath()`, `simplifyPath()` and `getPropertiesAtLength()` no longer add an implicit moveto to a path that does not begin with one — the parser rejects such a path now, so the three of them have nothing left to paper over
+- `transformPath()` no longer keeps a leading relative moveto relative — the parser rewrites it as an absolute one, which is the same pair of coordinates
+- The `dist` folder holds a `morph.js` and an `intersect.js` bundle next to the `index.js`, the `util.js` and the `index.min.js` ones; the JSR exports map has the two new subpaths, so the npm and the JSR packages do not diverge
+- Rebuilt `dist` and `docs` bundles
+
 ## [2.3.6] - 2026-11-20
 
 ### Added

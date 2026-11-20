@@ -8,7 +8,14 @@ npm install svg-path-commander
 # or bun add svg-path-commander
 ```
 
-The package ships an ESM bundle (`svg-path-commander`), a UMD bundle for the browser (`dist/index.min.js`, global `SVGPathCommander`) and a tree-shakeable static-methods entry (`svg-path-commander/util`).
+The package ships an ESM bundle (`svg-path-commander`), a UMD bundle for the browser (`dist/index.min.js`, global `SVGPathCommander`) and three tree-shakeable entries — the static methods (`svg-path-commander/util`), the morphing engine (`svg-path-commander/morph`) and the intersection engine (`svg-path-commander/intersect`).
+
+```ts
+import SVGPathCommander from "svg-path-commander";
+import { getPathBBox } from "svg-path-commander/util";
+import { equalize } from "svg-path-commander/morph";
+import { pathsIntersection } from "svg-path-commander/intersect";
+```
 
 ## JSR
 
@@ -28,7 +35,9 @@ or import the raw TypeScript source directly:
 import SVGPathCommander from "jsr:@thednp/svg-path-commander";
 ```
 
-The static-methods entry is available as `jsr:@thednp/svg-path-commander/util`.
+The static-methods entry is available as `jsr:@thednp/svg-path-commander/util`, the morphing engine as
+`jsr:@thednp/svg-path-commander/morph` and the intersection engine as
+`jsr:@thednp/svg-path-commander/intersect`.
 
 ## CDN
 
