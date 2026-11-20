@@ -63,6 +63,15 @@ import { pathsIntersection } from "svg-path-commander/intersect";
 pathsIntersection("M0 50C0 0,100 0,100 50", "M50 0C100 0,100 100,50 100", false);
 ```
 
+```ts
+import { offsetPath } from "svg-path-commander/util";
+
+// the left side is the left normal of the direction of travel, "both" is the
+// outline of the stroke
+offsetPath("M0 0L100 0", 10); // [["M", 0, 10], ["L", 100, 10]]
+offsetPath("M0 0L100 0", 10, { side: "both", join: "round", cap: "round" });
+```
+
 ## API Overview
 
 **Constructor** — accepts an SVG path string, a `PathArray` (array of command segments) or a generic array of numbers / strings; optional `Options` (e.g. `transformOrigin`, `rounding`) validated against `defaultOptions`.
@@ -75,7 +84,7 @@ pathsIntersection("M0 50C0 0,100 0,100 50", "M50 0C100 0,100 100,50 100", false)
 
 **Entry points** — `svg-path-commander` holds the class and every static method, `svg-path-commander/util` holds the tools, `svg-path-commander/morph` holds the morphing engine (`equalize`, `equalizePaths`, `equalizeSegments`, `resamplePath`, `fixPath`, `splitCubicSegment`) and `svg-path-commander/intersect` holds the intersection engine (`pathsIntersection`, `boundingBoxIntersect`, `isPointInsideBBox`).
 
-**Types** — `PathArray`, `PathSegment`, `PathCommand`, `AbsoluteCommand`, `RelativeCommand`, `NormalSegment`, `IteratorCallback`, `Options`, `TransformObject`, `PathBBox`, `ShapePath`, `ShapeAttrs`, `EqualizationOptions`, `EqualizeOptions`, and per-command segment aliases (`MSegment`, `LSegment`, `CSegment`, `ArcSegment`, ...).
+**Types** — `PathArray`, `PathSegment`, `PathCommand`, `AbsoluteCommand`, `RelativeCommand`, `NormalSegment`, `IteratorCallback`, `Options`, `TransformObject`, `PathBBox`, `ShapePath`, `ShapeAttrs`, `OffsetOptions`, `OffsetSide`, `OffsetJoin`, `OffsetCap`, `EqualizationOptions`, `EqualizeOptions`, and per-command segment aliases (`MSegment`, `LSegment`, `CSegment`, `ArcSegment`, ...).
 
 ## Key Differences
 
