@@ -62,7 +62,9 @@ const transform2D = (
     const absCommand = (
       isRelative ? String.fromCharCode(commandCode - 32) : pathCommand
     ) as AbsoluteCommand;
-    const outCommand = i === 0 && isRelative ? pathCommand : absCommand;
+    // the parser rewrites a leading relative moveto as an absolute one, so
+    // the first segment is always absolute here
+    const outCommand = absCommand;
 
     if (absCommand === "Z") {
       result.push(["Z"] as AbsoluteSegment);

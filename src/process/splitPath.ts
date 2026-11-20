@@ -18,6 +18,9 @@ import { absolutizeSegment } from "./absolutizeSegment.ts";
  * In the process, values are converted to absolute
  * for visual consistency.
  *
+ * A path must begin with a moveto command, so a path that does not is
+ * rejected by the parser.
+ *
  * @param pathInput - The source path string or PathArray
  * @returns An array of sub-path PathArrays
  *
@@ -33,12 +36,7 @@ import { absolutizeSegment } from "./absolutizeSegment.ts";
 export const splitPath = <T extends PathArray>(pathInput: T | string): T[] => {
   const composite: T[] = [];
   const parsedPath = parsePathString(pathInput);
-  // a path that does not start with a moveto gets an implicit one at the
-  // origin, so the leading segments are not lost
-  const segments: PathArray =
-    parsedPath.length && parsedPath[0][0].toUpperCase() !== "M"
-      ? ([["M", 0, 0] as MSegment, ...parsedPath] as PathArray)
-      : parsedPath;
+  const segments: PathArray = parsedPath;
   let path = [] as unknown as T;
   let pi = -1;
   let x = 0;

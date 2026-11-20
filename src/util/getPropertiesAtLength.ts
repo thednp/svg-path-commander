@@ -99,27 +99,22 @@ export const getPropertiesAtLength = <T extends PathArray>(
 
   // the segment is the last one whose accumulated length does not exceed
   // the distance, a zero length segment wins over the one before it
+  // the first drawable segment always starts at the length zero, so it is
+  // the fallback when no later segment matches
+  let index = 1;
   for (let i = lastIndex; i > 0; i--) {
-    const measure = measures[i];
-    if (measure.lengthAtSegment <= distance) {
-      return {
-        segment: measure.segment,
-        index: measure.index,
-        length: segmentLength(measure),
-        lengthAtSegment: measure.lengthAtSegment,
-        ...frameOf(measure, distance - measure.lengthAtSegment),
-      };
+    if (measures[i].lengthAtSegment <= distance) {
+      index = i;
+      break;
     }
   }
 
-  // the distance is inside the first segment, which is only possible when
-  // the path does not start with a moveto
-  const first = measures[0];
+  const measure = measures[index];
   return {
-    segment: first.segment,
-    index: first.index,
-    length: segmentLength(first),
-    lengthAtSegment: first.lengthAtSegment,
-    ...frameOf(first, distance - first.lengthAtSegment),
+    segment: measure.segment,
+    index: measure.index,
+    length: segmentLength(measure),
+    lengthAtSegment: measure.lengthAtSegment,
+    ...frameOf(measure, distance - measure.lengthAtSegment),
   };
 };

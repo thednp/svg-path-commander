@@ -321,7 +321,9 @@ describe("SVGPathCommander Static Methods", () => {
       [["m", 10, 10], ["l", 20, 0], ["l", 0, 20], ["z"]] as unknown as PathArray,
       { translate: [5, 7] },
     );
-    expect(path).to.deep.equal([["m", 15, 17], ["H", 35], ["V", 37], ["Z"]]);
+    // a leading relative moveto is a pair of absolute coordinates, so it is
+    // rewritten as an absolute one
+    expect(path).to.deep.equal([["M", 15, 17], ["H", 35], ["V", 37], ["Z"]]);
   });
 
   test(`Can do getPropertiesAtLength`, () => {
@@ -2094,6 +2096,14 @@ describe("Empty input contract", () => {
     });
   });
 
+  test("Can reject a malformed path segment after the first one", () => {
+    const input = [["M", 0, 0], []] as unknown as PathArray;
+    expect(() => getPathBBox(input)).to.throw(
+      TypeError,
+      `${error}: invalid path segment at index 1`,
+    );
+  });
+
   test("Can get a point of an empty path", () => {
     emptyInputs.forEach((input) => {
       expect(getPointAtLength(input as PathArray, 10)).to.deep.equal({ x: 0, y: 0 });
@@ -2240,20 +2250,14 @@ describe("Morph and path utility fixes", () => {
   });
 
   test("Can split a path that does not start with a moveto", () => {
-    const split = splitPath([
-      ["L", 0, 0],
-      ["M", 10, 10],
-      ["L", 20, 20],
-    ] as unknown as PathArray);
-    expect(Object.keys(split)).to.deep.equal(["0", "1"]);
-    expect(split[0]).to.deep.equal([
-      ["M", 0, 0],
-      ["L", 0, 0],
-    ]);
-    expect(split[1]).to.deep.equal([
-      ["M", 10, 10],
-      ["L", 20, 20],
-    ]);
+    // a path must begin with a moveto command, so the parser rejects it
+    expect(() =>
+      splitPath([
+        ["L", 0, 0],
+        ["M", 10, 10],
+        ["L", 20, 20],
+      ] as unknown as PathArray),
+    ).to.throw(TypeError, `${error}: path data must begin with a moveto command`);
   });
 
   test("Can split a relative path into absolute sub-paths", () => {
@@ -2351,6 +2355,67 @@ describe("Parser and input edge cases", () => {
     ]);
   });
 
+  test("Can rewrite a leading relative moveto of a path string", () => {
+    // a leading relative moveto is a pair of absolute coordinates
+    expect(parsePathString("m10 10")).to.deep.equal([["M", 10, 10]]);
+    expect(parsePathString("m10 10l20 20")).to.deep.equal([
+      ["M", 10, 10],
+      ["l", 20, 20],
+    ]);
+  });
+
+  test("Can rewrite a leading relative moveto of a path array", () => {
+    const input = [
+      ["m", 10, 10],
+      ["l", 20, 20],
+    ] as unknown as PathArray;
+    expect(parsePathString(input)).to.deep.equal([
+      ["M", 10, 10],
+      ["l", 20, 20],
+    ]);
+    // the caller's array is not modified
+    expect(input[0][0]).to.equal("m");
+  });
+
+  test("Can reject a path that does not begin with a moveto", () => {
+    const invalidPaths = ["L10 10", "h10", "v10", "C1 2 3 4 5 6", "A5 5 0 0 1 10 10", "Z"];
+    invalidPaths.forEach((path) => {
+      expect(() => parsePathString(path)).to.throw(
+        TypeError,
+        `${error}: path data must begin with a moveto command`,
+      );
+    });
+  });
+
+  test("Can reject a path array that does not begin with a moveto", () => {
+    const invalidPaths = [
+      [["L", 10, 10]],
+      [["h", 10]],
+      [["v", 10]],
+      [["C", 1, 2, 3, 4, 5, 6]],
+      [["A", 5, 5, 0, 0, 1, 10, 10]],
+      [["Z"]],
+    ];
+    invalidPaths.forEach((path) => {
+      expect(() => parsePathString(path as unknown as PathArray)).to.throw(
+        TypeError,
+        `${error}: path data must begin with a moveto command`,
+      );
+    });
+  });
+
+  test("Can reject a malformed first segment of a path array", () => {
+    expect(() => parsePathString([[]] as unknown as PathArray)).to.throw(
+      TypeError,
+      `${error}: invalid path segment at index 0`,
+    );
+  });
+
+  test("Can parse an empty path", () => {
+    expect(parsePathString("")).to.deep.equal([]);
+    expect(parsePathString([] as unknown as PathArray)).to.deep.equal([]);
+  });
+
   test("Can drop an incomplete point of a polyline", () => {
     expect(getPolyPath({ type: "polygon", points: "0,0 100,0 100" })).to.deep.equal([
       ["M", 0, 0],
@@ -2371,9 +2436,9 @@ describe("Parser and input edge cases", () => {
   });
 
   test("Can get the properties of a length inside the first segment", () => {
-    // a path that does not start with a moveto is not a valid path, but the
-    // result still has to be well formed
-    expect(
+    // a path must begin with a moveto command, so a path that does not is
+    // rejected before any property is read
+    expect(() =>
       getPropertiesAtLength(
         [
           ["L", 10, 10],
@@ -2381,9 +2446,22 @@ describe("Parser and input edge cases", () => {
         ] as unknown as PathArray,
         5,
       ),
+    ).to.throw(TypeError, `${error}: path data must begin with a moveto command`);
+  });
+
+  test("Can get the properties of a length inside the first segment of a valid path", () => {
+    expect(
+      getPropertiesAtLength(
+        [
+          ["M", 0, 0],
+          ["L", 10, 10],
+          ["L", 20, 20],
+        ] as unknown as PathArray,
+        5,
+      ),
     ).to.deep.equal({
       segment: ["L", 10, 10],
-      index: 0,
+      index: 1,
       length: 14.142135623730951,
       lengthAtSegment: 0,
       point: { x: 3.5355339059327373, y: 3.5355339059327373 },
@@ -2693,7 +2771,8 @@ describe("Path simplification", () => {
   });
 
   test("Can simplify a path that does not start with a moveto", () => {
-    expect(
+    // a path must begin with a moveto command, so the parser rejects it
+    expect(() =>
       simplifyPath(
         [
           ["L", 10, 10],
@@ -2701,10 +2780,7 @@ describe("Path simplification", () => {
         ] as unknown as PathArray,
         1,
       ),
-    ).to.deep.equal([
-      ["M", 0, 0],
-      ["L", 20, 20],
-    ]);
+    ).to.throw(TypeError, `${error}: path data must begin with a moveto command`);
   });
 
   test("Can simplify a closed path", () => {

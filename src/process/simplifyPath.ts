@@ -44,18 +44,13 @@ const ACCEPTANCE = 0.8;
 /**
  * Splits a normalized path into its sub-paths.
  *
- * A path that does not start with a moveto starts at the origin, so the
- * missing moveto is added and the leading segments are not lost.
- *
  * @param path - the normalized path to split
  * @returns the sub-paths of the path
  */
 const splitSubPaths = (path: NormalArray): NormalArray[] => {
-  const source =
-    path[0]?.[0] === "M" ? path : ([["M", 0, 0] as MSegment, ...path] as unknown as NormalArray);
   const result: NormalArray[] = [];
   let current: NormalArray = [] as unknown as NormalArray;
-  for (const segment of source) {
+  for (const segment of path) {
     if (segment[0] === "M") {
       // the path is not empty, so the first sub-path is never missing
       if (current.length) result.push(current);
