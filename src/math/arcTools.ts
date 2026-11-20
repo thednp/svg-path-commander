@@ -313,19 +313,15 @@ const getPointAtArcLength = (
   if (typeof distance === "number") {
     const sweepAngle = endAngle - startAngle;
     const length = Math.abs(arcLengthBetween(rx, ry, startAngle, endAngle));
+    // a zero radius is treated as a straight line to the end point
+    if (rx === 0 || ry === 0) {
+      return getPointAtLineLength(x1, y1, x, y, distance);
+    }
     if (distance <= 0) {
       point = { x: x1, y: y1 };
     } else if (distance >= length) {
       point = { x, y };
     } else {
-      /* istanbul ignore next */
-      if (x1 === x && y1 === y) {
-        return { x, y };
-      }
-      /* istanbul ignore next */
-      if (rx === 0 || ry === 0) {
-        return getPointAtLineLength(x1, y1, x, y, distance);
-      }
       const { PI, cos, sin } = Math;
       const xRot = ((angle % 360) + 360) % 360;
       const xRotRad = xRot * (PI / 180);

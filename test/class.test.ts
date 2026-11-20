@@ -331,11 +331,24 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     const pt1 = new SVGPathCommander("M2 0A2 2 0 00 2 0").getPointAtLength(0);
     expect(pt1).to.deep.equal({ x: 2, y: 0 });
 
+    // a zero radius is a straight line to the end point
     const pt2 = new SVGPathCommander("M2 0A0 2 0 00 0 2").getPointAtLength(0.5);
-    expect(pt2).to.deep.equal({ x: 0, y: 2 });
+    expect(pt2).to.deep.equal({ x: 1.6464466094067263, y: 0.35355339059327373 });
 
     const pt3 = new SVGPathCommander("M2 0A3 2 0 00 0 2").getPointAtLength(5);
     expect(pt3).to.deep.equal({ x: 0, y: 2 });
+  });
+
+  test("Test getPropertiesAtLength", () => {
+    const properties = new SVGPathCommander("M0 0L100 0").getPropertiesAtLength(50);
+    expect(properties.segment).to.deep.equal(["L", 100, 0]);
+    expect(properties.index).to.equal(1);
+    expect(properties.length).to.equal(100);
+    expect(properties.lengthAtSegment).to.equal(0);
+    expect(properties.point).to.deep.equal({ x: 50, y: 0 });
+    expect(properties.tangent).to.deep.equal({ x: 1, y: 0 });
+    expect(properties.normal).to.deep.equal({ x: 0, y: 1 });
+    expect(properties.angle).to.equal(0);
   });
 
   test("Test toAbsolute", async () => {
