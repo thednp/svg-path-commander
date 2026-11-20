@@ -887,10 +887,20 @@ describe("SVGPathCommander Static Methods", () => {
       );
       expect(eq1.length).to.equal(eq2.length);
     });
+
+    test(`Can do equalizeSegments without leaking the options into the defaults`, () => {
+      const line = "M0 0L10 0L20 0L30 0";
+
+      equalizeSegments(line, line, { mode: "curve" });
+
+      // the default mode is still "auto", which keeps the path a polyline
+      const [eq1] = equalizeSegments(line, line);
+      expect(eq1.map((segment) => segment[0])).to.deep.equal(["M", "L", "L", "L"]);
+    });
   });
 
   describe(`Can do equalizePaths`, () => {
-    const { equalizePaths, pathToString } = SVGPathCommander;
+    const { equalizePaths, equalizeSegments, pathToString } = SVGPathCommander;
 
     test(`Can do equalizePaths single subpath`, () => {
       const [eq1, eq2] = equalizePaths(
@@ -989,6 +999,21 @@ describe("SVGPathCommander Static Methods", () => {
       const p2 = shapes.initial[3];
       const [eq1, eq2] = equalizePaths(p1, p2);
       expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizePaths without leaking the reverse option into the defaults`, () => {
+      const opposite = "M0 0L10 0L10 10L0 10Z";
+      const other = "M0 0L0 10L10 10L10 0Z";
+
+      const before = equalizeSegments(opposite, other);
+
+      equalizePaths("M0 0L10 0L10 10ZM0 0L5 5L5 0Z", "M0 0L10 0L10 10ZM0 0L5 5L5 0Z");
+
+      const after = equalizeSegments(opposite, other);
+
+      // the winding of both paths is still normalized to match
+      expect(after).to.deep.equal(before);
+      expect(pathToString(after[0])).to.equal(pathToString(after[1]));
     });
   });
 

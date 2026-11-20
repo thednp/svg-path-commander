@@ -36,7 +36,7 @@ export const equalizePaths = (
   pathInput2: string | PathArray,
   initialCfg = {},
 ): [MorphPathArray, MorphPathArray] => {
-  const cfg = Object.assign(equalizePathsDefaults, initialCfg);
+  const cfg = { ...equalizePathsDefaults, ...initialCfg };
   const p1 = normalizePath(pathInput1);
   const p2 = normalizePath(pathInput2);
 

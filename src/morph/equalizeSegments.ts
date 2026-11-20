@@ -56,7 +56,7 @@ export const equalizeSegments = (
     reverse,
     roundValues,
     target: initialTarget,
-  } = Object.assign(equalizeSegmentsDefaults, initialCfg);
+  } = { ...equalizeSegmentsDefaults, ...initialCfg };
   let p1 = normalizePath(path1) as MorphPathArray;
   let p2 = normalizePath(path2) as MorphPathArray;
 

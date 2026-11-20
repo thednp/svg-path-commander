@@ -4213,7 +4213,10 @@ const equalizeSegmentsDefaults = {
 * ```
 */
 const equalizeSegments = (path1, path2, initialCfg = {}) => {
-	const { close, mode, reverse, roundValues, target: initialTarget } = Object.assign(equalizeSegmentsDefaults, initialCfg);
+	const { close, mode, reverse, roundValues, target: initialTarget } = {
+		...equalizeSegmentsDefaults,
+		...initialCfg
+	};
 	let p1 = normalizePath(path1);
 	let p2 = normalizePath(path2);
 	fixPath(p1);
@@ -4452,7 +4455,10 @@ const equalizePathsDefaults = {
 * ```
 */
 const equalizePaths = (pathInput1, pathInput2, initialCfg = {}) => {
-	const cfg = Object.assign(equalizePathsDefaults, initialCfg);
+	const cfg = {
+		...equalizePathsDefaults,
+		...initialCfg
+	};
 	const p1 = normalizePath(pathInput1);
 	const p2 = normalizePath(pathInput2);
 	const multi1 = isMultiPath(p1);
