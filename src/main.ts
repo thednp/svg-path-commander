@@ -75,7 +75,9 @@ import { isClosedPath } from "./util/isClosedPath.ts";
 import { normalizePath } from "./process/normalizePath.ts";
 import { optimizePath } from "./process/optimizePath.ts";
 import { offsetPath } from "./process/offsetPath.ts";
+import { joinPath } from "./process/joinPath.ts";
 import { reversePath } from "./process/reversePath.ts";
+import { reverseSubPath } from "./process/reverseSubPath.ts";
 import { splitPath } from "./process/splitPath.ts";
 import { transformPath } from "./process/transformPath.ts";
 import { absolutizeSegment } from "./process/absolutizeSegment.ts";
@@ -360,6 +362,48 @@ export class SVGPathCommander {
     }
 
     this.segments = path.slice(0) as PathArray;
+    return this;
+  }
+
+  /**
+   * Reverse the sub-path at a given index of the path.
+   *
+   * The other sub-paths are left untouched.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L100 0ZM0 100L100 100').reverseSubPath(1).toString()
+   * // => 'M0 0L100 0M100 100L0 100'
+   * ```
+   *
+   * @param index - the zero-based index of the sub-path to reverse
+   * @returns this for chaining
+   * @public
+   */
+  reverseSubPath(index: number): this {
+    const { segments } = this;
+    this.segments = reverseSubPath(segments, index);
+    return this;
+  }
+
+  /**
+   * Join another path to the path of the instance.
+   *
+   * The result holds two sub-paths and absolute values.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L100 0').join('M0 100L100 100').toString()
+   * // => 'M0 0L100 0M0 100L100 100'
+   * ```
+   *
+   * @param path - the path string or `PathArray` to join
+   * @returns this for chaining
+   * @public
+   */
+  join(path: string | PathArray): this {
+    const { segments } = this;
+    this.segments = joinPath(segments, path);
     return this;
   }
 
@@ -729,6 +773,10 @@ export class SVGPathCommander {
   static reverseCurve = reverseCurve;
   /** Reverses all segments of a PathArray and returns a new PathArray */
   static reversePath = reversePath;
+  /** Reverses the sub-path at a given index of a path. */
+  static reverseSubPath = reverseSubPath;
+  /** Joins two paths into a single path with two sub-paths. */
+  static joinPath = joinPath;
   /** Rounds the values of a `pathArray` instance to */
   static roundPath = roundPath;
   /** Rounds the numeric values of a path segment to the specified precision. */

@@ -2905,6 +2905,122 @@ describe("Path simplification", () => {
   });
 });
 
+describe("Multi-subpath ergonomics", () => {
+  const { joinPath, reverseSubPath, splitPath, reversePath } = SVGPathCommander;
+
+  test("Can join two paths", () => {
+    expect(joinPath("M0 0L100 0", "M0 100L100 100")).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 100, 0],
+      ["M", 0, 100],
+      ["L", 100, 100],
+    ]);
+  });
+
+  test("Can join two paths with relative values", () => {
+    expect(joinPath("M0 0l100 0", "m0 100l100 0")).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 100, 0],
+      ["M", 0, 100],
+      ["L", 100, 100],
+    ]);
+  });
+
+  test("Can join a path with an empty path", () => {
+    expect(joinPath("M0 0L100 0", "")).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 100, 0],
+    ]);
+  });
+
+  test("Can join a path with a path of multiple sub-paths", () => {
+    expect(joinPath("M0 0L100 0", "M0 100L100 100ZM200 200L300 200")).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 100, 0],
+      ["M", 0, 100],
+      ["L", 100, 100],
+      ["Z"],
+      ["M", 200, 200],
+      ["L", 300, 200],
+    ]);
+  });
+
+  test("Can reject a path that does not begin with a moveto", () => {
+    try {
+      joinPath("M0 0L100 0", "L100 100");
+      expect.fail("should have thrown");
+    } catch (e) {
+      expect(e).to.be.instanceOf(TypeError);
+      expect(e).to.have.property("message", `${error}: path data must begin with a moveto command`);
+    }
+  });
+
+  test("Can reverse one sub-path of a path", () => {
+    expect(reverseSubPath("M0 0L100 0ZM0 100L100 100", 1)).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 100, 0],
+      ["Z"],
+      ["M", 100, 100],
+      ["L", 0, 100],
+    ]);
+  });
+
+  test("Can reverse the first sub-path of a path", () => {
+    expect(reverseSubPath("M0 0L100 0L100 100ZM0 100L100 100", 0)).to.deep.equal([
+      ["M", 100, 100],
+      ["L", 100, 0],
+      ["L", 0, 0],
+      ["Z"],
+      ["M", 0, 100],
+      ["L", 100, 100],
+    ]);
+  });
+
+  test("Can reverse a closed sub-path of a path", () => {
+    expect(reverseSubPath("M0 0L100 0L100 100Z", 0)).to.deep.equal([
+      ["M", 100, 100],
+      ["L", 100, 0],
+      ["L", 0, 0],
+      ["Z"],
+    ]);
+  });
+
+  test("Can reject an index that is out of range", () => {
+    [-1, 1, 1.5, Number.NaN].forEach((index) => {
+      try {
+        reverseSubPath("M0 0L100 0", index);
+        expect.fail("should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(TypeError);
+        expect(e).to.have.property(
+          "message",
+          `${error}: index must be a number within the range of the sub-paths`,
+        );
+      }
+    });
+  });
+
+  test("Can split a path into its sub-paths", () => {
+    expect(splitPath("M0 0L100 0ZM0 100L100 100")).to.deep.equal([
+      [["M", 0, 0], ["L", 100, 0], ["Z"]],
+      [
+        ["M", 0, 100],
+        ["L", 100, 100],
+      ],
+    ]);
+  });
+
+  test("Can reverse every sub-path of a path", () => {
+    expect(reversePath("M0 0L100 0ZM0 100L100 100")).to.deep.equal([
+      ["M", 100, 0],
+      ["L", 0, 0],
+      ["Z"],
+      ["M", 100, 100],
+      ["L", 0, 100],
+    ]);
+  });
+});
+
 describe("Path offsetting", () => {
   const { offsetPath, getPointAtLength, getTotalLength } = SVGPathCommander;
 

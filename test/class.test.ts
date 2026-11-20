@@ -481,6 +481,36 @@ a1.63 1.63 0 0 0 -0.906 0.274a1.63 1.63 0 0 0 -0.601 0.73a1.63 1.63 0 0 0 -0.094
     ]);
   });
 
+  test("Test reverseSubPath", async () => {
+    const container = getMarkup();
+    wrapper.append(container);
+    await vi.waitFor(() => container.querySelector("svg"), { timeout: 200 });
+    const path = await vi.waitFor(() => container.querySelector("path") as SVGPathElement, {
+      timeout: 200,
+    });
+
+    const reversed = new SVGPathCommander("M0 0L100 0ZM0 100L100 100").reverseSubPath(1);
+    path.setAttribute("d", reversed.toString());
+    expect(path.getAttribute("d")).to.equal("M0 0L100 0ZM100 100L0 100");
+    // the method is chainable
+    expect(reversed.reverseSubPath(0)).to.equal(reversed);
+  });
+
+  test("Test join", async () => {
+    const container = getMarkup();
+    wrapper.append(container);
+    await vi.waitFor(() => container.querySelector("svg"), { timeout: 200 });
+    const path = await vi.waitFor(() => container.querySelector("path") as SVGPathElement, {
+      timeout: 200,
+    });
+
+    const joined = new SVGPathCommander("M0 0L100 0").join("M0 100L100 100");
+    path.setAttribute("d", joined.toString());
+    expect(path.getAttribute("d")).to.equal("M0 0L100 0M0 100L100 100");
+    // the method is chainable
+    expect(joined.join("M200 200L300 200")).to.equal(joined);
+  });
+
   test("Test reverse single path", async () => {
     const container = getMarkup();
     wrapper.append(container);
