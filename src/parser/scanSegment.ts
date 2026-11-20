@@ -1,5 +1,5 @@
 import { finalizeSegment } from "./finalizeSegment.ts";
-import { paramsCounts } from "./paramsCount.ts";
+import { paramsCountsByCode } from "./paramsCount.ts";
 import { scanFlag } from "./scanFlag.ts";
 import { scanParam } from "./scanParam.ts";
 import { skipSpaces } from "./skipSpaces.ts";
@@ -11,7 +11,7 @@ import { invalidPathValue } from "./invalidPathValue.ts";
 import { error } from "../util/error.ts";
 
 import type { PathParser } from "./pathParser.ts";
-import type { PathSegment, RelativeCommand } from "../types.ts";
+import type { PathSegment } from "../types.ts";
 
 /**
  * Scans every character in the path string to determine
@@ -22,7 +22,7 @@ import type { PathSegment, RelativeCommand } from "../types.ts";
 export const scanSegment = (path: PathParser) => {
   const { max, pathValue, index, segments } = path;
   const cmdCode = pathValue.charCodeAt(index);
-  const reqParams = paramsCounts[pathValue[index].toLowerCase() as RelativeCommand];
+  const reqParams = paramsCountsByCode[cmdCode];
 
   path.segmentStart = index;
 

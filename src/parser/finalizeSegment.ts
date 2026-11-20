@@ -1,6 +1,6 @@
-import { paramsCounts } from "./paramsCount.ts";
+import { paramsCountsByCode } from "./paramsCount.ts";
 import type { PathParser } from "./pathParser.ts";
-import type { PathCommand, PathSegment, RelativeCommand } from "../types.ts";
+import type { PathCommand, PathSegment } from "../types.ts";
 
 /**
  * Breaks the parsing of a pathString once a segment is finalized.
@@ -9,14 +9,17 @@ import type { PathCommand, PathSegment, RelativeCommand } from "../types.ts";
  */
 export const finalizeSegment = (path: PathParser): void => {
   let pathCommand = path.pathValue[path.segmentStart] as PathCommand;
-  let relativeCommand = pathCommand.toLowerCase() as RelativeCommand;
   const { data } = path;
   let index = 0;
+  // the number of parameters of the command, by character code
+  let paramCount = paramsCountsByCode[pathCommand.charCodeAt(0) | 0x20];
+  // a moveto is the only command that can be overloaded
+  let isMove = pathCommand === "m" || pathCommand === "M";
 
-  while (data.length - index >= paramsCounts[relativeCommand]) {
+  while (data.length - index >= paramCount) {
     // overloaded `moveTo`
     // https://github.com/rveciana/svg-path-properties/blob/master/src/parse.ts
-    if (relativeCommand === "m" && data.length - index > 2) {
+    if (isMove && data.length - index > 2) {
       // oxlint-disable-next-line unicorn/no-new-array -- preallocated for a faster fill
       const segment = new Array<number | PathCommand>(3);
       segment[0] = pathCommand;
@@ -24,10 +27,11 @@ export const finalizeSegment = (path: PathParser): void => {
       segment[2] = data[index + 1] as number;
       path.segments.push(segment as PathSegment);
       index += 2;
-      relativeCommand = "l";
+      isMove = false;
       pathCommand = pathCommand === "m" ? "l" : "L";
+      // the lineto has two parameters
+      paramCount = 2;
     } else {
-      const paramCount = paramsCounts[relativeCommand];
       // oxlint-disable-next-line unicorn/no-new-array -- preallocated for a faster fill
       const segment = new Array<number | PathCommand>(paramCount + 1);
       segment[0] = pathCommand;
@@ -38,7 +42,7 @@ export const finalizeSegment = (path: PathParser): void => {
       index += paramCount;
     }
 
-    if (!paramsCounts[relativeCommand]) {
+    if (!paramCount) {
       break;
     }
   }
