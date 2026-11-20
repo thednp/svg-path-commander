@@ -15,6 +15,7 @@ While you may find familiar tools inside, this library brings _**new additions**
 
 - the build in `getBBox`, `getPointAtLength` and `getTotalLength` are more reliable and much more accurate than the native methods, not to mention their high [performance](https://github.com/thednp/svg-path-commander/issues/44) ratings;
 - thanks to the community contributions we've implemented useful tools like `getPropertiesAtLength`, `getSegmentOfPoint` or `isPointInStroke`;
+- `getPropertiesAtLength` returns the frame of the path at a given length — the point, the unit tangent vector, the unit normal vector and the angle of the tangent in degrees;
 - a tool that can _reverse path draw direction_ without altering path commands, even with specific shorthand path commands;
 - a unique tool that can _reverse path draw direction_ for path strings with only 'C' path commands;
 - a new and unique tool to _apply transform functions to path commands_ via the modern _DOMMatrix_ API;
@@ -298,6 +299,18 @@ Get a point along the path:
 ```js
 const myPoint = SVGPathCommander.getPointAtLength("M0 0L50 0L25 50z", 85);
 // result => {x: 34.34752415750147, y: 31.304951684997057}
+```
+
+Get the frame of the path at a given length — the point, the unit tangent vector, the unit
+normal vector and the angle of the tangent in degrees:
+
+```js
+const myFrame = SVGPathCommander.getPropertiesAtLength("M0 0L50 0L25 50z", 85);
+// result => { segment: ["L", 25, 50], index: 2, length: 55.90169943749474, lengthAtSegment: 50,
+//             point: {x: 34.34752415750147, y: 31.304951684997057},
+//             tangent: {x: -0.4472135954999579, y: 0.8944271909999159},
+//             normal: {x: -0.8944271909999159, y: -0.4472135954999579},
+//             angle: 116.56505117707799 }
 ```
 
 Get the path bounding box:

@@ -21,6 +21,7 @@ import { matchPaths } from "../src/morph/matchPaths";
 import { getPolyPath } from "../src/util/shapeToPathArray";
 import { iterate } from "../src/process/iterate";
 import type { IntersectionPoint, MorphPathArray, PathFeature } from "../src/types";
+import type { SegmentProperties } from "../src/interface";
 
 import getMarkup from "./fixtures/getMarkup";
 import simpleShapes from "./fixtures/simpleShapes";
@@ -36,6 +37,23 @@ import {
 
 import "../docs/assets/style.css";
 import { defaultOptions } from "../src/options/options";
+
+/**
+ * Returns the segment metadata of a segment lookup, without the frame.
+ */
+const segmentMeta = (properties?: SegmentProperties) => {
+  if (!properties) return undefined;
+  const { segment, index, length, lengthAtSegment } = properties;
+  return { segment, index, length, lengthAtSegment };
+};
+
+/**
+ * Compares two points, with a tolerance for the last bits of the floats.
+ */
+const expectPointClose = (actual: { x: number; y: number }, expected: { x: number; y: number }) => {
+  expect(actual.x).to.be.closeTo(expected.x, 1e-9);
+  expect(actual.y).to.be.closeTo(expected.y, 1e-9);
+};
 
 describe("SVGPathCommander Static Methods", () => {
   const wrapper = document.createElement("div");
@@ -338,7 +356,7 @@ describe("SVGPathCommander Static Methods", () => {
     const propsPoint0 = getPropertiesAtPoint(simpleShapes.initial[1], { x: 10, y: 90 });
     expect(propsPoint0.closest).to.deep.equal({ x: 10, y: 90 });
     expect(propsPoint0.distance).to.equal(0);
-    expect(propsPoint0.segment).to.deep.equal({
+    expect(segmentMeta(propsPoint0.segment)).to.deep.equal({
       segment: ["M", 10, 90],
       index: 0,
       length: 0,
@@ -352,7 +370,7 @@ describe("SVGPathCommander Static Methods", () => {
     });
     expect(propsPoint50.closest).to.deep.equal({ x: 30.07238133899532, y: 41.42817259194202 });
     expect(propsPoint50.distance).to.equal(0.00007282472667645927);
-    expect(propsPoint50.segment).to.deep.equal({
+    expect(segmentMeta(propsPoint50.segment)).to.deep.equal({
       segment: ["C", 30, 90, 25, 10, 50, 10],
       index: 1,
       length: 94.75724347727943,
@@ -363,7 +381,7 @@ describe("SVGPathCommander Static Methods", () => {
     const propsPoint400 = getPropertiesAtPoint(simpleShapes.initial[1], { x: 50, y: 10 });
     expect(propsPoint400.closest).to.deep.equal({ x: 50.000003352761084, y: 10.000000000000481 });
     expect(propsPoint400.distance).to.equal(0.0000033527610838746457);
-    expect(propsPoint400.segment).to.deep.equal({
+    expect(segmentMeta(propsPoint400.segment)).to.deep.equal({
       segment: ["s", 20, 80, 40, 80],
       index: 2,
       length: 94.75724347727943,
@@ -400,14 +418,16 @@ describe("SVGPathCommander Static Methods", () => {
   test(`Can do getSegmentOfPoint`, () => {
     const { getSegmentOfPoint } = SVGPathCommander;
     // first point
-    expect(getSegmentOfPoint(simpleShapes.initial[1], { x: 10, y: 90 })).to.deep.equal({
-      segment: ["M", 10, 90],
-      index: 0,
-      length: 0,
-      lengthAtSegment: 0,
-    });
+    expect(segmentMeta(getSegmentOfPoint(simpleShapes.initial[1], { x: 10, y: 90 }))).to.deep.equal(
+      {
+        segment: ["M", 10, 90],
+        index: 0,
+        length: 0,
+        lengthAtSegment: 0,
+      },
+    );
     // mid point
-    expect(getSegmentOfPoint(simpleShapes.initial[3], { x: 9, y: 9 })).to.deep.equal({
+    expect(segmentMeta(getSegmentOfPoint(simpleShapes.initial[3], { x: 9, y: 9 }))).to.deep.equal({
       segment: ["a", 6, 4, 10, 0, 1, 8, 0],
       index: 5,
       length: 8.400637172969368,
@@ -1747,6 +1767,10 @@ describe("Empty input contract", () => {
         index: 0,
         length: 0,
         lengthAtSegment: 0,
+        point: { x: 0, y: 0 },
+        tangent: { x: 0, y: 0 },
+        normal: { x: 0, y: 0 },
+        angle: 0,
       });
       expect(getSegmentAtLength(input as PathArray)).to.deep.equal(["M", 0, 0]);
     });
@@ -1759,6 +1783,10 @@ describe("Empty input contract", () => {
         index: 0,
         length: 0,
         lengthAtSegment: 0,
+        point: { x: 0, y: 0 },
+        tangent: { x: 0, y: 0 },
+        normal: { x: 0, y: 0 },
+        angle: 0,
       });
       expect(getSegmentAtLength("M0 0L10 10", distance)).to.deep.equal(["M", 0, 0]);
     });
@@ -1999,6 +2027,10 @@ describe("Parser and input edge cases", () => {
       index: 0,
       length: 14.142135623730951,
       lengthAtSegment: 0,
+      point: { x: 3.5355339059327373, y: 3.5355339059327373 },
+      tangent: { x: 0.7071067811865475, y: 0.7071067811865475 },
+      normal: { x: -0.7071067811865475, y: 0.7071067811865475 },
+      angle: 45,
     });
   });
 });
@@ -2037,5 +2069,210 @@ describe("Length table edge cases", () => {
       return index === 0 ? false : undefined;
     });
     expect(visited).to.deep.equal([0]);
+  });
+});
+
+describe("Tangent, normal and angle at length", () => {
+  const { getPropertiesAtLength, getPointAtLength, getTotalLength } = SVGPathCommander;
+
+  test("Can get the frame of a line segment", () => {
+    const horizontal = getPropertiesAtLength("M0 0L100 0", 50);
+    expect(horizontal.point).to.deep.equal({ x: 50, y: 0 });
+    expect(horizontal.tangent).to.deep.equal({ x: 1, y: 0 });
+    expect(horizontal.normal).to.deep.equal({ x: 0, y: 1 });
+    expect(horizontal.angle).to.equal(0);
+
+    const vertical = getPropertiesAtLength("M0 0L0 100", 50);
+    expect(vertical.tangent).to.deep.equal({ x: 0, y: 1 });
+    expect(vertical.normal).to.deep.equal({ x: -1, y: 0 });
+    expect(vertical.angle).to.equal(90);
+
+    const backwards = getPropertiesAtLength("M0 0L-100 0", 50);
+    expect(backwards.tangent).to.deep.equal({ x: -1, y: 0 });
+    expect(backwards.normal).to.deep.equal({ x: 0, y: -1 });
+    expect(backwards.angle).to.equal(180);
+
+    const diagonal = getPropertiesAtLength("M0 0L100 100", 50);
+    expect(diagonal.point).to.deep.equal({ x: 35.35533905932737, y: 35.35533905932737 });
+    expect(diagonal.tangent).to.deep.equal({
+      x: 0.7071067811865475,
+      y: 0.7071067811865475,
+    });
+    expect(diagonal.normal).to.deep.equal({
+      x: -0.7071067811865475,
+      y: 0.7071067811865475,
+    });
+    expect(diagonal.angle).to.equal(45);
+  });
+
+  test("Can get the frame of a cubic segment", () => {
+    const frame = getPropertiesAtLength("M0 0C0 0 100 0 100 100", 50);
+    expectPointClose(frame.point, { x: 48.273201847124525, y: 11.656181543145468 });
+    expectPointClose(frame.tangent, { x: 0.9024046988983104, y: 0.4308894979066554 });
+    expectPointClose(frame.normal, { x: -0.4308894979066554, y: 0.9024046988983104 });
+    expect(frame.angle).to.be.closeTo(25.52402316443056, 1e-9);
+  });
+
+  test("Can get the frame of a quadratic segment", () => {
+    const frame = getPropertiesAtLength("M0 0Q50 50 100 0", 50);
+    expectPointClose(frame.point, { x: 42.636848986148834, y: 24.457840071472226 });
+    expectPointClose(frame.tangent, { x: 0.9893300359628503, y: 0.14569172914666542 });
+    expectPointClose(frame.normal, { x: -0.14569172914666542, y: 0.9893300359628503 });
+    expect(frame.angle).to.be.closeTo(8.377337735860417, 1e-9);
+  });
+
+  test("Can get the frame of an arc segment", () => {
+    const sweep = getPropertiesAtLength("M0 0A50 50 0 0 1 50 50", 50);
+    expectPointClose(sweep.point, { x: 42.07354878288382, y: 22.98488399406185 });
+    expectPointClose(sweep.tangent, { x: 0.540302320118763, y: 0.8414709756576764 });
+    expectPointClose(sweep.normal, { x: -0.8414709756576764, y: 0.540302320118763 });
+    expect(sweep.angle).to.be.closeTo(57.295778542757034, 1e-9);
+
+    // the other sweep draws the arc the other way around
+    const counterSweep = getPropertiesAtLength("M0 0A50 50 0 0 0 50 50", 50);
+    expectPointClose(counterSweep.point, { x: 22.984883994061846, y: 42.07354878288381 });
+    expectPointClose(counterSweep.tangent, { x: 0.8414709756576764, y: 0.5403023201187631 });
+    expectPointClose(counterSweep.normal, { x: -0.5403023201187631, y: 0.8414709756576764 });
+    expect(counterSweep.angle).to.be.closeTo(32.70422145724297, 1e-9);
+
+    // a rotated ellipse has a rotated tangent
+    const rotated = getPropertiesAtLength("M0 0A50 25 45 1 0 50 50", 50);
+    expectPointClose(rotated.point, { x: -24.429616776724323, y: 26.619205549064553 });
+    expectPointClose(rotated.tangent, { x: 0.34778332760473246, y: 0.9375749340933659 });
+    expectPointClose(rotated.normal, { x: -0.9375749340933659, y: 0.34778332760473246 });
+    expect(rotated.angle).to.be.closeTo(69.64820667409153, 1e-9);
+  });
+
+  test("Can get the frame of a zero radius arc", () => {
+    // a zero radius is a straight line to the end point
+    const frame = getPropertiesAtLength("M0 0A0 5 0 0 1 10 10", 5);
+    expect(frame.point).to.deep.equal({ x: 3.5355339059327373, y: 3.5355339059327373 });
+    expect(frame.tangent).to.deep.equal({
+      x: 0.7071067811865475,
+      y: 0.7071067811865475,
+    });
+  });
+
+  test("Can get the frame of the start of an arc", () => {
+    const frame = getPropertiesAtLength("M0 0L10 0A50 50 0 0 1 60 50", 10);
+    expect(frame.segment).to.deep.equal(["A", 50, 50, 0, 0, 1, 60, 50]);
+    expect(frame.point).to.deep.equal({ x: 10, y: 0 });
+    // the arc leaves the point to the right
+    expectPointClose(frame.tangent, { x: 1, y: 0 });
+    expect(frame.angle).to.be.closeTo(0, 1e-9);
+  });
+
+  test("An arc without a sweep has no direction", () => {
+    // an arc from a point to the same point has no length at all
+    const frame = getPropertiesAtLength("M0 0L10 0A50 50 0 0 1 10 0", 10);
+    expect(frame.segment).to.deep.equal(["A", 50, 50, 0, 0, 1, 10, 0]);
+    expect(frame.point).to.deep.equal({ x: 10, y: 0 });
+    expect(frame.tangent).to.deep.equal({ x: 0, y: 0 });
+    expect(frame.normal).to.deep.equal({ x: 0, y: 0 });
+    expect(frame.angle).to.equal(0);
+  });
+
+  test("Can get the frame of a close segment", () => {
+    const frame = getPropertiesAtLength("M0 0L100 0L50 100Z", 300);
+    expect(frame.segment).to.deep.equal(["Z"]);
+    expectPointClose(frame.point, { x: 10.557280900008408, y: 21.114561800016816 });
+    expectPointClose(frame.tangent, { x: -0.4472135954999579, y: -0.8944271909999159 });
+    expect(frame.angle).to.be.closeTo(-116.56505117707799, 1e-9);
+  });
+
+  test("Can get the frame of the end of a path", () => {
+    const frame = getPropertiesAtLength("M0 0L100 0L50 100Z", 400);
+    expect(frame.index).to.equal(3);
+    expect(frame.point).to.deep.equal({ x: 0, y: 0 });
+    expectPointClose(frame.tangent, { x: -0.4472135954999579, y: -0.8944271909999159 });
+  });
+
+  test("Can get the frame of a relative path", () => {
+    const relative = getPropertiesAtLength("M10 10l20 0", 10);
+    expect(relative.point).to.deep.equal({ x: 20, y: 10 });
+    expect(relative.tangent).to.deep.equal({ x: 1, y: 0 });
+    expect(relative.angle).to.equal(0);
+  });
+
+  test("Can get the frame of a shorthand segment", () => {
+    // the reflected control point of the smooth cubic is resolved
+    const smooth = getPropertiesAtLength("M0 0C10 10 20 20 30 30S50 50 60 60", 50);
+    expectPointClose(smooth.point, { x: 35.35533919930458, y: 35.35533919930458 });
+    expectPointClose(smooth.tangent, { x: 0.7071067811865475, y: 0.7071067811865475 });
+
+    // the reflected control point of the smooth quadratic is resolved
+    const quad = getPropertiesAtLength("M0 0Q10 10 20 0T40 0", 20);
+    expectPointClose(quad.point, { x: 17.79298573732376, y: 1.9634686648934219 });
+    expectPointClose(quad.tangent, { x: 0.788770538753208, y: -0.6146877558524929 });
+  });
+
+  test("A moveto has no direction", () => {
+    const frame = getPropertiesAtLength("M0 0", 0);
+    expect(frame.point).to.deep.equal({ x: 0, y: 0 });
+    expect(frame.tangent).to.deep.equal({ x: 0, y: 0 });
+    expect(frame.normal).to.deep.equal({ x: 0, y: 0 });
+    expect(frame.angle).to.equal(0);
+  });
+
+  test("A line without a length has no direction", () => {
+    const frame = getPropertiesAtLength("M0 0L0 0", 1);
+    expect(frame.segment).to.deep.equal(["L", 0, 0]);
+    expect(frame.point).to.deep.equal({ x: 0, y: 0 });
+    expect(frame.tangent).to.deep.equal({ x: 0, y: 0 });
+    expect(frame.normal).to.deep.equal({ x: 0, y: 0 });
+    expect(frame.angle).to.equal(0);
+  });
+
+  test("The frame of a path is a unit frame", () => {
+    const paths = [
+      "M0 0L100 0L100 100",
+      "M0 0C10 10 20 20 30 30S50 50 60 60",
+      "M0 0Q50 50 100 0T200 0",
+      "M0 0A50 50 0 0 1 50 50",
+      "M0 0A50 25 45 1 0 50 50",
+      "M0 0h100v100h-100z",
+    ];
+    paths.forEach((path) => {
+      const total = getTotalLength(path);
+      for (let i = 0; i <= 20; i += 1) {
+        const distance = (total * i) / 20;
+        const { point, tangent, normal, angle } = getPropertiesAtLength(path, distance);
+        // the point is the point of the lookup
+        const lookup = getPointAtLength(path, distance);
+        expect(point.x).to.be.closeTo(lookup.x, 1e-9);
+        expect(point.y).to.be.closeTo(lookup.y, 1e-9);
+        // the tangent is a unit vector, a moveto has no direction at all
+        const tangentLength = Math.sqrt(tangent.x ** 2 + tangent.y ** 2);
+        expect(tangentLength === 0 || Math.abs(tangentLength - 1) < 1e-9).to.be.true;
+        // the normal is perpendicular to the tangent
+        expect(tangent.x * normal.x + tangent.y * normal.y).to.be.closeTo(0, 1e-9);
+        // the angle is the angle of the tangent, in degrees
+        expect(angle).to.be.closeTo((Math.atan2(tangent.y, tangent.x) * 180) / Math.PI, 1e-9);
+      }
+    });
+  });
+
+  test("The tangent agrees with the derivative of the path", () => {
+    const paths = [
+      "M0 0C10 10 20 20 30 30S50 50 60 60",
+      "M0 0Q50 50 100 0T200 0",
+      "M0 0A50 50 0 0 1 50 50",
+      "M0 0A50 25 45 1 0 50 50",
+    ];
+    paths.forEach((path) => {
+      const total = getTotalLength(path);
+      const step = 0.001;
+      for (let i = 1; i < 20; i += 1) {
+        const distance = (total * i) / 20;
+        const { tangent } = getPropertiesAtLength(path, distance);
+        const before = getPointAtLength(path, distance - step);
+        const after = getPointAtLength(path, distance + step);
+        const dx = after.x - before.x;
+        const dy = after.y - before.y;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        // the derivative of the path and the tangent point the same way
+        expect((dx / length) * tangent.x + (dy / length) * tangent.y).to.be.closeTo(1, 1e-6);
+      }
+    });
   });
 });

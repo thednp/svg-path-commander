@@ -604,6 +604,7 @@ const getPointAtArcLength = (x1, y1, RX, RY, angle, LAF, SF, x, y, distance) => 
 	if (typeof distance === "number") {
 		const sweepAngle = endAngle - startAngle;
 		const length = Math.abs(arcLengthBetween(rx, ry, startAngle, endAngle));
+		if (rx === 0 || ry === 0) return getPointAtLineLength(x1, y1, x, y, distance);
 		if (distance <= 0) point = {
 			x: x1,
 			y: y1
@@ -613,11 +614,6 @@ const getPointAtArcLength = (x1, y1, RX, RY, angle, LAF, SF, x, y, distance) => 
 			y
 		};
 		else {
-			if (x1 === x && y1 === y) return {
-				x,
-				y
-			};
-			if (rx === 0 || ry === 0) return getPointAtLineLength(x1, y1, x, y, distance);
 			const { PI, cos, sin } = Math;
 			const xRotRad = (angle % 360 + 360) % 360 * (PI / 180);
 			let lo = 0;
@@ -2217,28 +2213,51 @@ const measureSegments = (pathInput) => {
 			paramQY = null;
 		}
 		let length = 0;
+		let geometry = normalSegment;
 		if (pathCommand === "M") [, mx, my] = normalSegment;
 		else if (pathCommand === "L") length = getLineLength(lastX, lastY, normalSegment[1], normalSegment[2]);
 		else if (pathCommand === "A") length = getArcLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4], normalSegment[5], normalSegment[6], normalSegment[7]);
 		else if (pathCommand === "S") {
 			const cp1x = paramX1 * 2 - paramX2;
 			const cp1y = paramY1 * 2 - paramY2;
+			geometry = [
+				"C",
+				cp1x,
+				cp1y,
+				normalSegment[1],
+				normalSegment[2],
+				normalSegment[3],
+				normalSegment[4]
+			];
 			length = getCubicLength(lastX, lastY, cp1x, cp1y, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4]);
 		} else if (pathCommand === "C") length = getCubicLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4], normalSegment[5], normalSegment[6]);
 		else if (pathCommand === "T") {
 			paramQX = paramQX === null ? lastX : paramX1 * 2 - paramQX;
 			paramQY = paramQY === null ? lastY : paramY1 * 2 - paramQY;
+			geometry = [
+				"Q",
+				paramQX,
+				paramQY,
+				normalSegment[1],
+				normalSegment[2]
+			];
 			length = getQuadLength(lastX, lastY, paramQX, paramQY, normalSegment[1], normalSegment[2]);
 		} else if (pathCommand === "Q") {
 			paramQX = normalSegment[1];
 			paramQY = normalSegment[2];
 			length = getQuadLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4]);
 		} else if (pathCommand === "Z") length = getLineLength(lastX, lastY, mx, my);
+		const [endX, endY] = pathCommand === "Z" ? [mx, my] : geometry.slice(-2);
 		measures.push({
 			segment: seg,
 			index,
 			length,
-			lengthAtSegment: totalLength
+			lengthAtSegment: totalLength,
+			startX: lastX,
+			startY: lastY,
+			endX,
+			endY,
+			geometry
 		});
 		totalLength += length;
 		[paramX1, paramY1] = pathCommand === "Z" ? [mx, my] : normalSegment.slice(-2);
@@ -2379,6 +2398,235 @@ const getPointAtTable = (table, distance) => {
 	if (command === "A") return getPointAtArcLength(x1, y1, segment[1], segment[2], segment[3], segment[4], segment[5], endX, endY, offset);
 	return getPointAtLineLength(x1, y1, endX, endY, offset);
 };
+// src/util/segmentFrame.ts
+/**
+* Returns a value without a negative zero.
+*
+* The negative zero is a valid number, but it is a surprise in a result:
+* `Object.is(-0, 0)` is false, so a deep comparison of two equal frames
+* would fail.
+*
+* @param value the value to clean
+* @returns the value without a negative zero
+*/
+const cleanZero = (value) => value === 0 ? 0 : value;
+/**
+* Returns the unit vector of a direction.
+*
+* A direction without a length has no unit vector, so the zero vector is
+* returned for it.
+*
+* @param x the X component of the direction
+* @param y the Y component of the direction
+* @returns the unit vector of the direction
+*/
+const normalizeVector = (x, y) => {
+	const length = Math.sqrt(x * x + y * y);
+	return length > 0 ? {
+		x: cleanZero(x / length),
+		y: cleanZero(y / length)
+	} : {
+		x: 0,
+		y: 0
+	};
+};
+/**
+* Returns the frame of a point with a given direction.
+*
+* The normal is the left normal of the tangent, so it points to the left of
+* the direction of the path, and the angle is the angle of the tangent in
+* degrees, in the `-180` to `180` range.
+*
+* @param point the point of the frame
+* @param x the X component of the direction
+* @param y the Y component of the direction
+* @returns the frame of the point
+*/
+const frameFrom = (point, x, y) => {
+	const tangent = normalizeVector(x, y);
+	return {
+		point: {
+			x: cleanZero(point.x),
+			y: cleanZero(point.y)
+		},
+		tangent,
+		normal: {
+			x: cleanZero(-tangent.y),
+			y: cleanZero(tangent.x)
+		},
+		angle: Math.atan2(tangent.y, tangent.x) * 180 / Math.PI
+	};
+};
+/**
+* Returns the frame of a line segment at a given distance.
+*
+* @param startX the X coordinate the segment starts at
+* @param startY the Y coordinate the segment starts at
+* @param endX the X coordinate the segment ends at
+* @param endY the Y coordinate the segment ends at
+* @param offset the distance from the start of the segment
+* @param length the length of the segment
+* @returns the frame of the segment
+*/
+const lineFrame = (startX, startY, endX, endY, offset, length) => {
+	const dx = endX - startX;
+	const dy = endY - startY;
+	const ratio = length > 0 ? Math.min(Math.max(offset / length, 0), 1) : 0;
+	return frameFrom({
+		x: startX + dx * ratio,
+		y: startY + dy * ratio
+	}, dx, dy);
+};
+/**
+* Returns the frame of a cubic Bezier segment at a given distance.
+*
+* The `t` ratio of the point is found once and shared with the tangent, so
+* the point and the frame always describe the very same spot on the curve.
+*
+* @param coords the coordinates of the segment
+* @param offset the distance from the start of the segment
+* @param length the length of the segment
+* @returns the frame of the segment
+*/
+const cubicFrame = (coords, offset, length) => {
+	const t = offset <= 0 ? 0 : offset >= length ? 1 : getTAtBezierLength(coords, offset);
+	const point = getPointAtCubicSegmentLength(coords, t);
+	const derivative = computeBezier(deriveBezier(getBezierPoints(coords))[0], t);
+	return frameFrom(point, derivative.x, derivative.y);
+};
+/**
+* Returns the frame of a quadratic Bezier segment at a given distance.
+*
+* @param coords the coordinates of the segment
+* @param offset the distance from the start of the segment
+* @param length the length of the segment
+* @returns the frame of the segment
+*/
+const quadFrame = (coords, offset, length) => {
+	const t = offset <= 0 ? 0 : offset >= length ? 1 : getTAtBezierLength(coords, offset);
+	const point = getPointAtQuadSegmentLength(coords, t);
+	const derivative = computeBezier(deriveBezier(getBezierPoints(coords))[0], t);
+	return frameFrom(point, derivative.x, derivative.y);
+};
+/**
+* Returns the frame of an elliptical arc segment at a given distance.
+*
+* The parametric angle of the arc is found once and shared with the tangent,
+* which is the derivative of the ellipse at that angle.
+*
+* @param startX the X coordinate the segment starts at
+* @param startY the Y coordinate the segment starts at
+* @param RX the radius on X axis
+* @param RY the radius on Y axis
+* @param rotation the ellipse rotation in degrees
+* @param LAF the large arc flag
+* @param SF the sweep flag
+* @param endX the X coordinate the segment ends at
+* @param endY the Y coordinate the segment ends at
+* @param offset the distance from the start of the segment
+* @param length the length of the segment
+* @returns the frame of the segment
+*/
+const arcFrame = (startX, startY, RX, RY, rotation, LAF, SF, endX, endY, offset, length) => {
+	const { center, rx, ry, startAngle, endAngle } = getArcProps(startX, startY, RX, RY, rotation, LAF, SF, endX, endY);
+	if (rx === 0 || ry === 0) return lineFrame(startX, startY, endX, endY, offset, length);
+	const sweepAngle = endAngle - startAngle;
+	const { PI, cos, sin } = Math;
+	const xRotRad = (rotation % 360 + 360) % 360 * (PI / 180);
+	const tangentAt = (alpha) => {
+		const cosA = cos(alpha);
+		const sinA = sin(alpha);
+		return {
+			x: -cos(xRotRad) * rx * sinA - sin(xRotRad) * ry * cosA,
+			y: -sin(xRotRad) * rx * sinA + cos(xRotRad) * ry * cosA
+		};
+	};
+	const pointAt = (alpha) => {
+		const ellipseX = rx * cos(alpha);
+		const ellipseY = ry * sin(alpha);
+		return {
+			x: cos(xRotRad) * ellipseX - sin(xRotRad) * ellipseY + center.x,
+			y: sin(xRotRad) * ellipseX + cos(xRotRad) * ellipseY + center.y
+		};
+	};
+	if (length <= 0) return frameFrom({
+		x: startX,
+		y: startY
+	}, 0, 0);
+	const direction = sweepAngle < 0 ? -1 : 1;
+	if (offset <= 0) {
+		const tangent = tangentAt(startAngle);
+		return frameFrom({
+			x: startX,
+			y: startY
+		}, direction * tangent.x, direction * tangent.y);
+	}
+	if (offset >= length) {
+		const tangent = tangentAt(endAngle);
+		return frameFrom({
+			x: endX,
+			y: endY
+		}, direction * tangent.x, direction * tangent.y);
+	}
+	let lo = 0;
+	let hi = 1;
+	for (let i = 0; i < 25; i += 1) {
+		const mid = (lo + hi) / 2;
+		if (Math.abs(arcLengthBetween(rx, ry, startAngle, startAngle + sweepAngle * mid)) < offset) lo = mid;
+		else hi = mid;
+	}
+	const alpha = startAngle + sweepAngle * ((lo + hi) / 2);
+	const tangent = tangentAt(alpha);
+	return frameFrom(pointAt(alpha), direction * tangent.x, direction * tangent.y);
+};
+/**
+* Returns the frame of a path segment at a given distance.
+*
+* The segment has to be an absolute one, with the shorthand commands
+* expanded, so the geometry and the length of the segment agree.
+*
+* @param geometry the absolute segment
+* @param startX the X coordinate the segment starts at
+* @param startY the Y coordinate the segment starts at
+* @param endX the X coordinate the segment ends at
+* @param endY the Y coordinate the segment ends at
+* @param offset the distance from the start of the segment
+* @param length the length of the segment
+* @returns the frame of the segment
+*/
+const getSegmentFrame = (geometry, startX, startY, endX, endY, offset, length) => {
+	const command = geometry[0];
+	if (command === "M") return frameFrom({
+		x: endX,
+		y: endY
+	}, 0, 0);
+	if (command === "L" || command === "Z") return lineFrame(startX, startY, endX, endY, offset, length);
+	if (command === "C") {
+		const coords = [
+			startX,
+			startY,
+			geometry[1],
+			geometry[2],
+			geometry[3],
+			geometry[4],
+			endX,
+			endY
+		];
+		return cubicFrame(coords, offset, length);
+	}
+	if (command === "Q") {
+		const coords = [
+			startX,
+			startY,
+			geometry[1],
+			geometry[2],
+			endX,
+			endY
+		];
+		return quadFrame(coords, offset, length);
+	}
+	return arcFrame(startX, startY, geometry[1], geometry[2], geometry[3], geometry[4], geometry[5], endX, endY, offset, length);
+};
 // src/util/getPropertiesAtLength.ts
 /**
 * Returns the length of a measured segment.
@@ -2393,8 +2641,37 @@ const getPointAtTable = (table, distance) => {
 */
 const segmentLength = (measure) => measure.lengthAtSegment + measure.length - measure.lengthAtSegment;
 /**
+* Returns the frame of a measured segment at a given distance.
+*
+* @param measure - the measured segment
+* @param offset - the distance from the start of the segment
+* @returns the frame of the segment
+*/
+const frameOf = (measure, offset = 0) => {
+	if (!measure) return {
+		point: {
+			x: 0,
+			y: 0
+		},
+		tangent: {
+			x: 0,
+			y: 0
+		},
+		normal: {
+			x: 0,
+			y: 0
+		},
+		angle: 0
+	};
+	return getSegmentFrame(measure.geometry, measure.startX, measure.startY, measure.endX, measure.endY, offset, measure.length);
+};
+/**
 * Returns the segment, its index and length as well as
 * the length to that segment at a given length in a path.
+*
+* The point at the given length is returned with the frame of the path at
+* that point: the unit tangent vector, the unit normal vector and the angle
+* of the tangent in degrees.
 *
 * @param pathInput target `pathArray`
 * @param distance the given length
@@ -2412,14 +2689,16 @@ const getPropertiesAtLength = (pathInput, distance) => {
 		segment,
 		index: 0,
 		length: 0,
-		lengthAtSegment: 0
+		lengthAtSegment: 0,
+		...frameOf(measures[0])
 	};
 	const last = measures[lastIndex];
 	if (distance >= last.lengthAtSegment + last.length) return {
 		segment: last.segment,
 		index: last.index,
 		length: segmentLength(last),
-		lengthAtSegment: last.lengthAtSegment
+		lengthAtSegment: last.lengthAtSegment,
+		...frameOf(last, distance - last.lengthAtSegment)
 	};
 	for (let i = lastIndex; i > 0; i--) {
 		const measure = measures[i];
@@ -2427,7 +2706,8 @@ const getPropertiesAtLength = (pathInput, distance) => {
 			segment: measure.segment,
 			index: measure.index,
 			length: segmentLength(measure),
-			lengthAtSegment: measure.lengthAtSegment
+			lengthAtSegment: measure.lengthAtSegment,
+			...frameOf(measure, distance - measure.lengthAtSegment)
 		};
 	}
 	const first = measures[0];
@@ -2435,7 +2715,8 @@ const getPropertiesAtLength = (pathInput, distance) => {
 		segment: first.segment,
 		index: first.index,
 		length: segmentLength(first),
-		lengthAtSegment: first.lengthAtSegment
+		lengthAtSegment: first.lengthAtSegment,
+		...frameOf(first, distance - first.lengthAtSegment)
 	};
 };
 // src/process/normalizePath.ts

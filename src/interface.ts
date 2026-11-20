@@ -1,4 +1,4 @@
-import type { PathSegment } from "./types.ts";
+import type { PathSegment, Point } from "./types.ts";
 
 /** The properties of a path segment found by segment lookup utilities. */
 export type SegmentProperties = {
@@ -10,6 +10,14 @@ export type SegmentProperties = {
   length: number;
   /** The distance from the start of the path to the end of the segment. */
   lengthAtSegment: number;
+  /** The point at the given length. */
+  point: Point;
+  /** The unit tangent vector at the given length. */
+  tangent: Point;
+  /** The unit normal vector at the given length, the left normal of the tangent. */
+  normal: Point;
+  /** The angle of the tangent at the given length, in degrees. */
+  angle: number;
 };
 
 /** The closest point on the path to a given point, with the distance and optional segment. */

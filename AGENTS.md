@@ -83,8 +83,14 @@ Two modules in `util/` are the backbone of the length machinery and are shared b
 | `util/measureSegments.ts` | One pass that measures every segment and the length accumulated before it    |
 | `util/pathLengthTable.ts` | The measured path as a searchable table (lengths + start points + endpoints) |
 
-Both are internal — they are not re-exported from `src/util.ts`, and a new public export has to
-be added to `src/util.ts` **and** to the `exports` map in `deno.json` (the JSR package has its
+A third one answers the frame of the path at a given length:
+
+| Module                 | Purpose                                                                 |
+| ---------------------- | ----------------------------------------------------------------------- |
+| `util/segmentFrame.ts` | The point, the unit tangent, the unit normal and the angle of a segment |
+
+All three are internal — they are not re-exported from `src/util.ts`, and a new public export has
+to be added to `src/util.ts` **and** to the `exports` map in `deno.json` (the JSR package has its
 own map).
 
 ## Code Conventions

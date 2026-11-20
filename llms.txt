@@ -23,6 +23,7 @@
 - applies any CSS / SVG transform function to path commands via the modern `DOMMatrix` API (`@thednp/dommatrix` shim), including 3D to 2D projections, with SVG-consistent transform origins;
 - reverses path draw direction without altering the path (`reversePath`), including specialized variants for `C`-only paths and for other shapes;
 - provides more reliable and more accurate built-in `getBBox`, `getPointAtLength` and `getTotalLength` than the native methods, plus community tools like `getPropertiesAtLength`, `getSegmentOfPoint`, `isPointInStroke`, `pathsIntersection` and `boundingBoxIntersect`;
+- returns the frame of the path at a given length — `getPropertiesAtLength` answers with the point, the unit tangent vector, the unit normal vector (the left normal of the tangent) and the angle of the tangent in degrees, next to the segment metadata;
 - supports path morphing via `equalizePaths` / `equalizeSegments` and per-segment interpolation through `samplePath` / `splitPath`;
 - serves every geometry query from a shared length table — `getPropertiesAtLength`, `getPointAtLength` and the closest point search are linear in the number of segments instead of quadratic (a 4 000 segment path answers a length query in about 2 ms, and a closest point query in about 1 ms);
 - has a defined answer for an empty or malformed path: a zeroed bounding box, a `{x:0,y:0}` point, `false`, `undefined` or a synthetic `["M", 0, 0]` segment, depending on the tool — and no tool modifies the data it is given;
@@ -49,7 +50,7 @@ getPathBBox("M0 0L100 0L50 100"); // { x: 0, y: 0, width: 100, height: 100 }
 
 **Constructor** — accepts an SVG path string, a `PathArray` (array of command segments) or a generic array of numbers / strings; optional `Options` (e.g. `transformOrigin`, `rounding`) validated against `defaultOptions`.
 
-**Instance methods** — chainable: `parse`, `toString`, `flipX`, `flipY`, `transform`, `scale`, `rotate`, `translate`, `skew`, `skewX`, `skewY`, `reverse`, `reverseC`, `toAbsolute`, `toRelative`, `toCurve`, `optimize`, `round`, `normalize`, `getPointAtLength`, `getSegmentOfPoint`, `getPropertiesAtLength`, `getIntersections`, `getBBox`, `getTotalLength`.
+**Instance methods** — chainable: `parse`, `toString`, `flipX`, `flipY`, `transform`, `scale`, `rotate`, `translate`, `skew`, `skewX`, `skewY`, `reverse`, `reverseC`, `toAbsolute`, `toRelative`, `toCurve`, `optimize`, `round`, `normalize`, `getPointAtLength`, `getPropertiesAtLength`, `getSegmentOfPoint`, `getIntersections`, `getBBox`, `getTotalLength`.
 
 **Getters** — `bbox`, `length`, `string`, `segments`, `path`, `options`.
 

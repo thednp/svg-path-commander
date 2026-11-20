@@ -2,8 +2,20 @@
 
 ## [2.3.6] - 2026-11-20
 
+### Added
+
+- `getPropertiesAtLength()` returns the frame of the path at the given length — the `point` at that length, the unit `tangent` vector, the unit `normal` vector (the left normal of the tangent) and the `angle` of the tangent in degrees; the result is the union of the segment metadata and the frame, so the existing destructuring of `{ segment, index, length, lengthAtSegment }` keeps working
+- `SVGPathCommander#getPropertiesAtLength(length)` — the instance method of the frame, the counterpart of `getPointAtLength()`:
+  ```js
+  new SVGPathCommander("M0 0L100 0").getPropertiesAtLength(50);
+  // => { segment: ["L", 100, 0], index: 1, length: 100, lengthAtSegment: 0,
+  //      point: { x: 50, y: 0 }, tangent: { x: 1, y: 0 },
+  //      normal: { x: 0, y: 1 }, angle: 0 }
+  ```
+
 ### Fixed
 
+- `getPointAtLength()` no longer jumps to the end of a zero radius arc — the SVG spec treats a zero radius as a straight line to the end point, and the length of such an arc was already measured that way, but the point lookup returned the end point for every distance along it
 - `reversePath()` no longer corrupts the geometry of a `T` segment — a reversed `T` was emitted as the `T` shorthand whenever the original predecessor was not a `Q`/`T`, but in the reversed path the predecessor of a segment is its original _successor_, so when that successor was a `Q` the shorthand reflected the `Q`'s control point instead of the `T`'s own control point and silently changed the curve; e.g. `M0 0L10 0T20 20Q30 30 40 40` was off by up to 21 units — the shorthand is now kept wherever it is provably safe and falls back to an explicit `Q` otherwise
 - `arcToCubic()` no longer produces `NaN` control points for a zero radius arc — the SVG spec treats a zero radius as a straight line to the end point, which is what the conversion produces now
 - `getArcLength()` measures a zero radius arc as the straight line to its end point, the same as `getPointAtArcLength()` already did
@@ -41,6 +53,7 @@
 
 ### Changed
 
+- The frame of `getPropertiesAtLength()` shares one `t` ratio between the point and the tangent — the point and the frame are computed from the very same spot on the curve, which is **1.9x - 3.7x** faster than looking both up separately
 - `getTotalLength()` and `getPathSplits()` now share one length measurement pass — `measureSegments()` yields the length of every segment together with the length accumulated before it, so the two can no longer disagree and `getPathSplits()` no longer computes every segment length twice; the pass handles every command the way `getTotalLength()` does, where the old `getPathSplits()` measured `H`, `V` and `Z` segments as cubics and produced `NaN` for them
 - `equalizeSegments("", "")` returns `[[], []]` instead of `[[], null]` — an empty path has no rotation, and the morph facade no longer reports a `null` one
 - The benchmark harness (`scripts/bench.js`) measures with `performance.now()` instead of `new Date().getTime()` (1 ms resolution, on operations that take single-digit milliseconds), runs 30 times after 5 warmups and reports the **median** and the **best** of the runs in separate columns; it only rewrites the README when `--write` is passed, so `vpr bench` no longer leaves the working tree dirty

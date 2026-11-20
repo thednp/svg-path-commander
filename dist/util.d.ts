@@ -14,6 +14,14 @@ type SegmentProperties = {
   length: number;
   /** The distance from the start of the path to the end of the segment. */
   lengthAtSegment: number;
+  /** The point at the given length. */
+  point: Point;
+  /** The unit tangent vector at the given length. */
+  tangent: Point;
+  /** The unit normal vector at the given length, the left normal of the tangent. */
+  normal: Point;
+  /** The angle of the tangent at the given length, in degrees. */
+  angle: number;
 };
 /** The closest point on the path to a given point, with the distance and optional segment. */
 type PointProperties = {
@@ -1128,6 +1136,10 @@ export declare const getPointAtLength: <T extends PathArray>(pathInput: string |
 /**
  * Returns the segment, its index and length as well as
  * the length to that segment at a given length in a path.
+ *
+ * The point at the given length is returned with the frame of the path at
+ * that point: the unit tangent vector, the unit normal vector and the angle
+ * of the tangent in degrees.
  *
  * @param pathInput target `pathArray`
  * @param distance the given length

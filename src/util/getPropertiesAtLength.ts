@@ -1,7 +1,9 @@
 import type { PathArray, PathSegment } from "../types.ts";
 import type { SegmentProperties } from "../interface.ts";
-import { measureSegments } from "./measureSegments.ts";
 import type { SegmentMeasure } from "./measureSegments.ts";
+import type { PathFrame } from "./segmentFrame.ts";
+import { measureSegments } from "./measureSegments.ts";
+import { getSegmentFrame } from "./segmentFrame.ts";
 
 /**
  * Returns the length of a measured segment.
@@ -18,8 +20,40 @@ const segmentLength = (measure: SegmentMeasure): number =>
   measure.lengthAtSegment + measure.length - measure.lengthAtSegment;
 
 /**
+ * Returns the frame of a measured segment at a given distance.
+ *
+ * @param measure - the measured segment
+ * @param offset - the distance from the start of the segment
+ * @returns the frame of the segment
+ */
+const frameOf = (measure: SegmentMeasure | undefined, offset = 0): PathFrame => {
+  // an empty path has no frame, but the result still has to be well formed
+  if (!measure) {
+    return {
+      point: { x: 0, y: 0 },
+      tangent: { x: 0, y: 0 },
+      normal: { x: 0, y: 0 },
+      angle: 0,
+    };
+  }
+  return getSegmentFrame(
+    measure.geometry,
+    measure.startX,
+    measure.startY,
+    measure.endX,
+    measure.endY,
+    offset,
+    measure.length,
+  );
+};
+
+/**
  * Returns the segment, its index and length as well as
  * the length to that segment at a given length in a path.
+ *
+ * The point at the given length is returned with the frame of the path at
+ * that point: the unit tangent vector, the unit normal vector and the angle
+ * of the tangent in degrees.
  *
  * @param pathInput target `pathArray`
  * @param distance the given length
@@ -46,6 +80,7 @@ export const getPropertiesAtLength = <T extends PathArray>(
       index: 0,
       length: 0,
       lengthAtSegment: 0,
+      ...frameOf(measures[0]),
     };
   }
 
@@ -58,6 +93,7 @@ export const getPropertiesAtLength = <T extends PathArray>(
       index: last.index,
       length: segmentLength(last),
       lengthAtSegment: last.lengthAtSegment,
+      ...frameOf(last, distance - last.lengthAtSegment),
     };
   }
 
@@ -71,6 +107,7 @@ export const getPropertiesAtLength = <T extends PathArray>(
         index: measure.index,
         length: segmentLength(measure),
         lengthAtSegment: measure.lengthAtSegment,
+        ...frameOf(measure, distance - measure.lengthAtSegment),
       };
     }
   }
@@ -83,5 +120,6 @@ export const getPropertiesAtLength = <T extends PathArray>(
     index: first.index,
     length: segmentLength(first),
     lengthAtSegment: first.lengthAtSegment,
+    ...frameOf(first, distance - first.lengthAtSegment),
   };
 };

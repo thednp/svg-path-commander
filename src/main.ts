@@ -14,7 +14,7 @@ import { rotateVector } from "./math/rotateVector.ts";
 import { roundTo } from "./math/roundTo.ts";
 
 import type { PathArray, PointTuple, TransformObjectValues } from "./types.ts";
-import type { Options, TransformEntries, TransformObject } from "./interface.ts";
+import type { Options, SegmentProperties, TransformEntries, TransformObject } from "./interface.ts";
 import { defaultOptions } from "./options/options.ts";
 
 import { pathToAbsolute } from "./convert/pathToAbsolute.ts";
@@ -241,6 +241,27 @@ export class SVGPathCommander {
    */
   getPointAtLength(length: number): { x: number; y: number } {
     return getPointAtLength(this.segments, length);
+  }
+
+  /**
+   * Returns the properties of the path at a given length: the segment, the
+   * point at that length, the unit tangent vector, the unit normal vector
+   * and the angle of the tangent in degrees.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L100 0').getPropertiesAtLength(50)
+   * // => { segment: ['L', 100, 0], index: 1, length: 100, lengthAtSegment: 0,
+   * //      point: { x: 50, y: 0 }, tangent: { x: 1, y: 0 },
+   * //      normal: { x: 0, y: 1 }, angle: 0 }
+   * ```
+   *
+   * @public
+   * @param length the length
+   * @returns the requested properties
+   */
+  getPropertiesAtLength(length: number): SegmentProperties {
+    return getPropertiesAtLength(this.segments, length);
   }
 
   /**

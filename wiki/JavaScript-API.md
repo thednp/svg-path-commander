@@ -35,6 +35,25 @@ const pt = new SVGPathCommander(
 // => { x: 8.716814692820414, y: 16 }
 ```
 
+### instance.getPropertiesAtLength()
+
+Returns the properties of the path at a given length: the segment the length
+spans, the index of the segment, the length of the segment, the length to the
+segment and the frame of the path at that length — the point, the unit tangent
+vector, the unit normal vector and the angle of the tangent in degrees.
+
+```js
+const properties = new SVGPathCommander("M0 0L100 0").getPropertiesAtLength(50);
+// => { segment: ["L", 100, 0], index: 1, length: 100, lengthAtSegment: 0,
+//      point: { x: 50, y: 0 }, tangent: { x: 1, y: 0 },
+//      normal: { x: 0, y: 1 }, angle: 0 }
+```
+
+The normal is the **left** normal of the tangent, so it points to the left of
+the direction of the path, and the angle is the angle of the tangent in
+degrees, in the `-180` to `180` range. A `moveto` has no direction, so its
+tangent and its normal are the zero vector.
+
 ### instance.toRelative()
 
 Converts all path commands of a shape with or without sub-path to _**relative**_ values.
@@ -272,15 +291,23 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   // => [10, 4]
   ```
 - **SVGPathCommander.fixPath(_path_: string | PathArray)** - checks if a _PathArray_ has an unnecessary `Z` segment and removes it in place.
-- **SVGPathCommander.getPropertiesAtLength(_path_: PathArray | string, _distance_: number)** - returns an object with the following properties: the segment in which the distance spans, the index of the segment, the length of the segment and length to the segment;
+- **SVGPathCommander.getPropertiesAtLength(_path_: PathArray | string, _distance_: number)** - returns an object with the following properties: the segment in which the distance spans, the index of the segment, the length of the segment, the length to the segment and the frame of the path at that length — the `point` at that length, the unit `tangent` vector, the unit `normal` vector (the left normal of the tangent) and the `angle` of the tangent in degrees;
   ```js
   SVGPathCommander.getPropertiesAtLength("M10 10C20 20,40 20,50 10", 50);
-  // => { segment: ['C', 20, 20, 40, 20, 50, 10], index: 1, length: 43.8086, lengthAtSegment: 0 }
+  // => { segment: ['C', 20, 20, 40, 20, 50, 10], index: 1, length: 43.8086,
+  //      lengthAtSegment: 0, point: { x: 50, y: 10 },
+  //      tangent: { x: 0.7071, y: -0.7071 }, normal: { x: 0.7071, y: 0.7071 },
+  //      angle: -45 }
   ```
-- **SVGPathCommander.getPropertiesAtPoint(_path_: PathArray | string, _point_: { x: number, y: number })** - returns an object with the following properties: the closest point in stroke, the distance to closest point and the segment which contains the closest point;
+- **SVGPathCommander.getPropertiesAtPoint(_path_: PathArray | string, _point_: { x: number, y: number })** - returns an object with the following properties: the closest point in stroke, the distance to closest point and the segment which contains the closest point, with its frame;
   ```js
   SVGPathCommander.getPropertiesAtPoint("M10 90C25 80,25 50,40 10", { x: 30.0725, y: 41.4282 });
-  // => { closest: { x: 30.1572, y: 41.4507 }, distance: 0.0877, segment: { segment: ['C', 25, 80, 25, 50, 40, 10], index: 1, length: 86.5325, lengthAtSegment: 0 } }
+  // => { closest: { x: 30.1572, y: 41.4507 }, distance: 0.0877,
+  //      segment: { segment: ['C', 25, 80, 25, 50, 40, 10], index: 1,
+  //                  length: 86.5325, lengthAtSegment: 0,
+  //                  point: { x: 30.1572, y: 41.4507 },
+  //                  tangent: { x: 0.2566, y: -0.9665 },
+  //                  normal: { x: 0.9665, y: 0.2566 }, angle: -75.1299 } }
   ```
 - **SVGPathCommander.getClosestPoint(_path_: PathArray | string, _point_: { x: number, y: number })** - returns an _{x,y}_ object with the coordinates of a point that is closest to a given _{x,y}_ point;
   ```js
@@ -441,7 +468,7 @@ parsePathString("M0 0L50 0");
 | `splitPath`             | Returns an array of `PathArray` items                           |
 | `getTotalLength`        | Returns the total path length                                   |
 | `getPointAtLength`      | Returns the `{x,y}` point at a given distance                   |
-| `getPropertiesAtLength` | Returns the segment and length properties at a given distance   |
+| `getPropertiesAtLength` | Returns the segment, length and frame properties at a distance  |
 | `getPropertiesAtPoint`  | Returns the closest point and segment for a given point         |
 | `getClosestPoint`       | Returns the `{x,y}` point closest to a given point              |
 | `getSegmentAtLength`    | Returns the segment at a given distance                         |

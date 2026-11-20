@@ -1,4 +1,13 @@
-import type { LSegment, MSegment, PathArray, PathSegment, PointTuple } from "../types.ts";
+import type {
+  CSegment,
+  LSegment,
+  MSegment,
+  NormalSegment,
+  PathArray,
+  PathSegment,
+  PointTuple,
+  QSegment,
+} from "../types.ts";
 import { getLineLength } from "../math/lineTools.ts";
 import { getArcLength } from "../math/arcTools.ts";
 import { getCubicLength } from "../math/cubicTools.ts";
@@ -19,6 +28,16 @@ export type SegmentMeasure = {
   length: number;
   /** the accumulated length of all segments before this one */
   lengthAtSegment: number;
+  /** the absolute X coordinate the segment starts at */
+  startX: number;
+  /** the absolute Y coordinate the segment starts at */
+  startY: number;
+  /** the absolute X coordinate the segment ends at */
+  endX: number;
+  /** the absolute Y coordinate the segment ends at */
+  endY: number;
+  /** the absolute segment, with the shorthand commands expanded */
+  geometry: NormalSegment;
 };
 
 /**
@@ -71,6 +90,10 @@ export const measureSegments = (pathInput: string | PathArray): SegmentMeasure[]
     }
 
     let length = 0;
+    // the absolute segment, with the shorthand commands expanded: the
+    // reflected control point of an `S` or a `T` is resolved here, so the
+    // geometry and the length of a segment always agree
+    let geometry = normalSegment as NormalSegment;
 
     // this segment is always ZERO
     /* istanbul ignore else */
@@ -95,6 +118,15 @@ export const measureSegments = (pathInput: string | PathArray): SegmentMeasure[]
       const cp1x = paramX1 * 2 - paramX2;
       const cp1y = paramY1 * 2 - paramY2;
 
+      geometry = [
+        "C",
+        cp1x,
+        cp1y,
+        normalSegment[1] as number,
+        normalSegment[2] as number,
+        normalSegment[3] as number,
+        normalSegment[4] as number,
+      ] as CSegment;
       length = getCubicLength(
         lastX,
         lastY,
@@ -120,6 +152,13 @@ export const measureSegments = (pathInput: string | PathArray): SegmentMeasure[]
       // keep null check #64
       paramQX = paramQX === null ? lastX : paramX1 * 2 - paramQX;
       paramQY = paramQY === null ? lastY : paramY1 * 2 - paramQY;
+      geometry = [
+        "Q",
+        paramQX,
+        paramQY,
+        normalSegment[1] as number,
+        normalSegment[2] as number,
+      ] as QSegment;
       length = getQuadLength(
         lastX,
         lastY,
@@ -143,7 +182,20 @@ export const measureSegments = (pathInput: string | PathArray): SegmentMeasure[]
       length = getLineLength(lastX, lastY, mx, my);
     }
 
-    measures.push({ segment: seg, index, length, lengthAtSegment: totalLength });
+    // the close segment returns to the start of the sub-path
+    const [endX, endY] = pathCommand === "Z" ? [mx, my] : (geometry.slice(-2) as PointTuple);
+
+    measures.push({
+      segment: seg,
+      index,
+      length,
+      lengthAtSegment: totalLength,
+      startX: lastX,
+      startY: lastY,
+      endX,
+      endY,
+      geometry,
+    });
     totalLength += length;
 
     // update params

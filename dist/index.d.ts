@@ -14,6 +14,14 @@ export type SegmentProperties = {
   length: number;
   /** The distance from the start of the path to the end of the segment. */
   lengthAtSegment: number;
+  /** The point at the given length. */
+  point: Point;
+  /** The unit tangent vector at the given length. */
+  tangent: Point;
+  /** The unit normal vector at the given length, the left normal of the tangent. */
+  normal: Point;
+  /** The angle of the tangent at the given length, in degrees. */
+  angle: number;
 };
 /** The closest point on the path to a given point, with the distance and optional segment. */
 export type PointProperties = {
@@ -808,6 +816,10 @@ declare const getPointAtLength: <T extends PathArray>(pathInput: string | T, dis
  * Returns the segment, its index and length as well as
  * the length to that segment at a given length in a path.
  *
+ * The point at the given length is returned with the frame of the path at
+ * that point: the unit tangent vector, the unit normal vector and the angle
+ * of the tangent in degrees.
+ *
  * @param pathInput target `pathArray`
  * @param distance the given length
  * @returns the requested properties
@@ -1410,6 +1422,24 @@ export declare class SVGPathCommander {
     x: number;
     y: number;
   };
+  /**
+   * Returns the properties of the path at a given length: the segment, the
+   * point at that length, the unit tangent vector, the unit normal vector
+   * and the angle of the tangent in degrees.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L100 0').getPropertiesAtLength(50)
+   * // => { segment: ['L', 100, 0], index: 1, length: 100, lengthAtSegment: 0,
+   * //      point: { x: 50, y: 0 }, tangent: { x: 1, y: 0 },
+   * //      normal: { x: 0, y: 1 }, angle: 0 }
+   * ```
+   *
+   * @public
+   * @param length the length
+   * @returns the requested properties
+   */
+  getPropertiesAtLength(length: number): SegmentProperties;
   /**
    * Convert path to absolute values.
    *
