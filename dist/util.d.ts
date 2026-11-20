@@ -307,14 +307,10 @@ type RelativeArray = [MSegment, ...RelativeSegment[]];
 type NormalArray = [MSegment, ...NormalSegment[]];
 /** A `PathArray` with only moveto and cubic Bezier segments. */
 type CurveArray = [MSegment, ...CSegment[]];
-/** A `CurveArray` ending with a closepath segment. */
-type ClosedCurveArray = [MSegment, ...CSegment[], ZSegment];
 /** A `PathArray` describing a closed polygon (moveto, lineto and closepath). */
 type PolygonArray = [MSegment, ...LSegment[], ZSegment];
 /** A `PathArray` describing an open polyline (moveto and lineto). */
 type PolylineArray = [MSegment, ...LSegment[]];
-/** The `PathArray` shapes supported by path morphing. */
-type MorphPathArray = PolygonArray | PolylineArray | CurveArray | ClosedCurveArray;
 /** The SVG element types that can be converted to a path. */
 type ShapeTypes = SVGPolylineElement | SVGPolygonElement | SVGLineElement | SVGEllipseElement | SVGCircleElement | SVGRectElement;
 /** The shape attributes mapped to each supported SVG element type. */
@@ -351,53 +347,6 @@ type DeriveCallback = (t: number) => Point;
 type IteratorCallback<T extends PathArray, K extends keyof T = number> = (segment: PathSegment & T[K], index: number, lastX: number, lastY: number) => PathSegment | T[K] | false | void | undefined;
 /** The bounding box extremes `[minX, minY, maxX, maxY]`. */
 type BBoxMaxima = [minX: number, minY: number, maxX: number, maxY: number];
-/** An intersection point between two curves, including both `t` ratios. */
-type IntersectionPoint = {
-  /** The X coordinate of the intersection point. */
-  x: number;
-  /** The Y coordinate of the intersection point. */
-  y: number;
-  /** The parameter ratio of the first curve. */
-  t1: number;
-  /** The parameter ratio of the second curve. */
-  t2: number;
-};
-/** Options for equalizing two paths for morphing. */
-interface EqualizationOptions {
-  /** The equalization mode. @default "auto" */
-  mode?: "auto" | "line" | "curve";
-  /** The strategy used to place the points of the equalized paths. @default "segment" */
-  strategy?: "segment" | "arcLength";
-  /** Whether the paths are aligned by rotation. @default true */
-  align?: boolean;
-  /** The number of sample points for the line mode. */
-  sampleSize?: number;
-  /** The amount of decimals to round values to. */
-  roundValues?: number;
-  /** Whether to reverse the second path before equalization. @default true */
-  reverse?: boolean | "auto";
-  /** Whether to close the path before equalization. */
-  close?: boolean;
-  /** The target segment count for both paths. */
-  target?: number;
-}
-/** Options for equalizing two paths for morphing with the `equalize` facade. */
-interface EqualizeOptions {
-  /** The number of points of the equalized paths. @default "auto" */
-  points?: number | "auto";
-  /** The strategy used to place the points of the equalized paths. @default "segment" */
-  strategy?: "segment" | "arcLength";
-  /** Whether the paths are aligned by rotation. @default true */
-  align?: boolean;
-  /** Whether a path is reversed to match the winding of the other one. @default "auto" */
-  reverse?: boolean | "auto";
-  /** The equalization mode. @default "auto" */
-  mode?: "auto" | "line" | "curve";
-  /** The amount of decimals to round values to. @default 4 */
-  roundValues?: number;
-  /** Whether to close the paths before equalization. */
-  close?: boolean;
-}
 /**
  * Returns the signed arc length of an ellipse segment from angle `0` up to
  * the given `theta` angle, by integrating the curve speed
@@ -940,7 +889,11 @@ export declare const pathToString: <T extends PathArray>(path: T, roundOption?: 
  *
  * If parameter value is already a `PathArray`,
  * return a clone of it.
-
+ *
+ * A path must begin with a moveto command, so a path that starts with another
+ * command is in error. A leading relative moveto is a pair of absolute
+ * coordinates, so it is rewritten as an absolute one.
+ *
  * @example
  * parsePathString("M 0 0L50 50")
  * // => [["M",0,0],["L",50,50]]
@@ -1386,6 +1339,9 @@ export declare const reversePath: <T extends PathArray>(pathInput: T | string) =
  * In the process, values are converted to absolute
  * for visual consistency.
  *
+ * A path must begin with a moveto command, so a path that does not is
+ * rejected by the parser.
+ *
  * @param pathInput - The source path string or PathArray
  * @returns An array of sub-path PathArrays
  *
@@ -1570,11 +1526,14 @@ export declare const roundSegment: <T extends PathSegment>(segment: T, roundOpti
 /**
  * Converts any segment to C (cubic-bezier).
  *
+ * A segment that is already a cubic, or a command the converter does not
+ * handle, is returned unchanged.
+ *
  * @param segment the source segment
  * @param params the source segment parameters
  * @returns the cubic-bezier segment
  */
-export declare const segmentToCubic: (segment: PathSegment, params: ParserParams) => MSegment | CSegment;
+export declare const segmentToCubic: (segment: PathSegment, params: ParserParams) => PathSegment;
 /**
  * Shorten a single segment of a `pathArray` object.
  *
@@ -1607,167 +1566,5 @@ export declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: N
  * ```
  */
 export declare const simplifyPath: (pathInput: string | PathArray, options?: number | SimplifyOptions) => PathArray;
-/**
- * Checks a `PathArray` for an unnecessary `Z` segment
- * and removes it. The `PathArray` is modified in place.
- * In short, if the segment before `Z` extends to `M`,
- * the `Z` segment must be removed.
- *
- * The `pathInput` must be a single path, without
- * sub-paths. For multi-path `<path>` elements,
- * use `splitPath` first and apply this utility on each
- * sub-path separately.
- *
- * @param pathInput the `pathArray` source
- * @returns void
- */
-export declare const fixPath: <T extends PathArray>(pathInput: T | string) => void;
-/**
- * Split a cubic Bézier into two cubics at parameter t [0–1].
- *
- * @param x1 - Start point X
- * @param y1 - Start point Y
- * @param x2 - First control point X
- * @param y2 - First control point Y
- * @param x3 - Second control point X
- * @param y3 - Second control point Y
- * @param x4 - End point X
- * @param y4 - End point Y
- * @param t - Parameter in range [0, 1] at which to split
- * @returns Array of two cubic segments, each as [x1,y1, x2,y2, x3,y3, x4,y4]
- */
-export declare function splitCubicSegment(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number, t: number): [CubicCoordinates, CubicCoordinates];
-/**
- * Equalizes two paths for morphing.
- *
- * The two paths are brought to the same shape, so they can be morphed into
- * each other: they hold the same number of segments of the same type, their
- * winding is the same and their points are aligned.
- *
- * A path with a single sub-path is equalized on its own, a path with more
- * sub-paths is split into sub-paths, the sub-paths are matched by their
- * shape and every pair is equalized on its own.
- *
- * The `strategy` option decides how the points of the paths are placed:
- * - `segment` splits the segments of the paths, so the points of the result
- *   are the points of the paths;
- * - `arcLength` spreads the points of the result evenly over the length of
- *   the paths, so the distance between two points of the result is the same
- *   over the whole path. The corners of the paths are points of the result
- *   too, so the shape of the paths keeps its vertices.
- *
- * The `points` option is the number of points of the result. The automatic
- * mode uses the number of points of the bigger path, raised when the corners
- * of the paths do not fit.
- *
- * The `reverse` option decides what happens when the two paths draw in
- * opposite directions: `true` reverses the second path, `false` leaves the
- * paths as they are and `auto` reverses the path that leaves the two paths
- * closest to each other.
- *
- * @see https://minus-ze.ro/posts/morphing-arbitrary-paths-in-svg/
- *
- * @param pathInput1 - First path string or PathArray
- * @param pathInput2 - Second path string or PathArray
- * @param initialCfg - Configuration options for equalization
- * @returns Tuple of two equalized MorphPathArrays
- *
- * @example
- * ```ts
- * const [eq1, eq2] = equalize('M0 0L100 0L50 100Z', 'M0 0L100 0L100 100L0 100Z')
- * // eq1.length === eq2.length — ready for morphing
- * ```
- */
-export declare const equalize: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: EqualizeOptions) => [MorphPathArray, MorphPathArray];
-/**
- * Equalizes two paths for morphing (single subpath only).
- *
- * @see https://minus-ze.ro/posts/morphing-arbitrary-paths-in-svg/
- * @param path1 - First path string or PathArray
- * @param path2 - Second path string or PathArray
- * @param initialCfg - Equalization options
- * @returns Tuple of two equalized MorphPathArrays
- *
- * @example
- * ```ts
- * const [eq1, eq2] = equalizeSegments('M0 0L100 0L50 100Z', 'M0 0L100 0L100 100L0 100Z')
- * // eq1.length === eq2.length
- * ```
- */
-export declare const equalizeSegments: (path1: PathArray | string, path2: PathArray | string, initialCfg?: EqualizationOptions) => [MorphPathArray, MorphPathArray];
-/**
- * Equalizes two paths for morphing (single/multi subpath).
- *
- * @see https://minus-ze.ro/posts/morphing-arbitrary-paths-in-svg/
- * @param pathInput1 - First path string or PathArray
- * @param pathInput2 - Second path string or PathArray
- * @param initialCfg - Configuration options for equalization
- * @returns Tuple of two equalized MorphPathArrays
- *
- * @example
- * ```ts
- * const [eq1, eq2] = equalizePaths('M0 0L100 0L50 100Z', 'M0 0L100 0L100 100L0 100Z')
- * // eq1.length === eq2.length — ready for morphing
- * ```
- */
-export declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: {}) => [MorphPathArray, MorphPathArray];
-/**
- * Resamples a path to a given number of points, spread evenly by length.
- *
- * The path is measured along its length and the points of the result are
- * spread evenly over it, so the distance between two points of the result
- * is the same over the whole path. The corners of the path are points of
- * the result too, so the shape of the path keeps its vertices.
- *
- * The result is a polyline, or a path of cubic Bezier segments when the
- * curve mode is used: every cubic of the result starts at a point of the
- * path and ends at the next one, with the direction of the path at both
- * ends, so the curve of the path is kept.
- *
- * @param pathInput - the target path string or PathArray
- * @param count - the number of points of the result
- * @param mode - the type of the segments of the result
- * @returns the resampled path
- *
- * @example
- * ```ts
- * resamplePath("M0 0L100 0L100 100", 3)
- * // => [['M', 0, 0], ['L', 100, 0], ['L', 100, 100]]
- * ```
- */
-export declare const resamplePath: (pathInput: string | PathArray, count: number, mode?: "line" | "curve") => MorphPathArray;
-/**
- * Finds intersection points between two paths.
- *
- * @param pathInput1 - First path string or PathArray
- * @param pathInput2 - Second path string or PathArray
- * @param justCount - If true, returns the count of intersections; if false, returns the intersection points
- * @returns The number of intersections (when justCount is true) or an array of IntersectionPoint objects
- *
- * @example
- * ```ts
- * pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', true)
- * // => 1
- * pathsIntersection('M0 50C0 0,100 0,100 50', 'M50 0C100 0,100 100,50 100', false)
- * // => [{ x: 80.4136, y: 19.5864, t1: 0.7262, t2: 0.2738 }]
- * ```
- */
-export declare const pathsIntersection: <T extends string | PathArray>(pathInput1: T, pathInput2: T, justCount?: boolean) => number | IntersectionPoint[];
-/**
- * Checks if two bounding boxes intersect.
- *
- * @param a - First bounding box as [minX, minY, maxX, maxY]
- * @param b - Second bounding box as [minX, minY, maxX, maxY]
- * @returns True if the bounding boxes overlap
- */
-export declare const boundingBoxIntersect: (a: BBoxMaxima, b: BBoxMaxima) => boolean;
-/**
- * Checks if a point is inside a bounding box.
- *
- * @param bbox - The bounding box as [minX, minY, maxX, maxY]
- * @param point - The point as [x, y]
- * @returns True if the point is inside or on the edge of the bounding box
- */
-export declare const isPointInsideBBox: (bbox: BBoxMaxima, [x, y]: PointTuple) => boolean;
 export { arcTools, bezierTools, cubicTools, DISTANCE_EPSILON as distanceEpsilon, lineTools, polygonTools, quadTools };
 //# sourceMappingURL=util.d.ts.map

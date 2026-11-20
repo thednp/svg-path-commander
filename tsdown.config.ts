@@ -9,6 +9,26 @@ const banner = `/*!
 */`;
 const miniBanner = `/*! SVGPathCommander $package v${pkg.version} | ${pkg.author} © ${year} | ${pkg.license}-License */`;
 
+const labels: Record<string, string> = {
+  index: "ESM",
+  util: "UTIL",
+  morph: "MORPH",
+  intersect: "INTERSECT",
+};
+
+/**
+ * The banner of a chunk, labelled with the name of the entry point.
+ *
+ * @param fallback the label of the entry point the config belongs to
+ * @returns the banner of the chunk
+ */
+const chunkBanner =
+  (fallback: string) =>
+  ({ fileName }: { fileName: string }): string => {
+    const name = fileName.split(".")[0];
+    return banner.replace("$package", labels[name] ?? fallback);
+  };
+
 const config: UserConfig = {
   exports: {
     inlinedDependencies: false,
@@ -22,6 +42,32 @@ const config: UserConfig = {
   sourcemap: true,
   globalName: "SVGPathCommander",
 };
+
+/**
+ * The config of an ESM entry point.
+ *
+ * Every entry point is built on its own, so the bundle of one entry point
+ * never depends on a chunk of another one.
+ *
+ * @param entry the entry point source
+ * @param label the label of the banner
+ * @returns the config of the entry point
+ */
+const esmConfig = (entry: string, label: string): UserConfig => ({
+  ...config,
+  entry,
+  format: ["esm"],
+  platform: "neutral",
+  target: "esnext",
+  treeshake: true,
+  banner: chunkBanner(label),
+  outputOptions(options) {
+    return {
+      ...options,
+      comments: { legal: true, annotation: false, jsdoc: true }, // temp
+    };
+  },
+});
 
 export default defineConfig([
   {
@@ -51,39 +97,15 @@ export default defineConfig([
   },
   {
     // ESM
-    ...config,
-    entry: "src/index.ts",
-    target: "esnext",
-    platform: "neutral",
-    treeshake: true,
-    format: ["esm"],
-    banner: banner.replace("$package", "ESM"),
+    ...esmConfig("src/index.ts", "ESM"),
     deps: {
       neverBundle: ["@thednp/dommatrix"],
     },
-    outputOptions(options) {
-      return {
-        ...options,
-        comments: { legal: true, annotation: false, jsdoc: true }, // temp
-      };
-    },
   },
-  {
-    // UTIL
-    ...config,
-    entry: {
-      util: "src/util.ts",
-    },
-    format: "esm",
-    platform: "neutral",
-    target: "esnext",
-    treeshake: true,
-    banner: banner.replace("$package", "UTIL"),
-    outputOptions(options) {
-      return {
-        ...options,
-        comments: { legal: true, annotation: false, jsdoc: true }, // temp
-      };
-    },
-  },
+  // UTIL
+  esmConfig("src/util.ts", "UTIL"),
+  // MORPH
+  esmConfig("src/morph.ts", "MORPH"),
+  // INTERSECT
+  esmConfig("src/intersect.ts", "INTERSECT"),
 ]);

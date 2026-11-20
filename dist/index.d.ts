@@ -642,7 +642,11 @@ declare const pathToString: <T extends PathArray>(path: T, roundOption?: number 
  *
  * If parameter value is already a `PathArray`,
  * return a clone of it.
-
+ *
+ * A path must begin with a moveto command, so a path that starts with another
+ * command is in error. A leading relative moveto is a pair of absolute
+ * coordinates, so it is rewritten as an absolute one.
+ *
  * @example
  * parsePathString("M 0 0L50 50")
  * // => [["M",0,0],["L",50,50]]
@@ -1071,6 +1075,9 @@ declare const reversePath: <T extends PathArray>(pathInput: T | string) => T;
  * In the process, values are converted to absolute
  * for visual consistency.
  *
+ * A path must begin with a moveto command, so a path that does not is
+ * rejected by the parser.
+ *
  * @param pathInput - The source path string or PathArray
  * @returns An array of sub-path PathArrays
  *
@@ -1255,11 +1262,14 @@ declare const roundSegment: <T extends PathSegment>(segment: T, roundOption: num
 /**
  * Converts any segment to C (cubic-bezier).
  *
+ * A segment that is already a cubic, or a command the converter does not
+ * handle, is returned unchanged.
+ *
  * @param segment the source segment
  * @param params the source segment parameters
  * @returns the cubic-bezier segment
  */
-declare const segmentToCubic: (segment: PathSegment, params: ParserParams) => MSegment | CSegment;
+declare const segmentToCubic: (segment: PathSegment, params: ParserParams) => PathSegment;
 /**
  * Shorten a single segment of a `pathArray` object.
  *

@@ -1471,7 +1471,11 @@ var PathParser = class {
 *
 * If parameter value is already a `PathArray`,
 * return a clone of it.
-
+*
+* A path must begin with a moveto command, so a path that starts with another
+* command is in error. A leading relative moveto is a pair of absolute
+* coordinates, so it is rewritten as an absolute one.
+*
 * @example
 * parsePathString("M 0 0L50 50")
 * // => [["M",0,0],["L",50,50]]
@@ -1480,20 +1484,31 @@ var PathParser = class {
 * @returns the resulted `pathArray` or error string
 */
 const parsePathString = (pathInput) => {
-	if (typeof pathInput !== "string") return pathInput.slice(0);
-	const path = new PathParser(pathInput);
-	skipSpaces(path);
-	while (path.index < path.max && !path.err.length) scanSegment(path);
-	if (!path.err.length) {
-		if (path.segments.length)
+	let path;
+	if (typeof pathInput !== "string") path = pathInput.slice(0);
+	else {
+		const parser = new PathParser(pathInput);
+		skipSpaces(parser);
+		while (parser.index < parser.max && !parser.err.length) scanSegment(parser);
+		if (parser.err.length) throw TypeError(parser.err);
+		path = parser.segments;
+	}
+	const first = path[0];
+	if (!first) return path;
+	if (typeof first[0] !== "string") throw new TypeError(`${error}: invalid path segment at index 0`);
+	if (first[0] === "m")
  /**
-		* force absolute first M
-		* getPathBBox calculation requires first segment to be absolute
-		* @see https://github.com/thednp/svg-path-commander/pull/49
-		*/
-		path.segments[0][0] = "M";
-	} else throw TypeError(path.err);
-	return path.segments;
+	* force absolute first M
+	* getPathBBox calculation requires first segment to be absolute
+	* @see https://github.com/thednp/svg-path-commander/pull/49
+	*/
+	path[0] = [
+		"M",
+		first[1],
+		first[2]
+	];
+	else if (first[0] !== "M") throw new TypeError(`${error}: path data must begin with a moveto command`);
+	return path;
 };
 // src/process/absolutizeSegment.ts
 /**
@@ -1845,6 +1860,9 @@ const quadToCubic = (x1, y1, qx, qy, x2, y2) => {
 /**
 * Converts any segment to C (cubic-bezier).
 *
+* A segment that is already a cubic, or a command the converter does not
+* handle, is returned unchanged.
+*
 * @param segment the source segment
 * @param params the source segment parameters
 * @returns the cubic-bezier segment
@@ -1987,8 +2005,9 @@ const pathToCurve = (pathInput) => {
 		}
 		let result = segmentToCubic(normalSegment, params);
 		if (result[0] === "C" && result.length > 7) {
-			path.splice(index + 1, 0, ["C"].concat(result.slice(7)));
-			result = result.slice(0, 7);
+			const values = result;
+			path.splice(index + 1, 0, ["C"].concat(values.slice(7)));
+			result = values.slice(0, 7);
 		}
 		const seglen = result.length;
 		params.x1 = +result[seglen - 2];
@@ -2702,23 +2721,18 @@ const getPropertiesAtLength = (pathInput, distance) => {
 		lengthAtSegment: last.lengthAtSegment,
 		...frameOf(last, distance - last.lengthAtSegment)
 	};
-	for (let i = lastIndex; i > 0; i--) {
-		const measure = measures[i];
-		if (measure.lengthAtSegment <= distance) return {
-			segment: measure.segment,
-			index: measure.index,
-			length: segmentLength(measure),
-			lengthAtSegment: measure.lengthAtSegment,
-			...frameOf(measure, distance - measure.lengthAtSegment)
-		};
+	let index = 1;
+	for (let i = lastIndex; i > 0; i--) if (measures[i].lengthAtSegment <= distance) {
+		index = i;
+		break;
 	}
-	const first = measures[0];
+	const measure = measures[index];
 	return {
-		segment: first.segment,
-		index: first.index,
-		length: segmentLength(first),
-		lengthAtSegment: first.lengthAtSegment,
-		...frameOf(first, distance - first.lengthAtSegment)
+		segment: measure.segment,
+		index: measure.index,
+		length: segmentLength(measure),
+		lengthAtSegment: measure.lengthAtSegment,
+		...frameOf(measure, distance - measure.lengthAtSegment)
 	};
 };
 // src/process/normalizePath.ts
@@ -3806,6 +3820,9 @@ const reversePath = (pathInput) => {
 * In the process, values are converted to absolute
 * for visual consistency.
 *
+* A path must begin with a moveto command, so a path that does not is
+* rejected by the parser.
+*
 * @param pathInput - The source path string or PathArray
 * @returns An array of sub-path PathArrays
 *
@@ -3820,12 +3837,7 @@ const reversePath = (pathInput) => {
 */
 const splitPath = (pathInput) => {
 	const composite = [];
-	const parsedPath = parsePathString(pathInput);
-	const segments = parsedPath.length && parsedPath[0][0].toUpperCase() !== "M" ? [[
-		"M",
-		0,
-		0
-	], ...parsedPath] : parsedPath;
+	const segments = parsePathString(pathInput);
 	let path = [];
 	let pi = -1;
 	let x = 0;
@@ -3990,7 +4002,7 @@ const transform2D = (path, a, b, c, d, e, f, originX, originY) => {
 		const commandCode = pathCommand.charCodeAt(0);
 		const isRelative = commandCode >= 97;
 		const absCommand = isRelative ? String.fromCharCode(commandCode - 32) : pathCommand;
-		const outCommand = i === 0 && isRelative ? pathCommand : absCommand;
+		const outCommand = absCommand;
 		if (absCommand === "Z") {
 			result.push(["Z"]);
 			ox = omx;
@@ -4430,21 +4442,13 @@ const ACCEPTANCE = .8;
 /**
 * Splits a normalized path into its sub-paths.
 *
-* A path that does not start with a moveto starts at the origin, so the
-* missing moveto is added and the leading segments are not lost.
-*
 * @param path - the normalized path to split
 * @returns the sub-paths of the path
 */
 const splitSubPaths = (path) => {
-	const source = path[0]?.[0] === "M" ? path : [[
-		"M",
-		0,
-		0
-	], ...path];
 	const result = [];
 	let current = [];
-	for (const segment of source) if (segment[0] === "M") {
+	for (const segment of path) if (segment[0] === "M") {
 		if (current.length) result.push(current);
 		current = [segment];
 	} else current.push(segment);

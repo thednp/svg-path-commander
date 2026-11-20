@@ -78,14 +78,3 @@ export { roundSegment } from "./process/roundSegment.ts";
 export { segmentToCubic } from "./process/segmentToCubic.ts";
 export { shortenSegment } from "./process/shortenSegment.ts";
 export { simplifyPath } from "./process/simplifyPath.ts";
-
-export { fixPath } from "./morph/fixPath.ts";
-export { splitCubicSegment } from "./morph/splitCubicSegment.ts";
-export { equalize } from "./morph/equalize.ts";
-export { equalizeSegments } from "./morph/equalizeSegments.ts";
-export { equalizePaths } from "./morph/equalizePaths.ts";
-export { resamplePath } from "./morph/resamplePath.ts";
-
-export { pathsIntersection } from "./intersect/pathIntersection.ts";
-export { boundingBoxIntersect } from "./intersect/boundingBoxIntersect.ts";
-export { isPointInsideBBox } from "./intersect/isPointInsideBBox.ts";
