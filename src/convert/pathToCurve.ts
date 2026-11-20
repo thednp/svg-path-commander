@@ -37,12 +37,15 @@ export const pathToCurve = <T extends PathArray>(pathInput: string | T): CurveAr
     const isLongArc = result[0] === "C" && result.length > 7;
 
     if (isLongArc) {
+      // an arc is converted to more than one cubic segment, the first one
+      // stays in place and the rest are inserted after it
+      const values = result as unknown as (number | AbsoluteCommand)[];
       path.splice(
         index + 1,
         0,
-        ["C" as AbsoluteCommand | number].concat(result.slice(7)) as CSegment,
+        ["C" as AbsoluteCommand | number].concat(values.slice(7)) as CSegment,
       );
-      result = result.slice(0, 7) as CSegment;
+      result = values.slice(0, 7) as CSegment;
     }
 
     const seglen = result.length;
