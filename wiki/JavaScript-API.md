@@ -257,11 +257,11 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   SVGPathCommander.getPathBBox("M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z");
   // => { cx: 8, cy: 8, cz: 24, height: 16, width: 16, x: 0, x2: 16, y: 0, y2: 16 }
   ```
-- **SVGPathCommander.getPathArea(_path_: PathArray | string)** - converts the _PathArray_ to curve and returns the total area of the shape; a negative value indicates a **clockwise** draw direction;
+- **SVGPathCommander.getPathArea(_path_: PathArray | string)** - converts the _PathArray_ to curve and returns the total area of the shape; a positive value indicates a **clockwise** draw direction;
   ```js
   SVGPathCommander.getPathArea("M0 0L100 0L50 100Z"); // => 4999.999999999999
   ```
-  The result is the shoelace sum for the polygon; a negative value indicates a **clockwise** draw direction.
+  The result is the shoelace sum for the polygon; a positive value indicates a **clockwise** draw direction.
 - **SVGPathCommander.getTotalLength(_path_: PathArray | string)** - will normalize the _PathArray_ and return the total length of the shape; this is equivalent to _SVGPathElement.prototype.getTotalLength()_ and should work in Node.js;
 - **SVGPathCommander.getPointAtLength(_path_: PathArray | string, _distance_: number)** - normalizes the _PathArray_ and looks into each segment to return an `{x,y}` object which represents a point at the given `distance`;
 - **SVGPathCommander.splitPath(_path_: PathArray)** - returns an _Array_ comprised of `PathArray` items;
@@ -316,7 +316,7 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
     "M0 0L100 0L50 100Z",
     "M0 0L100 0L100 100L0 100Z",
   );
-  // eq1.length === eq2.length === 6
+  // eq1.length === eq2.length === 5
   ```
 - **SVGPathCommander.pathsIntersection(_path1_: string | PathArray, _path2_: string | PathArray)** - returns an array of intersection points between two paths;
   ```js
@@ -387,8 +387,32 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   ```
 - **SVGPathCommander.version** - the current library version.
   ```js
-  SVGPathCommander.version; // => "2.3.4"
+  SVGPathCommander.version; // => "2.3.6"
   ```
+
+## Empty and Malformed Input
+
+Every static method has a defined answer for an empty path, so a tool never throws because the
+caller had nothing to give it:
+
+| Call                                       | Result                                            |
+| ------------------------------------------ | ------------------------------------------------- |
+| `getPathBBox([])`                          | a zeroed bounding box                             |
+| `getPointAtLength([], 10)`                 | `{ x: 0, y: 0 }`                                  |
+| `getClosestPoint([], { x: 0, y: 0 })`      | `{ x: 0, y: 0 }`                                  |
+| `getPropertiesAtPoint([], { x: 0, y: 0 })` | `{ closest: { x: 0, y: 0 }, distance: Infinity }` |
+| `getPropertiesAtLength([])`                | `{ segment: ["M", 0, 0], index: 0, ... }`         |
+| `getSegmentOfPoint([], { x: 0, y: 0 })`    | `undefined`                                       |
+| `isClosedPath([])`                         | `false`                                           |
+| `isPointInStroke([], { x: 0, y: 0 })`      | `false`                                           |
+| `isValidPath("   ")`                       | `false`                                           |
+
+A negative distance is not an error either — it takes the same early return as a distance of `0`.
+A malformed segment (`[[]]` or `[[1, 2, 3]]`) throws a `TypeError` naming the index of the
+offending segment.
+
+None of the static methods modifies the data it is given: `roundPath`, `matchPaths` and
+`transformPath` all work on copies.
 
 ## Utility Functions
 

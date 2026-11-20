@@ -17,7 +17,9 @@ While you may find familiar tools inside, this library brings _**new additions**
 - thanks to the community contributions we've implemented useful tools like `getPropertiesAtLength`, `getSegmentOfPoint` or `isPointInStroke`;
 - a tool that can _reverse path draw direction_ without altering path commands, even with specific shorthand path commands;
 - a unique tool that can _reverse path draw direction_ for path strings with only 'C' path commands;
-- a new and unique tool to _apply transform functions to path commands_ via the modern _DOMMatrix_ API.
+- a new and unique tool to _apply transform functions to path commands_ via the modern _DOMMatrix_ API;
+- the geometry queries read a shared length table, so `getPropertiesAtLength`, `getPointAtLength` and the closest point search are linear in the number of segments instead of quadratic — a 4 000 segment path answers a length query in about 2 ms;
+- every tool has a defined answer for an empty or malformed path, and none of them touches the data you hand them.
 
 **The key differences with other libraries**:
 
@@ -109,7 +111,7 @@ import SVGPathCommander from "svg-path-commander";
 const path = "M0 0L100 0L50 100";
 
 const flippedPathString = new SVGPathCommander(path).flipX().toString();
-// result => 'M0 100h100L50 0'
+// result => 'M100 0H0L50 100'
 ```
 
 Optimize a path string by using the `round` option, to round numbers to 2 decimals and finding shorthand where possible:
@@ -183,7 +185,7 @@ const myPathString = SVGPathCommander.pathToString([
   ["M", 0, 0],
   ["L", 50, 0],
 ]);
-// result => 'M0 0 L50 0'
+// result => 'M0 0L50 0'
 ```
 
 Check a path string validity:
@@ -320,7 +322,7 @@ const points = SVGPathCommander.pathsIntersection(
   "M50 0C100 0,100 100,50 100",
   false,
 );
-// result => [{ x: 50, y: 25, t1: 0.5, t2: 0.5 }]
+// result => [{ x: 80.41363825007447, y: 19.586361749925548, t1: 0.7262151274035185, t2: 0.27378487259648177 }]
 ```
 
 Equalize two paths for morphing (single subpath):

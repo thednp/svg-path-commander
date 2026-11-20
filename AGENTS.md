@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-SVGPathCommander v2.3.4 — TypeScript library for manipulating SVG `<path>` `d` attributes. Works in browser and Node.js.
+SVGPathCommander v2.3.6 — TypeScript library for manipulating SVG `<path>` `d` attributes. Works in browser and Node.js.
 
 ## Commands
 
@@ -14,7 +14,7 @@ vpr test:ui                     # Run tests with UI and --watch option
 vpr test:watch                  # Run tests with --watch option
 vpr test -- class.test.ts       # Run a single test file
 vpr test -- -t "Test name"      # Run a single test by name
-vpr bench                       # Benchmark vs svgpath (results embedded in README)
+vpr bench                       # Benchmark vs svgpath (prints the table; --write updates the README)
 vpr lint                        # oxlint src + tsc --noEmit
 vpr lint:ts                     # oxlint src
 vpr fix:ts                      # oxlint src --fix
@@ -24,6 +24,10 @@ vpr check:ts                    # tsc --noEmit (type check only)
 ```
 
 Always run `vpr lint` and `vpr test` after making changes.
+
+The benchmark harness measures with `performance.now()` and reports the median and the best of 30
+runs; it only rewrites the README when `--write` is passed, so a plain `vpr bench` leaves the
+working tree clean.
 
 Deno equivalents (via `deno.json`):
 
@@ -53,7 +57,7 @@ Keep the `paths` filters of all three workflows in sync when adding a file that 
 - **Test:** Vitest 5 in **browser mode** (Playwright + Chromium, headless) + Istanbul coverage (`test/class.test.ts`, `test/static.test.ts`)
 - **Lint/Format:** Vite+ (oxlint / oxfmt via `vp lint src` and `vp fmt src`) — not Deno; `deno lint` / `deno fmt` still gate the JSR publish
 - **JSR:** `deno.json` publishes as `@thednp/svg-path-commander` — `deno check src`, `deno lint src` and `deno publish --dry-run --allow-dirty` must all pass
-- **Dependency:** `@thednp/dommatrix` `^3.1.3` (DOMMatrix shim)
+- **Dependency:** `@thednp/dommatrix` `^3.1.4` (DOMMatrix shim)
 
 ## Source Structure (`src/`)
 
@@ -71,6 +75,17 @@ Keep the `paths` filters of all three workflows in sync when adding a file that 
 | `morph/`       | Path morphing (equalize, split, sample, classify, match)                |
 | `util/`        | Query helpers (bbox, length, point-at-length, intersection, etc.)       |
 | `options/`     | Default configuration                                                   |
+
+Two modules in `util/` are the backbone of the length machinery and are shared by every query:
+
+| Module                    | Purpose                                                                      |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| `util/measureSegments.ts` | One pass that measures every segment and the length accumulated before it    |
+| `util/pathLengthTable.ts` | The measured path as a searchable table (lengths + start points + endpoints) |
+
+Both are internal — they are not re-exported from `src/util.ts`, and a new public export has to
+be added to `src/util.ts` **and** to the `exports` map in `deno.json` (the JSR package has its
+own map).
 
 ## Code Conventions
 
@@ -111,6 +126,21 @@ Keep the `paths` filters of all three workflows in sync when adding a file that 
 - Validate inputs early, fail fast with clear messages
 - Static methods return safe defaults for empty/invalid input (e.g., `getPathBBox('')`)
 
+### Empty and Malformed Input
+
+The contract is fixed — do not change it without a changelog entry:
+
+| Input                               | Answer                                                    |
+| ----------------------------------- | --------------------------------------------------------- |
+| empty path                          | zeroed bbox / `{x:0,y:0}` / `false` / `undefined` segment |
+| empty path, `getPropertiesAtLength` | a synthetic `["M", 0, 0]` segment, `index: 0`             |
+| empty path, `getPropertiesAtPoint`  | `{ closest: {x:0,y:0}, distance: Infinity }`              |
+| negative distance                   | the same early return as a distance of `0`                |
+| malformed segment (`[[]]`)          | `TypeError: invalid path segment at index N`              |
+
+Static methods never modify the data they are given — `roundPath`, `matchPaths` and `transformPath`
+all work on copies, and the transform origin is copied before it is written to.
+
 ### Class Design
 
 - Instance methods are chainable — always `return this`
@@ -134,6 +164,21 @@ Keep the `paths` filters of all three workflows in sync when adding a file that 
 | `dist/index.js`     | ESM bundle (tree-shakeable, neutral platform)            |
 | `dist/util.js`      | Static methods only (tree-shakeable)                     |
 | `dist/index.d.ts`   | Type declarations                                        |
+
+## Releases
+
+- The version lives in `package.json` and is mirrored into `deno.json` — `node scripts/update-deno.js`
+  syncs it (the script rewrites `deno.json` with `JSON.stringify`, so run `deno fmt deno.json` after
+  it to keep the formatting).
+- Every release needs a `CHANGELOG.md` entry; the entry lists the _behaviour_, not the commits.
+- `dist/` and `docs/` are committed build artifacts — rebuild them (`vpr build`) with the release
+  commit, never separately.
+- Publishing happens from the GitHub Release workflow (`publish.yml`); the npm publish runs with
+  `--ignore-scripts` so the committed sources are what ships, and the JSR publish runs
+  `deno publish --allow-dirty` against the same sources.
+- `prepublishOnly` (`vp up --latest && vpr up:deno && ...`) is a **dependency bump**, not a release
+  step — it moves the Vitest pins off the version Vite+ bundles. Keep the `catalog:` pins aligned
+  with `vp toolchain vitest` instead.
 
 <!--VITE PLUS START-->
 
@@ -171,11 +216,11 @@ release. Add a tool name to select part of the graph. For example, run
 
 - **Harness folders**: dev repro/harness scaffolding (debugging the Vite plugin,
   a compiler, or the browser) goes in `TMP/`; fixtures imported by vitest suites
-  go in `tests/fixtures/` — **never** in the root or in OS temp dirs. Root-level
+  go in `test/fixtures/` — **never** in the root or in OS temp dirs. Root-level
   harness files break `tsdown`/`vitest` path resolution, and temp dirs outside
   the project get swept by OS cleaners and leave stale `node_modules`/`.vite`
-  state that corrupts the next run. (`tests/fixtures/` is covered by
-  `vp lint` + `tsc` like the rest of `tests/` — keep fixtures valid;
+  state that corrupts the next run. (`test/fixtures/` is covered by
+  `vp lint` + `tsc` like the rest of `test/` — keep fixtures valid;
   intentionally-broken inputs don't belong there.)
 - **Never delete files**: do not `rm` source/test files. If a file must be
   removed from the tree, **rename it to `<name>-bak.<ext>`** (e.g. `foo.ts` →

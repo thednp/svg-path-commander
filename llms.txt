@@ -24,8 +24,10 @@
 - reverses path draw direction without altering the path (`reversePath`), including specialized variants for `C`-only paths and for other shapes;
 - provides more reliable and more accurate built-in `getBBox`, `getPointAtLength` and `getTotalLength` than the native methods, plus community tools like `getPropertiesAtLength`, `getSegmentOfPoint`, `isPointInStroke`, `pathsIntersection` and `boundingBoxIntersect`;
 - supports path morphing via `equalizePaths` / `equalizeSegments` and per-segment interpolation through `samplePath` / `splitPath`;
+- serves every geometry query from a shared length table — `getPropertiesAtLength`, `getPointAtLength` and the closest point search are linear in the number of segments instead of quadratic (a 4 000 segment path answers a length query in about 2 ms, and a closest point query in about 1 ms);
+- has a defined answer for an empty or malformed path: a zeroed bounding box, a `{x:0,y:0}` point, `false`, `undefined` or a synthetic `["M", 0, 0]` segment, depending on the tool — and no tool modifies the data it is given;
 - is built with [tsdown](https://tsdown.dev), producing ESM (`index.js`), UMD (`index.min.js`, global `SVGPathCommander`) and a static-methods-only `util.js` entry into `dist/`;
-- is performance-oriented: allocation-free parsing and string output, a single-pass fast path for 2D transforms, and benchmarks against [SvgPath](https://github.com/fontello/svgpath) via `pnpm bench` (results in the README);
+- is performance-oriented: allocation-free parsing and string output, a single-pass fast path for 2D transforms, and benchmarks against [SvgPath](https://github.com/fontello/svgpath) via `vpr bench` (results in the README);
 - is JSR-ready: `deno.json` publishes the raw TypeScript source as `@thednp/svg-path-commander` with clean `deno check` / `deno lint` / `deno publish --dry-run`.
 
 ## Usage
@@ -51,7 +53,7 @@ getPathBBox("M0 0L100 0L50 100"); // { x: 0, y: 0, width: 100, height: 100 }
 
 **Getters** — `bbox`, `length`, `string`, `segments`, `path`, `options`.
 
-**Static methods** — `parsePathString`, `pathToString`, `normalizePath`, `optimizePath`, `absolutePath`, `relativePath`, `pathToCurve`, `shapeToPath`, `reversePath`, `transformPath`, `scalePath`, `rotatePath`, `translatePath`, `skewPath`, `roundPath`, `getPathBBox`, `getPathLength`, `getPointAtLength`, `getSegmentOfPoint`, `getPropertiesAtLength`, `getIntersection`, `pathsIntersection`, `equalizePaths`, `equalizeSegments`, plus the low-level tools in the `svg-path-commander/util` subpath entry.
+**Static methods** — `parsePathString`, `pathToString`, `normalizePath`, `optimizePath`, `pathToAbsolute`, `pathToRelative`, `pathToCurve`, `shapeToPath`, `shapeToPathArray`, `reversePath`, `reverseCurve`, `transformPath`, `roundPath`, `splitPath`, `fixPath`, `getPathBBox`, `getPathArea`, `getDrawDirection`, `getTotalLength`, `getPointAtLength`, `getSegmentAtLength`, `getSegmentOfPoint`, `getPropertiesAtLength`, `getPropertiesAtPoint`, `getClosestPoint`, `isPointInStroke`, `isValidPath`, `pathsIntersection`, `boundingBoxIntersect`, `equalizePaths`, `equalizeSegments`, plus the low-level tools in the `svg-path-commander/util` subpath entry.
 
 **Types** — `PathArray`, `PathSegment`, `PathCommand`, `AbsoluteCommand`, `RelativeCommand`, `NormalSegment`, `IteratorCallback`, `Options`, `TransformObject`, `PathBBox`, `ShapePath`, `ShapeAttrs`, and per-command segment aliases (`MSegment`, `LSegment`, `CSegment`, `ArcSegment`, ...).
 
@@ -62,3 +64,4 @@ getPathBBox("M0 0L100 0L50 100"); // { x: 0, y: 0, width: 100, height: 100 }
 - The built-in `getBBox`, `getTotalLength` and `getPointAtLength` are implemented mathematically (arcs via Gauss-Legendre quadrature) and are more accurate than the native methods.
 - Static methods return safe defaults for empty / invalid input (e.g. `getPathBBox("")` returns a zeroed box) while the constructor throws a `TypeError` on invalid path strings.
 - The class API and the static methods share the same implementation, so behavior is identical whichever entry you use.
+- The version is exposed as `SVGPathCommander.version` and follows `package.json`.

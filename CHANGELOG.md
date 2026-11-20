@@ -1,5 +1,54 @@
 # Changelog
 
+## [2.3.6] - 2026-11-20
+
+### Fixed
+
+- `reversePath()` no longer corrupts the geometry of a `T` segment — a reversed `T` was emitted as the `T` shorthand whenever the original predecessor was not a `Q`/`T`, but in the reversed path the predecessor of a segment is its original _successor_, so when that successor was a `Q` the shorthand reflected the `Q`'s control point instead of the `T`'s own control point and silently changed the curve; e.g. `M0 0L10 0T20 20Q30 30 40 40` was off by up to 21 units — the shorthand is now kept wherever it is provably safe and falls back to an explicit `Q` otherwise
+- `arcToCubic()` no longer produces `NaN` control points for a zero radius arc — the SVG spec treats a zero radius as a straight line to the end point, which is what the conversion produces now
+- `getArcLength()` measures a zero radius arc as the straight line to its end point, the same as `getPointAtArcLength()` already did
+- `arcToCubic()` uses the absolute value of a negative radius, as the spec says — the converted curve used to be a different shape than the arc it came from, and the length of `pathToCurve(arc)` was 7.4 % off the length of the arc itself
+- `getPathSplits()` no longer hangs when the target cannot be reached — a target below the segment count, a fractional target and a non-finite target all made the adjustment loop wrap around forever (the hang was live: `getPathSplits([['M',0,0],['L',10,0],['L',20,0]], 2)` never returned); the target is now clamped to the segment count, fractional targets are floored and non-finite targets are rejected with a `TypeError`
+- `equalizeSegments()` and `equalizePaths()` no longer mutate the module level defaults — the options of the first call were written into the defaults object, so every later call without options inherited them (`mode: "curve"` leaked, and so did `reverse: false`, which `equalizePaths()` passes for every matched subpath pair and which permanently disabled the winding normalisation of every later `equalizeSegments()` call — two paths with an opposite winding were then morphed without being aligned)
+- Empty input has a defined contract everywhere — `getPathBBox([])` returns a zeroed bounding box, `getPointAtLength([], 10)` returns `{ x: 0, y: 0 }`, `isClosedPath([])` returns `false`, `getPropertiesAtPoint([])` returns `{ closest: { x: 0, y: 0 }, distance: Infinity }`, `getSegmentOfPoint([])` returns `undefined`, `isPointInStroke([])` returns `false`, `getClosestPoint([])` returns `{ x: 0, y: 0 }`, `getPropertiesAtLength([])` returns a synthetic `["M", 0, 0]` segment and `isValidPath("   ")` returns `false`; `getPathBBox()` was the worst of them — the guard tested the truthiness of the _input_, so an empty array (which is truthy) slipped through and the result was `{ x: Infinity, y: Infinity, x2: -Infinity, cx: NaN }`
+- `getPropertiesAtLength()` no longer returns `undefined` for a negative distance (which made `getSegmentAtLength(path, -5)` throw) — a negative distance takes the same early return as a distance of zero
+- A malformed segment (`[[]]`, `[[1, 2, 3]]`) now throws a descriptive `TypeError` naming the offending index, instead of "Cannot read properties of undefined" from deep inside the iterator
+- `roundPath()` no longer modifies the caller's array — it returned the caller's own array with the segments replaced in place
+- `transformPath()` no longer writes the default origin into the caller's transform object, where it was the _same array_ as `SVGPathCommander.options.origin` — a caller who mutated the origin they passed in corrupted the library's global default for the rest of the process
+- `getSVGMatrix()` falls back to the default origin instead of throwing "origin is not iterable"
+- `splitLineToCount()` splits a line into equal lengths — the breakpoints were computed from the _original_ start point, so a 90 unit line split in three became 30, 15 and 45 units long; this is the point distribution `equalizeSegments()` is built on, so an edge split in ten used to bunch its points at the start instead of spreading them evenly
+- `matchPaths()` no longer destroys the caller's arrays — it sorted them in place and emptied them with `shift()`
+- `splitPath()` no longer drops the segments before the first `M` and always returns absolute segments, as its docstring promises
+- `isPathArray()` — and with it `isMultiPath()`, `isAbsoluteArray()` and `isRelativeArray()` — answers `false` for a malformed segment instead of throwing
+- `projection2d()` no longer returns `Infinity` or `NaN` when the relative position has no `z` — the guard `Math.abs(originZ) / Math.abs(relativePositionZ) || 1` returns `Infinity` for a zero denominator, and `Infinity` is truthy, so the fallback never applied
+- `classifyPaths()` no longer inverts outer and inner paths — the classification was purely `signedArea > 0 ? outer : inner`, but in the SVG coordinate system (y pointing down) the usual outer contour has a _negative_ signed area, so a square and its hole both came back as holes; a path is now an inner path when another path of the same set contains it, which does not depend on the winding at all
+- The parser accepts a leading zero again (`M09 09`) — the SVG path grammar defines a number as a digit sequence and every browser accepts it; the rejection came from a borrowed Esprima rule that belongs to the JavaScript numeric literal grammar
+- The parser rejects a number it cannot represent (`M1e999 0`) with a descriptive `TypeError`, instead of parsing it into an infinite coordinate that propagated into every length, bounding box and transformation
+- `pathToAbsolute()` absolutizes a leading relative moveto — the SVG spec says "If a relative moveto (m) appears as the first element of the path, then it is treated as a pair of absolute coordinates", but `absolutizeSegment()` returned the first segment untouched
+- `getPolyPath()` drops an incomplete point pair instead of producing a segment with an `undefined` coordinate
+- `getSegmentAtLength(path, Infinity)` clamps to the last segment like every other out of range distance, instead of returning the first one
+- An explicit `origin: [x, y, 0]` is no longer overwritten by the instance origin — `originZ || cz` treated a zero as missing
+- A non numeric transform value is ignored instead of being stored as `NaN` — `typeof Number(v) === "number"` is true for every value
+
+### Performance
+
+- `getPropertiesAtLength()` no longer measures the path O(n²) times — it truncated the path and called `getTotalLength()` on the truncated copy once per segment; it now reads the shared measure table and picks the segment with one scan: **16.7x** faster at 200 segments and **514x** at 4 000 (1 105 ms -> 2.15 ms)
+- `getPropertiesAtPoint()` and `getPointAtLength()` are served from a length table — every sample of the closest point search walked the whole path from the start, so the search was quadratic: **21.5x** faster at 50 segments and **489x** at 1 600 (615 ms -> 1.26 ms)
+- `getPropertiesAtPoint()` no longer normalizes the path again for every sample of its search — **2.7x - 3.1x** faster
+- `getRotatedPath()` no longer materialises a copy of the path for every possible start segment — at 4 000 segments the search needed 145 MB of heap for the copies alone and 933 ms; it now needs 2 MB and 3 ms
+- `getDrawDirection()` converts the path to a curve once instead of twice — **1.78x** faster on a 6 000 segment path (12.80 ms -> 7.19 ms)
+- The parser no longer builds a 25 element array for every character it reads — **5.47x** faster (20.55 ms -> 3.75 ms per 1 000 000 calls)
+
+### Changed
+
+- `getTotalLength()` and `getPathSplits()` now share one length measurement pass — `measureSegments()` yields the length of every segment together with the length accumulated before it, so the two can no longer disagree and `getPathSplits()` no longer computes every segment length twice; the pass handles every command the way `getTotalLength()` does, where the old `getPathSplits()` measured `H`, `V` and `Z` segments as cubics and produced `NaN` for them
+- `equalizeSegments("", "")` returns `[[], []]` instead of `[[], null]` — an empty path has no rotation, and the morph facade no longer reports a `null` one
+- The benchmark harness (`scripts/bench.js`) measures with `performance.now()` instead of `new Date().getTime()` (1 ms resolution, on operations that take single-digit milliseconds), runs 30 times after 5 warmups and reports the **median** and the **best** of the runs in separate columns; it only rewrites the README when `--write` is passed, so `vpr bench` no longer leaves the working tree dirty
+- `interHelper` imports `distanceEpsilon` directly instead of through the barrel, which removes the import cycle between the intersection engine and `src/util.ts`
+- Nine `@example` blocks were corrected to match what the code returns (`getPathArea`, `getTotalLength`, `pathToCurve`, `toCurve`, `normalize`, `reversePath`, `optimizePath`, `transformPath`)
+- Updated dev dependencies: `vite-plus` `1.7.0`, `vitest` / `@vitest/*` `5.1.0`, `vite` -> `@voidzero-dev/vite-plus-core` `8.3.8000`
+- Rebuilt `dist` and `docs` bundles
+
 ## [2.3.5] - 2026-11-16
 
 ### Fixed
