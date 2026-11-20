@@ -12,7 +12,6 @@ import type { PathParser } from "./pathParser.ts";
 export const scanParam = (path: PathParser) => {
   const { max, pathValue, index: start } = path;
   let index = start;
-  let zeroFirst = false;
   let hasCeiling = false;
   let hasDecimal = false;
   let hasDot = false;
@@ -41,22 +40,9 @@ export const scanParam = (path: PathParser) => {
   }
 
   if (ch !== 0x2e /* . */) {
-    zeroFirst = ch === 0x30; /* 0 */
     index += 1;
 
     ch = pathValue.charCodeAt(index);
-
-    if (zeroFirst && index < max) {
-      // decimal number starts with '0' such as '09' is illegal.
-      if (ch && isDigit(ch)) {
-        // path.err = 'SvgPath: numbers started with `0` such as `09`
-        // are illegal (at pos ' + start + ')';
-        path.err = `${error}: ${invalidPathValue} at index ${start}, "${
-          pathValue[start]
-        }" illegal number`;
-        return;
-      }
-    }
 
     while (index < max && isDigit(pathValue.charCodeAt(index))) {
       index += 1;
@@ -106,6 +92,13 @@ export const scanParam = (path: PathParser) => {
 
   path.index = index;
   path.param = scanNumber(pathValue, start, index);
+  // a number that overflows the double range is not a valid path value
+  if (!Number.isFinite(path.param)) {
+    path.err = `${error}: ${invalidPathValue} at index ${start}, "${pathValue.slice(
+      start,
+      index,
+    )}" is not a finite number`;
+  }
 };
 
 /**

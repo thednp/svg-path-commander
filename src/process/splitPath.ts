@@ -46,7 +46,7 @@ export const splitPath = <T extends PathArray>(pathInput: T | string): T[] => {
   let mx = 0;
   let my = 0;
 
-  iterate(segments, (seg, index, prevX, prevY) => {
+  iterate(segments, (seg, _index, prevX, prevY) => {
     const cmd = seg[0];
     const absCommand = cmd.toUpperCase() as AbsoluteCommand;
     const isRelative = cmd === cmd.toLowerCase();
@@ -77,7 +77,7 @@ export const splitPath = <T extends PathArray>(pathInput: T | string): T[] => {
         x += isRelative ? prevX : 0;
         y += isRelative ? prevY : 0;
       }
-      path.push(absolutizeSegment(seg, index, prevX, prevY) as PathSegment);
+      path.push(absolutizeSegment(seg, _index, prevX, prevY) as PathSegment);
     }
 
     composite[pi] = path;

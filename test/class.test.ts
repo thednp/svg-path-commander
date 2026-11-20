@@ -40,7 +40,7 @@ describe("SVGPathCommander Class Test", () => {
       expect(er).to.be.instanceOf(TypeError);
       expect(er).to.have.property(
         "message",
-        `${error}: ${invalidPathValue} at index 1, "0" illegal number`,
+        `${error}: ${invalidPathValue} at index 16, "pathValue" is missing param`,
       );
     }
 

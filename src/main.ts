@@ -407,7 +407,7 @@ export class SVGPathCommander {
         Array.isArray(v)
       ) {
         transform[k] = v.map(Number) as [number, number, number];
-      } else if (k !== "origin" && typeof Number(v) === "number") {
+      } else if (k !== "origin" && !Number.isNaN(Number(v))) {
         transform[k] = Number(v);
       }
     }
@@ -421,7 +421,8 @@ export class SVGPathCommander {
       transform.origin = [
         !Number.isNaN(originX) ? originX : cx,
         !Number.isNaN(originY) ? originY : cy,
-        originZ || cz,
+        // an explicit zero is a valid origin, only a missing one falls back
+        originZ !== undefined && !Number.isNaN(originZ) ? originZ : cz,
       ];
     } else {
       transform.origin = [cx, cy, cz];

@@ -55,12 +55,19 @@ export const getPolyPath = (attr: PolyAttr): PathArray => {
     .map((a) => +a);
 
   let index = 0;
-  while (index < points.length) {
-    pathArray.push([index ? "L" : "M", points[index], points[index + 1]]);
+  while (index + 1 < points.length) {
+    const x = points[index] as number;
+    const y = points[index + 1] as number;
+    // a pair without both coordinates, or with invalid ones, is dropped
+    if (Number.isFinite(x) && Number.isFinite(y)) {
+      pathArray.push([pathArray.length ? "L" : "M", x, y]);
+    }
     index += 2;
   }
 
-  return (attr.type === "polygon" ? [...pathArray, ["z"]] : pathArray) as PathArray;
+  return (
+    attr.type === "polygon" && pathArray.length ? [...pathArray, ["z"]] : pathArray
+  ) as PathArray;
 };
 
 /**

@@ -18,6 +18,7 @@ import { splitLinePathToCount } from "../src/morph/splitLinePathToCount";
 import splitLineToCount from "../src/morph/splitLineToCount";
 import { classifyPaths } from "../src/morph/classifyPaths";
 import { matchPaths } from "../src/morph/matchPaths";
+import { getPolyPath } from "../src/util/shapeToPathArray";
 import type { IntersectionPoint, PathFeature } from "../src/types";
 
 import getMarkup from "./fixtures/getMarkup";
@@ -1905,5 +1906,60 @@ describe("Morph and path utility fixes", () => {
     const { outers, inners } = classifyPaths(splitPath(twoSquares) as never);
     expect(outers).to.have.lengthOf(2);
     expect(inners).to.have.lengthOf(0);
+  });
+});
+
+describe("Parser and input edge cases", () => {
+  const { getSegmentAtLength, parsePathString, pathToAbsolute } = SVGPathCommander;
+
+  test("Can parse a number with a leading zero", () => {
+    // the SVG path grammar allows any digit sequence, "09" is a valid number
+    expect(parsePathString("M09 09")).to.deep.equal([["M", 9, 9]]);
+    expect(parsePathString("M04 36.9")).to.deep.equal([["M", 4, 36.9]]);
+    expect(parsePathString("M00.5 0.5")).to.deep.equal([["M", 0.5, 0.5]]);
+  });
+
+  test("Can reject a number that overflows the double range", () => {
+    try {
+      parsePathString("M1e999 0");
+      expect.fail("should have thrown");
+    } catch (e) {
+      expect(e).to.be.instanceOf(TypeError);
+      expect(e).to.have.property(
+        "message",
+        `${error}: ${invalidPathValue} at index 1, "1e999" is not a finite number`,
+      );
+    }
+  });
+
+  test("Can make a leading relative moveto absolute", () => {
+    expect(
+      pathToAbsolute([
+        ["m", 10, 10],
+        ["l", 80, 80],
+      ]),
+    ).to.deep.equal([
+      ["M", 10, 10],
+      ["L", 90, 90],
+    ]);
+  });
+
+  test("Can drop an incomplete point of a polyline", () => {
+    expect(getPolyPath({ type: "polygon", points: "0,0 100,0 100" })).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 100, 0],
+      ["z"],
+    ]);
+    expect(getPolyPath({ type: "polyline", points: "0,0 100,0" })).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 100, 0],
+    ]);
+    // an invalid point is dropped too
+    expect(getPolyPath({ type: "polyline", points: "0,0 abc,10" })).to.deep.equal([["M", 0, 0]]);
+  });
+
+  test("Can clamp an infinite distance to the last segment", () => {
+    expect(getSegmentAtLength("M0 0L10 10L20 20", Infinity)).to.deep.equal(["L", 20, 20]);
+    expect(getSegmentAtLength("M0 0L10 10L20 20", 1e9)).to.deep.equal(["L", 20, 20]);
   });
 });

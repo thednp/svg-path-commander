@@ -26,7 +26,9 @@ export const getPropertiesAtLength = <T extends PathArray>(
   let segment = (pathArray[0] ?? ["M", 0, 0]) as PathSegment;
 
   // If the path is empty, return 0.
-  if (index <= 0 || !distance || !Number.isFinite(distance) || distance < 0) {
+  // an infinite distance is not an error, it is out of range and clamps
+  // to the last segment like any other out of range distance
+  if (index <= 0 || !distance || distance < 0) {
     return {
       segment,
       index: 0,

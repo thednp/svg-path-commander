@@ -16,15 +16,19 @@ import type {
 /**
  * Returns an absolute segment of a `PathArray` object.
  *
+ * The current point of a path starts at the origin, so the first segment
+ * of a path is absolutized against `[0, 0]`: a relative moveto at the
+ * start of a path is an absolute one, as the SVG spec requires.
+ *
  * @param segment the segment object
- * @param index the segment index
+ * @param _index the segment index
  * @param lastX the last known X value
  * @param lastY the last known Y value
  * @returns the absolute segment
  */
 export const absolutizeSegment = (
   segment: PathSegment,
-  index: number,
+  _index: number,
   lastX: number,
   lastY: number,
 ): AbsoluteSegment => {
@@ -32,8 +36,9 @@ export const absolutizeSegment = (
   const absCommand = pathCommand.toUpperCase() as AbsoluteCommand;
   const isAbsolute = absCommand === pathCommand;
 
+  // an absolute segment is already absolute
   /* istanbul ignore else */
-  if (index === 0 || isAbsolute) return segment as MSegment | AbsoluteSegment;
+  if (isAbsolute) return segment as MSegment | AbsoluteSegment;
   // const values = segment.slice(1) as number[];
   if (absCommand === "A") {
     return [
