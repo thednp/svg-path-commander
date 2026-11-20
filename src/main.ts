@@ -373,7 +373,7 @@ export class SVGPathCommander {
    * @example
    * ```ts
    * new SVGPathCommander('M0 0L100 0ZM0 100L100 100').reverseSubPath(1).toString()
-   * // => 'M0 0L100 0M100 100L0 100'
+   * // => 'M0 0L100 0ZM100 100L0 100'
    * ```
    *
    * @param index - the zero-based index of the sub-path to reverse

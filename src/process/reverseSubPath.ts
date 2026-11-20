@@ -17,9 +17,9 @@ import { reversePath } from "./reversePath.ts";
  * ```ts
  * reverseSubPath('M0 0L100 0ZM0 100L100 100', 1)
  * // => [
- * // //   ['M', 0, 0], ['L', 100, 0],
- * // //   ['M', 100, 100], ['L', 0, 100]
- * // // ]
+ * //   ['M', 0, 0], ['L', 100, 0], ['Z'],
+ * //   ['M', 100, 100], ['L', 0, 100]
+ * // ]
  * ```
  */
 export const reverseSubPath = (pathInput: string | PathArray, index: number): PathArray => {

@@ -16,9 +16,9 @@ import { pathToAbsolute } from "../convert/pathToAbsolute.ts";
  * ```ts
  * joinPath('M0 0L100 0', 'M0 100L100 100')
  * // => [
- * // //   ['M', 0, 0], ['L', 100, 0],
- * // //   ['M', 0, 100], ['L', 100, 100]
- * // // ]
+ * //   ['M', 0, 0], ['L', 100, 0],
+ * //   ['M', 0, 100], ['L', 100, 100]
+ * // ]
  * ```
  */
 export const joinPath = (pathA: string | PathArray, pathB: string | PathArray): PathArray => {
