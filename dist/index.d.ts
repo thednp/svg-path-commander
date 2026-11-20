@@ -28,6 +28,27 @@ export type SimplifyOptions = {
   /** The maximum distance between the simplified path and the original one. @default 1 */
   tolerance?: number;
 };
+/** The side of a path an offset is created on. */
+export type OffsetSide = "left" | "right" | "both";
+/** The join type used at a corner of an offset path. */
+export type OffsetJoin = "round" | "miter" | "bevel";
+/** The cap type used at the end of an open offset path. */
+export type OffsetCap = "butt" | "square" | "round";
+/** The options of the path offsetting. */
+export type OffsetOptions = {
+  /** The side of the path to offset, the left normal of the direction of travel. @default "left" */
+  side?: OffsetSide;
+  /** The join type at a corner of the path. @default "miter" */
+  join?: OffsetJoin;
+  /** The ratio of the miter length to the offset distance. @default 4 */
+  miterLimit?: number;
+  /** The cap type at the end of an open path. @default "butt" */
+  cap?: OffsetCap;
+  /** The number of the intervals a curve is sampled with. @default 16 */
+  steps?: number;
+  /** The number of the decimals of the result. @default 4 */
+  precision?: number;
+};
 /** The closest point on the path to a given point, with the distance and optional segment. */
 export type PointProperties = {
   /** The closest point on the path to the given point. */
@@ -1052,6 +1073,54 @@ declare const normalizePath: <T extends string | PathArray>(pathInput: T) => Nor
  */
 declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOption?: number) => PathArray;
 /**
+ * Offsets a path along its normals.
+ *
+ * The path is sampled along its length, every sample is shifted along the
+ * normal of the path and the result is a path of straight lines. The
+ * corners of the path are joined with the `join` option, and the ends of an
+ * open path are capped with the `cap` option.
+ *
+ * The `side` option is literal: the left side is the left normal of the
+ * direction of travel, the same normal `getPropertiesAtLength()` returns.
+ * The `both` side is the outline of the stroke, the band between the two
+ * sides of the path.
+ *
+ * The offset is not cleaned up: an offset distance larger than the local
+ * radius of curvature of the path produces a self-crossing curve.
+ *
+ * @param pathInput - the path string or `PathArray`
+ * @param distance - the offset distance
+ * @param options - the options of the offset
+ * @returns the offset path
+ *
+ * @example
+ * ```ts
+ * offsetPath('M0 0L100 0', 10)
+ * // => [['M', 0, 10], ['L', 100, 10]]
+ * ```
+ */
+declare const offsetPath: <T extends PathArray>(pathInput: string | T, distance: number, options?: OffsetOptions) => PathArray;
+/**
+ * Joins two paths into a single path with two sub-paths.
+ *
+ * Both paths have to be valid paths, so they begin with a moveto command,
+ * and the result holds absolute values.
+ *
+ * @param pathA - the first path string or `PathArray`
+ * @param pathB - the second path string or `PathArray`
+ * @returns the joined path
+ *
+ * @example
+ * ```ts
+ * joinPath('M0 0L100 0', 'M0 100L100 100')
+ * // => [
+ * // //   ['M', 0, 0], ['L', 100, 0],
+ * // //   ['M', 0, 100], ['L', 100, 100]
+ * // // ]
+ * ```
+ */
+declare const joinPath: (pathA: string | PathArray, pathB: string | PathArray) => PathArray;
+/**
  * Reverses all segments of a PathArray and returns a new PathArray
  * with absolute values.
  *
@@ -1069,6 +1138,26 @@ declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOp
  * ```
  */
 declare const reversePath: <T extends PathArray>(pathInput: T | string) => T;
+/**
+ * Reverses the sub-path at a given index of a path.
+ *
+ * The other sub-paths are left untouched, and the result holds absolute
+ * values.
+ *
+ * @param pathInput - the path string or `PathArray`
+ * @param index - the zero-based index of the sub-path to reverse
+ * @returns the path with the sub-path reversed
+ *
+ * @example
+ * ```ts
+ * reverseSubPath('M0 0L100 0ZM0 100L100 100', 1)
+ * // => [
+ * // //   ['M', 0, 0], ['L', 100, 0],
+ * // //   ['M', 100, 100], ['L', 0, 100]
+ * // // ]
+ * ```
+ */
+declare const reverseSubPath: (pathInput: string | PathArray, index: number) => PathArray;
 /**
  * Split a path string or PathArray into an array of sub-paths.
  *
@@ -1620,6 +1709,38 @@ export declare class SVGPathCommander {
    */
   reverse(onlySubpath?: boolean): this;
   /**
+   * Reverse the sub-path at a given index of the path.
+   *
+   * The other sub-paths are left untouched.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L100 0ZM0 100L100 100').reverseSubPath(1).toString()
+   * // => 'M0 0L100 0M100 100L0 100'
+   * ```
+   *
+   * @param index - the zero-based index of the sub-path to reverse
+   * @returns this for chaining
+   * @public
+   */
+  reverseSubPath(index: number): this;
+  /**
+   * Join another path to the path of the instance.
+   *
+   * The result holds two sub-paths and absolute values.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L100 0').join('M0 100L100 100').toString()
+   * // => 'M0 0L100 0M0 100L100 100'
+   * ```
+   *
+   * @param path - the path string or `PathArray` to join
+   * @returns this for chaining
+   * @public
+   */
+  join(path: string | PathArray): this;
+  /**
    * Normalize path in 2 steps:
    * * convert `pathArray`(s) to absolute values
    * * convert shorthand notation to standard notation
@@ -1668,6 +1789,33 @@ export declare class SVGPathCommander {
    * @public
    */
   simplify(options?: number | SimplifyOptions): this;
+  /**
+   * Offset the path along its normals.
+   *
+   * The path is sampled along its length, every sample is shifted along the
+   * normal of the path and the result is a path of straight lines. The
+   * corners of the path are joined and the ends of an open path are capped.
+   *
+   * The `side` option is literal: the left side is the left normal of the
+   * direction of travel, the same normal `getPropertiesAtLength()` returns.
+   * The `both` side is the outline of the stroke, the band between the two
+   * sides of the path.
+   *
+   * The offset is not cleaned up: an offset distance larger than the local
+   * radius of curvature of the path produces a self-crossing curve.
+   *
+   * @example
+   * ```ts
+   * new SVGPathCommander('M0 0L100 0').offset(10).toString()
+   * // => 'M0 10L100 10'
+   * ```
+   *
+   * @param distance - the offset distance
+   * @param options - the options of the offset
+   * @returns this for chaining
+   * @public
+   */
+  offset(distance: number, options?: OffsetOptions): this;
   /**
    * Transform path using values from an `Object` defined as `transformObject`.
    *
@@ -1930,6 +2078,8 @@ export declare class SVGPathCommander {
   static normalizePath: typeof normalizePath;
   /** Normalizes a single segment of a `pathArray` object. */
   static normalizeSegment: typeof normalizeSegment;
+  /** Offsets a path along its normals. */
+  static offsetPath: typeof offsetPath;
   /** Optimizes a PathArray: */
   static optimizePath: typeof optimizePath;
   /** Transforms a specified point using a matrix, returning a new */
@@ -1942,6 +2092,10 @@ export declare class SVGPathCommander {
   static reverseCurve: typeof reverseCurve;
   /** Reverses all segments of a PathArray and returns a new PathArray */
   static reversePath: typeof reversePath;
+  /** Reverses the sub-path at a given index of a path. */
+  static reverseSubPath: typeof reverseSubPath;
+  /** Joins two paths into a single path with two sub-paths. */
+  static joinPath: typeof joinPath;
   /** Rounds the values of a `pathArray` instance to */
   static roundPath: typeof roundPath;
   /** Rounds the numeric values of a path segment to the specified precision. */

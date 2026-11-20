@@ -19,12 +19,43 @@
   The `util` bundle is 128 kB now, twenty-seven percent less than before, and it holds neither engine. The main entry point still holds everything, so the class and its static methods are not affected.
 - `segmentToCubic()` returns a `PathSegment` — the function declared that it returns an `MSegment` or a `CSegment`, but it returns every other segment unchanged: the smooth cubic, the smooth quadratic, the horizontal and the vertical lineto fall through to the last line of the function. The declaration was a lie that the cast at that line told the type system to believe.
 
+### Added
+
+- `offsetPath()` — the offsetting of a path along its normals: the path is sampled along its length, every sample is shifted along the normal of the path, and the result is a path of straight lines. The `side` option is literal — the left side is the left normal of the direction of travel, the same normal `getPropertiesAtLength()` returns — and the `both` side is the outline of the stroke, the band between the two sides of the path:
+  ```js
+  SVGPathCommander.offsetPath("M0 0L100 0", 10);
+  // => [["M", 0, 10], ["L", 100, 10]]
+  SVGPathCommander.offsetPath("M0 0L100 0", 10, { side: "both" });
+  // => [["M", 0, 10], ["L", 100, 10], ["L", 100, -10], ["L", 0, -10], ["Z"]]
+  ```
+- The offset accepts the `join` option (`"miter"`, the default, `"bevel"` or `"round"`), the `miterLimit` option (the ratio of the miter length to the offset distance, `4` by default), the `cap` option (`"butt"`, the default, `"square"` or `"round"`), the `steps` option (the number of the intervals a curve is sampled with, `16` by default) and the `precision` option (the number of the decimals of the result, `4` by default). The defaults are the initial values of the SVG presentation attributes.
+- `SVGPathCommander#offset(distance, options)` — the instance method of the offset, the counterpart of `simplify()`:
+  ```js
+  new SVGPathCommander("M0 0L100 0").offset(10).toString();
+  // => "M0 10L100 10"
+  ```
+- `joinPath()` — the joining of two paths into a single path with two sub-paths:
+  ```js
+  SVGPathCommander.joinPath("M0 0L100 0", "M0 100L100 100");
+  // => [["M", 0, 0], ["L", 100, 0], ["M", 0, 100], ["L", 100, 100]]
+  ```
+- `reverseSubPath()` — the reversing of one sub-path of a path, the other sub-paths are left untouched:
+  ```js
+  SVGPathCommander.reverseSubPath("M0 0L100 0ZM0 100L100 100", 1);
+  // => [["M", 0, 0], ["L", 100, 0], ["Z"], ["M", 100, 100], ["L", 0, 100]]
+  ```
+- `SVGPathCommander#join(path)` and `SVGPathCommander#reverseSubPath(index)` — the instance methods of the two, chainable like the rest of the class API
+
 ### Changed
 
 - `splitPath()`, `simplifyPath()` and `getPropertiesAtLength()` no longer add an implicit moveto to a path that does not begin with one — the parser rejects such a path now, so the three of them have nothing left to paper over
 - `transformPath()` no longer keeps a leading relative moveto relative — the parser rewrites it as an absolute one, which is the same pair of coordinates
 - The `dist` folder holds a `morph.js` and an `intersect.js` bundle next to the `index.js`, the `util.js` and the `index.min.js` ones; the JSR exports map has the two new subpaths, so the npm and the JSR packages do not diverge
 - Rebuilt `dist` and `docs` bundles
+
+### Known limitations
+
+- The offset of a path is not cleaned up: an offset distance larger than the local radius of curvature of the path produces a self-crossing curve, and an inner offset that overlaps itself is not trimmed. The removal of the self-intersections needs a polygon clipping pass, and it is not part of this release.
 
 ## [2.3.6] - 2026-11-20
 

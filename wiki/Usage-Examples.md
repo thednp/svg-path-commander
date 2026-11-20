@@ -238,6 +238,41 @@ const [eq1, eq2] = SVGPathCommander.equalize("M0 0C50 100 100 100 150 0", "M0 0L
 // eq1.length === eq2.length === 8
 ```
 
+# Path Offsetting
+
+`SVGPathCommander.offsetPath()` offsets a path along its normals: the path is
+sampled along its length, every sample is shifted along the normal of the path,
+and the result is a path of straight lines.
+
+```js
+SVGPathCommander.offsetPath("M0 0L100 0", 10);
+// => [['M', 0, 10], ['L', 100, 10]]
+```
+
+The `side` option is literal — the left side is the left normal of the direction
+of travel, the same normal `getPropertiesAtLength()` returns — and the `both`
+side is the outline of the stroke, the band between the two sides of the path:
+
+```js
+SVGPathCommander.offsetPath("M0 0L100 0", 10, { side: "both" });
+// => [['M', 0, 10], ['L', 100, 10], ['L', 100, -10], ['L', 0, -10], ['Z']]
+```
+
+The corners are joined with a miter, a bevel or a round join, and the ends of an
+open path are capped with a butt, a square or a round cap. The defaults are the
+initial values of the SVG presentation attributes:
+
+```js
+SVGPathCommander.offsetPath("M0 0L100 0L100 100", 10, {
+  side: "right",
+  join: "round",
+  cap: "round",
+});
+```
+
+The offset is not cleaned up: an offset distance larger than the local radius of
+curvature of the path produces a self-crossing curve.
+
 # Advanced Usage
 
 In most cases, you can import only the tools you need, without importing the entire library. All static methods are exposed as named exports from the tree-shakeable `svg-path-commander/util` entry, with proper TypeScript definitions.

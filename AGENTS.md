@@ -100,6 +100,19 @@ The Douglas-Peucker simplification lives in `process/` and is built from three m
 
 Only `simplifyPath` is public — it is re-exported from `src/util.ts`.
 
+The path offsetting lives in `process/` and is built from three modules:
+
+| Module                   | Purpose                                                                 |
+| ------------------------ | ----------------------------------------------------------------------- |
+| `process/offsetPath.ts`  | The public API — measures the path, offsets it and assembles the result |
+| `process/offsetNodes.ts` | Samples the segments of a sub-path into points with their tangent       |
+| `process/offsetJoin.ts`  | The join and the cap geometry — the miter, the bevel and the round arc  |
+
+Only `offsetPath` is public — it is re-exported from `src/util.ts`. The offset reuses the frame of
+`util/segmentFrame.ts`, so the normal of a sample is the normal `getPropertiesAtLength()` returns.
+The offset is not cleaned up: an offset distance larger than the local radius of curvature produces
+a self-crossing curve, and the removal of the self-intersections needs a polygon clipping pass.
+
 The morphing toolkit lives in `morph/` and is built from four modules:
 
 | Module                      | Purpose                                                                      |

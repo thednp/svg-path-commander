@@ -28,6 +28,27 @@ type SimplifyOptions = {
   /** The maximum distance between the simplified path and the original one. @default 1 */
   tolerance?: number;
 };
+/** The side of a path an offset is created on. */
+type OffsetSide = "left" | "right" | "both";
+/** The join type used at a corner of an offset path. */
+type OffsetJoin = "round" | "miter" | "bevel";
+/** The cap type used at the end of an open offset path. */
+type OffsetCap = "butt" | "square" | "round";
+/** The options of the path offsetting. */
+type OffsetOptions = {
+  /** The side of the path to offset, the left normal of the direction of travel. @default "left" */
+  side?: OffsetSide;
+  /** The join type at a corner of the path. @default "miter" */
+  join?: OffsetJoin;
+  /** The ratio of the miter length to the offset distance. @default 4 */
+  miterLimit?: number;
+  /** The cap type at the end of an open path. @default "butt" */
+  cap?: OffsetCap;
+  /** The number of the intervals a curve is sampled with. @default 16 */
+  steps?: number;
+  /** The number of the decimals of the result. @default 4 */
+  precision?: number;
+};
 /** The closest point on the path to a given point, with the distance and optional segment. */
 type PointProperties = {
   /** The closest point on the path to the given point. */
@@ -1300,6 +1321,34 @@ export declare const shapeToPathArray: (element: ShapeTypes | ShapeOps) => false
  */
 export declare const normalizePath: <T extends string | PathArray>(pathInput: T) => NormalArray;
 /**
+ * Offsets a path along its normals.
+ *
+ * The path is sampled along its length, every sample is shifted along the
+ * normal of the path and the result is a path of straight lines. The
+ * corners of the path are joined with the `join` option, and the ends of an
+ * open path are capped with the `cap` option.
+ *
+ * The `side` option is literal: the left side is the left normal of the
+ * direction of travel, the same normal `getPropertiesAtLength()` returns.
+ * The `both` side is the outline of the stroke, the band between the two
+ * sides of the path.
+ *
+ * The offset is not cleaned up: an offset distance larger than the local
+ * radius of curvature of the path produces a self-crossing curve.
+ *
+ * @param pathInput - the path string or `PathArray`
+ * @param distance - the offset distance
+ * @param options - the options of the offset
+ * @returns the offset path
+ *
+ * @example
+ * ```ts
+ * offsetPath('M0 0L100 0', 10)
+ * // => [['M', 0, 10], ['L', 100, 10]]
+ * ```
+ */
+export declare const offsetPath: <T extends PathArray>(pathInput: string | T, distance: number, options?: OffsetOptions) => PathArray;
+/**
  * Optimizes a PathArray:
  * * converts segments to shorthand if possible
  * * selects shortest representation from absolute and relative forms
@@ -1315,6 +1364,26 @@ export declare const normalizePath: <T extends string | PathArray>(pathInput: T)
  * ```
  */
 export declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOption?: number) => PathArray;
+/**
+ * Joins two paths into a single path with two sub-paths.
+ *
+ * Both paths have to be valid paths, so they begin with a moveto command,
+ * and the result holds absolute values.
+ *
+ * @param pathA - the first path string or `PathArray`
+ * @param pathB - the second path string or `PathArray`
+ * @returns the joined path
+ *
+ * @example
+ * ```ts
+ * joinPath('M0 0L100 0', 'M0 100L100 100')
+ * // => [
+ * // //   ['M', 0, 0], ['L', 100, 0],
+ * // //   ['M', 0, 100], ['L', 100, 100]
+ * // // ]
+ * ```
+ */
+export declare const joinPath: (pathA: string | PathArray, pathB: string | PathArray) => PathArray;
 /**
  * Reverses all segments of a PathArray and returns a new PathArray
  * with absolute values.
@@ -1333,6 +1402,26 @@ export declare const optimizePath: <T extends string | PathArray>(pathInput: T, 
  * ```
  */
 export declare const reversePath: <T extends PathArray>(pathInput: T | string) => T;
+/**
+ * Reverses the sub-path at a given index of a path.
+ *
+ * The other sub-paths are left untouched, and the result holds absolute
+ * values.
+ *
+ * @param pathInput - the path string or `PathArray`
+ * @param index - the zero-based index of the sub-path to reverse
+ * @returns the path with the sub-path reversed
+ *
+ * @example
+ * ```ts
+ * reverseSubPath('M0 0L100 0ZM0 100L100 100', 1)
+ * // => [
+ * // //   ['M', 0, 0], ['L', 100, 0],
+ * // //   ['M', 100, 100], ['L', 0, 100]
+ * // // ]
+ * ```
+ */
+export declare const reverseSubPath: (pathInput: string | PathArray, index: number) => PathArray;
 /**
  * Split a path string or PathArray into an array of sub-paths.
  *

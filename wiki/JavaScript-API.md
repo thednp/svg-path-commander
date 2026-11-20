@@ -107,6 +107,24 @@ const rev = new SVGPathCommander(
 // => "M2 0H14A2 2 0 0 1 16 2V14A2 2 0 0 1 14 16H2A2 2 0 0 1 0 14V2A2 2 0 0 1 2 0Z"
 ```
 
+### instance.reverseSubPath(_index_: number)
+
+Reverses the draw direction of the sub-path at the given zero-based index, the other sub-paths are left untouched.
+
+```js
+const rev = new SVGPathCommander("M0 0L100 0ZM0 100L100 100").reverseSubPath(1).toString();
+// => "M0 0L100 0ZM100 100L0 100"
+```
+
+### instance.join(_path_: string | PathArray)
+
+Joins another path to the path of the instance: the result holds two sub-paths and absolute values.
+
+```js
+const joined = new SVGPathCommander("M0 0L100 0").join("M0 100L100 100").toString();
+// => "M0 0L100 0M0 100L100 100"
+```
+
 ### instance.normalize()
 
 Converts path command values to absolute and convert shorthand `S`, `T`, `H`, `V` to `C`, `Q` and `L` respectively.
@@ -147,6 +165,26 @@ The tolerance is the maximum distance between the result and the source: every p
 ```js
 new SVGPathCommander("M0 0L10 0L20 0L30 0").simplify({ tolerance: 1 });
 ```
+
+### instance.offset(_distance_: number, _options_: OffsetOptions)
+
+Offsets the path along its normals: the path is sampled along its length, every sample is shifted along the normal of the path, and the result is a path of straight lines.
+
+```js
+const offset = new SVGPathCommander("M0 0L100 0").offset(10).toString();
+// => "M0 10L100 10"
+```
+
+The `side` option is literal — the left side is the left normal of the direction of travel, the same normal `getPropertiesAtLength()` returns — and the `both` side is the outline of the stroke, the band between the two sides of the path:
+
+```js
+new SVGPathCommander("M0 0L100 0").offset(10, { side: "both" });
+// => "M0 10L100 10L100 -10L0 -10Z"
+```
+
+The offset accepts the `join` option (`"miter"`, the default, `"bevel"` or `"round"`), the `miterLimit` option (the ratio of the miter length to the offset distance, `4` by default), the `cap` option (`"butt"`, the default, `"square"` or `"round"`), the `steps` option (the number of the intervals a curve is sampled with, `16` by default) and the `precision` option (the number of the decimals of the result, `4` by default). The defaults are the initial values of the SVG presentation attributes.
+
+The offset is not cleaned up: an offset distance larger than the local radius of curvature of the path produces a self-crossing curve.
 
 ### instance.transform(_transform_: TransformObject)
 
@@ -294,6 +332,23 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   // => [['M', 0, 0], ['L', 100, 0], ['L', 100, 100]]
   ```
   The mode defaults to `line`. When the corners of the path are more than the points of the result, they cannot all be kept: the points are spread evenly then, and the shape of the path is approximated by its chords.
+- **SVGPathCommander.offsetPath(_path_: string | PathArray, _distance_: number, _options_: OffsetOptions)** - returns a new _PathArray_ with the path offset along its normals: the path is sampled along its length, every sample is shifted along the normal of the path, and the result is a path of straight lines;
+  ```js
+  SVGPathCommander.offsetPath("M0 0L100 0", 10);
+  // => [['M', 0, 10], ['L', 100, 10]]
+  ```
+  The `side` option is literal — the left side is the left normal of the direction of travel, the same normal `getPropertiesAtLength()` returns — and the `both` side is the outline of the stroke, the band between the two sides of the path. The `join` option (`"miter"`, the default, `"bevel"` or `"round"`), the `miterLimit` option (the ratio of the miter length to the offset distance, `4` by default), the `cap` option (`"butt"`, the default, `"square"` or `"round"`), the `steps` option (the number of the intervals a curve is sampled with, `16` by default) and the `precision` option (the number of the decimals of the result, `4` by default) are the other options, and their defaults are the initial values of the SVG presentation attributes. The offset is not cleaned up: an offset distance larger than the local radius of curvature of the path produces a self-crossing curve.
+- **SVGPathCommander.joinPath(_pathA_: string | PathArray, _pathB_: string | PathArray)** - returns a new _PathArray_ with the two paths joined into a single path with two sub-paths, in absolute values;
+  ```js
+  SVGPathCommander.joinPath("M0 0L100 0", "M0 100L100 100");
+  // => [['M', 0, 0], ['L', 100, 0], ['M', 0, 100], ['L', 100, 100]]
+  ```
+- **SVGPathCommander.reverseSubPath(_path_: string | PathArray, _index_: number)** - returns a new _PathArray_ with the sub-path at the given zero-based index reversed, the other sub-paths are left untouched;
+  ```js
+  SVGPathCommander.reverseSubPath("M0 0L100 0ZM0 100L100 100", 1);
+  // => [['M', 0, 0], ['L', 100, 0], ['Z'], ['M', 100, 100], ['L', 0, 100]]
+  ```
+  An index that is out of the range of the sub-paths is rejected with a `TypeError`.
 - **SVGPathCommander.getDrawDirection(_path_: PathArray)** - converts the _PathArray_ to curve and returns _TRUE_ if a shape draw direction is **clockwise**, it _should work_ for shapes with sub-paths, but it might skew your results, so make sure you split your path and test each sub-path separately;
   ```js
   SVGPathCommander.getDrawDirection("M0 0L100 0L50 100Z"); // => true
@@ -523,8 +578,11 @@ import { pathsIntersection } from "svg-path-commander/intersect";
 | `normalizePath`         | Returns a new `PathArray` without shorthand segments            |
 | `optimizePath`          | Returns a new `PathArray` with shortest-string segments         |
 | `simplifyPath`          | Returns a new `PathArray` simplified within a tolerance         |
+| `offsetPath`            | Returns a new `PathArray` offset along its normals              |
 | `resamplePath`          | Returns a new `PathArray` with evenly spread points             |
 | `reversePath`           | Returns a new `PathArray` with reversed segments                |
+| `reverseSubPath`        | Returns a new `PathArray` with one sub-path reversed            |
+| `joinPath`              | Returns a new `PathArray` with two paths joined                 |
 | `reverseCurve`          | Returns a new reversed `PathArray` of curve segments only       |
 | `transformPath`         | Returns a new `PathArray` with transformed segments             |
 | `roundPath`             | Returns a new `PathArray` with rounded values                   |

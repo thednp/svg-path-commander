@@ -18,6 +18,7 @@ While you may find familiar tools inside, this library brings _**new additions**
 - `getPropertiesAtLength` returns the frame of the path at a given length — the point, the unit tangent vector, the unit normal vector and the angle of the tangent in degrees;
 - `simplifyPath` reduces the number of points of a path with the Douglas-Peucker algorithm, within a tolerance you choose;
 - `resamplePath` spreads the points of a path evenly over its length, so the distance between two points is the same over the whole path, and the corners of the path are kept;
+- `offsetPath` offsets a path along its normals, with the joins and the caps of a stroke, so a path can be expanded or outlined;
 - `equalize` brings two paths to the same shape, so they can be morphed into each other;
 - a tool that can _reverse path draw direction_ without altering path commands, even with specific shorthand path commands;
 - a unique tool that can _reverse path draw direction_ for path strings with only 'C' path commands;
@@ -356,6 +357,27 @@ Resample the path to a given number of points, spread evenly over its length:
 ```js
 const myResampledPath = SVGPathCommander.resamplePath("M0 0L100 0L100 100", 3);
 // result => [["M", 0, 0], ["L", 100, 0], ["L", 100, 100]]
+```
+
+Offset the path along its normals — the `side` is literal, the left side is the left
+normal of the direction of travel, and the `both` side is the outline of the stroke:
+
+```js
+const myOffsetPath = SVGPathCommander.offsetPath("M0 0L100 0", 10);
+// result => [["M", 0, 10], ["L", 100, 10]]
+
+const myOutline = SVGPathCommander.offsetPath("M0 0L100 0", 10, { side: "both" });
+// result => [["M", 0, 10], ["L", 100, 10], ["L", 100, -10], ["L", 0, -10], ["Z"]]
+```
+
+Join two paths into a single path with two sub-paths, and reverse one sub-path of a path:
+
+```js
+const myJoinedPath = SVGPathCommander.joinPath("M0 0L100 0", "M0 100L100 100");
+// result => [["M", 0, 0], ["L", 100, 0], ["M", 0, 100], ["L", 100, 100]]
+
+const myReversedSubPath = SVGPathCommander.reverseSubPath("M0 0L100 0ZM0 100L100 100", 1);
+// result => [["M", 0, 0], ["L", 100, 0], ["Z"], ["M", 100, 100], ["L", 0, 100]]
 ```
 
 Find intersection points between two paths:

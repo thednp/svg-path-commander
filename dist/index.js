@@ -3635,6 +3635,443 @@ const optimizePath = (pathInput, roundOption) => {
 		return result;
 	});
 };
+// src/process/offsetNodes.ts
+/**
+* Returns the sampled points of the drawable segments of a sub-path.
+*
+* A line gives its two end points, a curve gives `steps` samples spread
+* evenly over its length. The tangent of every sample is the tangent of the
+* path at that point, so the normal of the sample is the direction the path
+* is offset to.
+*
+* The first point of a segment is a corner when the segment follows another
+* one, and the closing segment of a closed sub-path ends with a corner that
+* joins the last segment to the first one.
+*
+* @param measures - the measured segments of the sub-path
+* @param steps - the number of the intervals a curve is sampled with
+* @returns the sampled points of the sub-path
+*/
+const getOffsetNodes = (measures, steps) => {
+	const nodes = [];
+	for (const measure of measures) {
+		const command = measure.geometry[0];
+		if (command === "M") continue;
+		if (measure.length <= 0) continue;
+		const isFirst = nodes.length === 0;
+		if (command === "L" || command === "Z") {
+			const dx = measure.endX - measure.startX;
+			const dy = measure.endY - measure.startY;
+			const length = Math.sqrt(dx * dx + dy * dy);
+			const tx = dx / length;
+			const ty = dy / length;
+			nodes.push({
+				x: measure.startX,
+				y: measure.startY,
+				tx,
+				ty,
+				corner: !isFirst
+			});
+			nodes.push({
+				x: measure.endX,
+				y: measure.endY,
+				tx,
+				ty,
+				corner: false
+			});
+			continue;
+		}
+		for (let i = 0; i <= steps; i += 1) {
+			const frame = getSegmentFrame(measure.geometry, measure.startX, measure.startY, measure.endX, measure.endY, measure.length * i / steps, measure.length);
+			nodes.push({
+				x: frame.point.x,
+				y: frame.point.y,
+				tx: frame.tangent.x,
+				ty: frame.tangent.y,
+				corner: !isFirst && i === 0
+			});
+		}
+	}
+	const last = measures[measures.length - 1];
+	if (nodes.length && last && last.geometry[0] === "Z") {
+		const first = nodes[0];
+		nodes.push({
+			x: first.x,
+			y: first.y,
+			tx: first.tx,
+			ty: first.ty,
+			corner: true
+		});
+	}
+	return nodes;
+};
+// src/process/offsetJoin.ts
+/**
+* The angle of an arc of a round join or a round cap, in radians.
+*
+* The arcs are emitted as straight lines, and the smaller the angle the
+* closer the result is to the arc it stands for.
+*/
+const arcStep = Math.PI / 8;
+/**
+* Returns the signed angle between two directions, in radians.
+*
+* The angle is the turn of the path at a corner: it is positive when the
+* path turns towards the positive angle direction, and it is in the `-PI` to
+* `PI` range.
+*
+* @param from - the direction the path comes from
+* @param to - the direction the path goes to
+* @returns the signed angle between the two directions
+*/
+const signedTurn = (from, to) => {
+	const dot = from.tx * to.tx + from.ty * to.ty;
+	const cross = from.tx * to.ty - from.ty * to.tx;
+	return Math.atan2(cross, dot);
+};
+/**
+* Returns the intersection of two lines, if they have one.
+*
+* @param x1 - the X coordinate of the first point
+* @param y1 - the Y coordinate of the first point
+* @param dx1 - the X component of the direction of the first line
+* @param dy1 - the Y component of the direction of the first line
+* @param x2 - the X coordinate of the second point
+* @param y2 - the Y coordinate of the second point
+* @param dx2 - the X component of the direction of the second line
+* @param dy2 - the Y component of the direction of the second line
+* @returns the intersection of the two lines, or `null`
+*/
+const intersectLines = (x1, y1, dx1, dy1, x2, y2, dx2, dy2) => {
+	const denominator = dx1 * dy2 - dy1 * dx2;
+	if (Math.abs(denominator) < 1e-12) return null;
+	const ratio = ((x2 - x1) * dy2 - (y2 - y1) * dx2) / denominator;
+	return [x1 + dx1 * ratio, y1 + dy1 * ratio];
+};
+/**
+* Returns the points of a join between two offset lines.
+*
+* The join is placed on the outer side of a corner, where the two offset
+* lines do not cross: the `miter` join is the intersection of the two
+* lines, the `bevel` join is the straight line between the two offset
+* points and the `round` join is an arc of the offset radius around the
+* corner.
+*
+* @param cornerX - the X coordinate of the corner of the path
+* @param cornerY - the Y coordinate of the corner of the path
+* @param from - the end of the incoming offset line
+* @param to - the start of the outgoing offset line
+* @param distance - the offset distance
+* @param join - the join type
+* @param miterLimit - the ratio of the miter length to the offset distance
+* @returns the points of the join
+*/
+const getJoinPoints = (cornerX, cornerY, from, to, distance, join, miterLimit) => {
+	if (join === "round") {
+		const turn = signedTurn(from, to);
+		const startAngle = Math.atan2(from.y - cornerY, from.x - cornerX);
+		const steps = Math.max(1, Math.ceil(Math.abs(turn) / arcStep));
+		const points = [];
+		for (let i = 1; i < steps; i += 1) {
+			const angle = startAngle + turn * i / steps;
+			points.push([cornerX + Math.cos(angle) * distance, cornerY + Math.sin(angle) * distance]);
+		}
+		return points;
+	}
+	if (join === "miter") {
+		const miter = intersectLines(from.x, from.y, from.tx, from.ty, to.x, to.y, to.tx, to.ty);
+		if (miter) {
+			if (Math.hypot(miter[0] - cornerX, miter[1] - cornerY) <= miterLimit * distance) return [miter];
+		}
+	}
+	return [];
+};
+/**
+* Returns the points of a cap at the end of an open path.
+*
+* The `butt` cap is the straight line between the two offset points, the
+* `square` cap extends the path by the offset distance and the `round` cap
+* is a half circle of the offset radius around the end of the path.
+*
+* @param centerX - the X coordinate of the end of the path
+* @param centerY - the Y coordinate of the end of the path
+* @param from - the first offset point of the cap
+* @param to - the last offset point of the cap
+* @param distance - the offset distance
+* @param cap - the cap type
+* @param extensionX - the X component of the direction the cap extends to
+* @param extensionY - the Y component of the direction the cap extends to
+* @returns the points of the cap
+*/
+const getCapPoints = (centerX, centerY, from, to, distance, cap, extensionX, extensionY) => {
+	if (cap === "butt") return [];
+	if (cap === "square") return [[from[0] + extensionX * distance, from[1] + extensionY * distance], [to[0] + extensionX * distance, to[1] + extensionY * distance]];
+	const startAngle = Math.atan2(from[1] - centerY, from[0] - centerX);
+	const sweep = -Math.PI;
+	const steps = Math.max(1, Math.ceil(Math.abs(sweep) / arcStep));
+	const points = [];
+	for (let i = 1; i < steps; i += 1) {
+		const angle = startAngle + sweep * i / steps;
+		points.push([centerX + Math.cos(angle) * distance, centerY + Math.sin(angle) * distance]);
+	}
+	return points;
+};
+// src/process/offsetPath.ts
+/** The sides an offset can be created on. */
+const sides = [
+	"left",
+	"right",
+	"both"
+];
+/** The join types of an offset. */
+const joins = [
+	"round",
+	"miter",
+	"bevel"
+];
+/** The cap types of an offset. */
+const caps = [
+	"butt",
+	"square",
+	"round"
+];
+/**
+* Returns the options of the path offsetting, with the defaults applied.
+*
+* @param options - the options of the offset
+* @returns the resolved options
+*/
+const resolveOptions = (options) => {
+	const { side = "left", join = "miter", miterLimit = 4, cap = "butt", steps = 16, precision = 4 } = options;
+	if (!sides.includes(side)) throw TypeError(`${error}: side must be one of "left", "right" or "both"`);
+	if (!joins.includes(join)) throw TypeError(`${error}: join must be one of "round", "miter" or "bevel"`);
+	if (!caps.includes(cap)) throw TypeError(`${error}: cap must be one of "butt", "square" or "round"`);
+	if (typeof miterLimit !== "number" || !Number.isFinite(miterLimit) || miterLimit <= 0) throw TypeError(`${error}: miterLimit must be a positive number`);
+	if (!Number.isInteger(steps) || steps < 1) throw TypeError(`${error}: steps must be an integer greater than 0`);
+	if (!Number.isInteger(precision) || precision < 0) throw TypeError(`${error}: precision must be an integer of 0 or more`);
+	return {
+		side,
+		join,
+		miterLimit,
+		cap,
+		steps,
+		precision
+	};
+};
+/**
+* Groups the measured segments of a path into its sub-paths.
+*
+* @param measures - the measured segments of the path
+* @returns the measured segments of every sub-path
+*/
+const groupSubPaths = (measures) => {
+	const groups = [];
+	let group = [];
+	for (const measure of measures) {
+		if (measure.geometry[0] === "M" && group.length) {
+			groups.push(group);
+			group = [];
+		}
+		group.push(measure);
+	}
+	if (group.length) groups.push(group);
+	return groups;
+};
+/**
+* Returns the offset polyline of one side of a sub-path.
+*
+* Every node is shifted along the normal of the path. At a corner the two
+* offset lines meet: on the outer side of the turn the join is applied, and
+* on the inner side of the turn the offset lines cross before the corner, so
+* the curve is trimmed at their intersection.
+*
+* @param nodes - the sampled points of the sub-path
+* @param side - `1` for the left side of the path, `-1` for the right side
+* @param distance - the offset distance
+* @param options - the resolved options of the offset
+* @param closed - whether the sub-path is closed
+* @returns the points of the offset polyline
+*/
+const buildSidePolyline = (nodes, side, distance, options, closed) => {
+	const { join, miterLimit } = options;
+	const offsets = nodes.map((node) => ({
+		x: node.x - side * node.ty * distance,
+		y: node.y + side * node.tx * distance,
+		tx: node.tx,
+		ty: node.ty
+	}));
+	const points = [[offsets[0].x, offsets[0].y]];
+	for (let i = 1; i < offsets.length; i += 1) {
+		const from = offsets[i - 1];
+		const to = offsets[i];
+		let trimmed = false;
+		if (nodes[i].corner) {
+			const turn = signedTurn(from, to);
+			if (Math.abs(turn) > 1e-9) {
+				if (side * turn < 0) points.push(...getJoinPoints(nodes[i].x, nodes[i].y, from, to, distance, join, miterLimit));
+				else {
+					const intersection = intersectLines(from.x, from.y, from.tx, from.ty, to.x, to.y, to.tx, to.ty);
+					if (intersection) {
+						points[points.length - 1] = intersection;
+						if (closed && i === offsets.length - 1) points[0] = intersection;
+						trimmed = true;
+					}
+				}
+			}
+		}
+		if (!trimmed) {
+			const point = [to.x, to.y];
+			if (!samePoint(points[points.length - 1], point)) points.push(point);
+		}
+	}
+	return points;
+};
+/**
+* Returns whether two points are the same point.
+*
+* @param a - the first point
+* @param b - the second point
+* @returns whether the points are the same
+*/
+const samePoint = (a, b) => Math.abs(a[0] - b[0]) < 1e-9 && Math.abs(a[1] - b[1]) < 1e-9;
+/**
+* Returns a coordinate of the result, rounded and without a negative zero.
+*
+* @param value - the coordinate
+* @param precision - the number of the decimals of the result
+* @returns the rounded coordinate
+*/
+const roundCoordinate = (value, precision) => cleanZero(roundTo(value, precision));
+/**
+* Returns the segments of an offset polyline.
+*
+* @param points - the points of the polyline
+* @param closed - whether the polyline is closed
+* @param precision - the number of the decimals of the result
+* @returns the segments of the polyline
+*/
+const toSegments = (points, closed, precision) => {
+	const last = points[points.length - 1];
+	const list = closed && points.length > 1 && samePoint(points[0], last) ? points.slice(0, -1) : points;
+	const segments = [];
+	if (!list.length) return segments;
+	segments.push([
+		"M",
+		roundCoordinate(list[0][0], precision),
+		roundCoordinate(list[0][1], precision)
+	]);
+	for (let i = 1; i < list.length; i += 1) segments.push([
+		"L",
+		roundCoordinate(list[i][0], precision),
+		roundCoordinate(list[i][1], precision)
+	]);
+	if (closed) segments.push(["Z"]);
+	return segments;
+};
+/**
+* Offsets a path along its normals.
+*
+* The path is sampled along its length, every sample is shifted along the
+* normal of the path and the result is a path of straight lines. The
+* corners of the path are joined with the `join` option, and the ends of an
+* open path are capped with the `cap` option.
+*
+* The `side` option is literal: the left side is the left normal of the
+* direction of travel, the same normal `getPropertiesAtLength()` returns.
+* The `both` side is the outline of the stroke, the band between the two
+* sides of the path.
+*
+* The offset is not cleaned up: an offset distance larger than the local
+* radius of curvature of the path produces a self-crossing curve.
+*
+* @param pathInput - the path string or `PathArray`
+* @param distance - the offset distance
+* @param options - the options of the offset
+* @returns the offset path
+*
+* @example
+* ```ts
+* offsetPath('M0 0L100 0', 10)
+* // => [['M', 0, 10], ['L', 100, 10]]
+* ```
+*/
+const offsetPath = (pathInput, distance, options) => {
+	if (typeof distance !== "number" || !Number.isFinite(distance)) throw TypeError(`${error}: distance must be a number`);
+	if (distance < 0) throw TypeError(`${error}: distance must be a positive number`);
+	const resolved = resolveOptions(options ?? {});
+	if (distance === 0) return parsePathString(pathInput);
+	const measures = measureSegments(pathInput);
+	const groups = groupSubPaths(measures);
+	const result = [];
+	for (const group of groups) {
+		const nodes = getOffsetNodes(group, resolved.steps);
+		const last = group[group.length - 1];
+		const closed = Boolean(last && last.geometry[0] === "Z");
+		if (!nodes.length) {
+			const first = group[0];
+			result.push([
+				"M",
+				first.endX,
+				first.endY
+			]);
+			continue;
+		}
+		if (resolved.side === "both") {
+			const left = buildSidePolyline(nodes, 1, distance, resolved, closed);
+			const right = buildSidePolyline(nodes, -1, distance, resolved, closed);
+			if (closed) {
+				const leftArea = Math.abs(polygonArea(left));
+				const rightArea = Math.abs(polygonArea(right));
+				const outer = leftArea >= rightArea ? left : right;
+				const inner = leftArea >= rightArea ? right : left;
+				result.push(...toSegments(outer, true, resolved.precision));
+				result.push(...toSegments([...inner].reverse(), true, resolved.precision));
+				continue;
+			}
+			const start = nodes[0];
+			const end = nodes[nodes.length - 1];
+			const endCap = getCapPoints(end.x, end.y, left[left.length - 1], right[right.length - 1], distance, resolved.cap, end.tx, end.ty);
+			const startCap = getCapPoints(start.x, start.y, right[0], left[0], distance, resolved.cap, -start.tx, -start.ty);
+			const ring = [
+				...left,
+				...endCap,
+				...[...right].reverse(),
+				...startCap
+			];
+			result.push(...toSegments(ring, true, resolved.precision));
+			continue;
+		}
+		const side = resolved.side === "left" ? 1 : -1;
+		const polyline = buildSidePolyline(nodes, side, distance, resolved, closed);
+		result.push(...toSegments(polyline, closed, resolved.precision));
+	}
+	return result;
+};
+// src/process/joinPath.ts
+/**
+* Joins two paths into a single path with two sub-paths.
+*
+* Both paths have to be valid paths, so they begin with a moveto command,
+* and the result holds absolute values.
+*
+* @param pathA - the first path string or `PathArray`
+* @param pathB - the second path string or `PathArray`
+* @returns the joined path
+*
+* @example
+* ```ts
+* joinPath('M0 0L100 0', 'M0 100L100 100')
+* // => [
+* // //   ['M', 0, 0], ['L', 100, 0],
+* // //   ['M', 0, 100], ['L', 100, 100]
+* // // ]
+* ```
+*/
+const joinPath = (pathA, pathB) => {
+	const first = pathToAbsolute(parsePathString(pathA));
+	const second = pathToAbsolute(parsePathString(pathB));
+	return [...first, ...second];
+};
 // src/process/reversePath.ts
 /**
 * Reverses the segments of a single sub-path and returns a new PathArray
@@ -3643,7 +4080,7 @@ const optimizePath = (pathInput, roundOption) => {
 * @param absolutePath - The absolute PathArray of a single sub-path
 * @returns The reversed PathArray
 */
-const reverseSubPath = (absolutePath) => {
+const reverseSubPath$1 = (absolutePath) => {
 	const normalizedPath = normalizePath(absolutePath);
 	const pLen = absolutePath.length;
 	const isClosed = absolutePath[pLen - 1][0] === "Z";
@@ -3810,7 +4247,7 @@ const reversePath = (pathInput) => {
 		subPath.push(segment);
 	}
 	if (subPath.length) subPaths.push(subPath);
-	const reversed = subPaths.map((path) => reverseSubPath(path));
+	const reversed = subPaths.map((path) => reverseSubPath$1(path));
 	return reversed.length === 1 ? reversed[0] : reversed.flat();
 };
 // src/process/splitPath.ts
@@ -3881,6 +4318,36 @@ const splitPath = (pathInput) => {
 		composite[pi] = path;
 	});
 	return composite;
+};
+// src/process/reverseSubPath.ts
+/**
+* Reverses the sub-path at a given index of a path.
+*
+* The other sub-paths are left untouched, and the result holds absolute
+* values.
+*
+* @param pathInput - the path string or `PathArray`
+* @param index - the zero-based index of the sub-path to reverse
+* @returns the path with the sub-path reversed
+*
+* @example
+* ```ts
+* reverseSubPath('M0 0L100 0ZM0 100L100 100', 1)
+* // => [
+* // //   ['M', 0, 0], ['L', 100, 0],
+* // //   ['M', 100, 100], ['L', 0, 100]
+* // // ]
+* ```
+*/
+const reverseSubPath = (pathInput, index) => {
+	const subPaths = splitPath(pathInput);
+	if (!Number.isInteger(index) || index < 0 || index >= subPaths.length) throw TypeError(`${error}: index must be a number within the range of the sub-paths`);
+	const reversed = reversePath(subPaths[index]);
+	return [
+		...subPaths.slice(0, index),
+		reversed,
+		...subPaths.slice(index + 1)
+	].flat();
 };
 // src/process/getSVGMatrix.ts
 /**
@@ -6118,6 +6585,46 @@ var SVGPathCommander = class {
 		return this;
 	}
 	/**
+	* Reverse the sub-path at a given index of the path.
+	*
+	* The other sub-paths are left untouched.
+	*
+	* @example
+	* ```ts
+	* new SVGPathCommander('M0 0L100 0ZM0 100L100 100').reverseSubPath(1).toString()
+	* // => 'M0 0L100 0M100 100L0 100'
+	* ```
+	*
+	* @param index - the zero-based index of the sub-path to reverse
+	* @returns this for chaining
+	* @public
+	*/
+	reverseSubPath(index) {
+		const { segments } = this;
+		this.segments = reverseSubPath(segments, index);
+		return this;
+	}
+	/**
+	* Join another path to the path of the instance.
+	*
+	* The result holds two sub-paths and absolute values.
+	*
+	* @example
+	* ```ts
+	* new SVGPathCommander('M0 0L100 0').join('M0 100L100 100').toString()
+	* // => 'M0 0L100 0M0 100L100 100'
+	* ```
+	*
+	* @param path - the path string or `PathArray` to join
+	* @returns this for chaining
+	* @public
+	*/
+	join(path) {
+		const { segments } = this;
+		this.segments = joinPath(segments, path);
+		return this;
+	}
+	/**
 	* Normalize path in 2 steps:
 	* * convert `pathArray`(s) to absolute values
 	* * convert shorthand notation to standard notation
@@ -6177,6 +6684,37 @@ var SVGPathCommander = class {
 	simplify(options) {
 		const { segments } = this;
 		this.segments = simplifyPath(segments, options);
+		return this;
+	}
+	/**
+	* Offset the path along its normals.
+	*
+	* The path is sampled along its length, every sample is shifted along the
+	* normal of the path and the result is a path of straight lines. The
+	* corners of the path are joined and the ends of an open path are capped.
+	*
+	* The `side` option is literal: the left side is the left normal of the
+	* direction of travel, the same normal `getPropertiesAtLength()` returns.
+	* The `both` side is the outline of the stroke, the band between the two
+	* sides of the path.
+	*
+	* The offset is not cleaned up: an offset distance larger than the local
+	* radius of curvature of the path produces a self-crossing curve.
+	*
+	* @example
+	* ```ts
+	* new SVGPathCommander('M0 0L100 0').offset(10).toString()
+	* // => 'M0 10L100 10'
+	* ```
+	*
+	* @param distance - the offset distance
+	* @param options - the options of the offset
+	* @returns this for chaining
+	* @public
+	*/
+	offset(distance, options) {
+		const { segments } = this;
+		this.segments = offsetPath(segments, distance, options);
 		return this;
 	}
 	/**
@@ -6420,6 +6958,8 @@ var SVGPathCommander = class {
 	static normalizePath = normalizePath;
 	/** Normalizes a single segment of a `pathArray` object. */
 	static normalizeSegment = normalizeSegment;
+	/** Offsets a path along its normals. */
+	static offsetPath = offsetPath;
 	/** Optimizes a PathArray: */
 	static optimizePath = optimizePath;
 	/** Transforms a specified point using a matrix, returning a new */
@@ -6432,6 +6972,10 @@ var SVGPathCommander = class {
 	static reverseCurve = reverseCurve;
 	/** Reverses all segments of a PathArray and returns a new PathArray */
 	static reversePath = reversePath;
+	/** Reverses the sub-path at a given index of a path. */
+	static reverseSubPath = reverseSubPath;
+	/** Joins two paths into a single path with two sub-paths. */
+	static joinPath = joinPath;
 	/** Rounds the values of a `pathArray` instance to */
 	static roundPath = roundPath;
 	/** Rounds the numeric values of a path segment to the specified precision. */
