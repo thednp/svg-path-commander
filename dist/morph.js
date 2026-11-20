@@ -2694,6 +2694,7 @@ const buildPathLengthTable = (path) => {
 	let mx = 0;
 	let my = 0;
 	let totalLength = 0;
+	let movetoCount = 0;
 	for (const segment of path) {
 		const command = segment[0];
 		const measure = {
@@ -2710,6 +2711,7 @@ const buildPathLengthTable = (path) => {
 			my = segment[2];
 			measure.endX = mx;
 			measure.endY = my;
+			movetoCount += 1;
 		} else if (command === "L") {
 			measure.endX = segment[1];
 			measure.endY = segment[2];
@@ -2737,11 +2739,14 @@ const buildPathLengthTable = (path) => {
 		y = measure.endY;
 	}
 	const [startX, startY] = path[0]?.slice(1) ?? [];
+	const last = measures[measures.length - 1];
+	const isLoop = movetoCount === 1 && !!last && Math.hypot(last.endX - startX, last.endY - startY) <= 1e-5;
 	return {
 		measures,
 		totalLength,
 		startX,
-		startY
+		startY,
+		isLoop
 	};
 };
 // src/util/segmentFrame.ts

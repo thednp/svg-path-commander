@@ -28,6 +28,9 @@ export const getPropertiesAtPoint = <T extends PathArray>(
   // the length table is built once and serves every sample of the search
   const table = buildPathLengthTable(normalPath);
   const pathLength = table.totalLength;
+  // a loop ends where it starts, so the search can walk over the end of the
+  // path and find the other side of the join
+  const isLoop = table.isLoop;
   const distanceTo = (p: Point) => {
     const dx = p.x - point.x;
     const dy = p.y - point.y;
@@ -54,26 +57,32 @@ export const getPropertiesAtPoint = <T extends PathArray>(
 
   // binary search for precise estimate
   precision /= 2;
-  let before: { x: number; y: number };
-  let after: { x: number; y: number };
   let beforeLength = 0;
   let afterLength = 0;
-  let beforeDistance = 0;
-  let afterDistance = 0;
 
   while (precision > 0.000001) {
     beforeLength = bestLength - precision;
-    before = getPointAtTable(table, beforeLength);
-    beforeDistance = distanceTo(before);
     afterLength = bestLength + precision;
-    after = getPointAtTable(table, afterLength);
-    afterDistance = distanceTo(after);
+    // a loop is walked over its end, an open path is not
+    if (beforeLength < 0) {
+      beforeLength = isLoop ? beforeLength + pathLength : -1;
+    }
+    if (afterLength > pathLength) {
+      afterLength = isLoop ? afterLength - pathLength : pathLength + 1;
+    }
 
-    if (beforeLength >= 0 && beforeDistance < bestDistance) {
+    const before =
+      beforeLength >= 0 && beforeLength <= pathLength ? getPointAtTable(table, beforeLength) : null;
+    const after =
+      afterLength >= 0 && afterLength <= pathLength ? getPointAtTable(table, afterLength) : null;
+    const beforeDistance = before ? distanceTo(before) : Infinity;
+    const afterDistance = after ? distanceTo(after) : Infinity;
+
+    if (before && beforeDistance < bestDistance) {
       closest = before;
       bestLength = beforeLength;
       bestDistance = beforeDistance;
-    } else if (afterLength <= pathLength && afterDistance < bestDistance) {
+    } else if (after && afterDistance < bestDistance) {
       closest = after;
       bestLength = afterLength;
       bestDistance = afterDistance;

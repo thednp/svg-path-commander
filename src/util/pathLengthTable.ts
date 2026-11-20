@@ -41,6 +41,8 @@ export type PathLengthTable = {
   startX: number;
   /** the Y coordinate the path starts at */
   startY: number;
+  /** whether the path is a loop, so it ends where it starts */
+  isLoop: boolean;
 };
 
 /**
@@ -61,6 +63,7 @@ export const buildPathLengthTable = (path: NormalArray): PathLengthTable => {
   let mx = 0;
   let my = 0;
   let totalLength = 0;
+  let movetoCount = 0;
 
   for (const segment of path) {
     const command = segment[0];
@@ -81,6 +84,7 @@ export const buildPathLengthTable = (path: NormalArray): PathLengthTable => {
       my = segment[2] as number;
       measure.endX = mx;
       measure.endY = my;
+      movetoCount += 1;
     } else if (command === "L") {
       measure.endX = segment[1] as number;
       measure.endY = segment[2] as number;
@@ -137,8 +141,15 @@ export const buildPathLengthTable = (path: NormalArray): PathLengthTable => {
   }
 
   const [startX, startY] = (path[0]?.slice(1) ?? []) as PointTuple;
+  const last = measures[measures.length - 1];
+  // a path with a single sub-path that ends where it starts is a loop, so
+  // the point before the start of the path is the point before its end
+  const isLoop =
+    movetoCount === 1 &&
+    !!last &&
+    Math.hypot(last.endX - startX, last.endY - startY) <= DISTANCE_EPSILON;
 
-  return { measures, totalLength, startX, startY };
+  return { measures, totalLength, startX, startY, isLoop };
 };
 
 /**

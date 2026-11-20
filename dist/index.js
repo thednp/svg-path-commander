@@ -2326,6 +2326,7 @@ const buildPathLengthTable = (path) => {
 	let mx = 0;
 	let my = 0;
 	let totalLength = 0;
+	let movetoCount = 0;
 	for (const segment of path) {
 		const command = segment[0];
 		const measure = {
@@ -2342,6 +2343,7 @@ const buildPathLengthTable = (path) => {
 			my = segment[2];
 			measure.endX = mx;
 			measure.endY = my;
+			movetoCount += 1;
 		} else if (command === "L") {
 			measure.endX = segment[1];
 			measure.endY = segment[2];
@@ -2369,11 +2371,14 @@ const buildPathLengthTable = (path) => {
 		y = measure.endY;
 	}
 	const [startX, startY] = path[0]?.slice(1) ?? [];
+	const last = measures[measures.length - 1];
+	const isLoop = movetoCount === 1 && !!last && Math.hypot(last.endX - startX, last.endY - startY) <= 1e-5;
 	return {
 		measures,
 		totalLength,
 		startX,
-		startY
+		startY,
+		isLoop
 	};
 };
 /**
@@ -2795,6 +2800,7 @@ const getPropertiesAtPoint = (pathInput, point) => {
 	const normalPath = normalizePath(path);
 	const table = buildPathLengthTable(normalPath);
 	const pathLength = table.totalLength;
+	const isLoop = table.isLoop;
 	const distanceTo = (p) => {
 		const dx = p.x - point.x;
 		const dy = p.y - point.y;
@@ -2819,24 +2825,22 @@ const getPropertiesAtPoint = (pathInput, point) => {
 		}
 	}
 	precision /= 2;
-	let before;
-	let after;
 	let beforeLength = 0;
 	let afterLength = 0;
-	let beforeDistance = 0;
-	let afterDistance = 0;
 	while (precision > 1e-6) {
 		beforeLength = bestLength - precision;
-		before = getPointAtTable(table, beforeLength);
-		beforeDistance = distanceTo(before);
 		afterLength = bestLength + precision;
-		after = getPointAtTable(table, afterLength);
-		afterDistance = distanceTo(after);
-		if (beforeLength >= 0 && beforeDistance < bestDistance) {
+		if (beforeLength < 0) beforeLength = isLoop ? beforeLength + pathLength : -1;
+		if (afterLength > pathLength) afterLength = isLoop ? afterLength - pathLength : pathLength + 1;
+		const before = beforeLength >= 0 && beforeLength <= pathLength ? getPointAtTable(table, beforeLength) : null;
+		const after = afterLength >= 0 && afterLength <= pathLength ? getPointAtTable(table, afterLength) : null;
+		const beforeDistance = before ? distanceTo(before) : Infinity;
+		const afterDistance = after ? distanceTo(after) : Infinity;
+		if (before && beforeDistance < bestDistance) {
 			closest = before;
 			bestLength = beforeLength;
 			bestDistance = beforeDistance;
-		} else if (afterLength <= pathLength && afterDistance < bestDistance) {
+		} else if (after && afterDistance < bestDistance) {
 			closest = after;
 			bestLength = afterLength;
 			bestDistance = afterDistance;

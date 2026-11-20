@@ -46,6 +46,15 @@
   ```
 - `SVGPathCommander#join(path)` and `SVGPathCommander#reverseSubPath(index)` — the instance methods of the two, chainable like the rest of the class API
 
+### Fixed
+
+- `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` now find the closest point on the closing segment of a closed path — the search starts at the beginning of the path and walks towards the end, so it could not walk over the end of a path that ends where it starts, and a point on the closing segment was reported at the distance of the start of the path:
+  ```js
+  SVGPathCommander.getPropertiesAtPoint("M0 0L100 0L100 100L0 100Z", { x: 0, y: 1 });
+  // => { closest: { x: 0, y: 1 }, distance: 0, segment: { segment: ["Z"], … } }
+  ```
+  The length table of the path knows whether the path is a loop now, and the search walks over the end of a loop the way it walks over the end of a segment.
+
 ### Changed
 
 - `splitPath()`, `simplifyPath()` and `getPropertiesAtLength()` no longer add an implicit moveto to a path that does not begin with one — the parser rejects such a path now, so the three of them have nothing left to paper over

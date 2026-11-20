@@ -459,6 +459,34 @@ describe("SVGPathCommander Static Methods", () => {
     });
   });
 
+  test(`Can find the closest point on the closing segment of a closed path`, () => {
+    const { getPropertiesAtPoint, getClosestPoint, isPointInStroke } = SVGPathCommander;
+    const path = "M0 0L100 0L100 100L0 100Z";
+    // the point is on the closing segment, so the distance is zero
+    const props = getPropertiesAtPoint(path, { x: 0, y: 1 });
+    expect(props.closest).to.deep.equal({ x: 0, y: 1 });
+    expect(props.distance).to.equal(0);
+    expect(props.segment?.segment).to.deep.equal(["Z"]);
+    expect(getClosestPoint(path, { x: 0, y: 1 })).to.deep.equal({ x: 0, y: 1 });
+    expect(isPointInStroke(path, { x: 0, y: 1 })).to.be.true;
+    // the join of the loop is the end of the path and the start of it
+    expect(getClosestPoint(path, { x: 0.5, y: 0 })).to.deep.equal({ x: 0.5, y: 0 });
+  });
+
+  test(`Can find the closest point over the join of a loop`, () => {
+    const { getClosestPoint } = SVGPathCommander;
+    // the length of the path is 370, so the coarse scan ends at 368 and the
+    // search has to walk over the end of the path
+    const path = "M0 0L100 0L100 85L0 85Z";
+    expect(getClosestPoint(path, { x: -2, y: 2 })).to.deep.equal({ x: 0, y: 2 });
+    // an open path is not walked over its end
+    expect(getClosestPoint("M0 0L100 0L100 85L0 85", { x: -2, y: 2 })).to.deep.equal({
+      x: 0,
+      y: 0,
+    });
+    expect(getClosestPoint("M0 0L370 0", { x: 368, y: 1 })).to.deep.equal({ x: 368, y: 0 });
+  });
+
   test(`Can do isPointInStroke`, () => {
     const { isPointInStroke } = SVGPathCommander;
     // first point
