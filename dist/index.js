@@ -2269,6 +2269,177 @@ const getTotalLength = (pathInput) => {
 // src/util/distanceEpsilon.ts
 /** Small threshold value used for floating-point distance comparisons in path calculations. */
 const DISTANCE_EPSILON = 1e-5;
+// src/util/pathLengthTable.ts
+/**
+* Measures every segment of a normalized path in a single pass.
+*
+* A normalized path holds absolute `M`, `L`, `C`, `Q`, `A` and `Z` segments
+* only, so no relative offsets and no shorthand control point reflections
+* have to be resolved here — the length of a segment is exactly the length
+* the point lookup at that distance will use.
+*
+* @param path - the normalized path to measure
+* @returns the length table of the path
+*/
+const buildPathLengthTable = (path) => {
+	const measures = [];
+	let x = 0;
+	let y = 0;
+	let mx = 0;
+	let my = 0;
+	let totalLength = 0;
+	for (const segment of path) {
+		const command = segment[0];
+		const measure = {
+			segment,
+			startX: x,
+			startY: y,
+			endX: x,
+			endY: y,
+			length: 0,
+			lengthAtSegment: totalLength
+		};
+		if (command === "M") {
+			mx = segment[1];
+			my = segment[2];
+			measure.endX = mx;
+			measure.endY = my;
+		} else if (command === "L") {
+			measure.endX = segment[1];
+			measure.endY = segment[2];
+			measure.length = getLineLength(x, y, measure.endX, measure.endY);
+		} else if (command === "C") {
+			measure.endX = segment[5];
+			measure.endY = segment[6];
+			measure.length = getCubicLength(x, y, segment[1], segment[2], segment[3], segment[4], measure.endX, measure.endY);
+		} else if (command === "Q") {
+			measure.endX = segment[3];
+			measure.endY = segment[4];
+			measure.length = getQuadLength(x, y, segment[1], segment[2], measure.endX, measure.endY);
+		} else if (command === "A") {
+			measure.endX = segment[6];
+			measure.endY = segment[7];
+			measure.length = getArcLength(x, y, segment[1], segment[2], segment[3], segment[4], segment[5], measure.endX, measure.endY);
+		} else if (command === "Z") {
+			measure.endX = mx;
+			measure.endY = my;
+			measure.length = getLineLength(x, y, mx, my);
+		}
+		measures.push(measure);
+		totalLength += measure.length;
+		x = measure.endX;
+		y = measure.endY;
+	}
+	const [startX, startY] = path[0]?.slice(1) ?? [];
+	return {
+		measures,
+		totalLength,
+		startX,
+		startY
+	};
+};
+/**
+* Returns the point of a measured path at a given distance.
+*
+* The segment is found with a binary search over the accumulated lengths:
+* it is the last segment whose accumulated length is still below the
+* distance, which is the same segment the linear walk over the path would
+* have stopped at.
+*
+* @param table - the length table of the path
+* @param distance - the distance along the path
+* @returns the requested {x, y} point coordinates
+*/
+const getPointAtTable = (table, distance) => {
+	const { measures, startX, startY } = table;
+	if (!measures.length) return {
+		x: 0,
+		y: 0
+	};
+	if (typeof distance !== "number" || Number.isNaN(distance) || distance < 1e-5) return {
+		x: startX,
+		y: startY
+	};
+	let low = 0;
+	let high = measures.length - 1;
+	while (low < high) {
+		const mid = low + high + 1 >> 1;
+		if (measures[mid].lengthAtSegment < distance) low = mid;
+		else high = mid - 1;
+	}
+	const measure = measures[low];
+	const { segment, startX: x1, startY: y1, endX, endY } = measure;
+	const command = segment[0];
+	const offset = distance - measure.lengthAtSegment;
+	if (command === "M") return {
+		x: endX,
+		y: endY
+	};
+	if (command === "L") return getPointAtLineLength(x1, y1, endX, endY, offset);
+	if (command === "C") return getPointAtCubicLength(x1, y1, segment[1], segment[2], segment[3], segment[4], endX, endY, offset);
+	if (command === "Q") return getPointAtQuadLength(x1, y1, segment[1], segment[2], endX, endY, offset);
+	if (command === "A") return getPointAtArcLength(x1, y1, segment[1], segment[2], segment[3], segment[4], segment[5], endX, endY, offset);
+	return getPointAtLineLength(x1, y1, endX, endY, offset);
+};
+// src/util/getPropertiesAtLength.ts
+/**
+* Returns the length of a measured segment.
+*
+* The length is taken from the accumulated lengths, the total up to the
+* segment minus the total before it, and not from the length the segment
+* was measured with: the two differ in the last bits, and this keeps the
+* result identical to the one the previous implementation returned.
+*
+* @param measure - the measured segment
+* @returns the length of the segment
+*/
+const segmentLength = (measure) => measure.lengthAtSegment + measure.length - measure.lengthAtSegment;
+/**
+* Returns the segment, its index and length as well as
+* the length to that segment at a given length in a path.
+*
+* @param pathInput target `pathArray`
+* @param distance the given length
+* @returns the requested properties
+*/
+const getPropertiesAtLength = (pathInput, distance) => {
+	const measures = measureSegments(pathInput);
+	const lastIndex = measures.length - 1;
+	const segment = measures[0]?.segment ?? [
+		"M",
+		0,
+		0
+	];
+	if (lastIndex <= 0 || !distance || distance < 0) return {
+		segment,
+		index: 0,
+		length: 0,
+		lengthAtSegment: 0
+	};
+	const last = measures[lastIndex];
+	if (distance >= last.lengthAtSegment + last.length) return {
+		segment: last.segment,
+		index: last.index,
+		length: segmentLength(last),
+		lengthAtSegment: last.lengthAtSegment
+	};
+	for (let i = lastIndex; i > 0; i--) {
+		const measure = measures[i];
+		if (measure.lengthAtSegment <= distance) return {
+			segment: measure.segment,
+			index: measure.index,
+			length: segmentLength(measure),
+			lengthAtSegment: measure.lengthAtSegment
+		};
+	}
+	const first = measures[0];
+	return {
+		segment: first.segment,
+		index: first.index,
+		length: segmentLength(first),
+		lengthAtSegment: first.lengthAtSegment
+	};
+};
 // src/process/normalizePath.ts
 /**
 * Parses a path string or PathArray, then iterates the result for:
@@ -2306,133 +2477,6 @@ const normalizePath = (pathInput) => {
 		return result;
 	});
 };
-// src/util/getPointAtLength.ts
-/**
-* Returns [x,y] coordinates of a point at a given length along a path.
-*
-* @param pathInput - The PathArray or path string to look into
-* @param distance - The distance along the path
-* @returns The requested {x, y} point coordinates
-*
-* @example
-* ```ts
-* getPointAtLength('M0 0L100 0L100 100Z', 50)
-* // => { x: 50, y: 0 }
-* ```
-*/
-const getPointAtLength = (pathInput, distance) => {
-	const path = normalizePath(pathInput);
-	if (!path.length) return {
-		x: 0,
-		y: 0
-	};
-	let isM = false;
-	let data = [];
-	let [mx, my] = path[0].slice(1);
-	const distanceIsNumber = typeof distance === "number";
-	let point = {
-		x: mx,
-		y: my
-	};
-	let length = 0;
-	let POINT = point;
-	let totalLength = 0;
-	if (!distanceIsNumber || distance < 1e-5) return point;
-	iterate(path, (seg, _, lastX, lastY) => {
-		const pathCommand = seg[0];
-		isM = pathCommand === "M";
-		data = !isM ? [lastX, lastY].concat(seg.slice(1)) : data;
-		if (isM) {
-			[, mx, my] = seg;
-			point = {
-				x: mx,
-				y: my
-			};
-			length = 0;
-		} else if (pathCommand === "L") {
-			point = getPointAtLineLength(data[0], data[1], data[2], data[3], distance - totalLength);
-			length = getLineLength(data[0], data[1], data[2], data[3]);
-		} else if (pathCommand === "A") {
-			point = getPointAtArcLength(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], distance - totalLength);
-			length = getArcLength(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]);
-		} else if (pathCommand === "C") {
-			point = getPointAtCubicLength(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], distance - totalLength);
-			length = getCubicLength(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
-		} else if (pathCommand === "Q") {
-			point = getPointAtQuadLength(data[0], data[1], data[2], data[3], data[4], data[5], distance - totalLength);
-			length = getQuadLength(data[0], data[1], data[2], data[3], data[4], data[5]);
-		} else if (pathCommand === "Z") {
-			data = [
-				lastX,
-				lastY,
-				mx,
-				my
-			];
-			point = getPointAtLineLength(data[0], data[1], data[2], data[3], distance - totalLength);
-			length = getLineLength(data[0], data[1], data[2], data[3]);
-		}
-		if (totalLength < distance) POINT = point;
-		else return false;
-		totalLength += length;
-	});
-	return POINT;
-};
-// src/util/getPropertiesAtLength.ts
-/**
-* Returns the segment, its index and length as well as
-* the length to that segment at a given length in a path.
-*
-* @param pathInput target `pathArray`
-* @param distance the given length
-* @returns the requested properties
-*/
-const getPropertiesAtLength = (pathInput, distance) => {
-	const pathArray = parsePathString(pathInput);
-	let pathTemp = pathArray.slice(0);
-	let pathLength = getTotalLength(pathTemp);
-	let index = pathTemp.length - 1;
-	let lengthAtSegment = 0;
-	let length = 0;
-	let segment = pathArray[0] ?? [
-		"M",
-		0,
-		0
-	];
-	if (index <= 0 || !distance || distance < 0) return {
-		segment,
-		index: 0,
-		length,
-		lengthAtSegment
-	};
-	if (distance >= pathLength) {
-		pathTemp = pathArray.slice(0, -1);
-		lengthAtSegment = getTotalLength(pathTemp);
-		length = pathLength - lengthAtSegment;
-		segment = pathArray[index];
-		return {
-			segment,
-			index,
-			length,
-			lengthAtSegment
-		};
-	}
-	const segments = [];
-	while (index > 0) {
-		segment = pathTemp[index];
-		pathTemp = pathTemp.slice(0, -1);
-		lengthAtSegment = getTotalLength(pathTemp);
-		length = pathLength - lengthAtSegment;
-		pathLength = lengthAtSegment;
-		segments.push({
-			segment,
-			index,
-			length,
-			lengthAtSegment
-		});
-		index -= 1;
-	}
-	return segments.find(({ lengthAtSegment: l }) => l <= distance);
-};
 // src/util/getPropertiesAtPoint.ts
 /**
 * Returns the point and segment in path closest to a given point as well as
@@ -2454,7 +2498,8 @@ const getPropertiesAtPoint = (pathInput, point) => {
 		distance: Infinity
 	};
 	const normalPath = normalizePath(path);
-	const pathLength = getTotalLength(normalPath);
+	const table = buildPathLengthTable(normalPath);
+	const pathLength = table.totalLength;
 	const distanceTo = (p) => {
 		const dx = p.x - point.x;
 		const dy = p.y - point.y;
@@ -2470,7 +2515,7 @@ const getPropertiesAtPoint = (pathInput, point) => {
 	let bestLength = 0;
 	let bestDistance = Infinity;
 	for (let scanLength = 0; scanLength <= pathLength; scanLength += precision) {
-		scan = getPointAtLength(normalPath, scanLength);
+		scan = getPointAtTable(table, scanLength);
 		scanDistance = distanceTo(scan);
 		if (scanDistance < bestDistance) {
 			closest = scan;
@@ -2487,10 +2532,10 @@ const getPropertiesAtPoint = (pathInput, point) => {
 	let afterDistance = 0;
 	while (precision > 1e-6) {
 		beforeLength = bestLength - precision;
-		before = getPointAtLength(normalPath, beforeLength);
+		before = getPointAtTable(table, beforeLength);
 		beforeDistance = distanceTo(before);
 		afterLength = bestLength + precision;
-		after = getPointAtLength(normalPath, afterLength);
+		after = getPointAtTable(table, afterLength);
 		afterDistance = distanceTo(after);
 		if (beforeLength >= 0 && beforeDistance < bestDistance) {
 			closest = before;
@@ -2593,6 +2638,38 @@ const getCurveArea = (path) => {
 */
 const getDrawDirection = (path) => {
 	return getCurveArea(pathToCurve(path)) >= 0;
+};
+// src/util/getPointAtLength.ts
+/**
+* Returns [x,y] coordinates of a point at a given length along a path.
+*
+* @param pathInput - The PathArray or path string to look into
+* @param distance - The distance along the path
+* @returns The requested {x, y} point coordinates
+*
+* @example
+* ```ts
+* getPointAtLength('M0 0L100 0L100 100Z', 50)
+* // => { x: 50, y: 0 }
+* ```
+*/
+const getPointAtLength = (pathInput, distance) => {
+	return getPointAtNormalizedLength(normalizePath(pathInput), distance);
+};
+/**
+* Returns [x,y] coordinates of a point at a given length along a path
+* that is already normalized.
+*
+* The normalization is the expensive part of the lookup, so it is kept
+* out of this function: a caller that already has a normalized path does
+* not have to normalize it again for every point it looks up.
+*
+* @param path - The normalized PathArray to look into
+* @param distance - The distance along the path
+* @returns The requested {x, y} point coordinates
+*/
+const getPointAtNormalizedLength = (path, distance) => {
+	return getPointAtTable(buildPathLengthTable(path), distance);
 };
 // src/util/getSegmentAtLength.ts
 /**
@@ -4171,34 +4248,106 @@ function splitCurvePathToCount(path, target) {
 }
 // src/morph/getRotatedPath.ts
 /**
-* Returns all possible rotations of a path (line or curve) by shifting the start point.
-* Each rotation is a new PathArray starting at a different original segment.
+* Returns a single rotation of a path (line or curve) by shifting the start point.
+* The rotation starts at the end of the segment at `idx` and continues with the
+* following segments, wrapping around the end of the path.
 *
-* @param path PathArray (M + L/C + optional Z) — must be single subpath, normalized
-* @returns PathArray[] — array of all possible rotations
+* @param a PathArray (M + L/C + optional Z) — must be single subpath, normalized
+* @param idx the index of the segment the rotation starts at
+* @returns PathArray — the rotation of the path
 */
-function getRotations(a) {
+function getRotation(a, idx) {
 	const pathLen = a.length;
 	const pointCount = pathLen - 1;
-	let path;
-	const result = [];
-	for (let idx = 0; idx < pathLen; idx++) {
-		path = [];
-		for (let i = 0; i < pathLen; i++) {
-			let oldSegIdx = idx + i;
-			let seg;
-			if (i === 0 || a[oldSegIdx] && a[oldSegIdx][0] === "M") {
-				seg = a[oldSegIdx];
-				path.push(["M", ...seg.slice(-2)]);
-				continue;
-			}
-			if (oldSegIdx >= pathLen) oldSegIdx -= pointCount;
-			path.push(a[oldSegIdx]);
+	const path = [];
+	for (let i = 0; i < pathLen; i++) {
+		let oldSegIdx = idx + i;
+		let seg;
+		if (i === 0 || a[oldSegIdx] && a[oldSegIdx][0] === "M") {
+			seg = a[oldSegIdx];
+			path.push(["M", ...seg.slice(-2)]);
+			continue;
 		}
-		result.push(path);
+		if (oldSegIdx >= pathLen) oldSegIdx -= pointCount;
+		path.push(a[oldSegIdx]);
 	}
-	return result;
+	return path;
 }
+/**
+* Returns the end coordinates of every segment of a path, flattened.
+*
+* @param path the path to read
+* @returns the end coordinates, two per segment
+*/
+const getEndCoordinates = (path) => {
+	const ends = [];
+	for (const segment of path) {
+		const end = segment.slice(-2);
+		ends.push(end[0], end[1]);
+	}
+	return ends;
+};
+/**
+* Finds the rotation of `pathA` that matches `pathB` best by minimizing the sum
+* of squared distances between corresponding endpoints.
+*
+* The rotations are not materialized: the endpoint of the segment at index `j` of
+* the rotation that starts at `idx` is the endpoint of the segment at index
+* `1 + ((idx + i - 1) mod pointCount)` of the source path, so the sum can be
+* computed from the source path alone.
+*
+* A rotation whose running sum is already worse than the best rotation found so
+* far cannot become the best one — the terms of the sum are squared distances,
+* so the sum only grows — and the rotation is dropped right there.
+*
+* The rotations are checked in the order of their first term, the distance
+* between the start of the rotation and the start of the reference path: the
+* rotation that matches best is usually the one that starts closest, so it is
+* usually found early and the rest of the rotations are dropped right away.
+*
+* @param pathA the path to rotate
+* @param pathB the reference path
+* @returns the index of the best rotation
+*/
+const getBestRotationIndex = (pathA, pathB) => {
+	const pathLen = pathA.length;
+	const pointCount = pathLen - 1;
+	const endsA = getEndCoordinates(pathA);
+	const endsB = getEndCoordinates(pathB);
+	const firstTerms = [];
+	const order = [];
+	for (let idx = 0; idx < pathLen; idx++) {
+		const dx = endsA[idx * 2] - endsB[0];
+		const dy = endsA[idx * 2 + 1] - endsB[1];
+		firstTerms.push(dx * dx + dy * dy);
+		order.push(idx);
+	}
+	order.sort((a, b) => {
+		const first = firstTerms[a];
+		const second = firstTerms[b];
+		if (first < second) return -1;
+		if (first > second) return 1;
+		return a - b;
+	});
+	let bestIndex = 0;
+	let minDistanceSq = Infinity;
+	for (const idx of order) {
+		let sumDistSq = firstTerms[idx];
+		if (sumDistSq > minDistanceSq) continue;
+		for (let i = 1; i < pathLen; i++) {
+			const j = 1 + (idx + i - 1) % pointCount;
+			const dx = endsA[j * 2] - endsB[i * 2];
+			const dy = endsA[j * 2 + 1] - endsB[i * 2 + 1];
+			sumDistSq += dx * dx + dy * dy;
+			if (sumDistSq > minDistanceSq) break;
+		}
+		if (sumDistSq < minDistanceSq || sumDistSq === minDistanceSq && idx < bestIndex) {
+			minDistanceSq = sumDistSq;
+			bestIndex = idx;
+		}
+	}
+	return bestIndex;
+};
 /**
 * Finds the best rotation of pathA to match pathB by minimizing sum of squared distances
 * between corresponding endpoints.
@@ -4210,29 +4359,30 @@ function getRotations(a) {
 * @returns PathArray — best rotation of pathA
 */
 function getRotatedPath(pathA, pathB, computedRotations) {
-	const rotations = computedRotations || getRotations(pathA);
 	if (pathA.length !== pathB.length) throw new TypeError(error + ": paths must have the same number of segments after equalization");
-	let bestIndex = 0;
-	let minDistanceSq = Infinity;
-	for (let ri = 0; ri < rotations.length; ri++) {
-		const rotation = rotations[ri];
-		const rLen = rotation.length;
-		let sumDistSq = 0;
-		for (let i = 0; i < rLen; i++) {
-			const segA = rotation[i];
-			const segB = pathB[i];
-			const endA = segA.slice(-2);
-			const endB = segB.slice(-2);
-			const dx = endA[0] - endB[0];
-			const dy = endA[1] - endB[1];
-			sumDistSq += dx * dx + dy * dy;
+	if (computedRotations) {
+		let bestIndex = 0;
+		let minDistanceSq = Infinity;
+		for (let ri = 0; ri < computedRotations.length; ri++) {
+			const rotation = computedRotations[ri];
+			let sumDistSq = 0;
+			for (let i = 0; i < rotation.length; i++) {
+				const segA = rotation[i];
+				const segB = pathB[i];
+				const endA = segA.slice(-2);
+				const endB = segB.slice(-2);
+				const dx = endA[0] - endB[0];
+				const dy = endA[1] - endB[1];
+				sumDistSq += dx * dx + dy * dy;
+			}
+			if (sumDistSq < minDistanceSq) {
+				minDistanceSq = sumDistSq;
+				bestIndex = ri;
+			}
 		}
-		if (sumDistSq < minDistanceSq) {
-			minDistanceSq = sumDistSq;
-			bestIndex = ri;
-		}
+		return computedRotations[bestIndex];
 	}
-	return rotations[bestIndex];
+	return getRotation(pathA, getBestRotationIndex(pathA, pathB));
 }
 // src/morph/equalizeSegments.ts
 const equalizeSegmentsDefaults = {
