@@ -881,7 +881,7 @@ export declare const pathToRelative: <T extends PathArray>(pathInput: string | T
  * @example
  * ```ts
  * pathToCurve('M10 50q15 -25 30 0')
- * // => [['M', 10, 50], ['C', 25, 25, 40, 50, 40, 50]]
+ * // => [['M', 10, 50], ['C', 20, 33.3333, 30, 33.3333, 40, 50]]
  * ```
  */
 export declare const pathToCurve: <T extends PathArray>(pathInput: string | T) => CurveArray;
@@ -1063,7 +1063,7 @@ export declare const getPathBBox: <T extends PathArray>(pathInput: T | string) =
  * @example
  * ```ts
  * getTotalLength('M0 0L100 0L100 100L0 100Z')
- * // => 300
+ * // => 400
  * ```
  */
 export declare const getTotalLength: <T extends PathArray>(pathInput: string | T) => number;
@@ -1104,7 +1104,7 @@ export declare const getDrawDirection: (path: string | PathArray) => boolean;
  * @example
  * ```ts
  * getPathArea([['M', 0, 0], ['L', 100, 0], ['L', 100, 100], ['L', 0, 100], ['Z']])
- * // => -10000 (counter-clockwise square)
+ * // => 10000 (clockwise square)
  * ```
  */
 export declare const getPathArea: <T extends PathArray | string>(path: T) => number;
@@ -1304,7 +1304,7 @@ export declare const shapeToPathArray: (element: ShapeTypes | ShapeOps) => false
  * @example
  * ```ts
  * normalizePath('M10 90s20 -80 40 -80s20 80 40 80')
- * // => [['M', 10, 90], ['C', 30, 90, 25, 10, 50, 10], ['C', 75, 10, 70, 90, 90, 90]]
+ * // => [['M', 10, 90], ['C', 10, 90, 30, 10, 50, 10], ['C', 70, 10, 70, 90, 90, 90]]
  * ```
  */
 export declare const normalizePath: <T extends string | PathArray>(pathInput: T) => NormalArray;
@@ -1320,7 +1320,7 @@ export declare const normalizePath: <T extends string | PathArray>(pathInput: T)
  * @example
  * ```ts
  * optimizePath('M10 10L10 10L90 90', 2)
- * // => [['M', 10, 10], ['l', 0, 0], ['l', 80, 80]]
+ * // => [['M', 10, 10], ['v', 0], ['l', 80, 80]]
  * ```
  */
 export declare const optimizePath: <T extends string | PathArray>(pathInput: T, roundOption?: number) => PathArray;
@@ -1338,7 +1338,7 @@ export declare const optimizePath: <T extends string | PathArray>(pathInput: T, 
  * @example
  * ```ts
  * reversePath([['M', 0, 0], ['L', 100, 0], ['L', 100, 100], ['L', 0, 100], ['Z']])
- * // => [['M', 0, 100], ['L', 0, 0], ['L', 100, 0], ['L', 100, 100], ['Z']]
+ * // => [['M', 0, 100], ['L', 100, 100], ['L', 100, 0], ['L', 0, 0], ['Z']]
  * ```
  */
 export declare const reversePath: <T extends PathArray>(pathInput: T | string) => T;
@@ -1374,20 +1374,24 @@ export declare const splitPath: <T extends PathArray>(pathInput: T | string) => 
  * @example
  * ```ts
  * transformPath('M0 0L100 0L100 100L0 100Z', { translate: [10, 20], scale: 2 })
- * // => [['M', 10, 20], ['L', 210, 20], ['L', 210, 220], ['L', 10, 220], ['Z']]
+ * // => [['M', 10, 20], ['H', 210], ['V', 220], ['H', 10], ['Z']]
  * ```
  */
 export declare const transformPath: <T extends PathArray>(pathInput: T | string, transform?: Partial<TransformObject>) => T | AbsoluteArray;
 /**
  * Returns an absolute segment of a `PathArray` object.
  *
+ * The current point of a path starts at the origin, so the first segment
+ * of a path is absolutized against `[0, 0]`: a relative moveto at the
+ * start of a path is an absolute one, as the SVG spec requires.
+ *
  * @param segment the segment object
- * @param index the segment index
+ * @param _index the segment index
  * @param lastX the last known X value
  * @param lastY the last known Y value
  * @returns the absolute segment
  */
-export declare const absolutizeSegment: (segment: PathSegment, index: number, lastX: number, lastY: number) => AbsoluteSegment;
+export declare const absolutizeSegment: (segment: PathSegment, _index: number, lastX: number, lastY: number) => AbsoluteSegment;
 /**
  * Converts A (arc-to) segments to C (cubic-bezier-to).
  *

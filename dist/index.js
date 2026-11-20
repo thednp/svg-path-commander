@@ -1184,7 +1184,6 @@ const invalidPathValue = "Invalid path value";
 const scanParam = (path) => {
 	const { max, pathValue, index: start } = path;
 	let index = start;
-	let zeroFirst = false;
 	let hasCeiling = false;
 	let hasDecimal = false;
 	let hasDot = false;
@@ -1203,15 +1202,8 @@ const scanParam = (path) => {
 		return;
 	}
 	if (ch !== 46) {
-		zeroFirst = ch === 48;
 		index += 1;
 		ch = pathValue.charCodeAt(index);
-		if (zeroFirst && index < max) {
-			if (ch && isDigit(ch)) {
-				path.err = `${error}: ${invalidPathValue} at index ${start}, "${pathValue[start]}" illegal number`;
-				return;
-			}
-		}
 		while (index < max && isDigit(pathValue.charCodeAt(index))) {
 			index += 1;
 			hasCeiling = true;
@@ -1243,6 +1235,7 @@ const scanParam = (path) => {
 	}
 	path.index = index;
 	path.param = scanNumber(pathValue, start, index);
+	if (!Number.isFinite(path.param)) path.err = `${error}: ${invalidPathValue} at index ${start}, "${pathValue.slice(start, index)}" is not a finite number`;
 };
 /**
 * Converts a validated number substring to a Number without
@@ -1299,40 +1292,48 @@ const scanNumber = (str, start, end) => {
 };
 // src/parser/isSpace.ts
 /**
+* The characters the SVG path grammar accepts as white space.
+*
+* The set is built once, at module level: the parser calls `isSpace` for
+* every single character of a path, and building the list on every call
+* made the tokenizer allocate its way through a path.
+*/
+const spaces = new Set([
+	5760,
+	6158,
+	8192,
+	8193,
+	8194,
+	8195,
+	8196,
+	8197,
+	8198,
+	8199,
+	8200,
+	8201,
+	8202,
+	8239,
+	8287,
+	12288,
+	65279,
+	10,
+	13,
+	8232,
+	8233,
+	32,
+	9,
+	11,
+	12,
+	160
+]);
+/**
 * Checks if the character is a space.
 *
 * @param ch the character to check
 * @returns check result
 */
 const isSpace = (ch) => {
-	return [
-		5760,
-		6158,
-		8192,
-		8193,
-		8194,
-		8195,
-		8196,
-		8197,
-		8198,
-		8199,
-		8200,
-		8201,
-		8202,
-		8239,
-		8287,
-		12288,
-		65279,
-		10,
-		13,
-		8232,
-		8233,
-		32,
-		9,
-		11,
-		12,
-		160
-	].includes(ch);
+	return spaces.has(ch);
 };
 // src/parser/skipSpaces.ts
 /**
@@ -1502,16 +1503,20 @@ const parsePathString = (pathInput) => {
 /**
 * Returns an absolute segment of a `PathArray` object.
 *
+* The current point of a path starts at the origin, so the first segment
+* of a path is absolutized against `[0, 0]`: a relative moveto at the
+* start of a path is an absolute one, as the SVG spec requires.
+*
 * @param segment the segment object
-* @param index the segment index
+* @param _index the segment index
 * @param lastX the last known X value
 * @param lastY the last known Y value
 * @returns the absolute segment
 */
-const absolutizeSegment = (segment, index, lastX, lastY) => {
+const absolutizeSegment = (segment, _index, lastX, lastY) => {
 	const [pathCommand] = segment;
 	const absCommand = pathCommand.toUpperCase();
-	if (index === 0 || absCommand === pathCommand) return segment;
+	if (absCommand === pathCommand) return segment;
 	if (absCommand === "A") return [
 		absCommand,
 		segment[1],
@@ -1969,7 +1974,7 @@ const paramsParser = {
 * @example
 * ```ts
 * pathToCurve('M10 50q15 -25 30 0')
-* // => [['M', 10, 50], ['C', 25, 25, 40, 50, 40, 50]]
+* // => [['M', 10, 50], ['C', 20, 33.3333, 30, 33.3333, 40, 50]]
 * ```
 */
 const pathToCurve = (pathInput) => {
@@ -2253,7 +2258,7 @@ const measureSegments = (pathInput) => {
 * @example
 * ```ts
 * getTotalLength('M0 0L100 0L100 100L0 100Z')
-* // => 300
+* // => 400
 * ```
 */
 const getTotalLength = (pathInput) => {
@@ -2276,7 +2281,7 @@ const DISTANCE_EPSILON = 1e-5;
 * @example
 * ```ts
 * normalizePath('M10 90s20 -80 40 -80s20 80 40 80')
-* // => [['M', 10, 90], ['C', 30, 90, 25, 10, 50, 10], ['C', 75, 10, 70, 90, 90, 90]]
+* // => [['M', 10, 90], ['C', 10, 90, 30, 10, 50, 10], ['C', 70, 10, 70, 90, 90, 90]]
 * ```
 */
 const normalizePath = (pathInput) => {
@@ -2393,7 +2398,7 @@ const getPropertiesAtLength = (pathInput, distance) => {
 		0,
 		0
 	];
-	if (index <= 0 || !distance || !Number.isFinite(distance) || distance < 0) return {
+	if (index <= 0 || !distance || distance < 0) return {
 		segment,
 		index: 0,
 		length,
@@ -2548,14 +2553,25 @@ const getCubicSegArea = (x1, y1, c1x, c1y, c2x, c2y, x2, y2) => {
 * @example
 * ```ts
 * getPathArea([['M', 0, 0], ['L', 100, 0], ['L', 100, 100], ['L', 0, 100], ['Z']])
-* // => -10000 (counter-clockwise square)
+* // => 10000 (clockwise square)
 * ```
 */
-const getPathArea = (path) => {
+const getPathArea = (path) => getCurveArea(pathToCurve(path));
+/**
+* Returns the signed area of a path that is already made of cubic beziers.
+*
+* The conversion is the expensive part of the area calculation, so it is
+* kept out of this function: a caller that already has a curve array does
+* not have to convert it a second time.
+*
+* @param path - The curve PathArray
+* @returns The signed area of the shape
+*/
+const getCurveArea = (path) => {
 	let x = 0;
 	let y = 0;
 	let len = 0;
-	return pathToCurve(path).map((seg) => {
+	return path.map((seg) => {
 		switch (seg[0]) {
 			case "M":
 				[, x, y] = seg;
@@ -2576,7 +2592,7 @@ const getPathArea = (path) => {
 * @returns true when clockwise or false if not
 */
 const getDrawDirection = (path) => {
-	return getPathArea(pathToCurve(path)) >= 0;
+	return getCurveArea(pathToCurve(path)) >= 0;
 };
 // src/util/getSegmentAtLength.ts
 /**
@@ -2811,15 +2827,17 @@ const getPolyPath = (attr) => {
 	const pathArray = [];
 	const points = (attr.points || "").trim().split(/[\s|,]/).map((a) => +a);
 	let index = 0;
-	while (index < points.length) {
-		pathArray.push([
-			index ? "L" : "M",
-			points[index],
-			points[index + 1]
+	while (index + 1 < points.length) {
+		const x = points[index];
+		const y = points[index + 1];
+		if (Number.isFinite(x) && Number.isFinite(y)) pathArray.push([
+			pathArray.length ? "L" : "M",
+			x,
+			y
 		]);
 		index += 2;
 	}
-	return attr.type === "polygon" ? [...pathArray, ["z"]] : pathArray;
+	return attr.type === "polygon" && pathArray.length ? [...pathArray, ["z"]] : pathArray;
 };
 /**
 * Returns a new PathArray from circle attributes.
@@ -3204,7 +3222,7 @@ const roundSegment = (segment, roundOption) => {
 * @example
 * ```ts
 * optimizePath('M10 10L10 10L90 90', 2)
-* // => [['M', 10, 10], ['l', 0, 0], ['l', 80, 80]]
+* // => [['M', 10, 10], ['v', 0], ['l', 80, 80]]
 * ```
 */
 const optimizePath = (pathInput, roundOption) => {
@@ -3404,7 +3422,7 @@ const reverseSubPath = (absolutePath) => {
 * @example
 * ```ts
 * reversePath([['M', 0, 0], ['L', 100, 0], ['L', 100, 100], ['L', 0, 100], ['Z']])
-* // => [['M', 0, 100], ['L', 0, 0], ['L', 100, 0], ['L', 100, 100], ['Z']]
+* // => [['M', 0, 100], ['L', 100, 100], ['L', 100, 0], ['L', 0, 0], ['Z']]
 * ```
 */
 const reversePath = (pathInput) => {
@@ -3455,7 +3473,7 @@ const splitPath = (pathInput) => {
 	let y = 0;
 	let mx = 0;
 	let my = 0;
-	iterate(segments, (seg, index, prevX, prevY) => {
+	iterate(segments, (seg, _index, prevX, prevY) => {
 		const cmd = seg[0];
 		const absCommand = cmd.toUpperCase();
 		const isRelative = cmd === cmd.toLowerCase();
@@ -3487,7 +3505,7 @@ const splitPath = (pathInput) => {
 				x += isRelative ? prevX : 0;
 				y += isRelative ? prevY : 0;
 			}
-			path.push(absolutizeSegment(seg, index, prevX, prevY));
+			path.push(absolutizeSegment(seg, _index, prevX, prevY));
 		}
 		composite[pi] = path;
 	});
@@ -3750,7 +3768,7 @@ const transform2D = (path, a, b, c, d, e, f, originX, originY) => {
 * @example
 * ```ts
 * transformPath('M0 0L100 0L100 100L0 100Z', { translate: [10, 20], scale: 2 })
-* // => [['M', 10, 20], ['L', 210, 20], ['L', 210, 220], ['L', 10, 220], ['Z']]
+* // => [['M', 10, 20], ['H', 210], ['V', 220], ['H', 10], ['Z']]
 * ```
 */
 const transformPath = (pathInput, transform) => {
@@ -4837,7 +4855,7 @@ var SVGPathCommander = class {
 	* @example
 	* ```ts
 	* new SVGPathCommander('M10 50q15 -25 30 0').toCurve().toString()
-	* // => 'M10 50C25 25 40 50 40 50'
+	* // => 'M10 50C20 33.3333 30 33.3333 40 50'
 	* ```
 	*
 	* @returns this for chaining
@@ -4879,7 +4897,7 @@ var SVGPathCommander = class {
 	* @example
 	* ```ts
 	* new SVGPathCommander('M10 90s20 -80 40 -80s20 80 40 80').normalize().toString()
-	* // => 'M10 90C30 90 25 10 50 10C75 10 70 90 90 90'
+	* // => 'M10 90C10 90 30 10 50 10C70 10 70 90 90 90'
 	* ```
 	*
 	* @returns this for chaining
@@ -4931,14 +4949,14 @@ var SVGPathCommander = class {
 		const transform = {};
 		for (const [k, v] of Object.entries(source)) if (k === "skew" && Array.isArray(v)) transform[k] = v.map(Number);
 		else if ((k === "rotate" || k === "translate" || k === "origin" || k === "scale") && Array.isArray(v)) transform[k] = v.map(Number);
-		else if (k !== "origin" && typeof Number(v) === "number") transform[k] = Number(v);
+		else if (k !== "origin" && !Number.isNaN(Number(v))) transform[k] = Number(v);
 		const { origin } = transform;
 		if (Array.isArray(origin) && origin.length >= 2) {
 			const [originX, originY, originZ] = origin.map(Number);
 			transform.origin = [
 				!Number.isNaN(originX) ? originX : cx,
 				!Number.isNaN(originY) ? originY : cy,
-				originZ || cz
+				originZ !== void 0 && !Number.isNaN(originZ) ? originZ : cz
 			];
 		} else transform.origin = [
 			cx,
