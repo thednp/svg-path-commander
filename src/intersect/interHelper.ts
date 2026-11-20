@@ -5,7 +5,7 @@ import type {
   PointAtLength,
 } from "../types.ts";
 import { getCubicBBox, getCubicLength, getPointAtCubicLength } from "../math/cubicTools.ts";
-import { distanceEpsilon } from "../util.ts";
+import distanceEpsilon from "../util/distanceEpsilon.ts";
 import { roundTo } from "../math/roundTo.ts";
 import { boundingBoxIntersect } from "./boundingBoxIntersect.ts";
 
