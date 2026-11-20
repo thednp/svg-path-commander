@@ -110,13 +110,22 @@ const reverseSubPath = (absolutePath: PathArray): PathArray => {
           result = [pathCommand, segment[1], segment[2], x, y];
         }
         break;
-      case "T":
-        if (prevCommand && "QT".includes(prevCommand) && (!nextSeg || nextCommand !== "T")) {
-          result = ["Q", normalizedSegment[1], normalizedSegment[2], x, y] as QSegment;
-        } else {
+      case "T": {
+        // the `T` shorthand reflects the control point of the previous
+        // segment of the *reversed* path, which is the original successor
+        // - when that successor is a `Q`, the shorthand would reflect the
+        // `Q`'s control point instead of this segment's own control point
+        // and silently change the curve
+        const prevIsQuad = Boolean(prevCommand && "QT".includes(prevCommand));
+        const nextIsT = Boolean(nextSeg && nextCommand === "T");
+        const nextIsQuad = Boolean(nextSeg && nextCommand === "Q");
+        if (nextIsT || (!prevIsQuad && !nextIsQuad)) {
           result = [pathCommand, x, y] as TSegment;
+        } else {
+          result = ["Q", normalizedSegment[1], normalizedSegment[2], x, y] as QSegment;
         }
         break;
+      }
       case "Z":
         result = ["M", x, y];
         break;

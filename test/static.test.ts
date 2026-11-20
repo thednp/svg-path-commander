@@ -22,6 +22,12 @@ import simpleShapes from "./fixtures/simpleShapes";
 import shapes from "./fixtures/shapes";
 import shapeObjects from "./fixtures/shapeObjects";
 import { intersectionFixtures, equalizeFixtures } from "./fixtures/intersectionEqualize";
+import {
+  buildReverseCase,
+  commandSequences,
+  expectedReverse,
+  sameGeometry,
+} from "./fixtures/reversePathMatrix";
 
 import "../docs/assets/style.css";
 import { defaultOptions } from "../src/options/options";
@@ -1350,6 +1356,7 @@ describe("S/s shorthand and arc bounds fixes", () => {
     getPathBBox,
     getTotalLength,
     normalizePath,
+    parsePathString,
     pathToCurve,
     pathToString,
     reversePath,
@@ -1450,6 +1457,30 @@ describe("S/s shorthand and arc bounds fixes", () => {
     const reversed = pathToString(reversePath(path));
     expect(reversed).to.equal("M30 0C20 10 10 0 10 0L0 0");
     expect(getTotalLength(reversed)).to.be.closeTo(getTotalLength(path), 0.001);
+  });
+
+  test("Can reverse a T segment that is followed by a Q segment", () => {
+    const path = "M0 0L10 0T20 20Q30 30 40 40";
+    const reversed = pathToString(reversePath(path));
+    expect(reversed).to.equal("M40 40Q30 30 20 20Q10 0 10 0L0 0");
+    expect(getTotalLength(reversed)).to.be.closeTo(getTotalLength(path), 0.001);
+  });
+
+  test("Can reverse every command sequence without changing the geometry", () => {
+    const mismatches: string[] = [];
+    let checked = 0;
+    for (const length of [3, 4]) {
+      for (const sequence of commandSequences(length)) {
+        const source = buildReverseCase(sequence);
+        const path = parsePathString(source);
+        const expected = expectedReverse(normalizePath(path));
+        const actual = normalizePath(reversePath(path));
+        checked += 1;
+        if (!sameGeometry(expected, actual)) mismatches.push(sequence.join(""));
+      }
+    }
+    expect(checked).to.equal(2744);
+    expect(mismatches).to.deep.equal([]);
   });
 
   test("Can optimize a cubic without rewriting it as a smooth cubic", () => {

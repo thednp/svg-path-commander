@@ -3301,20 +3301,22 @@ const reverseSubPath = (absolutePath) => {
 					y
 				];
 				break;
-			case "T":
-				if (prevCommand && "QT".includes(prevCommand) && (!nextSeg || nextCommand !== "T")) result = [
+			case "T": {
+				const prevIsQuad = Boolean(prevCommand && "QT".includes(prevCommand));
+				if (Boolean(nextSeg && nextCommand === "T") || !prevIsQuad && !Boolean(nextSeg && nextCommand === "Q")) result = [
+					pathCommand,
+					x,
+					y
+				];
+				else result = [
 					"Q",
 					normalizedSegment[1],
 					normalizedSegment[2],
 					x,
 					y
 				];
-				else result = [
-					pathCommand,
-					x,
-					y
-				];
 				break;
+			}
 			case "Z":
 				result = [
 					"M",
