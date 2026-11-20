@@ -9,7 +9,7 @@ import SVGPathCommander, {
 // import SVGPathCommanderUtil from '~/util';
 import { invalidPathValue } from "../src/parser/invalidPathValue";
 import { error } from "../src/util/error";
-import { getRotatedPath } from "../src/morph/getRotatedPath";
+import { getRotatedPath, getRotations } from "../src/morph/getRotatedPath";
 import { samplePolygon } from "../src/morph/samplePolygon";
 import { getPathSplits } from "../src/morph/getPathSplits";
 import { pathToPolyline } from "../src/morph/pathToPolyline";
@@ -20,7 +20,7 @@ import { classifyPaths } from "../src/morph/classifyPaths";
 import { matchPaths } from "../src/morph/matchPaths";
 import { getPolyPath } from "../src/util/shapeToPathArray";
 import { iterate } from "../src/process/iterate";
-import type { IntersectionPoint, PathFeature } from "../src/types";
+import type { IntersectionPoint, MorphPathArray, PathFeature } from "../src/types";
 
 import getMarkup from "./fixtures/getMarkup";
 import simpleShapes from "./fixtures/simpleShapes";
@@ -664,6 +664,24 @@ describe("SVGPathCommander Static Methods", () => {
           `${error}: paths must have the same number of segments after equalization`,
         );
       }
+    });
+
+    test(`Can do equalizeSegments getRotatedPath with precomputed rotations`, () => {
+      const p1 = parsePathString("M0 0L10 0L20 0L30 0") as MorphPathArray;
+      const p2 = parsePathString("M10 0L20 0L30 0L10 0") as MorphPathArray;
+      const rotations = getRotations(p1);
+      expect(rotations).to.have.lengthOf(p1.length);
+      // the rotation that starts at the second segment matches the path
+      expect(getRotatedPath(p1, p2, rotations)).to.deep.equal(rotations[1]);
+      expect(getRotatedPath(p1, p2)).to.deep.equal(rotations[1]);
+    });
+
+    test(`Can do equalizeSegments getRotatedPath with an empty path`, () => {
+      // an empty path has no rotation, but the result still has to be well formed
+      expect(
+        getRotatedPath([] as unknown as MorphPathArray, [] as unknown as MorphPathArray),
+      ).to.deep.equal([]);
+      expect(equalizeSegments("", "")).to.deep.equal([[], []]);
     });
 
     test(`Can do equalizeSegments splitCurvePathToCount edge cases`, () => {
