@@ -25,7 +25,7 @@ While you may find familiar tools inside, this library brings _**new additions**
 - a tool that can _reverse path draw direction_ without altering path commands, even with specific shorthand path commands;
 - a unique tool that can _reverse path draw direction_ for path strings with only 'C' path commands;
 - a new and unique tool to _apply transform functions to path commands_ via the modern _DOMMatrix_ API;
-- the geometry queries read a shared length table, so `getPropertiesAtLength`, `getPointAtLength` and the closest point search are linear in the number of segments instead of quadratic — a 4 000 segment path answers a length query in about 2 ms;
+- the geometry queries read a shared length table, so `getPropertiesAtLength`, `getPointAtLength` and the closest point search are linear in the number of segments instead of quadratic — a 4 000 segment path answers a length query in about half a millisecond and a closest point query in under two milliseconds;
 - the tools are split over three tree-shakeable entry points — the main one holds everything, `svg-path-commander/util` holds the tools, `svg-path-commander/morph` holds the morphing engine and `svg-path-commander/intersect` holds the intersection engine;
 - every tool has a defined answer for an empty or malformed path, and none of them touches the data you hand them.
 
