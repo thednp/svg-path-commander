@@ -121,6 +121,12 @@ export const getEllipsePath = (attr: EllipseAttr): PathArray => {
 /**
  * Returns a new PathArray from rect attributes.
  *
+ * The corners of a rounded rectangle are elliptical arcs, one for every
+ * corner, and the radius of the corners follows the rules of the spec: a
+ * missing radius takes the value of the other one, an explicit zero
+ * disables the rounding and a radius bigger than half of the size of the
+ * rectangle is clamped to it.
+ *
  * @param attr - Object with x, y, width, height, and optional rx/ry
  * @returns A new PathArray from `<rect>` attributes
  *
@@ -135,29 +141,30 @@ export const getRectanglePath = (attr: RectAttr): PathArray => {
   const y = +attr.y || 0;
   const w = +attr.width;
   const h = +attr.height;
-  let rx = +(attr.rx || 0);
-  let ry = +(attr.ry || rx);
+  // a missing radius takes the value of the other one
+  const rxValue = attr.rx === undefined || attr.rx === null ? undefined : +attr.rx;
+  const ryValue = attr.ry === undefined || attr.ry === null ? undefined : +attr.ry;
+  let rx = rxValue ?? ryValue ?? 0;
+  let ry = ryValue ?? rxValue ?? 0;
 
   // Validity checks from http://www.w3.org/TR/SVG/shapes.html#RectElement:
-  if (rx || ry) {
-    // rx = !rx ? ry : rx;
-    // ry = !ry ? rx : ry;
-
-    /* istanbul ignore else */
-    if (rx * 2 > w) rx -= (rx * 2 - w) / 2;
-    /* istanbul ignore else */
-    if (ry * 2 > h) ry -= (ry * 2 - h) / 2;
+  if (rx > 0 && ry > 0) {
+    // the radius of a corner cannot be bigger than half of the size of the
+    // rectangle
+    rx = Math.min(rx, w / 2);
+    ry = Math.min(ry, h / 2);
 
     return [
       ["M", x + rx, y],
       ["h", w - rx * 2],
-      ["s", rx, 0, rx, ry],
+      ["a", rx, ry, 0, 0, 1, rx, ry],
       ["v", h - ry * 2],
-      ["s", 0, ry, -rx, ry],
+      ["a", rx, ry, 0, 0, 1, -rx, ry],
       ["h", -w + rx * 2],
-      ["s", -rx, 0, -rx, -ry],
+      ["a", rx, ry, 0, 0, 1, -rx, -ry],
       ["v", -h + ry * 2],
-      ["s", 0, -ry, rx, -ry],
+      ["a", rx, ry, 0, 0, 1, rx, -ry],
+      ["Z"],
     ];
   }
 

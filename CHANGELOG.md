@@ -71,6 +71,24 @@
 
 ### Fixed
 
+- `getPathBBox()` and `arcTools.getArcBBox()` answer the bounds of an arc correctly — the bounds were computed from the end point of the arc and the extrema of the ellipse, so the **start point of the arc was dropped** and the box of an arc did not contain the arc:
+  ```js
+  SVGPathCommander.arcTools.getArcBBox(0, 0, 50, 50, 0, 0, 1, 50, 50);
+  // => [50, 50, 50, 50] — the start point (0, 0) was gone
+  ```
+  An extremum of the ellipse is on the arc when its angle is in the swept interval, and that was decided with two probe points inside the arc, so an extremum **between the probes and the end of the arc** was missed as well:
+  ```js
+  SVGPathCommander.getPathBBox("M-40 -20A10 10 30 0 0 -30 -40");
+  // => x2: -30 — the rightmost point of the arc is at -23.82
+  ```
+  The bounds are the two end points and the extrema the sweep covers now. A degenerate arc — the same start and end point, which the spec omits — answers the box of its single point instead of the box of the ellipse, and an arc with a zero radius answers the box of the straight line to its end point, like the length does.
+- The arc queries answer numbers for arcs whose ends are diametrically opposite — the cosine of the angle between the two ends of a diameter can land a hair outside of the `[-1-1]` range, and `acos()` of a value under `-1` is `NaN`, so the sweep of the arc was `NaN` and so were the length, the point at a length and the frame at a length:
+  ```js
+  SVGPathCommander.getTotalLength("M-40 -20A10 10 30 0 0 -30 -40");
+  // => NaN
+  ```
+- `getRectanglePath()` builds the rounded corners of a rectangle with **elliptical arcs**, like the spec of the `<rect>` element — the corners were smooth cubic segments, and the reflected control point of a smooth cubic follows a line command, so it collapsed to the current point and the corner was a cusp: the length of the rectangle was 0.22 % too long and its area was 0.12 % too big
+- `getRectanglePath()` follows the auto rules of the radius of the corners — a missing `rx` takes the value of `ry` and a missing `ry` takes the value of `rx`, so a `<rect ry="10">` is a rounded rectangle now; an explicit zero still disables the rounding and a radius bigger than half of the size of the rectangle is clamped to it
 - `isMultiPath()` answers `false` for an empty or a malformed path array instead of throwing — `isPathArray()` rejects an empty array, so the predicate fell through to its `TypeError` and `equalize("", "")` and `equalizePaths("", "")` failed with "expected string or PathArray" for an input that is a path; a malformed segment is now answered `false` too, as the 2.3.6 entry of `isPathArray()` promised, and only a value that is not a path at all throws
 - `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` now find the closest point on the closing segment of a closed sub-path of a **multi-subpath** path — the coarse scan of the path samples the start of a closed sub-path twice, once at the start of the sub-path and once at the end of its closing segment, and it kept the first of the two equally close samples, so the refinement walked away from the closing segment and the point was reported at the distance of the start of the sub-path:
   ```js

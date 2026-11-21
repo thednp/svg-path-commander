@@ -2466,6 +2466,155 @@ describe("Arc conversion fixes", () => {
   });
 });
 
+describe("Arc bounds and rounded rectangle fixes", () => {
+  const { arcTools, getPathBBox, getTotalLength, getPathArea, shapeToPathArray } = SVGPathCommander;
+
+  test("Can compute the bbox of an arc with the start point of the arc", () => {
+    const bbox = arcTools.getArcBBox(0, 0, 50, 50, 0, 0, 1, 50, 50);
+    expect(bbox[0]).to.be.closeTo(0, 0.001);
+    expect(bbox[1]).to.be.closeTo(0, 0.001);
+    expect(bbox[2]).to.be.closeTo(50, 0.001);
+    expect(bbox[3]).to.be.closeTo(50, 0.001);
+  });
+
+  test("Can compute the bbox of an arc with an extremum inside the arc", () => {
+    const bbox = getPathBBox("M-40 -20A10 10 30 0 0 -30 -40");
+    expect(bbox.x).to.be.closeTo(-40, 0.001);
+    expect(bbox.y).to.be.closeTo(-40, 0.001);
+    expect(bbox.x2).to.be.closeTo(-23.8197, 0.001);
+    expect(bbox.y2).to.be.closeTo(-18.8197, 0.001);
+  });
+
+  test("Can measure an arc with diametrically opposite endpoints", () => {
+    const length = getTotalLength("M-40 -20A10 10 30 0 0 -30 -40");
+    expect(length).to.not.be.NaN;
+    // the radii are scaled up to the half of the chord, the arc is a half circle
+    expect(length).to.be.closeTo(Math.PI * 11.1803, 0.01);
+  });
+
+  test("Can compute the bbox of a degenerate arc", () => {
+    const bbox = getPathBBox("M50 50A25 25 0 1 1 50 50");
+    expect(bbox.x).to.equal(50);
+    expect(bbox.y).to.equal(50);
+    expect(bbox.width).to.equal(0);
+    expect(bbox.height).to.equal(0);
+  });
+
+  test("Can compute the bbox of an arc with a zero radius as a line", () => {
+    const bbox = getPathBBox("M10 20A0 0 0 1 1 100 40");
+    expect(bbox.x).to.equal(10);
+    expect(bbox.y).to.equal(20);
+    expect(bbox.x2).to.equal(100);
+    expect(bbox.y2).to.equal(40);
+  });
+
+  test("Can compute the bbox of an arc like the browser does", () => {
+    const arcs = [
+      "M-40 -20A10 10 30 0 0 -30 -40",
+      "M0 0A50 50 0 1 1 50 50",
+      "M10 10A30 20 45 1 0 80 60",
+      "M0 0A25 25 0 0 1 50 0",
+    ];
+    for (const arc of arcs) {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", arc);
+      svg.append(path);
+      document.body.append(svg);
+      const box = path.getBBox();
+      const bbox = getPathBBox(arc);
+      // the browser uses a conservative bound for the arcs, the exact bounds
+      // of the library must fit inside it
+      const tolerance = Math.max(0.05, Math.max(box.width, box.height) * 0.01);
+      expect(bbox.x).to.be.closeTo(box.x, tolerance);
+      expect(bbox.y).to.be.closeTo(box.y, tolerance);
+      expect(bbox.x2).to.be.closeTo(box.x + box.width, tolerance);
+      expect(bbox.y2).to.be.closeTo(box.y + box.height, tolerance);
+      expect(bbox.x).to.be.greaterThanOrEqual(box.x - tolerance);
+      expect(bbox.y).to.be.greaterThanOrEqual(box.y - tolerance);
+      expect(bbox.x2).to.be.lessThanOrEqual(box.x + box.width + tolerance);
+      expect(bbox.y2).to.be.lessThanOrEqual(box.y + box.height + tolerance);
+      svg.remove();
+    }
+  });
+
+  test("Can build a rounded rectangle with elliptical corners", () => {
+    const rect = shapeToPathArray({
+      type: "rect",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 50,
+      rx: 10,
+      ry: 10,
+    } as never);
+    expect(rect).to.deep.equal([
+      ["M", 10, 0],
+      ["h", 80],
+      ["a", 10, 10, 0, 0, 1, 10, 10],
+      ["v", 30],
+      ["a", 10, 10, 0, 0, 1, -10, 10],
+      ["h", -80],
+      ["a", 10, 10, 0, 0, 1, -10, -10],
+      ["v", -30],
+      ["a", 10, 10, 0, 0, 1, 10, -10],
+      ["Z"],
+    ]);
+    // the corners are arcs, the length and the area of the rectangle are
+    // the ones of the shape with the same corners
+    expect(getTotalLength(rect as PathArray)).to.be.closeTo(
+      getTotalLength(
+        "M10 0h80a10 10 0 0 1 10 10v30a10 10 0 0 1 -10 10h-80a10 10 0 0 1 -10 -10v-30a10 10 0 0 1 10 -10",
+      ),
+      0.001,
+    );
+    expect(getPathArea(rect as PathArray)).to.be.closeTo(4914.2472, 0.001);
+  });
+
+  test("Can build a rounded rectangle with a missing radius", () => {
+    const ryOnly = shapeToPathArray({
+      type: "rect",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 50,
+      ry: 10,
+    } as never);
+    const rxOnly = shapeToPathArray({
+      type: "rect",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 50,
+      rx: 10,
+    } as never);
+    const both = shapeToPathArray({
+      type: "rect",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 50,
+      rx: 10,
+      ry: 10,
+    } as never);
+    expect(ryOnly).to.deep.equal(both);
+    expect(rxOnly).to.deep.equal(both);
+  });
+
+  test("Can build a rectangle with a zero radius without rounded corners", () => {
+    const rect = shapeToPathArray({
+      type: "rect",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 50,
+      rx: 0,
+      ry: 10,
+    } as never);
+    expect(rect).to.deep.equal([["M", 0, 0], ["h", 100], ["v", 50], ["H", 0], ["Z"]]);
+  });
+});
+
 describe("Empty input contract", () => {
   const {
     getClosestPoint,

@@ -102,7 +102,9 @@ const angleBetween = (v0: Point, v1: Point): number => {
   const p = v0x * v1x + v0y * v1y;
   const n = Math.sqrt((v0x ** 2 + v0y ** 2) * (v1x ** 2 + v1y ** 2));
   const sign = v0x * v1y - v0y * v1x < 0 ? -1 : 1;
-  return sign * Math.acos(p / n);
+  // the cosine of an angle is in the [-1-1] range, the rounding of the
+  // division can push it out of it and `acos` of a value under -1 is NaN
+  return sign * Math.acos(Math.min(1, Math.max(-1, p / n)));
 };
 
 /**
@@ -380,6 +382,18 @@ const getArcBBox = (
   x: number,
   y: number,
 ): [number, number, number, number] => {
+  const { min, max, tan, atan2, cos, PI } = Math;
+
+  // an arc with the same start and end point is omitted by the spec
+  if (x1 === x && y1 === y) {
+    return [x1, y1, x, y];
+  }
+
+  // a zero radius is a straight line to the end point
+  if (RX === 0 || RY === 0) {
+    return [min(x1, x), min(y1, y), max(x1, x), max(y1, y)];
+  }
+
   const { center, rx, ry, startAngle, endAngle } = getArcProps(
     x1,
     y1,
@@ -392,7 +406,6 @@ const getArcBBox = (
     y,
   );
   const deltaAngle = endAngle - startAngle;
-  const { min, max, tan, atan2, cos, PI } = Math;
 
   // circle/elipse center coordinates
   const { x: cx, y: cy } = center;
@@ -417,68 +430,60 @@ const getArcBBox = (
   const leftAngle = flipped ? angle1 : angle2;
   const topAngle = flipped ? angle3 : angle4;
   const bottomAngle = flipped ? angle4 : angle3;
-  const xArray = [x];
-  const yArray = [y];
+  // the endpoints of the arc and the extrema of the ellipse it sweeps over
+  const xArray = [x1, x];
+  const yArray = [y1, y];
 
-  // inner bounding box
-  let xMin = min(x1, x);
-  let xMax = max(x1, x);
-  let yMin = min(y1, y);
-  let yMax = max(y1, y);
-
-  // on path point close after start
-  const angleAfterStart = endAngle - deltaAngle * 0.00001;
-  const pP2 = arcPoint(cx, cy, rx, ry, alpha, angleAfterStart);
-
-  // on path point close before end
-  const angleBeforeEnd = endAngle - deltaAngle * 0.99999;
-  const pP3 = arcPoint(cx, cy, rx, ry, alpha, angleBeforeEnd);
+  // the span of the sweep and its direction
+  const span = Math.abs(deltaAngle);
+  const clockwise = deltaAngle >= 0;
 
   /**
-   * expected extremes
-   * if leaving inner bounding box
-   * (between segment start and end point)
-   * otherwise exclude elliptic extreme points
+   * tells if an extremum of the ellipse is on the arc, the offset of the
+   * extremum is measured from the start of the arc, in the direction of
+   * the sweep
    */
+  const isOnArc = (extremum: number): boolean => {
+    const offset = clockwise
+      ? (((extremum - startAngle) % (2 * PI)) + 2 * PI) % (2 * PI)
+      : (((startAngle - extremum) % (2 * PI)) + 2 * PI) % (2 * PI);
+    return offset <= span + 1e-9;
+  };
 
   // right
-  if (pP2[0] > xMax || pP3[0] > xMax) {
-    // get point for this theta
-    const p1 = arcPoint(cx, cy, rx, ry, alpha, rightAngle);
-    xArray.push(p1[0]);
-    yArray.push(p1[1]);
+  if (isOnArc(rightAngle)) {
+    const p = arcPoint(cx, cy, rx, ry, alpha, rightAngle);
+    xArray.push(p[0]);
+    yArray.push(p[1]);
   }
 
   // left
-  if (pP2[0] < xMin || pP3[0] < xMin) {
-    // get anti-symmetric point
-    const p2 = arcPoint(cx, cy, rx, ry, alpha, leftAngle);
-    xArray.push(p2[0]);
-    yArray.push(p2[1]);
+  if (isOnArc(leftAngle)) {
+    const p = arcPoint(cx, cy, rx, ry, alpha, leftAngle);
+    xArray.push(p[0]);
+    yArray.push(p[1]);
   }
 
   // top
-  if (pP2[1] < yMin || pP3[1] < yMin) {
-    // get anti-symmetric point
-    const p4 = arcPoint(cx, cy, rx, ry, alpha, topAngle);
-    xArray.push(p4[0]);
-    yArray.push(p4[1]);
+  if (isOnArc(topAngle)) {
+    const p = arcPoint(cx, cy, rx, ry, alpha, topAngle);
+    xArray.push(p[0]);
+    yArray.push(p[1]);
   }
 
   // bottom
-  if (pP2[1] > yMax || pP3[1] > yMax) {
-    // get point for this theta
-    const p3 = arcPoint(cx, cy, rx, ry, alpha, bottomAngle);
-    xArray.push(p3[0]);
-    yArray.push(p3[1]);
+  if (isOnArc(bottomAngle)) {
+    const p = arcPoint(cx, cy, rx, ry, alpha, bottomAngle);
+    xArray.push(p[0]);
+    yArray.push(p[1]);
   }
 
-  xMin = min.apply([], xArray);
-  yMin = min.apply([], yArray);
-  xMax = max.apply([], xArray);
-  yMax = max.apply([], yArray);
-
-  return [xMin, yMin, xMax, yMax] as [number, number, number, number];
+  return [min(...xArray), min(...yArray), max(...xArray), max(...yArray)] as [
+    number,
+    number,
+    number,
+    number,
+  ];
 };
 
 /** The tools for elliptical arc computation. */
