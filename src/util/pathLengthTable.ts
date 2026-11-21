@@ -1,30 +1,10 @@
-import type { NormalArray, NormalSegment, PointTuple } from "../types.ts";
+import type { NormalArray, PointTuple } from "../types.ts";
 import type { SegmentMeasure } from "./measureSegments.ts";
 import { getLineLength, getPointAtLineLength } from "../math/lineTools.ts";
 import { getArcLength, getPointAtArcLength } from "../math/arcTools.ts";
 import { getCubicLength, getPointAtCubicLength } from "../math/cubicTools.ts";
 import { getPointAtQuadLength, getQuadLength } from "../math/quadTools.ts";
 import DISTANCE_EPSILON from "./distanceEpsilon.ts";
-
-/**
- * The measured properties of a single segment of a normalized path.
- */
-export type NormalizedSegmentMeasure = {
-  /** the normalized segment */
-  segment: NormalSegment;
-  /** the X coordinate the segment starts at */
-  startX: number;
-  /** the Y coordinate the segment starts at */
-  startY: number;
-  /** the X coordinate the segment ends at */
-  endX: number;
-  /** the Y coordinate the segment ends at */
-  endY: number;
-  /** the length of the segment */
-  length: number;
-  /** the accumulated length of all segments before this one */
-  lengthAtSegment: number;
-};
 
 /**
  * The length table of a normalized path.
@@ -35,7 +15,7 @@ export type NormalizedSegmentMeasure = {
  */
 export type PathLengthTable = {
   /** the measured segments, in path order */
-  measures: NormalizedSegmentMeasure[];
+  measures: SegmentMeasure[];
   /** the total length of the path */
   totalLength: number;
   /** the X coordinate the path starts at */
@@ -58,7 +38,7 @@ export type PathLengthTable = {
  * @returns the length table of the path
  */
 export const buildPathLengthTable = (path: NormalArray): PathLengthTable => {
-  const measures: NormalizedSegmentMeasure[] = [];
+  const measures: SegmentMeasure[] = [];
   let x = 0;
   let y = 0;
   let mx = 0;
@@ -66,16 +46,18 @@ export const buildPathLengthTable = (path: NormalArray): PathLengthTable => {
   let totalLength = 0;
   let movetoCount = 0;
 
-  for (const segment of path) {
+  for (const [index, segment] of path.entries()) {
     const command = segment[0];
-    const measure: NormalizedSegmentMeasure = {
+    const measure: SegmentMeasure = {
       segment,
+      index,
       startX: x,
       startY: y,
       endX: x,
       endY: y,
       length: 0,
       lengthAtSegment: totalLength,
+      geometry: segment,
     };
 
     // a normalized path holds no other command than the ones handled here
@@ -159,8 +141,9 @@ export const buildPathLengthTable = (path: NormalArray): PathLengthTable => {
  * The measure pass resolves the relative offsets and the shorthand control
  * point reflections of a path and holds the length of every segment, so the
  * table can be built from it without measuring the path a second time. The
- * geometry of a measure is the normalized segment, so the table holds the
- * same segments and the same lengths as the one built from a normalized path.
+ * measures of the pass are the measures of the table: the geometry of a
+ * measure is the normalized segment, so the table holds the same segments and
+ * the same lengths as the one built from a normalized path.
  *
  * @param segmentMeasures - the measured segments of the path
  * @returns the length table of the path
@@ -168,24 +151,14 @@ export const buildPathLengthTable = (path: NormalArray): PathLengthTable => {
 export const buildPathLengthTableFromMeasures = (
   segmentMeasures: SegmentMeasure[],
 ): PathLengthTable => {
-  const measures: NormalizedSegmentMeasure[] = [];
   let movetoCount = 0;
 
   for (const measure of segmentMeasures) {
     if (measure.geometry[0] === "M") movetoCount += 1;
-    measures.push({
-      segment: measure.geometry,
-      startX: measure.startX,
-      startY: measure.startY,
-      endX: measure.endX,
-      endY: measure.endY,
-      length: measure.length,
-      lengthAtSegment: measure.lengthAtSegment,
-    });
   }
 
-  const first = measures[0];
-  const last = measures[measures.length - 1];
+  const first = segmentMeasures[0];
+  const last = segmentMeasures[segmentMeasures.length - 1];
   // the path starts at the point of its first moveto
   const startX = first?.endX ?? 0;
   const startY = first?.endY ?? 0;
@@ -197,7 +170,7 @@ export const buildPathLengthTableFromMeasures = (
     !!last &&
     Math.hypot(last.endX - startX, last.endY - startY) <= DISTANCE_EPSILON;
 
-  return { measures, totalLength, startX, startY, isLoop };
+  return { measures: segmentMeasures, totalLength, startX, startY, isLoop };
 };
 
 /**
@@ -240,7 +213,7 @@ export const getPointAtTable = (
   }
 
   const measure = measures[low];
-  const { segment, startX: x1, startY: y1, endX, endY } = measure;
+  const { geometry: segment, startX: x1, startY: y1, endX, endY } = measure;
   const command = segment[0];
   // the distance within the segment
   const offset = distance - measure.lengthAtSegment;

@@ -38,7 +38,7 @@ export const iterate = <T extends PathArray>(path: T, iterator: IteratorCallback
   let i = 0;
   while (i < path.length) {
     const segment = path[i];
-    const [pathCommand] = segment;
+    const pathCommand = segment[0];
     if (typeof pathCommand !== "string") {
       throw new TypeError(`${error}: invalid path segment at index ${i}`);
     }

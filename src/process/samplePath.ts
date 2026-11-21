@@ -38,7 +38,7 @@ export const samplePath = (path: NormalArray, step: number): Point[] => {
   const samples: Point[] = [];
 
   for (const measure of measures) {
-    const { segment, startX, startY, endX, endY, length } = measure;
+    const { geometry: segment, startX, startY, endX, endY, length } = measure;
     const command = segment[0];
 
     if (command === "Z") {

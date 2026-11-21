@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.4.0] - 2026-11-20
+## [2.4.0] - 2026-11-21
 
 ### Breaking
 
@@ -91,6 +91,8 @@
 - `normalizePath()` is **1.8x** faster on a 4 000 segment path (0.37 ms -> 0.21 ms) — the normalized segment was built with three arrays (a copy of the values, a map over them and a concatenation), and the map was computed for every segment, including the ones that never used it; the segment is now built in one pass. `optimizePath()` and `reversePath()` normalize a path too and get faster with it.
 - `optimizePath()` is **2.3x** faster on a 4 000 segment path (4.1 ms -> 1.8 ms) — the rounded segment was built with three arrays (a copy, a map and a concatenation) and the absolute and the relative form of a segment were compared by building their strings; the rounded segment is now built in one pass and the length of the string of a segment is computed without building it. The optimizer answers the same paths.
 - `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` measure the path **once** — the search built a length table from a normalized copy of the path and then asked `getPropertiesAtLength()` for the segment at the answer, which measured the path a second time; the length table is now built from the shared measure pass, so the normalization and the second measurement are gone: **1.5x** faster on a 4 000 segment path (3.3 ms -> 2.2 ms), with the same answers — the two implementations agree on every path of a 1 000 case random corpus
+- The length queries are much faster — `getTotalLength()` is **4x** faster on a path of 4 000 lines (1.3 ms -> 0.3 ms) and **2.3x** faster on a path of 4 000 curves (3.5 ms -> 1.5 ms), and `getPropertiesAtLength()` is **2.7x** faster on the lines (0.9 ms -> 0.3 ms) and **2.3x** faster on the curves (3.7 ms -> 1.6 ms). The measure pass copied every absolute segment, sliced the end point of every segment into a throw-away array and read the parameters of a segment with an array destructuring, which allocates an iterator for every segment; the parameters are read directly now and the copy is gone. The length of a line is computed without the two point arrays it needed, and the quadrature of the length of a curve computes the speed of the curve without a point per sample. The answers are the same: a differential harness over 2 000 random paths answers the same lengths, the same points and the same frames, bit for bit
+- The closest point search builds one set of measures instead of two — the length table held a copy of every measure of the path, with the geometry of the measure in it; the table holds the measures of the path now, so a search of a 4 000 segment path is **1.5x** faster (1.7 ms -> 1.2 ms)
 
 ### Changed
 

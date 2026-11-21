@@ -170,6 +170,75 @@ const bezierLengthAtT = (derivativeFn: DeriveCallback, t: number): number => {
 };
 
 /**
+ * Returns the speed of a Bezier segment at a given ratio, without allocating
+ * a point for it.
+ *
+ * The quadrature of the length samples the speed of the curve at every one of
+ * its points, and a point per sample is a lot of garbage for a long path. The
+ * arithmetic is the one of `computeBezier`, so the length of a curve is the
+ * same.
+ *
+ * @param points the control points of the derivative of the curve
+ * @param t the sampled point ratio
+ * @returns the speed of the curve at the ratio
+ */
+const bezierSpeed = (points: DerivedQuadPoints | DerivedCubicPoints, t: number): number => {
+  const order = points.length - 1;
+  const mt = 1 - t;
+
+  // a linear derivative, the derivative of a quadratic
+  if (order === 1) {
+    const x = mt * points[0].x + t * points[1].x;
+    const y = mt * points[0].y + t * points[1].y;
+    return Math.sqrt(x * x + y * y);
+  }
+
+  // a quadratic derivative, the derivative of a cubic
+  if (order === 2) {
+    const mt2 = mt * mt;
+    const t2 = t * t;
+    const a = mt2;
+    const b = mt * t * 2;
+    const c = t2;
+    const x = a * points[0].x + b * points[1].x + c * points[2].x;
+    const y = a * points[0].y + b * points[1].y + c * points[2].y;
+    return Math.sqrt(x * x + y * y);
+  }
+
+  // any other derivative is computed the general way
+  const d = computeBezier(points, t);
+  return Math.sqrt(d.x * d.x + d.y * d.y);
+};
+
+/**
+ * Returns the arc length of a Bezier segment from its start point
+ * up to a given `t` ratio, from the control points of its derivative.
+ *
+ * The integration of the speed `|B'(t)|` over the `[0, t]` interval is done
+ * with the Gauss-Legendre quadrature, and the speed is computed without
+ * allocating a point for it.
+ *
+ * @param points the control points of the derivative of the curve
+ * @param t the sampled point ratio in `[0-1]`
+ * @returns the arc length up to parameter `t`
+ */
+const bezierLengthAtPoints = (
+  points: DerivedQuadPoints | DerivedCubicPoints,
+  t: number,
+): number => {
+  const z = t / 2;
+  const len = Tvalues.length;
+
+  let sum = 0;
+
+  for (let i = 0, tMid; i < len; i++) {
+    tMid = z * Tvalues[i] + z;
+    sum += Cvalues[i] * bezierSpeed(points, tMid);
+  }
+  return z * sum;
+};
+
+/**
  * Builds the Bezier points array from a curve coordinates array.
  * @param curve cubic / quad bezier segment
  */
@@ -194,9 +263,7 @@ const getBezierPoints = (curve: CubicCoordinates | QuadCoordinates): CubicPoints
  */
 const getBezierLengthAtT = (curve: CubicCoordinates | QuadCoordinates, t: number): number => {
   const dpoints = deriveBezier(getBezierPoints(curve));
-  return bezierLengthAtT((ratio: number) => {
-    return computeBezier(dpoints[0], ratio);
-  }, t);
+  return bezierLengthAtPoints(dpoints[0], t);
 };
 
 /**
@@ -212,14 +279,12 @@ const getTAtBezierLength = (
   distance: number,
 ): number => {
   const dpoints = deriveBezier(getBezierPoints(curve));
-  const derivativeFn = (ratio: number) => {
-    return computeBezier(dpoints[0], ratio);
-  };
+  const points = dpoints[0];
   let lo = 0;
   let hi = 1;
   for (let i = 0; i < 25; i += 1) {
     const mid = (lo + hi) / 2;
-    if (bezierLengthAtT(derivativeFn, mid) < distance) {
+    if (bezierLengthAtPoints(points, mid) < distance) {
       lo = mid;
     } else {
       hi = mid;
@@ -235,9 +300,7 @@ const getTAtBezierLength = (
 const getBezierLength = (curve: CubicCoordinates | QuadCoordinates): number => {
   const points = getBezierPoints(curve);
   const dpoints = deriveBezier(points);
-  return bezierLength((t: number) => {
-    return computeBezier(dpoints[0], t);
-  });
+  return bezierLengthAtPoints(dpoints[0], 1);
 };
 
 // Precision for consider cubic polynom as quadratic one

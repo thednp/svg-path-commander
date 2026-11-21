@@ -1,6 +1,3 @@
-import { midPoint } from "./midPoint.ts";
-import { distanceSquareRoot } from "./distanceSquareRoot.ts";
-
 /**
  * Returns length for line segments (MoveTo, LineTo).
  *
@@ -11,7 +8,9 @@ import { distanceSquareRoot } from "./distanceSquareRoot.ts";
  * @returns the line segment length
  */
 const getLineLength = (x1: number, y1: number, x2: number, y2: number): number => {
-  return distanceSquareRoot([x1, y1], [x2, y2]);
+  const dx = x1 - x2;
+  const dy = y1 - y2;
+  return Math.sqrt(dx * dx + dy * dy);
 };
 
 /**
@@ -35,14 +34,14 @@ const getPointAtLineLength = (
 
   /* istanbul ignore else */
   if (typeof distance === "number") {
-    const length = distanceSquareRoot([x1, y1], [x2, y2]);
+    const length = getLineLength(x1, y1, x2, y2);
     if (distance <= 0) {
       point = { x: x1, y: y1 };
     } else if (distance >= length) {
       point = { x: x2, y: y2 };
     } else {
-      const [x, y] = midPoint([x1, y1], [x2, y2], distance / length);
-      point = { x, y };
+      const ratio = distance / length;
+      point = { x: x1 + (x2 - x1) * ratio, y: y1 + (y2 - y1) * ratio };
     }
   }
   return point;

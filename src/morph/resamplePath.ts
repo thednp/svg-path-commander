@@ -9,7 +9,8 @@ import type {
   Point,
   PolylineArray,
 } from "../types.ts";
-import type { NormalizedSegmentMeasure, PathLengthTable } from "../util/pathLengthTable.ts";
+import type { PathLengthTable } from "../util/pathLengthTable.ts";
+import type { SegmentMeasure } from "../util/measureSegments.ts";
 import { buildPathLengthTable } from "../util/pathLengthTable.ts";
 import { getSegmentFrame } from "../util/segmentFrame.ts";
 import { normalizePath } from "../process/normalizePath.ts";
@@ -59,7 +60,7 @@ type ResampleFrame = {
  * @param measures - the measured segments of the path
  * @returns the length of every corner of the path, in path order
  */
-const findCorners = (measures: NormalizedSegmentMeasure[]): number[] => {
+const findCorners = (measures: SegmentMeasure[]): number[] => {
   const corners: number[] = [];
   for (let i = 1; i < measures.length; i += 1) {
     const previous = measures[i - 1];
@@ -68,7 +69,7 @@ const findCorners = (measures: NormalizedSegmentMeasure[]): number[] => {
     if (previous.length <= 0 || current.length <= 0) continue;
 
     const incoming = getSegmentFrame(
-      previous.segment,
+      previous.geometry,
       previous.startX,
       previous.startY,
       previous.endX,
@@ -77,7 +78,7 @@ const findCorners = (measures: NormalizedSegmentMeasure[]): number[] => {
       previous.length,
     ).tangent;
     const outgoing = getSegmentFrame(
-      current.segment,
+      current.geometry,
       current.startX,
       current.startY,
       current.endX,
@@ -196,7 +197,7 @@ const buildKnots = (totalLength: number, intervals: number, corners: number[]): 
  * @param distance - the distance along the path
  * @returns the index of the segment
  */
-const findSegmentIndex = (measures: NormalizedSegmentMeasure[], distance: number): number => {
+const findSegmentIndex = (measures: SegmentMeasure[], distance: number): number => {
   let low = 0;
   let high = measures.length - 1;
   while (low < high) {
@@ -220,12 +221,12 @@ const findSegmentIndex = (measures: NormalizedSegmentMeasure[], distance: number
  * @param index - the index of the segment
  * @returns the direction of the path, or `null` when the path has none
  */
-const findNextDirection = (measures: NormalizedSegmentMeasure[], index: number): Point | null => {
+const findNextDirection = (measures: SegmentMeasure[], index: number): Point | null => {
   for (let i = index + 1; i < measures.length; i += 1) {
     const measure = measures[i];
     if (measure.length <= 0) continue;
     const tangent = getSegmentFrame(
-      measure.segment,
+      measure.geometry,
       measure.startX,
       measure.startY,
       measure.endX,
@@ -264,7 +265,7 @@ const getFrameAt = (table: PathLengthTable, distance: number): ResampleFrame => 
   const offset = atEnd ? measure.length : Math.min(Math.max(rawOffset, 0), measure.length);
 
   const frame = getSegmentFrame(
-    measure.segment,
+    measure.geometry,
     measure.startX,
     measure.startY,
     measure.endX,

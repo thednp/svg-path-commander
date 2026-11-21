@@ -2170,6 +2170,26 @@ describe("Static method consistency", () => {
     );
     expect(bezierTools.getBezierLengthAtT(curve, 1)).to.equal(bezierTools.getBezierLength(curve));
     expect(bezierTools.getBezierLengthAtT(curve, 0)).to.equal(0);
+    // the length of a curve and the length computed with the callback of the
+    // bezier tools are the same
+    const points = bezierTools.getBezierPoints(curve);
+    const derivative = bezierTools.deriveBezier(points)[0];
+    const callbackLength = bezierTools.bezierLength((ratio: number) =>
+      bezierTools.computeBezier(derivative, ratio),
+    );
+    expect(bezierTools.getBezierLength(curve)).to.equal(callbackLength);
+    expect(
+      bezierTools.bezierLengthAtT(
+        (ratio: number) => bezierTools.computeBezier(derivative, ratio),
+        1,
+      ),
+    ).to.equal(callbackLength);
+    // a curve of two points has a constant derivative
+    const line = [0, 0, 30, 40] as never;
+    const lineDerivative = bezierTools.deriveBezier(bezierTools.getBezierPoints(line))[0];
+    expect(bezierTools.getBezierLength(line)).to.equal(
+      bezierTools.bezierLength((ratio: number) => bezierTools.computeBezier(lineDerivative, ratio)),
+    );
     expect(arcTools.arcLength(10, 10, Math.PI * 2)).to.be.closeTo(2 * Math.PI * 10, 0.001);
   });
 

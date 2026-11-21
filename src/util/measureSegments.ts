@@ -1,11 +1,9 @@
 import type {
   CSegment,
   LSegment,
-  MSegment,
   NormalSegment,
   PathArray,
   PathSegment,
-  PointTuple,
   QSegment,
 } from "../types.ts";
 import { getLineLength } from "../math/lineTools.ts";
@@ -68,12 +66,12 @@ export const measureSegments = (pathInput: string | PathArray): SegmentMeasure[]
   let totalLength = 0;
 
   iterate(path, (seg, index, lastX, lastY) => {
-    [pathCommand] = seg;
+    pathCommand = seg[0] as string;
     const absCommand = pathCommand.toUpperCase();
     const isRelative = absCommand !== pathCommand;
     const absoluteSegment = isRelative
       ? absolutizeSegment(seg, index, lastX, lastY)
-      : (seg.slice(0) as typeof seg);
+      : (seg as typeof seg);
 
     const normalSegment =
       absCommand === "V"
@@ -81,7 +79,7 @@ export const measureSegments = (pathInput: string | PathArray): SegmentMeasure[]
         : absCommand === "H"
           ? (["L", absoluteSegment[1], lastY] as LSegment)
           : absoluteSegment;
-    [pathCommand] = normalSegment;
+    pathCommand = normalSegment[0] as string;
 
     if (!"TQ".includes(absCommand)) {
       // keep null check #64
@@ -99,7 +97,8 @@ export const measureSegments = (pathInput: string | PathArray): SegmentMeasure[]
     /* istanbul ignore else */
     if (pathCommand === "M") {
       // remember mx, my for Z
-      [, mx, my] = normalSegment as MSegment;
+      mx = normalSegment[1] as number;
+      my = normalSegment[2] as number;
     } else if (pathCommand === "L") {
       length = getLineLength(lastX, lastY, normalSegment[1] as number, normalSegment[2] as number);
     } else if (pathCommand === "A") {
@@ -183,7 +182,8 @@ export const measureSegments = (pathInput: string | PathArray): SegmentMeasure[]
     }
 
     // the close segment returns to the start of the sub-path
-    const [endX, endY] = pathCommand === "Z" ? [mx, my] : (geometry.slice(-2) as PointTuple);
+    const endX = pathCommand === "Z" ? mx : (geometry[geometry.length - 2] as number);
+    const endY = pathCommand === "Z" ? my : (geometry[geometry.length - 1] as number);
 
     measures.push({
       segment: seg,
@@ -199,13 +199,23 @@ export const measureSegments = (pathInput: string | PathArray): SegmentMeasure[]
     totalLength += length;
 
     // update params
-    [paramX1, paramY1] = pathCommand === "Z" ? [mx, my] : (normalSegment.slice(-2) as PointTuple);
-    [paramX2, paramY2] =
-      pathCommand === "C"
-        ? ([normalSegment[3], normalSegment[4]] as PointTuple)
-        : pathCommand === "S"
-          ? ([normalSegment[1], normalSegment[2]] as PointTuple)
-          : [paramX1, paramY1];
+    if (pathCommand === "Z") {
+      paramX1 = mx;
+      paramY1 = my;
+    } else {
+      paramX1 = normalSegment[normalSegment.length - 2] as number;
+      paramY1 = normalSegment[normalSegment.length - 1] as number;
+    }
+    if (pathCommand === "C") {
+      paramX2 = normalSegment[3] as number;
+      paramY2 = normalSegment[4] as number;
+    } else if (pathCommand === "S") {
+      paramX2 = normalSegment[1] as number;
+      paramY2 = normalSegment[2] as number;
+    } else {
+      paramX2 = paramX1;
+      paramY2 = paramY1;
+    }
   });
 
   return measures;
