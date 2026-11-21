@@ -114,6 +114,7 @@
 
 ### Changed
 
+- The demo in `docs/` covers the features of 2.4.0 — the process page has the simplification, the offsetting, the join, the reverse of a single sub-path, the hit test of the filled shape and of the stroke, and the frame at a length, and the morphing page has the resampling and the `equalize()` facade with its strategy and its point count
 - `splitPath()`, `simplifyPath()` and `getPropertiesAtLength()` no longer add an implicit moveto to a path that does not begin with one — the parser rejects such a path now, so the three of them have nothing left to paper over
 - `transformPath()` no longer keeps a leading relative moveto relative — the parser rewrites it as an absolute one, which is the same pair of coordinates
 - The `dist` folder holds a `morph.js` and an `intersect.js` bundle next to the `index.js`, the `util.js` and the `index.min.js` ones; the JSR exports map has the two new subpaths, so the npm and the JSR packages do not diverge

@@ -105,8 +105,71 @@
             style="max-height: 150px"
           ></div>
           <p>
-            <button type="button" data-bs-toggle="tooltip" title="Equalize Paths">Equalize</button>
+            <button type="button" id="equalizeBtn" data-bs-toggle="tooltip" title="Equalize Paths">
+              Equalize
+            </button>
+            <select
+              class="form-input select"
+              data-bs-toggle="tooltip"
+              data-title="The strategy of the equalization"
+              id="strategy"
+            >
+              <option value="segment">segment</option>
+              <option value="arcLength">arcLength</option>
+            </select>
+            <input
+              class="form-input d-inline wide"
+              data-bs-toggle="tooltip"
+              data-title="The number of points of the paths"
+              type="text"
+              name="points"
+              id="points"
+              placeholder="Points"
+              value="auto"
+            />
           </p>
+        </div>
+        <div class="d-none d-md-block">
+          <p><b>Resample</b></p>
+          <p>
+            <input
+              class="form-input d-inline wide"
+              data-bs-toggle="tooltip"
+              data-title="The number of points of the result"
+              type="number"
+              name="count"
+              id="count"
+              placeholder="Count"
+              value="20"
+              min="2"
+              step="1"
+            />
+            <select
+              class="form-input select"
+              data-bs-toggle="tooltip"
+              data-title="The type of the segments of the result"
+              id="mode"
+            >
+              <option value="line">line</option>
+              <option value="curve">curve</option>
+            </select>
+            <button
+              type="button"
+              id="resampleBtn"
+              data-bs-toggle="tooltip"
+              title="Resample the first path"
+            >
+              Resample
+            </button>
+          </p>
+          <div
+            contenteditable="true"
+            class="form-input"
+            id="resampled"
+            data-placeholder="Your resampled SVG path string comes here"
+            spellcheck="false"
+            style="max-height: 150px"
+          ></div>
         </div>
         <div class="d-none d-md-block">
           <p><b>SVG Outputs</b></p>
@@ -164,17 +227,22 @@
       let p1 = [];
       let p2 = [];
       let currentPath = p1;
-      const equalizePaths = SVGPathCommander.equalizePaths,
+      const equalize = SVGPathCommander.equalize,
+        resamplePath = SVGPathCommander.resamplePath,
         getPathBBox = SVGPathCommander.getPathBBox,
         pathToString = SVGPathCommander.pathToString,
         svg = document.getElementById("test-svg"),
-        btn = document.getElementsByTagName("button")[0],
         /** @type {SVGPathElement} */
         pathElement = document.getElementById("path"),
         path1 = document.getElementById("path1"),
         path2 = document.getElementById("path2"),
         equal1 = document.getElementById("equal1"),
         equal2 = document.getElementById("equal2"),
+        resampled = document.getElementById("resampled"),
+        strategy = document.getElementById("strategy"),
+        points = document.getElementById("points"),
+        count = document.getElementById("count"),
+        mode = document.getElementById("mode"),
         shapes = [
           // "M600,300 L0,0 L0,600 Z",
           // "M0,0 L600,0 L600,600 L0,600 Z",
@@ -225,15 +293,24 @@
         return colors[rn];
       }
 
-      function equalize() {
+      function equalizeShapes() {
         console.log("Equalizing paths...");
         if (!path1.textContent.length) return console.log("Path 1 is missing or not valid");
         if (!path2.textContent.length) return console.log("Path 2 is missing or not valid");
-        [p1, p2] = equalizePaths(path1.innerText, path2.innerText, {
-          // close: true,
-          // target: 9,
-          // mode: "curve",
-        });
+        const options = {
+          strategy: strategy.value,
+        };
+        const pointCount = points.value.trim().toLowerCase();
+        if (pointCount && pointCount !== "auto") {
+          options.points = parseInt(pointCount, 10);
+        }
+        try {
+          [p1, p2] = equalize(path1.innerText, path2.innerText, options);
+        } catch (error) {
+          equal1.textContent = error.message;
+          equal2.textContent = "";
+          return;
+        }
 
         console.log(
           "Equalized paths:",
@@ -255,6 +332,17 @@
         equal2.textContent = pathToString(p2);
       }
 
+      function resample() {
+        const pathString = path1.innerText;
+        if (!pathString.length) return console.log("Path 1 is missing or not valid");
+        try {
+          const result = resamplePath(pathString, parseInt(count.value, 10), mode.value);
+          resampled.textContent = pathToString(result);
+        } catch (error) {
+          resampled.textContent = error.message;
+        }
+      }
+
       function translate() {
         if (document.visibilityState === "hidden") return;
         currentPath = currentPath === p1 ? p2 : p1;
@@ -269,12 +357,14 @@
       path1.textContent = shape1;
       path2.textContent = shape2;
 
-      equalize();
+      equalizeShapes();
+      resample();
       translate();
 
       setInterval(translate, 3000);
 
-      btn.onclick = equalize;
+      document.getElementById("equalizeBtn").onclick = equalizeShapes;
+      document.getElementById("resampleBtn").onclick = resample;
     </script>
   </body>
 </html>

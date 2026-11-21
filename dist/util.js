@@ -4,31 +4,6 @@
 * Licensed under MIT (https://github.com/thednp/svg-path-commander/blob/master/LICENSE)
 */
 import CSSMatrix from "@thednp/dommatrix";
-// src/math/midPoint.ts
-/**
-* Returns the coordinates of a specified distance
-* ratio between two points.
-*
-* @param a the first point coordinates
-* @param b the second point coordinates
-* @param t the ratio
-* @returns the midpoint coordinates
-*/
-const midPoint = ([ax, ay], [bx, by], t) => {
-	return [ax + (bx - ax) * t, ay + (by - ay) * t];
-};
-// src/math/distanceSquareRoot.ts
-/**
-* Returns the square root of the distance
-* between two given points.
-*
-* @param a the first point coordinates
-* @param b the second point coordinates
-* @returns the distance value
-*/
-const distanceSquareRoot = (a, b) => {
-	return Math.sqrt((a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]));
-};
 // src/math/lineTools.ts
 /**
 * Returns length for line segments (MoveTo, LineTo).
@@ -40,7 +15,9 @@ const distanceSquareRoot = (a, b) => {
 * @returns the line segment length
 */
 const getLineLength = (x1, y1, x2, y2) => {
-	return distanceSquareRoot([x1, y1], [x2, y2]);
+	const dx = x1 - x2;
+	const dy = y1 - y2;
+	return Math.sqrt(dx * dx + dy * dy);
 };
 /**
 * Returns a point along the line segments (MoveTo, LineTo).
@@ -58,7 +35,7 @@ const getPointAtLineLength = (x1, y1, x2, y2, distance) => {
 		y: y1
 	};
 	if (typeof distance === "number") {
-		const length = distanceSquareRoot([x1, y1], [x2, y2]);
+		const length = getLineLength(x1, y1, x2, y2);
 		if (distance <= 0) point = {
 			x: x1,
 			y: y1
@@ -68,10 +45,10 @@ const getPointAtLineLength = (x1, y1, x2, y2, distance) => {
 			y: y2
 		};
 		else {
-			const [x, y] = midPoint([x1, y1], [x2, y2], distance / length);
+			const ratio = distance / length;
 			point = {
-				x,
-				y
+				x: x1 + (x2 - x1) * ratio,
+				y: y1 + (y2 - y1) * ratio
 			};
 		}
 	}
@@ -274,6 +251,62 @@ const bezierLengthAtT = (derivativeFn, t) => {
 	return z * sum;
 };
 /**
+* Returns the speed of a Bezier segment at a given ratio, without allocating
+* a point for it.
+*
+* The quadrature of the length samples the speed of the curve at every one of
+* its points, and a point per sample is a lot of garbage for a long path. The
+* arithmetic is the one of `computeBezier`, so the length of a curve is the
+* same.
+*
+* @param points the control points of the derivative of the curve
+* @param t the sampled point ratio
+* @returns the speed of the curve at the ratio
+*/
+const bezierSpeed = (points, t) => {
+	const order = points.length - 1;
+	const mt = 1 - t;
+	if (order === 1) {
+		const x = mt * points[0].x + t * points[1].x;
+		const y = mt * points[0].y + t * points[1].y;
+		return Math.sqrt(x * x + y * y);
+	}
+	if (order === 2) {
+		const mt2 = mt * mt;
+		const t2 = t * t;
+		const a = mt2;
+		const b = mt * t * 2;
+		const c = t2;
+		const x = a * points[0].x + b * points[1].x + c * points[2].x;
+		const y = a * points[0].y + b * points[1].y + c * points[2].y;
+		return Math.sqrt(x * x + y * y);
+	}
+	const d = computeBezier(points, t);
+	return Math.sqrt(d.x * d.x + d.y * d.y);
+};
+/**
+* Returns the arc length of a Bezier segment from its start point
+* up to a given `t` ratio, from the control points of its derivative.
+*
+* The integration of the speed `|B'(t)|` over the `[0, t]` interval is done
+* with the Gauss-Legendre quadrature, and the speed is computed without
+* allocating a point for it.
+*
+* @param points the control points of the derivative of the curve
+* @param t the sampled point ratio in `[0-1]`
+* @returns the arc length up to parameter `t`
+*/
+const bezierLengthAtPoints = (points, t) => {
+	const z = t / 2;
+	const len = Tvalues.length;
+	let sum = 0;
+	for (let i = 0, tMid; i < len; i++) {
+		tMid = z * Tvalues[i] + z;
+		sum += Cvalues[i] * bezierSpeed(points, tMid);
+	}
+	return z * sum;
+};
+/**
 * Builds the Bezier points array from a curve coordinates array.
 * @param curve cubic / quad bezier segment
 */
@@ -295,9 +328,7 @@ const getBezierPoints = (curve) => {
 */
 const getBezierLengthAtT = (curve, t) => {
 	const dpoints = deriveBezier(getBezierPoints(curve));
-	return bezierLengthAtT((ratio) => {
-		return computeBezier(dpoints[0], ratio);
-	}, t);
+	return bezierLengthAtPoints(dpoints[0], t);
 };
 /**
 * Returns the `t` parameter of a Bezier segment at which the cumulative
@@ -308,15 +339,12 @@ const getBezierLengthAtT = (curve, t) => {
 * @returns the `t` parameter in `[0-1]`
 */
 const getTAtBezierLength = (curve, distance) => {
-	const dpoints = deriveBezier(getBezierPoints(curve));
-	const derivativeFn = (ratio) => {
-		return computeBezier(dpoints[0], ratio);
-	};
+	const points = deriveBezier(getBezierPoints(curve))[0];
 	let lo = 0;
 	let hi = 1;
 	for (let i = 0; i < 25; i += 1) {
 		const mid = (lo + hi) / 2;
-		if (bezierLengthAtT(derivativeFn, mid) < distance) lo = mid;
+		if (bezierLengthAtPoints(points, mid) < distance) lo = mid;
 		else hi = mid;
 	}
 	return (lo + hi) / 2;
@@ -328,9 +356,7 @@ const getTAtBezierLength = (curve, distance) => {
 const getBezierLength = (curve) => {
 	const points = getBezierPoints(curve);
 	const dpoints = deriveBezier(points);
-	return bezierLength((t) => {
-		return computeBezier(dpoints[0], t);
-	});
+	return bezierLengthAtPoints(dpoints[0], 1);
 };
 /** The precision threshold to consider a cubic polynomial as quadratic. */
 const CBEZIER_MINMAX_EPSILON = 1e-8;
@@ -473,7 +499,7 @@ const angleBetween = (v0, v1) => {
 	const { x: v1x, y: v1y } = v1;
 	const p = v0x * v1x + v0y * v1y;
 	const n = Math.sqrt((v0x ** 2 + v0y ** 2) * (v1x ** 2 + v1y ** 2));
-	return (v0x * v1y - v0y * v1x < 0 ? -1 : 1) * Math.acos(p / n);
+	return (v0x * v1y - v0y * v1x < 0 ? -1 : 1) * Math.acos(Math.min(1, Math.max(-1, p / n)));
 };
 /**
 * Returns the following properties for an Arc segment: center, start angle,
@@ -652,9 +678,21 @@ const getPointAtArcLength = (x1, y1, RX, RY, angle, LAF, SF, x, y, distance) => 
 * @returns the extrema of the Arc segment
 */
 const getArcBBox = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
+	const { min, max, tan, atan2, cos, PI } = Math;
+	if (x1 === x && y1 === y) return [
+		x1,
+		y1,
+		x,
+		y
+	];
+	if (RX === 0 || RY === 0) return [
+		min(x1, x),
+		min(y1, y),
+		max(x1, x),
+		max(y1, y)
+	];
 	const { center, rx, ry, startAngle, endAngle } = getArcProps(x1, y1, RX, RY, angle, LAF, SF, x, y);
 	const deltaAngle = endAngle - startAngle;
-	const { min, max, tan, atan2, cos, PI } = Math;
 	const { x: cx, y: cy } = center;
 	const alpha = angle * PI / 180;
 	const tangent = tan(alpha);
@@ -672,51 +710,43 @@ const getArcBBox = (x1, y1, RX, RY, angle, LAF, SF, x, y) => {
 	const leftAngle = flipped ? angle1 : angle2;
 	const topAngle = flipped ? angle3 : angle4;
 	const bottomAngle = flipped ? angle4 : angle3;
-	const xArray = [x];
-	const yArray = [y];
-	let xMin = min(x1, x);
-	let xMax = max(x1, x);
-	let yMin = min(y1, y);
-	let yMax = max(y1, y);
-	const angleAfterStart = endAngle - deltaAngle * 1e-5;
-	const pP2 = arcPoint(cx, cy, rx, ry, alpha, angleAfterStart);
-	const angleBeforeEnd = endAngle - deltaAngle * .99999;
-	const pP3 = arcPoint(cx, cy, rx, ry, alpha, angleBeforeEnd);
+	const xArray = [x1, x];
+	const yArray = [y1, y];
+	const span = Math.abs(deltaAngle);
+	const clockwise = deltaAngle >= 0;
 	/**
-	* expected extremes
-	* if leaving inner bounding box
-	* (between segment start and end point)
-	* otherwise exclude elliptic extreme points
+	* tells if an extremum of the ellipse is on the arc, the offset of the
+	* extremum is measured from the start of the arc, in the direction of
+	* the sweep
 	*/
-	if (pP2[0] > xMax || pP3[0] > xMax) {
-		const p1 = arcPoint(cx, cy, rx, ry, alpha, rightAngle);
-		xArray.push(p1[0]);
-		yArray.push(p1[1]);
+	const isOnArc = (extremum) => {
+		return (clockwise ? ((extremum - startAngle) % (2 * PI) + 2 * PI) % (2 * PI) : ((startAngle - extremum) % (2 * PI) + 2 * PI) % (2 * PI)) <= span + 1e-9;
+	};
+	if (isOnArc(rightAngle)) {
+		const p = arcPoint(cx, cy, rx, ry, alpha, rightAngle);
+		xArray.push(p[0]);
+		yArray.push(p[1]);
 	}
-	if (pP2[0] < xMin || pP3[0] < xMin) {
-		const p2 = arcPoint(cx, cy, rx, ry, alpha, leftAngle);
-		xArray.push(p2[0]);
-		yArray.push(p2[1]);
+	if (isOnArc(leftAngle)) {
+		const p = arcPoint(cx, cy, rx, ry, alpha, leftAngle);
+		xArray.push(p[0]);
+		yArray.push(p[1]);
 	}
-	if (pP2[1] < yMin || pP3[1] < yMin) {
-		const p4 = arcPoint(cx, cy, rx, ry, alpha, topAngle);
-		xArray.push(p4[0]);
-		yArray.push(p4[1]);
+	if (isOnArc(topAngle)) {
+		const p = arcPoint(cx, cy, rx, ry, alpha, topAngle);
+		xArray.push(p[0]);
+		yArray.push(p[1]);
 	}
-	if (pP2[1] > yMax || pP3[1] > yMax) {
-		const p3 = arcPoint(cx, cy, rx, ry, alpha, bottomAngle);
-		xArray.push(p3[0]);
-		yArray.push(p3[1]);
+	if (isOnArc(bottomAngle)) {
+		const p = arcPoint(cx, cy, rx, ry, alpha, bottomAngle);
+		xArray.push(p[0]);
+		yArray.push(p[1]);
 	}
-	xMin = min.apply([], xArray);
-	yMin = min.apply([], yArray);
-	xMax = max.apply([], xArray);
-	yMax = max.apply([], yArray);
 	return [
-		xMin,
-		yMin,
-		xMax,
-		yMax
+		min(...xArray),
+		min(...yArray),
+		max(...xArray),
+		max(...yArray)
 	];
 };
 /** The tools for elliptical arc computation. */
@@ -982,6 +1012,18 @@ const quadTools = {
 	getQuadBBox,
 	getQuadLength
 };
+// src/math/distanceSquareRoot.ts
+/**
+* Returns the square root of the distance
+* between two given points.
+*
+* @param a the first point coordinates
+* @param b the second point coordinates
+* @returns the distance value
+*/
+const distanceSquareRoot = (a, b) => {
+	return Math.sqrt((a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]));
+};
 // src/math/polygonTools.ts
 /**
 * d3-polygon-area
@@ -1044,6 +1086,19 @@ const polygonTools = {
 	polygonLength,
 	polygonCentroid
 };
+// src/math/midPoint.ts
+/**
+* Returns the coordinates of a specified distance
+* ratio between two points.
+*
+* @param a the first point coordinates
+* @param b the second point coordinates
+* @param t the ratio
+* @returns the midpoint coordinates
+*/
+const midPoint = ([ax, ay], [bx, by], t) => {
+	return [ax + (bx - ax) * t, ay + (by - ay) * t];
+};
 // src/math/rotateVector.ts
 /**
 * Returns an {x,y} vector rotated by a given
@@ -1088,6 +1143,21 @@ const paramsCounts = {
 	v: 1,
 	z: 0
 };
+/**
+* The number of parameters of every command, by character code.
+*
+* The parser looks the number of the parameters of a command up for every
+* segment it scans, and the lookup by character code spares it the
+* lowercasing of the command and the lookup of the string.
+*
+* @internal
+*/
+const paramsCountsByCode = new Uint8Array(128);
+for (const [command, count] of Object.entries(paramsCounts)) {
+	const code = command.charCodeAt(0);
+	paramsCountsByCode[code] = count;
+	paramsCountsByCode[code - 32] = count;
+}
 // src/parser/finalizeSegment.ts
 /**
 * Breaks the parsing of a pathString once a segment is finalized.
@@ -1096,28 +1166,29 @@ const paramsCounts = {
 */
 const finalizeSegment = (path) => {
 	let pathCommand = path.pathValue[path.segmentStart];
-	let relativeCommand = pathCommand.toLowerCase();
 	const { data } = path;
 	let index = 0;
-	while (data.length - index >= paramsCounts[relativeCommand]) {
-		if (relativeCommand === "m" && data.length - index > 2) {
+	let paramCount = paramsCountsByCode[pathCommand.charCodeAt(0) | 32];
+	let isMove = pathCommand === "m" || pathCommand === "M";
+	while (data.length - index >= paramCount) {
+		if (isMove && data.length - index > 2) {
 			const segment = new Array(3);
 			segment[0] = pathCommand;
 			segment[1] = data[index];
 			segment[2] = data[index + 1];
 			path.segments.push(segment);
 			index += 2;
-			relativeCommand = "l";
+			isMove = false;
 			pathCommand = pathCommand === "m" ? "l" : "L";
+			paramCount = 2;
 		} else {
-			const paramCount = paramsCounts[relativeCommand];
 			const segment = new Array(paramCount + 1);
 			segment[0] = pathCommand;
 			for (let i = 0; i < paramCount; i += 1) segment[i + 1] = data[index + i];
 			path.segments.push(segment);
 			index += paramCount;
 		}
-		if (!paramsCounts[relativeCommand]) break;
+		if (!paramCount) break;
 	}
 };
 // src/util/error.ts
@@ -1398,7 +1469,7 @@ const isMoveCommand = (code) => {
 const scanSegment = (path) => {
 	const { max, pathValue, index, segments } = path;
 	const cmdCode = pathValue.charCodeAt(index);
-	const reqParams = paramsCounts[pathValue[index].toLowerCase()];
+	const reqParams = paramsCountsByCode[cmdCode];
 	path.segmentStart = index;
 	if (!isPathCommand(cmdCode)) {
 		path.err = `${error}: ${invalidPathValue} "${pathValue[index]}" is not a path command at index ${index}`;
@@ -1585,7 +1656,7 @@ const iterate = (path, iterator) => {
 	let i = 0;
 	while (i < path.length) {
 		const segment = path[i];
-		const [pathCommand] = segment;
+		const pathCommand = segment[0];
 		if (typeof pathCommand !== "string") throw new TypeError(`${error}: invalid path segment at index ${i}`);
 		const commandCode = pathCommand.charCodeAt(0);
 		const isRelative = commandCode >= 97;
@@ -1893,18 +1964,28 @@ const normalizeSegment = (segment, params, prevCommand) => {
 	const absCommand = pathCommand.toUpperCase();
 	const isRelative = pathCommand !== absCommand;
 	const { x, y } = params;
-	const values = segment.slice(1);
-	let absValues = values.map((n, j) => n + (isRelative ? j % 2 ? y : x : 0));
 	if (!"TQ".includes(absCommand)) {
 		params.qx = null;
 		params.qy = null;
 	}
-	if (absCommand === "A") {
-		absValues = values.slice(0, -2).concat(values[5] + (isRelative ? x : 0), values[6] + (isRelative ? y : 0));
-		return ["A"].concat(absValues);
-	} else if (absCommand === "H") return [
+	const absolute = (index) => {
+		const value = segment[index];
+		if (!isRelative) return value;
+		return index % 2 === 1 ? value + x : value + y;
+	};
+	if (absCommand === "A") return [
+		"A",
+		segment[1],
+		segment[2],
+		segment[3],
+		segment[4],
+		segment[5],
+		segment[6] + (isRelative ? x : 0),
+		segment[7] + (isRelative ? y : 0)
+	];
+	else if (absCommand === "H") return [
 		"L",
-		segment[1] + (isRelative ? x : 0),
+		absolute(1),
 		y
 	];
 	else if (absCommand === "V") return [
@@ -1914,22 +1995,34 @@ const normalizeSegment = (segment, params, prevCommand) => {
 	];
 	else if (absCommand === "L") return [
 		"L",
-		segment[1] + (isRelative ? x : 0),
-		segment[2] + (isRelative ? y : 0)
+		absolute(1),
+		absolute(2)
 	];
 	else if (absCommand === "M") return [
 		"M",
-		segment[1] + (isRelative ? x : 0),
-		segment[2] + (isRelative ? y : 0)
+		absolute(1),
+		absolute(2)
 	];
-	else if (absCommand === "C") return ["C"].concat(absValues);
+	else if (absCommand === "C") return [
+		"C",
+		absolute(1),
+		absolute(2),
+		absolute(3),
+		absolute(4),
+		absolute(5),
+		absolute(6)
+	];
 	else if (absCommand === "S") {
 		const canReflect = prevCommand != null && "CS".includes(prevCommand);
 		return [
 			"C",
 			canReflect && params.x2 != null ? x * 2 - params.x2 : x,
-			canReflect && params.y2 != null ? y * 2 - params.y2 : y
-		].concat(absValues);
+			canReflect && params.y2 != null ? y * 2 - params.y2 : y,
+			absolute(1),
+			absolute(2),
+			absolute(3),
+			absolute(4)
+		];
 	} else if (absCommand === "T") {
 		const qx = params.qx != null ? x * 2 - params.qx : x;
 		const qy = params.qy != null ? y * 2 - params.qy : y;
@@ -1938,13 +2031,22 @@ const normalizeSegment = (segment, params, prevCommand) => {
 		return [
 			"Q",
 			qx,
-			qy
-		].concat(absValues);
+			qy,
+			absolute(1),
+			absolute(2)
+		];
 	} else if (absCommand === "Q") {
-		const [nqx, nqy] = absValues;
+		const nqx = absolute(1);
+		const nqy = absolute(2);
 		params.qx = nqx;
 		params.qy = nqy;
-		return ["Q"].concat(absValues);
+		return [
+			"Q",
+			nqx,
+			nqy,
+			absolute(3),
+			absolute(4)
+		];
 	} else if (absCommand === "Z") return ["Z"];
 	return segment;
 };
@@ -1994,7 +2096,9 @@ const pathToCurve = (pathInput) => {
 		let result = segmentToCubic(normalSegment, params);
 		if (result[0] === "C" && result.length > 7) {
 			const values = result;
-			path.splice(index + 1, 0, ["C"].concat(values.slice(7)));
+			const segments = [];
+			for (let i = 7; i < values.length; i += 6) segments.push(["C"].concat(values.slice(i, i + 6)));
+			path.splice(index + 1, 0, ...segments);
 			result = values.slice(0, 7);
 		}
 		const seglen = result.length;
@@ -2214,9 +2318,9 @@ const measureSegments = (pathInput) => {
 	let my = 0;
 	let totalLength = 0;
 	iterate(path, (seg, index, lastX, lastY) => {
-		[pathCommand] = seg;
+		pathCommand = seg[0];
 		const absCommand = pathCommand.toUpperCase();
-		const absoluteSegment = absCommand !== pathCommand ? absolutizeSegment(seg, index, lastX, lastY) : seg.slice(0);
+		const absoluteSegment = absCommand !== pathCommand ? absolutizeSegment(seg, index, lastX, lastY) : seg;
 		const normalSegment = absCommand === "V" ? [
 			"L",
 			lastX,
@@ -2226,15 +2330,17 @@ const measureSegments = (pathInput) => {
 			absoluteSegment[1],
 			lastY
 		] : absoluteSegment;
-		[pathCommand] = normalSegment;
+		pathCommand = normalSegment[0];
 		if (!"TQ".includes(absCommand)) {
 			paramQX = null;
 			paramQY = null;
 		}
 		let length = 0;
 		let geometry = normalSegment;
-		if (pathCommand === "M") [, mx, my] = normalSegment;
-		else if (pathCommand === "L") length = getLineLength(lastX, lastY, normalSegment[1], normalSegment[2]);
+		if (pathCommand === "M") {
+			mx = normalSegment[1];
+			my = normalSegment[2];
+		} else if (pathCommand === "L") length = getLineLength(lastX, lastY, normalSegment[1], normalSegment[2]);
 		else if (pathCommand === "A") length = getArcLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4], normalSegment[5], normalSegment[6], normalSegment[7]);
 		else if (pathCommand === "S") {
 			const cp1x = paramX1 * 2 - paramX2;
@@ -2266,7 +2372,8 @@ const measureSegments = (pathInput) => {
 			paramQY = normalSegment[2];
 			length = getQuadLength(lastX, lastY, normalSegment[1], normalSegment[2], normalSegment[3], normalSegment[4]);
 		} else if (pathCommand === "Z") length = getLineLength(lastX, lastY, mx, my);
-		const [endX, endY] = pathCommand === "Z" ? [mx, my] : geometry.slice(-2);
+		const endX = pathCommand === "Z" ? mx : geometry[geometry.length - 2];
+		const endY = pathCommand === "Z" ? my : geometry[geometry.length - 1];
 		measures.push({
 			segment: seg,
 			index,
@@ -2279,8 +2386,23 @@ const measureSegments = (pathInput) => {
 			geometry
 		});
 		totalLength += length;
-		[paramX1, paramY1] = pathCommand === "Z" ? [mx, my] : normalSegment.slice(-2);
-		[paramX2, paramY2] = pathCommand === "C" ? [normalSegment[3], normalSegment[4]] : pathCommand === "S" ? [normalSegment[1], normalSegment[2]] : [paramX1, paramY1];
+		if (pathCommand === "Z") {
+			paramX1 = mx;
+			paramY1 = my;
+		} else {
+			paramX1 = normalSegment[normalSegment.length - 2];
+			paramY1 = normalSegment[normalSegment.length - 1];
+		}
+		if (pathCommand === "C") {
+			paramX2 = normalSegment[3];
+			paramY2 = normalSegment[4];
+		} else if (pathCommand === "S") {
+			paramX2 = normalSegment[1];
+			paramY2 = normalSegment[2];
+		} else {
+			paramX2 = paramX1;
+			paramY2 = paramY1;
+		}
 	});
 	return measures;
 };
@@ -2325,16 +2447,18 @@ const buildPathLengthTable = (path) => {
 	let my = 0;
 	let totalLength = 0;
 	let movetoCount = 0;
-	for (const segment of path) {
+	for (const [index, segment] of path.entries()) {
 		const command = segment[0];
 		const measure = {
 			segment,
+			index,
 			startX: x,
 			startY: y,
 			endX: x,
 			endY: y,
 			length: 0,
-			lengthAtSegment: totalLength
+			lengthAtSegment: totalLength,
+			geometry: segment
 		};
 		if (command === "M") {
 			mx = segment[1];
@@ -2380,6 +2504,34 @@ const buildPathLengthTable = (path) => {
 	};
 };
 /**
+* Builds the length table of a path from the shared measure pass.
+*
+* The measure pass resolves the relative offsets and the shorthand control
+* point reflections of a path and holds the length of every segment, so the
+* table can be built from it without measuring the path a second time. The
+* measures of the pass are the measures of the table: the geometry of a
+* measure is the normalized segment, so the table holds the same segments and
+* the same lengths as the one built from a normalized path.
+*
+* @param segmentMeasures - the measured segments of the path
+* @returns the length table of the path
+*/
+const buildPathLengthTableFromMeasures = (segmentMeasures) => {
+	let movetoCount = 0;
+	for (const measure of segmentMeasures) if (measure.geometry[0] === "M") movetoCount += 1;
+	const first = segmentMeasures[0];
+	const last = segmentMeasures[segmentMeasures.length - 1];
+	const startX = first?.endX ?? 0;
+	const startY = first?.endY ?? 0;
+	return {
+		measures: segmentMeasures,
+		totalLength: last ? last.lengthAtSegment + last.length : 0,
+		startX,
+		startY,
+		isLoop: movetoCount === 1 && !!last && Math.hypot(last.endX - startX, last.endY - startY) <= 1e-5
+	};
+};
+/**
 * Returns the point of a measured path at a given distance.
 *
 * The segment is found with a binary search over the accumulated lengths:
@@ -2409,7 +2561,7 @@ const getPointAtTable = (table, distance) => {
 		else high = mid - 1;
 	}
 	const measure = measures[low];
-	const { segment, startX: x1, startY: y1, endX, endY } = measure;
+	const { geometry: segment, startX: x1, startY: y1, endX, endY } = measure;
 	const command = segment[0];
 	const offset = distance - measure.lengthAtSegment;
 	if (command === "M") return {
@@ -2697,12 +2849,11 @@ const frameOf = (measure, offset = 0) => {
 * that point: the unit tangent vector, the unit normal vector and the angle
 * of the tangent in degrees.
 *
-* @param pathInput target `pathArray`
-* @param distance the given length
+* @param measures - the measured segments of the path
+* @param distance - the given length
 * @returns the requested properties
 */
-const getPropertiesAtLength = (pathInput, distance) => {
-	const measures = measureSegments(pathInput);
+const getPropertiesFromMeasures = (measures, distance) => {
 	const lastIndex = measures.length - 1;
 	const segment = measures[0]?.segment ?? [
 		"M",
@@ -2738,44 +2889,31 @@ const getPropertiesAtLength = (pathInput, distance) => {
 		...frameOf(measure, distance - measure.lengthAtSegment)
 	};
 };
-// src/process/normalizePath.ts
 /**
-* Parses a path string or PathArray, then iterates the result for:
-* * converting segments to absolute values
-* * converting shorthand commands to their non-shorthand notation
+* Returns the segment, its index and length as well as
+* the length to that segment at a given length in a path.
 *
-* @param pathInput - The path string or PathArray
-* @returns The normalized PathArray
+* The point at the given length is returned with the frame of the path at
+* that point: the unit tangent vector, the unit normal vector and the angle
+* of the tangent in degrees.
 *
-* @example
-* ```ts
-* normalizePath('M10 90s20 -80 40 -80s20 80 40 80')
-* // => [['M', 10, 90], ['C', 10, 90, 30, 10, 50, 10], ['C', 70, 10, 70, 90, 90, 90]]
-* ```
+* @param pathInput target `pathArray`
+* @param distance the given length
+* @returns the requested properties
 */
-const normalizePath = (pathInput) => {
-	const path = parsePathString(pathInput);
-	const params = { ...paramsParser };
-	let prevCommand = null;
-	return iterate(path, (seg, _, lastX, lastY) => {
-		params.x = lastX;
-		params.y = lastY;
-		const result = normalizeSegment(seg, params, prevCommand);
-		const seglen = result.length;
-		params.x1 = +result[seglen - 2];
-		params.y1 = +result[seglen - 1];
-		if (result[0] === "C" || result[0] === "Q") {
-			params.x2 = +result[seglen - 4];
-			params.y2 = +result[seglen - 3];
-		} else {
-			params.x2 = null;
-			params.y2 = null;
-		}
-		prevCommand = result[0];
-		return result;
-	});
+const getPropertiesAtLength = (pathInput, distance) => {
+	return getPropertiesFromMeasures(measureSegments(pathInput), distance);
 };
 // src/util/getPropertiesAtPoint.ts
+/**
+* The relative difference below which two distances are the same.
+*
+* The distance of a point to a path is squared, so the noise of the floating
+* point arithmetic is relative to the distance itself. A path that runs at a
+* constant distance from the point — a circle around it — has no minimum at
+* all, and the noise of the samples must not be read as one.
+*/
+const distanceEpsilon = 1e-7;
 /**
 * Returns the point and segment in path closest to a given point as well as
 * the distance to the path stroke.
@@ -2795,8 +2933,8 @@ const getPropertiesAtPoint = (pathInput, point) => {
 		},
 		distance: Infinity
 	};
-	const normalPath = normalizePath(path);
-	const table = buildPathLengthTable(normalPath);
+	const segmentMeasures = measureSegments(path);
+	const table = buildPathLengthTableFromMeasures(segmentMeasures);
 	const pathLength = table.totalLength;
 	const isLoop = table.isLoop;
 	const distanceTo = (p) => {
@@ -2804,51 +2942,96 @@ const getPropertiesAtPoint = (pathInput, point) => {
 		const dy = p.y - point.y;
 		return dx * dx + dy * dy;
 	};
-	let precision = 8;
-	let scan;
-	let closest = {
+	const scanStep = 8;
+	const candidates = [];
+	let bestLength = 0;
+	let bestDistance = Infinity;
+	let bestPoint = {
 		x: 0,
 		y: 0
 	};
-	let scanDistance = 0;
-	let bestLength = 0;
-	let bestDistance = Infinity;
-	for (let scanLength = 0; scanLength <= pathLength; scanLength += precision) {
-		scan = getPointAtTable(table, scanLength);
-		scanDistance = distanceTo(scan);
+	let previousDistance = Infinity;
+	let lastLength = 0;
+	let lastDistance = Infinity;
+	let lastPoint = {
+		x: 0,
+		y: 0
+	};
+	for (let scanLength = 0; scanLength <= pathLength; scanLength += scanStep) {
+		const scan = getPointAtTable(table, scanLength);
+		const scanDistance = distanceTo(scan);
+		if (lastDistance < scanDistance - scanDistance * distanceEpsilon && lastDistance <= previousDistance + previousDistance * distanceEpsilon) candidates.push({
+			length: lastLength,
+			distance: lastDistance,
+			point: lastPoint
+		});
+		previousDistance = lastDistance;
+		lastLength = scanLength;
+		lastDistance = scanDistance;
+		lastPoint = scan;
 		if (scanDistance < bestDistance) {
-			closest = scan;
 			bestLength = scanLength;
 			bestDistance = scanDistance;
+			bestPoint = scan;
 		}
 	}
-	precision /= 2;
-	let beforeLength = 0;
-	let afterLength = 0;
-	while (precision > 1e-6) {
-		beforeLength = bestLength - precision;
-		afterLength = bestLength + precision;
-		if (beforeLength < 0) beforeLength = isLoop ? beforeLength + pathLength : -1;
-		if (afterLength > pathLength) afterLength = isLoop ? afterLength - pathLength : pathLength + 1;
-		const before = beforeLength >= 0 && beforeLength <= pathLength ? getPointAtTable(table, beforeLength) : null;
-		const after = afterLength >= 0 && afterLength <= pathLength ? getPointAtTable(table, afterLength) : null;
-		const beforeDistance = before ? distanceTo(before) : Infinity;
-		const afterDistance = after ? distanceTo(after) : Infinity;
-		if (before && beforeDistance < bestDistance) {
-			closest = before;
-			bestLength = beforeLength;
-			bestDistance = beforeDistance;
-		} else if (after && afterDistance < bestDistance) {
-			closest = after;
-			bestLength = afterLength;
-			bestDistance = afterDistance;
-		} else precision /= 2;
-		if (precision < 1e-5) break;
+	if (lastDistance < previousDistance - previousDistance * distanceEpsilon) candidates.push({
+		length: lastLength,
+		distance: lastDistance,
+		point: lastPoint
+	});
+	const refine = (start) => {
+		let { length, distance, point } = start;
+		let precision = scanStep / 2;
+		let beforeLength = 0;
+		let afterLength = 0;
+		while (precision > 1e-6) {
+			beforeLength = length - precision;
+			afterLength = length + precision;
+			if (beforeLength < 0) beforeLength = isLoop ? beforeLength + pathLength : -1;
+			if (afterLength > pathLength) afterLength = isLoop ? afterLength - pathLength : pathLength + 1;
+			const before = beforeLength >= 0 && beforeLength <= pathLength ? getPointAtTable(table, beforeLength) : null;
+			const after = afterLength >= 0 && afterLength <= pathLength ? getPointAtTable(table, afterLength) : null;
+			const beforeDistance = before ? distanceTo(before) : Infinity;
+			const afterDistance = after ? distanceTo(after) : Infinity;
+			if (before && beforeDistance < distance) {
+				point = before;
+				length = beforeLength;
+				distance = beforeDistance;
+			} else if (after && afterDistance < distance) {
+				point = after;
+				length = afterLength;
+				distance = afterDistance;
+			} else precision /= 2;
+			if (precision < 1e-5) break;
+		}
+		return {
+			closest: point,
+			distance,
+			length
+		};
+	};
+	const best = refine({
+		length: bestLength,
+		distance: bestDistance,
+		point: bestPoint
+	});
+	let closest = best.closest;
+	let closestDistance = best.distance;
+	let closestLength = best.length;
+	candidates.sort((a, b) => a.distance - b.distance);
+	for (const candidate of candidates) {
+		const refined = refine(candidate);
+		if (refined.distance < closestDistance) {
+			closest = refined.closest;
+			closestDistance = refined.distance;
+			closestLength = refined.length;
+		}
 	}
-	const segment = getPropertiesAtLength(path, bestLength);
+	const segment = getPropertiesFromMeasures(segmentMeasures, closestLength);
 	return {
 		closest,
-		distance: Math.sqrt(bestDistance),
+		distance: Math.sqrt(closestDistance),
 		segment
 	};
 };
@@ -2935,6 +3118,43 @@ const getCurveArea = (path) => {
 */
 const getDrawDirection = (path) => {
 	return getCurveArea(pathToCurve(path)) >= 0;
+};
+// src/process/normalizePath.ts
+/**
+* Parses a path string or PathArray, then iterates the result for:
+* * converting segments to absolute values
+* * converting shorthand commands to their non-shorthand notation
+*
+* @param pathInput - The path string or PathArray
+* @returns The normalized PathArray
+*
+* @example
+* ```ts
+* normalizePath('M10 90s20 -80 40 -80s20 80 40 80')
+* // => [['M', 10, 90], ['C', 10, 90, 30, 10, 50, 10], ['C', 70, 10, 70, 90, 90, 90]]
+* ```
+*/
+const normalizePath = (pathInput) => {
+	const path = parsePathString(pathInput);
+	const params = { ...paramsParser };
+	let prevCommand = null;
+	return iterate(path, (seg, _, lastX, lastY) => {
+		params.x = lastX;
+		params.y = lastY;
+		const result = normalizeSegment(seg, params, prevCommand);
+		const seglen = result.length;
+		params.x1 = +result[seglen - 2];
+		params.y1 = +result[seglen - 1];
+		if (result[0] === "C" || result[0] === "Q") {
+			params.x2 = +result[seglen - 4];
+			params.y2 = +result[seglen - 3];
+		} else {
+			params.x2 = null;
+			params.y2 = null;
+		}
+		prevCommand = result[0];
+		return result;
+	});
 };
 // src/util/getPointAtLength.ts
 /**
@@ -3341,15 +3561,14 @@ const isMultiPath = (path) => {
 		const matches = path.match(/[Mm]/g);
 		return matches ? matches.length > 1 : false;
 	}
-	if (isPathArray(path)) {
-		let moveCount = 0;
-		for (const segment of path) if (segment[0].toUpperCase() === "M") {
-			moveCount++;
-			if (moveCount > 1) return true;
-		}
-		return false;
+	if (!Array.isArray(path)) throw new TypeError(error + ": expected string or PathArray");
+	if (!isPathArray(path)) return false;
+	let moveCount = 0;
+	for (const segment of path) if (segment[0].toUpperCase() === "M") {
+		moveCount++;
+		if (moveCount > 1) return true;
 	}
-	throw new TypeError(error + ": expected string or PathArray");
+	return false;
 };
 // src/util/isClosedPath.ts
 /**
@@ -3562,6 +3781,12 @@ const getEllipsePath = (attr) => {
 /**
 * Returns a new PathArray from rect attributes.
 *
+* The corners of a rounded rectangle are elliptical arcs, one for every
+* corner, and the radius of the corners follows the rules of the spec: a
+* missing radius takes the value of the other one, an explicit zero
+* disables the rounding and a radius bigger than half of the size of the
+* rectangle is clamped to it.
+*
 * @param attr - Object with x, y, width, height, and optional rx/ry
 * @returns A new PathArray from `<rect>` attributes
 *
@@ -3576,11 +3801,13 @@ const getRectanglePath = (attr) => {
 	const y = +attr.y || 0;
 	const w = +attr.width;
 	const h = +attr.height;
-	let rx = +(attr.rx || 0);
-	let ry = +(attr.ry || rx);
-	if (rx || ry) {
-		if (rx * 2 > w) rx -= (rx * 2 - w) / 2;
-		if (ry * 2 > h) ry -= (ry * 2 - h) / 2;
+	const rxValue = attr.rx === void 0 || attr.rx === null ? void 0 : +attr.rx;
+	const ryValue = attr.ry === void 0 || attr.ry === null ? void 0 : +attr.ry;
+	let rx = rxValue ?? ryValue ?? 0;
+	let ry = ryValue ?? rxValue ?? 0;
+	if (rx > 0 && ry > 0) {
+		rx = Math.min(rx, w / 2);
+		ry = Math.min(ry, h / 2);
 		return [
 			[
 				"M",
@@ -3589,36 +3816,49 @@ const getRectanglePath = (attr) => {
 			],
 			["h", w - rx * 2],
 			[
-				"s",
+				"a",
 				rx,
+				ry,
 				0,
+				0,
+				1,
 				rx,
 				ry
 			],
 			["v", h - ry * 2],
 			[
-				"s",
-				0,
+				"a",
+				rx,
 				ry,
+				0,
+				0,
+				1,
 				-rx,
 				ry
 			],
 			["h", -w + rx * 2],
 			[
-				"s",
-				-rx,
+				"a",
+				rx,
+				ry,
 				0,
+				0,
+				1,
 				-rx,
 				-ry
 			],
 			["v", -h + ry * 2],
 			[
-				"s",
+				"a",
+				rx,
+				ry,
 				0,
-				-ry,
+				0,
+				1,
 				rx,
 				-ry
-			]
+			],
+			["Z"]
 		];
 	}
 	return [
@@ -4200,8 +4440,26 @@ const shortenSegment = (segment, normalSegment, params, prevCommand) => {
 * @returns The rounded segment
 */
 const roundSegment = (segment, roundOption) => {
-	const values = segment.slice(1).map((n) => roundTo(n, roundOption));
-	return [segment[0]].concat(values);
+	const result = new Array(segment.length);
+	for (let i = 0; i < segment.length; i += 1) result[i] = i === 0 ? segment[0] : roundTo(segment[i], roundOption);
+	return result;
+};
+// src/process/segmentStringLength.ts
+/**
+* Returns the length of the string representation of a path segment.
+*
+* The string of a segment is its command followed by its values, without a
+* separator, so its length is the length of the command plus the length of
+* every value. The string itself is not needed to know its length, so it is
+* not built.
+*
+* @param segment - The path segment to measure
+* @returns The length of the string of the segment
+*/
+const segmentStringLength = (segment) => {
+	let length = String(segment[0]).length;
+	for (let i = 1; i < segment.length; i += 1) length += String(segment[i]).length;
+	return length;
 };
 // src/process/optimizePath.ts
 /**
@@ -4237,11 +4495,10 @@ const optimizePath = (pathInput, roundOption) => {
 		if (i) {
 			const shortSegment = shortenSegment(seg, normalizedSegment, optimParams, prevCommand);
 			const absSegment = roundSegment(shortSegment, round);
-			const absString = absSegment.join("");
+			const absLength = segmentStringLength(absSegment);
 			const relativeSegment = relativizeSegment(shortSegment, i, lastX, lastY);
 			const relSegment = roundSegment(relativeSegment, round);
-			const relString = relSegment.join("");
-			result = absString.length < relString.length ? absSegment : relSegment;
+			result = absLength < segmentStringLength(relSegment) ? absSegment : relSegment;
 		}
 		const seglen = normalizedSegment.length;
 		optimParams.x1 = +normalizedSegment[seglen - 2];
@@ -4934,7 +5191,7 @@ const samplePath = (path, step) => {
 	const { measures } = buildPathLengthTable(path);
 	const samples = [];
 	for (const measure of measures) {
-		const { segment, startX, startY, endX, endY, length } = measure;
+		const { geometry: segment, startX, startY, endX, endY, length } = measure;
 		const command = segment[0];
 		if (command === "Z") {
 			samples.push({

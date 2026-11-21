@@ -266,7 +266,7 @@ const iterate = (path, iterator) => {
 	let i = 0;
 	while (i < path.length) {
 		const segment = path[i];
-		const [pathCommand] = segment;
+		const pathCommand = segment[0];
 		if (typeof pathCommand !== "string") throw new TypeError(`${error}: invalid path segment at index ${i}`);
 		const commandCode = pathCommand.charCodeAt(0);
 		const isRelative = commandCode >= 97;
@@ -307,6 +307,21 @@ const paramsCounts = {
 	v: 1,
 	z: 0
 };
+/**
+* The number of parameters of every command, by character code.
+*
+* The parser looks the number of the parameters of a command up for every
+* segment it scans, and the lookup by character code spares it the
+* lowercasing of the command and the lookup of the string.
+*
+* @internal
+*/
+const paramsCountsByCode = new Uint8Array(128);
+for (const [command, count] of Object.entries(paramsCounts)) {
+	const code = command.charCodeAt(0);
+	paramsCountsByCode[code] = count;
+	paramsCountsByCode[code - 32] = count;
+}
 // src/parser/finalizeSegment.ts
 /**
 * Breaks the parsing of a pathString once a segment is finalized.
@@ -315,28 +330,29 @@ const paramsCounts = {
 */
 const finalizeSegment = (path) => {
 	let pathCommand = path.pathValue[path.segmentStart];
-	let relativeCommand = pathCommand.toLowerCase();
 	const { data } = path;
 	let index = 0;
-	while (data.length - index >= paramsCounts[relativeCommand]) {
-		if (relativeCommand === "m" && data.length - index > 2) {
+	let paramCount = paramsCountsByCode[pathCommand.charCodeAt(0) | 32];
+	let isMove = pathCommand === "m" || pathCommand === "M";
+	while (data.length - index >= paramCount) {
+		if (isMove && data.length - index > 2) {
 			const segment = new Array(3);
 			segment[0] = pathCommand;
 			segment[1] = data[index];
 			segment[2] = data[index + 1];
 			path.segments.push(segment);
 			index += 2;
-			relativeCommand = "l";
+			isMove = false;
 			pathCommand = pathCommand === "m" ? "l" : "L";
+			paramCount = 2;
 		} else {
-			const paramCount = paramsCounts[relativeCommand];
 			const segment = new Array(paramCount + 1);
 			segment[0] = pathCommand;
 			for (let i = 0; i < paramCount; i += 1) segment[i + 1] = data[index + i];
 			path.segments.push(segment);
 			index += paramCount;
 		}
-		if (!paramsCounts[relativeCommand]) break;
+		if (!paramCount) break;
 	}
 };
 // src/parser/scanFlag.ts
@@ -614,7 +630,7 @@ const isMoveCommand = (code) => {
 const scanSegment = (path) => {
 	const { max, pathValue, index, segments } = path;
 	const cmdCode = pathValue.charCodeAt(index);
-	const reqParams = paramsCounts[pathValue[index].toLowerCase()];
+	const reqParams = paramsCountsByCode[cmdCode];
 	path.segmentStart = index;
 	if (!isPathCommand(cmdCode)) {
 		path.err = `${error}: ${invalidPathValue} "${pathValue[index]}" is not a path command at index ${index}`;
@@ -728,18 +744,28 @@ const normalizeSegment = (segment, params, prevCommand) => {
 	const absCommand = pathCommand.toUpperCase();
 	const isRelative = pathCommand !== absCommand;
 	const { x, y } = params;
-	const values = segment.slice(1);
-	let absValues = values.map((n, j) => n + (isRelative ? j % 2 ? y : x : 0));
 	if (!"TQ".includes(absCommand)) {
 		params.qx = null;
 		params.qy = null;
 	}
-	if (absCommand === "A") {
-		absValues = values.slice(0, -2).concat(values[5] + (isRelative ? x : 0), values[6] + (isRelative ? y : 0));
-		return ["A"].concat(absValues);
-	} else if (absCommand === "H") return [
+	const absolute = (index) => {
+		const value = segment[index];
+		if (!isRelative) return value;
+		return index % 2 === 1 ? value + x : value + y;
+	};
+	if (absCommand === "A") return [
+		"A",
+		segment[1],
+		segment[2],
+		segment[3],
+		segment[4],
+		segment[5],
+		segment[6] + (isRelative ? x : 0),
+		segment[7] + (isRelative ? y : 0)
+	];
+	else if (absCommand === "H") return [
 		"L",
-		segment[1] + (isRelative ? x : 0),
+		absolute(1),
 		y
 	];
 	else if (absCommand === "V") return [
@@ -749,22 +775,34 @@ const normalizeSegment = (segment, params, prevCommand) => {
 	];
 	else if (absCommand === "L") return [
 		"L",
-		segment[1] + (isRelative ? x : 0),
-		segment[2] + (isRelative ? y : 0)
+		absolute(1),
+		absolute(2)
 	];
 	else if (absCommand === "M") return [
 		"M",
-		segment[1] + (isRelative ? x : 0),
-		segment[2] + (isRelative ? y : 0)
+		absolute(1),
+		absolute(2)
 	];
-	else if (absCommand === "C") return ["C"].concat(absValues);
+	else if (absCommand === "C") return [
+		"C",
+		absolute(1),
+		absolute(2),
+		absolute(3),
+		absolute(4),
+		absolute(5),
+		absolute(6)
+	];
 	else if (absCommand === "S") {
 		const canReflect = prevCommand != null && "CS".includes(prevCommand);
 		return [
 			"C",
 			canReflect && params.x2 != null ? x * 2 - params.x2 : x,
-			canReflect && params.y2 != null ? y * 2 - params.y2 : y
-		].concat(absValues);
+			canReflect && params.y2 != null ? y * 2 - params.y2 : y,
+			absolute(1),
+			absolute(2),
+			absolute(3),
+			absolute(4)
+		];
 	} else if (absCommand === "T") {
 		const qx = params.qx != null ? x * 2 - params.qx : x;
 		const qy = params.qy != null ? y * 2 - params.qy : y;
@@ -773,13 +811,22 @@ const normalizeSegment = (segment, params, prevCommand) => {
 		return [
 			"Q",
 			qx,
-			qy
-		].concat(absValues);
+			qy,
+			absolute(1),
+			absolute(2)
+		];
 	} else if (absCommand === "Q") {
-		const [nqx, nqy] = absValues;
+		const nqx = absolute(1);
+		const nqy = absolute(2);
 		params.qx = nqx;
 		params.qy = nqy;
-		return ["Q"].concat(absValues);
+		return [
+			"Q",
+			nqx,
+			nqy,
+			absolute(3),
+			absolute(4)
+		];
 	} else if (absCommand === "Z") return ["Z"];
 	return segment;
 };
@@ -829,7 +876,9 @@ const pathToCurve = (pathInput) => {
 		let result = segmentToCubic(normalSegment, params);
 		if (result[0] === "C" && result.length > 7) {
 			const values = result;
-			path.splice(index + 1, 0, ["C"].concat(values.slice(7)));
+			const segments = [];
+			for (let i = 7; i < values.length; i += 6) segments.push(["C"].concat(values.slice(i, i + 6)));
+			path.splice(index + 1, 0, ...segments);
 			result = values.slice(0, 7);
 		}
 		const seglen = result.length;
@@ -979,42 +1028,58 @@ const computeBezier = (points, t) => {
 	};
 };
 /**
-* Calculates the speed (derivative magnitude) of a Bezier curve at parameter `t`.
+* Returns the speed of a Bezier segment at a given ratio, without allocating
+* a point for it.
 *
-* @param derivativeFn the curve derivative function
-* @param t the sampled point ratio in `[0-1]`
-* @returns the curve speed at parameter `t`
-*/
-const calculateBezier = (derivativeFn, t) => {
-	const d = derivativeFn(t);
-	const l = d.x * d.x + d.y * d.y;
-	return Math.sqrt(l);
-};
-/**
-* Returns the total arc length of a Bezier segment.
+* The quadrature of the length samples the speed of the curve at every one of
+* its points, and a point per sample is a lot of garbage for a long path. The
+* arithmetic is the one of `computeBezier`, so the length of a curve is the
+* same.
 *
-* @param derivativeFn the curve derivative function
-* @returns the total arc length
+* @param points the control points of the derivative of the curve
+* @param t the sampled point ratio
+* @returns the speed of the curve at the ratio
 */
-const bezierLength = (derivativeFn) => {
-	return bezierLengthAtT(derivativeFn, 1);
+const bezierSpeed = (points, t) => {
+	const order = points.length - 1;
+	const mt = 1 - t;
+	if (order === 1) {
+		const x = mt * points[0].x + t * points[1].x;
+		const y = mt * points[0].y + t * points[1].y;
+		return Math.sqrt(x * x + y * y);
+	}
+	if (order === 2) {
+		const mt2 = mt * mt;
+		const t2 = t * t;
+		const a = mt2;
+		const b = mt * t * 2;
+		const c = t2;
+		const x = a * points[0].x + b * points[1].x + c * points[2].x;
+		const y = a * points[0].y + b * points[1].y + c * points[2].y;
+		return Math.sqrt(x * x + y * y);
+	}
+	const d = computeBezier(points, t);
+	return Math.sqrt(d.x * d.x + d.y * d.y);
 };
 /**
 * Returns the arc length of a Bezier segment from its start point
-* up to a given `t` ratio, by integrating the curve speed `|B'(t)|`
-* over the `[0, t]` interval with Gauss-Legendre quadrature.
+* up to a given `t` ratio, from the control points of its derivative.
 *
-* @param derivativeFn the curve derivative function
+* The integration of the speed `|B'(t)|` over the `[0, t]` interval is done
+* with the Gauss-Legendre quadrature, and the speed is computed without
+* allocating a point for it.
+*
+* @param points the control points of the derivative of the curve
 * @param t the sampled point ratio in `[0-1]`
 * @returns the arc length up to parameter `t`
 */
-const bezierLengthAtT = (derivativeFn, t) => {
+const bezierLengthAtPoints = (points, t) => {
 	const z = t / 2;
 	const len = Tvalues.length;
 	let sum = 0;
 	for (let i = 0, tMid; i < len; i++) {
 		tMid = z * Tvalues[i] + z;
-		sum += Cvalues[i] * calculateBezier(derivativeFn, tMid);
+		sum += Cvalues[i] * bezierSpeed(points, tMid);
 	}
 	return z * sum;
 };
@@ -1039,15 +1104,12 @@ const getBezierPoints = (curve) => {
 * @returns the `t` parameter in `[0-1]`
 */
 const getTAtBezierLength = (curve, distance) => {
-	const dpoints = deriveBezier(getBezierPoints(curve));
-	const derivativeFn = (ratio) => {
-		return computeBezier(dpoints[0], ratio);
-	};
+	const points = deriveBezier(getBezierPoints(curve))[0];
 	let lo = 0;
 	let hi = 1;
 	for (let i = 0; i < 25; i += 1) {
 		const mid = (lo + hi) / 2;
-		if (bezierLengthAtT(derivativeFn, mid) < distance) lo = mid;
+		if (bezierLengthAtPoints(points, mid) < distance) lo = mid;
 		else hi = mid;
 	}
 	return (lo + hi) / 2;
@@ -1059,9 +1121,7 @@ const getTAtBezierLength = (curve, distance) => {
 const getBezierLength = (curve) => {
 	const points = getBezierPoints(curve);
 	const dpoints = deriveBezier(points);
-	return bezierLength((t) => {
-		return computeBezier(dpoints[0], t);
-	});
+	return bezierLengthAtPoints(dpoints[0], 1);
 };
 /**
 * Returns the most extreme points in a Quad Bezier segment.

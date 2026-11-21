@@ -70,6 +70,11 @@
         <div class="d-none d-md-block">
           <p><b>PathValue Input</b></p>
           <textarea class="form-input" id="t1" placeholder="Type in d value"></textarea>
+          <textarea
+            class="form-input"
+            id="t1b"
+            placeholder="Type in a second d value to join"
+          ></textarea>
 
           <p><b>Instance Methods</b></p>
           <p>
@@ -191,6 +196,141 @@
             </button>
           </p>
         </div>
+
+        <p><b>2.4.0 Geometry</b></p>
+        <p>
+          <input
+            class="form-input d-inline wide"
+            data-bs-toggle="tooltip"
+            data-title="Tolerance"
+            type="number"
+            name="tolerance"
+            id="tolerance"
+            placeholder="Tolerance"
+            value="1"
+            min="0.1"
+            step="0.5"
+          />
+          <button
+            type="button"
+            data-bs-toggle="tooltip"
+            title="Simplify the path within a tolerance, the result is a polyline"
+            onclick="toSimplify()"
+          >
+            Simplify
+          </button>
+          <input
+            class="form-input d-inline wide"
+            data-bs-toggle="tooltip"
+            data-title="Distance"
+            type="number"
+            name="offsetDistance"
+            id="offsetDistance"
+            placeholder="Distance"
+            value="2"
+            min="0"
+            step="0.5"
+          />
+          <select
+            class="form-input select"
+            data-bs-toggle="tooltip"
+            data-title="The side of the offset"
+            id="offsetSide"
+          >
+            <option value="left">left</option>
+            <option value="right">right</option>
+            <option value="both" selected>both</option>
+          </select>
+          <button
+            type="button"
+            data-bs-toggle="tooltip"
+            title="Offset the path on one side or on both of them"
+            onclick="toOffset()"
+          >
+            Offset
+          </button>
+        </p>
+        <p>
+          <input
+            class="form-input d-inline"
+            data-bs-toggle="tooltip"
+            data-title="The index of the sub-path"
+            type="number"
+            name="subPathIndex"
+            id="subPathIndex"
+            placeholder="Index"
+            value="0"
+            min="0"
+            step="1"
+          />
+          <button
+            type="button"
+            data-bs-toggle="tooltip"
+            title="Reverse one sub-path of the path, by its index"
+            onclick="toReverseSubPath()"
+          >
+            Reverse Subpath #
+          </button>
+          <button
+            type="button"
+            data-bs-toggle="tooltip"
+            title="Join the path with the second path of the input"
+            onclick="toJoin()"
+          >
+            Join
+          </button>
+        </p>
+        <p>
+          <select
+            class="form-input select"
+            data-bs-toggle="tooltip"
+            data-title="The fill rule of the shape"
+            id="fillRule"
+          >
+            <option value="nonzero">nonzero</option>
+            <option value="evenodd">evenodd</option>
+          </select>
+          <input
+            class="form-input d-inline wide"
+            data-bs-toggle="tooltip"
+            data-title="The width of the stroke"
+            type="number"
+            name="strokeWidth"
+            id="strokeWidth"
+            placeholder="Width"
+            value="4"
+            min="0"
+            step="1"
+          />
+          <button
+            type="button"
+            data-bs-toggle="tooltip"
+            title="Test a point of the shape, click the shape to pick one"
+            onclick="toHitTest()"
+          >
+            Hit Test
+          </button>
+          <input
+            class="form-input d-inline wide"
+            data-bs-toggle="tooltip"
+            data-title="The length of the frame"
+            type="number"
+            name="frameLength"
+            id="frameLength"
+            placeholder="Length"
+            value="0"
+            min="0"
+            step="0.5"
+          />
+          <button
+            type="button"
+            data-bs-toggle="tooltip"
+            title="Show the point, the tangent, the normal and the angle at a length"
+            onclick="toFrame()"
+          >
+            Frame
+          </button>
+        </p>
 
         <p><b>Matrix Transformation</b></p>
         <p>
@@ -372,7 +512,7 @@
 
         <div class="d-none d-md-block">
           <p><b>PathValue Output</b></p>
-          <textarea class="form-input" id="t2"></textarea>
+          <textarea class="form-input mono" id="t2"></textarea>
         </div>
       </div>
 
@@ -414,10 +554,18 @@
           reverseCurve,
           optimizePath,
           getPathBBox,
+          simplifyPath,
+          offsetPath,
+          joinPath,
+          reverseSubPath,
+          isPointInPath,
+          isPointInStroke,
+          getPropertiesAtLength,
         } = SVGPathCommander,
         svg = document.getElementById("test-svg"),
         path = svg.children[0],
         inputTextArea = document.getElementById("t1"),
+        joinTextArea = document.getElementById("t1b"),
         outputTextArea = document.getElementById("t2"),
         vertSpacing = parseFloat(getComputedStyle(outputTextArea).paddingTop) * 2,
         shapes = [
@@ -700,6 +848,172 @@
       const removePointAtLength = () => {
         [...path.parentElement.getElementsByTagName("circle")].forEach((c) => c.remove());
       };
+
+      const removeAnnotations = () => {
+        [...svg.querySelectorAll("[data-annotation]")].forEach((el) => el.remove());
+        removePointAtLength();
+      };
+
+      const round = (n) => Math.round(n * 10 ** 4) / 10 ** 4;
+
+      const readNumber = (id, fallback) => {
+        const value = parseFloat(document.getElementById(id).value);
+        return Number.isFinite(value) ? value : fallback;
+      };
+
+      const setResult = (d, message) => {
+        path.setAttribute("d", d);
+        path.setAttribute("fill", randomColor());
+
+        const { width, height, x, y } = getBBox();
+        svg.setAttribute("viewBox", `0 0 ${Math.round(width + x)} ${Math.round(height + y)}`);
+
+        outputTextArea.style.height = "";
+        outputTextArea.value = message ?? d;
+        outputTextArea.style.height = outputTextArea.scrollHeight - vertSpacing + "px";
+        removeAnnotations();
+      };
+
+      const report = (message) => {
+        outputTextArea.style.height = "";
+        outputTextArea.value = message;
+        outputTextArea.style.height = outputTextArea.scrollHeight - vertSpacing + "px";
+      };
+
+      const addLine = (from, to, color) => {
+        const ns = "http://www.w3.org/2000/svg";
+        const line = document.createElementNS(ns, "line");
+        line.setAttribute("x1", from.x);
+        line.setAttribute("y1", from.y);
+        line.setAttribute("x2", to.x);
+        line.setAttribute("y2", to.y);
+        line.setAttribute("stroke", color);
+        line.setAttribute("stroke-width", "0.1");
+        line.setAttribute("data-annotation", "true");
+        svg.append(line);
+      };
+
+      const addCircle = (point, color, radius) => {
+        const ns = "http://www.w3.org/2000/svg";
+        const circle = document.createElementNS(ns, "circle");
+        circle.setAttribute("cx", point.x);
+        circle.setAttribute("cy", point.y);
+        circle.setAttribute("r", radius);
+        circle.setAttribute("fill", color);
+        circle.setAttribute("data-annotation", "true");
+        svg.append(circle);
+      };
+
+      function toSimplify() {
+        pathValue = inputTextArea.value || pathValue;
+        try {
+          const tolerance = readNumber("tolerance", 1);
+          const simplified = pathToString(simplifyPath(pathValue, tolerance));
+          setResult(simplified);
+        } catch (error) {
+          report(error.message);
+        }
+      }
+
+      function toOffset() {
+        pathValue = inputTextArea.value || pathValue;
+        try {
+          const distance = readNumber("offsetDistance", 0);
+          const side = document.getElementById("offsetSide").value;
+          const offset = pathToString(offsetPath(pathValue, distance, { side }));
+          setResult(offset);
+        } catch (error) {
+          report(error.message);
+        }
+      }
+
+      function toReverseSubPath() {
+        pathValue = inputTextArea.value || pathValue;
+        try {
+          const index = parseInt(document.getElementById("subPathIndex").value, 10) || 0;
+          const reversed = pathToString(reverseSubPath(pathValue, index));
+          setResult(reversed);
+        } catch (error) {
+          report(error.message);
+        }
+      }
+
+      function toJoin() {
+        pathValue = inputTextArea.value || pathValue;
+        try {
+          const joined = pathToString(joinPath(pathValue, joinTextArea.value || pathValue));
+          setResult(joined);
+        } catch (error) {
+          report(error.message);
+        }
+      }
+
+      const hitTestAt = (point) => {
+        const pathString = path.getAttribute("d");
+        const fillRule = document.getElementById("fillRule").value;
+        const width = readNumber("strokeWidth", 0);
+        try {
+          const inFill = isPointInPath(pathString, point, { fillRule });
+          const inStroke = isPointInStroke(pathString, point, { width });
+
+          removeAnnotations();
+          addCircle(point, inFill ? "#4CAF50" : "#e91b1f", 0.15);
+
+          report(
+            [
+              `point: [${round(point.x)}, ${round(point.y)}]`,
+              `fill (${fillRule}): ${inFill}`,
+              `stroke (width: ${width}): ${inStroke}`,
+            ].join("\n"),
+          );
+        } catch (error) {
+          report(error.message);
+        }
+      };
+
+      function toHitTest() {
+        const pathString = path.getAttribute("d");
+        const bbox = getBBox();
+        // the center of the shape is the first point of the test
+        hitTestAt({ x: bbox.cx, y: bbox.cy });
+      }
+
+      function toFrame() {
+        const pathString = path.getAttribute("d");
+        try {
+          const length = readNumber("frameLength", 0);
+          const { point, tangent, normal, angle } = getPropertiesAtLength(pathString, length);
+          const bbox = getBBox();
+          // the size of the frame, a fifth of the shape
+          const size = Math.max(bbox.width, bbox.height) * 0.2 || 10;
+
+          removeAnnotations();
+          addLine(point, { x: point.x + tangent.x * size, y: point.y + tangent.y * size }, "cyan");
+          addLine(point, { x: point.x + normal.x * size, y: point.y + normal.y * size }, "orange");
+          addCircle(point, "white", 0.1);
+
+          report(
+            [
+              `point: [${round(point.x)}, ${round(point.y)}]`,
+              `tangent: [${round(tangent.x)}, ${round(tangent.y)}]`,
+              `normal: [${round(normal.x)}, ${round(normal.y)}]`,
+              `angle: ${round(angle)}°`,
+            ].join("\n"),
+          );
+        } catch (error) {
+          report(error.message);
+        }
+      }
+
+      svg.addEventListener("click", (event) => {
+        const ctm = svg.getScreenCTM();
+        if (!ctm) return;
+        const point = svg.createSVGPoint();
+        point.x = event.clientX;
+        point.y = event.clientY;
+        const userPoint = point.matrixTransform(ctm.inverse());
+        hitTestAt({ x: userPoint.x, y: userPoint.y });
+      });
 
       const showTotalLength = () => {
         const pathString = path.getAttribute("d");

@@ -150,6 +150,24 @@ path {
   outline: none;
 }
 
+.form-input.d-inline.wide {
+  width: 5.5rem !important;
+}
+
+.form-input.select {
+  width: auto !important;
+  padding: 0.25rem 0.5rem;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0.15rem 0.5rem 0;
+  outline: none;
+}
+
+.form-input.mono {
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 12px;
+}
+
 /* .d-md-block {display: none}
 .d-md-none {display: block} */
 
