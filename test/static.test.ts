@@ -2417,6 +2417,33 @@ describe("Arc conversion fixes", () => {
     );
     expect(getTotalLength(pathToCurve(negative))).to.be.closeTo(getTotalLength(negative), 0.1);
   });
+
+  test("Can convert a long arc to more than one cubic", () => {
+    // an arc of more than 120 degrees is converted to more than one cubic
+    const curve = pathToCurve("M0 0A100 100 0 1 0 100 0");
+    expect(curve.length).to.equal(4);
+    // every cubic holds exactly six parameters
+    for (const segment of curve.slice(1)) {
+      expect(segment.length).to.equal(7);
+    }
+    const last = curve[curve.length - 1];
+    expect(last[last.length - 2]).to.be.closeTo(100, 0.001);
+    expect(last[last.length - 1]).to.be.closeTo(0, 0.001);
+    // the length of the arc and the length of its cubics agree, a cubic is
+    // an approximation of an arc and it is a little longer than it
+    expect(getTotalLength(curve)).to.be.closeTo(getTotalLength("M0 0A100 100 0 1 0 100 0"), 0.5);
+  });
+
+  test("Can convert a long arc followed by a segment", () => {
+    const curve = pathToCurve("M0 0A100 100 0 1 0 100 0L100 50");
+    expect(curve.length).to.equal(5);
+    const last = curve[curve.length - 1];
+    // the cubic of the line starts at the end of the arc
+    expect(last[1]).to.be.closeTo(100, 0.001);
+    expect(last[2]).to.be.closeTo(16.6667, 0.001);
+    expect(last[last.length - 2]).to.be.closeTo(100, 0.001);
+    expect(last[last.length - 1]).to.be.closeTo(50, 0.001);
+  });
 });
 
 describe("Empty input contract", () => {
