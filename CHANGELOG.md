@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.4.0] - 2026-11-21
+## [2.4.0] - 2026-11-22
 
 ### Breaking
 
@@ -11,13 +11,10 @@
   SVGPathCommander.parsePathString("L10 10");
   // => TypeError: SVGPathCommanderError: path data must begin with a moveto command
   ```
-- The morph engine and the intersection engine have their own entry points, and they are removed from the `svg-path-commander/util` entry point, which re-exported them and shipped them to every consumer of the tree-shakeable entry:
-  ```js
-  import { equalize, resamplePath } from "svg-path-commander/morph";
-  import { pathsIntersection } from "svg-path-commander/intersect";
-  ```
-  The `util` bundle is 128 kB now, twenty-seven percent less than before, and it holds neither engine. The main entry point still holds everything, so the class and its static methods are not affected.
 - `segmentToCubic()` returns a `PathSegment` — the function declared that it returns an `MSegment` or a `CSegment`, but it returns every other segment unchanged: the smooth cubic, the smooth quadratic, the horizontal and the vertical lineto fall through to the last line of the function. The declaration was a lie that the cast at that line told the type system to believe.
+- `resamplePath()` returns a `PathArray` — a multi-subpath result holds one `M` command for every source sub-path, so the narrower `MorphPathArray` type could not describe the result. The single-subpath helper keeps its morph-specific type.
+- `equalize()` and `equalizePaths()` return `PathArray` tuples — a multi-subpath result holds one `M` command for every matched contour, so the narrower `MorphPathArray` type could not describe the result. `equalizeSegments()` keeps its morph-specific type because it only accepts single-subpath paths.
+- `fixPath()` returns the fixed path instead of `void` — the helper documents that it removes an unnecessary closing segment, but `parsePathString()` clones an array input, so the old in-place splice never reached the caller's array and the return value was `undefined`. The helper now returns a fixed copy and leaves the source path unchanged; `equalizeSegments()` consumes that copy, so the redundant `Z` is actually removed before equalization.
 
 ### Added
 
@@ -102,6 +99,24 @@
   // => { closest: { x: 0, y: 1 }, distance: 0, segment: { segment: ["Z"], … } }
   ```
   The length table of the path knows whether the path is a loop now, and the search walks over the end of a loop the way it walks over the end of a segment.
+- `resamplePath()` resamples every sub-path on its own instead of flattening a multi-subpath path into one continuous polyline — the old implementation ignored the break between two sub-paths, so the result connected the body of an icon to its eyes and destroyed the shape. The `count` option is the number of points of every sub-path now, and the result keeps one `M` command for every source sub-path:
+  ```js
+  SVGPathCommander.resamplePath("M0 0L10 0M20 0L30 0", 2);
+  // => [["M", 0, 0], ["L", 10, 0], ["M", 20, 0], ["L", 30, 0]]
+  ```
+- The `arcLength` strategy no longer bulges across the joints of the source path — the resampler fitted one cubic to a span that could cross several source segments, so the fitted curve departed from the source by as much as 0.456 units on the demo shapes. Each span is now the exact de Casteljau sub-curve of the source, and every source segment boundary is an arc-length knot, so the corners and the shape of the source are preserved.
+- The `arcLength` strategy keeps every sub-path separate and complete — the number of points is chosen for each sub-path, the source segment boundaries are kept whenever the requested count allows it, and an explicitly under-sampled sub-path uses the documented best-effort fallback instead of dropping geometry.
+- Multi-subpath morphing no longer drops an outer contour or a hole — same-class contours are matched first, then an unmatched outer contour can match an overlapping hole and an unmatched hole can match an overlapping outer contour. The paths are reversed as whole paths, so the outer/hole relationships are preserved, and an unmatched contour receives a placeholder at its centroid. All 42 ordered pairs of the demo shapes now keep their geometry and topology with both the `segment` and the `arcLength` strategy.
+- `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` no longer report a materially wrong distance on a very long path — the refinement precision had a relative floor, so a narrow curve feature could be missed on a path of millions of units. The refinement is now capped at an absolute precision of `1e-6` length units.
+- The exact straight-segment projection no longer replaces a nearer result with a slightly farther tie, and a zero-length moveto point is considered as a point projection. The returned segment metadata now belongs to the same measured segment as the reported closest point, including at moveto and closing-segment boundaries.
+- `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` no longer miss the closest point of a path shorter than the old 8-unit scan step — the coarse scan is scaled with the length of the path, the end of the path is sampled explicitly, and a straight segment is answered with the exact projection of the query point:
+  ```js
+  SVGPathCommander.getPropertiesAtPoint("M7.759 2.722L12.968 3.144L5.288 5.065", {
+    x: 1.083779092102759,
+    y: 3.890545689621021,
+  }).closest;
+  // => { x: 5.288, y: 5.065 }
+  ```
 
 ### Performance
 
@@ -115,14 +130,16 @@
 ### Changed
 
 - The demo in `docs/` covers the features of 2.4.0 — the process page has the simplification, the offsetting, the join, the reverse of a single sub-path, the hit test of the filled shape and of the stroke, and the frame at a length, and the morphing page has the resampling and the `equalize()` facade with its strategy and its point count
+- The simplification tolerance of the demo is a percentage of the source shape's diagonal and the absolute tolerance is printed with the result — the old fixed value of `1` unit was about 6 % of a 16-unit icon and could destroy a small shape. The library API keeps its absolute tolerance in units
 - `splitPath()`, `simplifyPath()` and `getPropertiesAtLength()` no longer add an implicit moveto to a path that does not begin with one — the parser rejects such a path now, so the three of them have nothing left to paper over
 - `transformPath()` no longer keeps a leading relative moveto relative — the parser rewrites it as an absolute one, which is the same pair of coordinates
-- The `dist` folder holds a `morph.js` and an `intersect.js` bundle next to the `index.js`, the `util.js` and the `index.min.js` ones; the JSR exports map has the two new subpaths, so the npm and the JSR packages do not diverge
+- The `svg-path-commander/util` entry holds every standalone tool, including the morphing and intersection engines; the package and JSR exports maps expose only the main entry and the utility entry
 - Rebuilt `dist` and `docs` bundles
 
 ### Known limitations
 
 - The offset of a path is not cleaned up: an offset distance larger than the local radius of curvature of the path produces a self-crossing curve, and an inner offset that overlaps itself is not trimmed. The removal of the self-intersections needs a polygon clipping pass, and it is not part of this release.
+- A multi-subpath morph fallback that pairs an outer contour with a hole keeps their opposite winding, so that pair can interpolate with a twist. Matched contours are never reversed independently because reversing a hole on its own would change the fill topology of the path; the paths are reversed as whole paths instead.
 
 ## [2.3.6] - 2026-11-20
 
@@ -153,12 +170,12 @@
   });
   // eq1.length === eq2.length === 5 — ready for morphing
   ```
-- `resamplePath()` — the resampling of a path to a given number of points, spread evenly over its length: the distance between two points of the result is the same over the whole path, and the corners of the path are points of the result too, so the shape of the path keeps its vertices:
+- `resamplePath()` — the resampling of a path to a given number of points, distributed along its length: the source segment boundaries and corners are points of the result too when the requested count allows it, so the shape of the path keeps its vertices:
   ```js
   SVGPathCommander.resamplePath("M0 0L100 0L100 100", 3);
   // => [["M", 0, 0], ["L", 100, 0], ["L", 100, 100]]
   ```
-- `equalizeSegments()` and `equalizePaths()` accept the `strategy` option — `segment` (the default) splits the segments of the paths, so the points of the result are the points of the paths, while `arcLength` spreads the points of the result evenly over the length of the paths and keeps their corners
+- `equalizeSegments()` and `equalizePaths()` accept the `strategy` option — `segment` (the default) splits the segments of the paths, so the points of the result are the points of the paths, while `arcLength` distributes the result points along the path length and keeps the source segment boundaries and corners when the requested count allows it
 - `equalizeSegments()` and `equalizePaths()` accept the `align` option — the points of the second path are rotated onto the points of the first one by default, `align: false` keeps them where they are
 - `equalizeSegments()` and `equalizePaths()` accept `reverse: "auto"` — the path that is reversed is the one that leaves the two paths closest to each other, instead of always the second one
 - `equalizeSegments()` and `equalizePaths()` accept the `mode: "line"` option — the result of the equalization is a polyline, even when the paths hold curves

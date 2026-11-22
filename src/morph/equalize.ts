@@ -1,5 +1,5 @@
 // src/morph/equalize.ts
-import type { EqualizeOptions, MorphPathArray, PathArray } from "../types.ts";
+import type { EqualizeOptions, PathArray } from "../types.ts";
 import { isMultiPath } from "../util/isMultiPath.ts";
 import { normalizePath } from "../process/normalizePath.ts";
 import { equalizePaths } from "./equalizePaths.ts";
@@ -25,19 +25,23 @@ const equalizeDefaults: EqualizeOptions = {
  *
  * A path with a single sub-path is equalized on its own, a path with more
  * sub-paths is split into sub-paths, the sub-paths are matched by their
- * shape and every pair is equalized on its own.
+ * shape and every pair is equalized on its own. Multi-subpath paths are
+ * reversed as whole paths, so an outer contour keeps its relationship with
+ * its holes. Matched contours are not reversed independently: a fallback
+ * pair between an outer contour and a hole can keep opposite winding and
+ * interpolate with a twist, because reversing that hole on its own would
+ * change the fill topology of the path.
  *
  * The `strategy` option decides how the points of the paths are placed:
  * - `segment` splits the segments of the paths, so the points of the result
  *   are the points of the paths;
- * - `arcLength` spreads the points of the result evenly over the length of
- *   the paths, so the distance between two points of the result is the same
- *   over the whole path. The corners of the paths are points of the result
- *   too, so the shape of the paths keeps its vertices.
+ * - `arcLength` distributes the points of the result along the length of
+ *   the paths. The source segment boundaries and corners are points of the
+ *   result too when the requested count allows it, so the shape of the paths
+ *   keeps its vertices.
  *
  * The `points` option is the number of points of the result. The automatic
- * mode uses the number of points of the bigger path, raised when the corners
- * of the paths do not fit.
+ * mode uses the number of points of the bigger path.
  *
  * The `reverse` option decides what happens when the two paths draw in
  * opposite directions: `true` reverses the second path, `false` leaves the
@@ -49,7 +53,7 @@ const equalizeDefaults: EqualizeOptions = {
  * @param pathInput1 - First path string or PathArray
  * @param pathInput2 - Second path string or PathArray
  * @param initialCfg - Configuration options for equalization
- * @returns Tuple of two equalized MorphPathArrays
+ * @returns Tuple of two equalized PathArrays
  *
  * @example
  * ```ts
@@ -61,7 +65,7 @@ export const equalize = (
   pathInput1: string | PathArray,
   pathInput2: string | PathArray,
   initialCfg: EqualizeOptions = {},
-): [MorphPathArray, MorphPathArray] => {
+): [PathArray, PathArray] => {
   const { align, close, mode, points, reverse, roundValues, strategy } = {
     ...equalizeDefaults,
     ...initialCfg,

@@ -1,7 +1,8 @@
-import type { LSegment, MSegment, NormalArray, PathArray, ZSegment } from "../types.ts";
+import type { LSegment, MSegment, PathArray, ZSegment } from "../types.ts";
 import type { SimplifyOptions } from "../interface.ts";
 import { error } from "../util/error.ts";
 import { normalizePath } from "./normalizePath.ts";
+import { splitSubPaths } from "./splitSubPaths.ts";
 import { buildPathLengthTable } from "../util/pathLengthTable.ts";
 import { samplePath } from "./samplePath.ts";
 import { douglasPeucker } from "./douglasPeucker.ts";
@@ -40,28 +41,6 @@ const SAMPLE_SHARE = 16;
  * bulges a little between two samples.
  */
 const ACCEPTANCE = 0.8;
-
-/**
- * Splits a normalized path into its sub-paths.
- *
- * @param path - the normalized path to split
- * @returns the sub-paths of the path
- */
-const splitSubPaths = (path: NormalArray): NormalArray[] => {
-  const result: NormalArray[] = [];
-  let current: NormalArray = [] as unknown as NormalArray;
-  for (const segment of path) {
-    if (segment[0] === "M") {
-      // the path is not empty, so the first sub-path is never missing
-      if (current.length) result.push(current);
-      current = [segment] as unknown as NormalArray;
-    } else {
-      current.push(segment);
-    }
-  }
-  result.push(current);
-  return result;
-};
 
 /**
  * Simplifies a path, with the Douglas-Peucker algorithm.

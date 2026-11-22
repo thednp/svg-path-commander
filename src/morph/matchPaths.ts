@@ -62,6 +62,45 @@ function getBestMatch(target: PathFeature, candidates: PathFeature[]): PathFeatu
 }
 
 /**
+ * The result of matching two sets of path features.
+ */
+export type PathFeatureMatch = {
+  /** the matched feature pairs */
+  pairs: [PathFeature, PathFeature][];
+  /** the source features without a match */
+  unmatchedFrom: PathFeature[];
+  /** the target features without a match */
+  unmatchedTo: PathFeature[];
+};
+
+/**
+ * Matches path features by proximity and size similarity.
+ *
+ * @param fromPaths - Source path features to match from
+ * @param toPaths - Target path features to match to
+ * @returns the matched pairs and the unmatched features
+ */
+export function matchPathFeatures(
+  fromPaths: PathFeature[],
+  toPaths: PathFeature[],
+): PathFeatureMatch {
+  // the caller's arrays must not be sorted or emptied
+  const from = [...fromPaths].sort((a, b) => b.size - a.size);
+  const to = [...toPaths].sort((a, b) => b.size - a.size);
+  const pairs: [PathFeature, PathFeature][] = [];
+  const unmatchedFrom: PathFeature[] = [];
+
+  while (from.length > 0) {
+    const fromPath = from.shift()!;
+    const bestTo = getBestMatch(fromPath, to);
+    if (bestTo) pairs.push([fromPath, bestTo]);
+    else unmatchedFrom.push(fromPath);
+  }
+
+  return { pairs, unmatchedFrom, unmatchedTo: to };
+}
+
+/**
  * Matches paths from two sets by proximity and size similarity.
  * Unmatched paths receive placeholder paths at their centroid.
  *
@@ -73,29 +112,18 @@ export function matchPaths(
   fromPaths: PathFeature[],
   toPaths: PathFeature[],
 ): [NormalArray, NormalArray][] {
-  const pairs: [NormalArray, NormalArray][] = [];
+  const { pairs, unmatchedFrom, unmatchedTo } = matchPathFeatures(fromPaths, toPaths);
+  const result: [NormalArray, NormalArray][] = pairs.map(([from, to]) => [from.path, to.path]);
 
-  // the caller's arrays must not be sorted or emptied
-  const from = [...fromPaths].sort((a, b) => b.size - a.size);
-  const to = [...toPaths].sort((a, b) => b.size - a.size);
-
-  while (from.length > 0) {
-    const fromPath = from.shift()!;
-    const bestTo = getBestMatch(fromPath, to);
-
-    if (bestTo) {
-      pairs.push([fromPath.path, bestTo.path]);
-    } else {
-      const fromCentroid: PointTuple = [fromPath.bbox.cx, fromPath.bbox.cy];
-      pairs.push([fromPath.path, createPlaceholder(fromCentroid)]);
-    }
+  for (const from of unmatchedFrom) {
+    const fromCentroid: PointTuple = [from.bbox.cx, from.bbox.cy];
+    result.push([from.path, createPlaceholder(fromCentroid)]);
   }
 
-  while (to.length > 0) {
-    const toPath = to.shift()!;
-    const toCentroid: PointTuple = [toPath.bbox.cx, toPath.bbox.cy];
-    pairs.push([createPlaceholder(toCentroid), toPath.path]);
+  for (const to of unmatchedTo) {
+    const toCentroid: PointTuple = [to.bbox.cx, to.bbox.cy];
+    result.push([createPlaceholder(toCentroid), to.path]);
   }
 
-  return pairs;
+  return result;
 }

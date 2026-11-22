@@ -47,6 +47,17 @@ const frameOf = (measure: SegmentMeasure | undefined, offset = 0): PathFrame => 
   );
 };
 
+export const getPropertiesFromMeasure = (
+  measure: SegmentMeasure,
+  offset: number,
+): SegmentProperties => ({
+  segment: measure.segment,
+  index: measure.index,
+  length: segmentLength(measure),
+  lengthAtSegment: measure.lengthAtSegment,
+  ...frameOf(measure, offset),
+});
+
 /**
  * Returns the segment, its index and length as well as
  * the length to that segment at a given length in a path.

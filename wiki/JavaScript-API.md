@@ -21,7 +21,7 @@ Returns the total path length, equivalent to native `path.getTotalLength()`.
 const len = new SVGPathCommander(
   "M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z",
 ).getTotalLength();
-// => 61
+// => 60.56637061435917
 ```
 
 ### instance.getPointAtLength()
@@ -219,9 +219,9 @@ shape.isPointInPath({ x: 50, y: 50 }); // => true — the inner square is not a 
 shape.isPointInPath({ x: 50, y: 50 }, { fillRule: "evenodd" }); // => false
 ```
 
-### instance.transform(_transform_: TransformObject)
+### instance.transform(_transform_: Partial<TransformObject>)
 
-Will normalize all path commands and apply a 2D transformation matrix to all path commands.
+Normalizes the path and applies a 2D or 3D transformation. A 3D transformation is projected into the SVG coordinate system.
 
 ```js
 const tr = new SVGPathCommander("M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z")
@@ -232,7 +232,7 @@ const tr = new SVGPathCommander("M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2
 
 ### instance.flipX()
 
-Will call the above `transform()` method to apply a 180deg rotation on the X axis.
+Mirrors the path around the vertical centerline of its bounding box.
 
 ```js
 const fx = new SVGPathCommander("M0 0L16 0 L8 16").flipX().toString();
@@ -241,7 +241,7 @@ const fx = new SVGPathCommander("M0 0L16 0 L8 16").flipX().toString();
 
 ### instance.flipY()
 
-Will call the above `transform()` method to apply a 180deg rotation on the Y axis.
+Mirrors the path around the horizontal centerline of its bounding box.
 
 ```js
 const fy = new SVGPathCommander("M0 0L16 0 L8 16").flipY().toString();
@@ -288,7 +288,7 @@ A new **getter** that returns the path total length.
 const { length } = new SVGPathCommander(
   "M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z",
 );
-// => 61
+// => 60.56637061435917
 ```
 
 ## Instance Options
@@ -305,17 +305,17 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   SVGPathCommander.isValidPath("M0 0L10 0"); // => true
   SVGPathCommander.isValidPath("M0 0Z10"); // => false
   ```
-- **SVGPathCommander.getSVGMatrix(transform: _TransformObject_): CSSMatrix** returns the _CSSMatrix_ (_DOMMatrix_ compatible instance) for a given _TransformObject_ (EG: `{ scale?: [x: number, y: number, z: number], translate: [x: number, y: number, z: number], ... }`)
-- **SVGPathCommander.shapeToPath(_element_, _replace_)** - returns a new `<path>` element from a given `<line>`, `<polyline>`, `<polygon>`, `<rect>`, `<ellipse>`, `<circle>` or `<glyph>` element; the newly created `<path>` element keeps all non-specific attributes like `class`, `fill`, etc.; when the `replace` parameter is `true`, it will replace the target element; you can also create `<path>` elements on the fly by providing the minimum required specific attributes:
+- **SVGPathCommander.getSVGMatrix(_transform_: Partial<TransformObject>): CSSMatrix** returns the _CSSMatrix_ (_DOMMatrix_ compatible instance) for a given transform (EG: `{ scale?: [x: number, y: number, z: number], translate: [x: number, y: number, z: number], ... }`)
+- **SVGPathCommander.shapeToPath(_element_, _replace_?, _ownerDocument_?)** - returns a new `<path>` element, or `false` when the generated path is invalid, from a given `<line>`, `<polyline>`, `<polygon>`, `<rect>`, `<ellipse>`, `<circle>` or `<glyph>` element; the newly created `<path>` element keeps all non-specific attributes like `class`, `fill`, etc.; when the `replace` parameter is `true`, it replaces the target element; pass an `ownerDocument` when creating the element outside the current browser document; you can also create `<path>` elements on the fly by providing the minimum required specific attributes:
   ```js
   SVGPathCommander.shapeToPath({ type: "circle", r: 5, cx: 15, cy: 15 });
   ```
-- **SVGPathCommander.shapeToPathArray(_element_, _round_)** - returns the _PathArray_ of a given shape element without creating a `<path>` element;
+- **SVGPathCommander.shapeToPathArray(_element_)** - returns the _PathArray_ of a given shape element without creating a `<path>` element, or `false` when no valid path can be created;
   ```js
   SVGPathCommander.shapeToPathArray({ type: "line", x1: 0, y1: 0, x2: 10, y2: 10 });
   // => [['M', 0, 0], ['L', 10, 10]]
   ```
-- **SVGPathCommander.parsePathString(_pathString_: string)** - returns a _PathArray_ which is used by all of _**SVGPathCommander**_ processing tools;
+- **SVGPathCommander.parsePathString(_pathInput_: string | PathArray)** - returns a _PathArray_ which is used by all of _**SVGPathCommander**_ processing tools; a path array is cloned, so the source is not modified;
   ```js
   SVGPathCommander.parsePathString("M0 0l50 0l50 50z");
   // => [['M', 0, 0], ['l', 50, 0], ['l', 50, 50], ['z']]
@@ -329,7 +329,7 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   ```
 - **SVGPathCommander.pathToRelative(_path_: string | PathArray)** - returns a new _PathArray_ having all path commands as **relative** coordinates;
 - **SVGPathCommander.pathToCurve(_path_: string | PathArray)** - returns a new _PathArray_ having all path commands converted to _cubicBezierTo_ (`C`) and absolute values;
-- **SVGPathCommander.pathToString(_path_: PathArray, _round_: number)** - converts any _PathArray_ to string and returns it, also allowing you to set the amount of decimals to round values to;
+- **SVGPathCommander.pathToString(_path_: PathArray, _round_?: number | "off")** - converts any _PathArray_ to string and returns it, also allowing you to set the amount of decimals to round values to or to disable rounding with `"off"`;
   ```js
   SVGPathCommander.pathToString([
     ["M", 0, 0],
@@ -346,8 +346,8 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   // => [['M', 0, 0], ['L', 1.1235, 2.9877]]
   ```
 - **SVGPathCommander.reversePath(_path_: string | PathArray)** - returns a new _PathArray_ with all path commands having absolute values and in reverse order; every sub-path is reversed on its own, so the `M` and the `Z` of a sub-path are swapped with each other, and the sub-paths keep their original order;
-- **SVGPathCommander.optimizePath(_path_: PathArray)** - returns a new _PathArray_ with all segments that have the shortest strings from either absolute or relative `PathArray` segments;
-- **SVGPathCommander.transformPath(_path_: PathArray | string, _transformObject_: TransformObject)** - returns a new _PathArray_ with all segments transformed according to the properties defined in the `transformObject`;
+- **SVGPathCommander.optimizePath(_path_: string | PathArray, _round_?: number)** - returns a new _PathArray_ with all segments that have the shortest strings from either absolute or relative `PathArray` segments; the values are rounded to 2 decimals by default;
+- **SVGPathCommander.transformPath(_path_: PathArray | string, _transformObject_?: Partial<TransformObject>)** - returns a new _PathArray_ with all segments transformed according to the properties defined in the `transformObject`;
 - **SVGPathCommander.normalizePath(_path_: string | PathArray)** - returns a new _PathArray_ with all shorthand path command segments such as `S`, `T` are converted to `C` and `Q` respectively, `V` and `H` to `L`, all in absolute values; the utility is used by `pathToCurve` and `reversePath`;
   ```js
   SVGPathCommander.normalizePath("M2 0V16");
@@ -359,12 +359,15 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   // => [['M', 0, 0], ['L', 30, 0]]
   ```
   The tolerance is the maximum distance between the result and the source: every point of the source stays within the tolerance of the result. A smaller tolerance keeps more points, a bigger one removes more. The tolerance defaults to `1`.
-- **SVGPathCommander.resamplePath(_path_: string | PathArray, _count_: number, _mode_: "line" | "curve")** - returns a new _PathArray_ with the given number of points, spread evenly over the length of the path: the distance between two points of the result is the same over the whole path, and the corners of the path are points of the result too, so the shape of the path keeps its vertices; the result is a polyline, or a path of cubic Bezier segments in the `curve` mode, where every cubic holds the direction of the path at both of its ends;
+- **SVGPathCommander.resamplePath(_path_: string | PathArray, _count_: number, _mode_: "line" | "curve")** - returns a new _PathArray_ with the given number of points for every sub-path, distributed along the length of that sub-path: the source segment boundaries and corners are kept when the requested count allows it, so the shape of the path keeps its vertices; the result is a polyline, or a path of exact cubic pieces of the source curves in the `curve` mode;
   ```js
   SVGPathCommander.resamplePath("M0 0L100 0L100 100", 3);
   // => [['M', 0, 0], ['L', 100, 0], ['L', 100, 100]]
+
+  SVGPathCommander.resamplePath("M0 0L10 0M20 0L30 0", 2);
+  // => [['M', 0, 0], ['L', 10, 0], ['M', 20, 0], ['L', 30, 0]]
   ```
-  The mode defaults to `line`. When the corners of the path are more than the points of the result, they cannot all be kept: the points are spread evenly then, and the shape of the path is approximated by its chords.
+  The mode defaults to `line`. Every sub-path is resampled on its own, so the result never connects two sub-paths and `count` is the number of points of each one. The extra intervals are distributed in proportion to the lengths of the source segments, while the source segment boundaries remain knots. When the corners of a sub-path are more than its points, they cannot all be kept: the points are spread evenly then, and the shape of the sub-path is approximated by its chords or by the best available fixed controls.
 - **SVGPathCommander.offsetPath(_path_: string | PathArray, _distance_: number, _options_: OffsetOptions)** - returns a new _PathArray_ with the path offset along its normals: the path is sampled along its length, every sample is shifted along the normal of the path, and the result is a path of straight lines;
   ```js
   SVGPathCommander.offsetPath("M0 0L100 0", 10);
@@ -382,11 +385,11 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   // => [['M', 0, 0], ['L', 100, 0], ['Z'], ['M', 100, 100], ['L', 0, 100]]
   ```
   An index that is out of the range of the sub-paths is rejected with a `TypeError`.
-- **SVGPathCommander.getDrawDirection(_path_: PathArray)** - converts the _PathArray_ to curve and returns _TRUE_ if a shape draw direction is **clockwise**, it _should work_ for shapes with sub-paths, but it might skew your results, so make sure you split your path and test each sub-path separately;
+- **SVGPathCommander.getDrawDirection(_path_: string | PathArray)** - converts the path to curves and returns _TRUE_ if a shape draw direction is **clockwise**, it _should work_ for shapes with sub-paths, but it might skew your results, so make sure you split your path and test each sub-path separately;
   ```js
   SVGPathCommander.getDrawDirection("M0 0L100 0L50 100Z"); // => true
   ```
-- **SVGPathCommander.getPathBBox(_path_: PathArray)** - converts the _PathArray_ to curve and returns the bounding box of a shape in the form of the following object: `{x1,y1, x2,y2, width,height, cx,cy,cz}`, where _cx_ & _cy_ are the shape's center point, _cz_ is more of a `transformOriginZ` for 3D projections; for faster processing, you might want to split the path with sub-paths and return the bounding box you know is the largest;
+- **SVGPathCommander.getPathBBox(_path_: string | PathArray)** - computes the bounding box of a shape directly from its segments in the form of the following object: `{x, y, x2, y2, width, height, cx, cy, cz}`, where _cx_ & _cy_ are the shape's center point, _cz_ is more of a `transformOriginZ` for 3D projections; for faster processing, you might want to split the path with sub-paths and return the bounding box you know is the largest;
   ```js
   SVGPathCommander.getPathBBox("M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2z");
   // => { cx: 8, cy: 8, cz: 24, height: 16, width: 16, x: 0, x2: 16, y: 0, y2: 16 }
@@ -398,14 +401,14 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   The result is the shoelace sum for the polygon; a positive value indicates a **clockwise** draw direction.
 - **SVGPathCommander.getTotalLength(_path_: PathArray | string)** - will normalize the _PathArray_ and return the total length of the shape; this is equivalent to _SVGPathElement.prototype.getTotalLength()_ and should work in Node.js;
 - **SVGPathCommander.getPointAtLength(_path_: PathArray | string, _distance_: number)** - normalizes the _PathArray_ and looks into each segment to return an `{x,y}` object which represents a point at the given `distance`;
-- **SVGPathCommander.splitPath(_path_: PathArray)** - returns an _Array_ comprised of `PathArray` items;
+- **SVGPathCommander.splitPath(_path_: string | PathArray)** - returns an _Array_ comprised of `PathArray` items;
   ```js
   SVGPathCommander.splitPath(
     "M2 0A2 2 0 0 0 0 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2V2A2 2 0 0 0 14 0H2zM4 4h8l-4 8z",
   ).map((path) => path.length);
   // => [10, 4]
   ```
-- **SVGPathCommander.fixPath(_path_: string | PathArray)** - checks if a _PathArray_ has an unnecessary `Z` segment and removes it in place.
+- **SVGPathCommander.fixPath(_path_: string | PathArray)** - returns a new _PathArray_ without an unnecessary `Z` segment; the source path is not modified.
 - **SVGPathCommander.getPropertiesAtLength(_path_: PathArray | string, _distance_: number)** - returns an object with the following properties: the segment in which the distance spans, the index of the segment, the length of the segment, the length to the segment and the frame of the path at that length — the `point` at that length, the unit `tangent` vector, the unit `normal` vector (the left normal of the tangent) and the `angle` of the tangent in degrees;
   ```js
   SVGPathCommander.getPropertiesAtLength("M10 10C20 20,40 20,50 10", 50);
@@ -443,17 +446,19 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   SVGPathCommander.isPointInPath("M0 0L100 0L100 100L0 100Z", { x: 50, y: 50 }); // => true
   SVGPathCommander.isPointInPath("M0 0L100 0L100 100L0 100Z", { x: 150, y: 50 }); // => false
   ```
-- **SVGPathCommander.getSegmentOfPoint(_path_: PathArray | string, _point_: { x: number, y: number })** - returns the segment that contains a given _{x,y}_ point;
+- **SVGPathCommander.getSegmentOfPoint(_path_: PathArray | string, _point_: { x: number, y: number })** - returns the segment that contains a given _{x,y}_ point, with the segment metadata and its frame;
   ```js
   SVGPathCommander.getSegmentOfPoint("M10 90C25 80,25 50,40 10", { x: 10, y: 90 });
-  // => { segment: ['M', 10, 90], index: 0, length: 0, lengthAtSegment: 0 }
+  // => { segment: ['M', 10, 90], index: 0, length: 0, lengthAtSegment: 0,
+  //      point: { x: 10, y: 90 }, tangent: { x: 0, y: 0 },
+  //      normal: { x: 0, y: 0 }, angle: 0 }
   ```
 - **SVGPathCommander.getSegmentAtLength(_path_: PathArray | string, _distance_: number)** - returns the segment reached by a given distance;
   ```js
   SVGPathCommander.getSegmentAtLength("M10 80a6 4 10 1 0 8 0", 15);
   // => ['a', 6, 4, 10, 1, 0, 8, 0]
   ```
-- **SVGPathCommander.equalizePaths(_path1_: PathArray | string, _path2_: PathArray | string, _options_: PathsEqualizationOptions)** - equalizes two paths for morphing, supports multi-subpath paths; returns a tuple of two equalized _MorphPathArrays_;
+- **SVGPathCommander.equalizePaths(_path1_: PathArray | string, _path2_: PathArray | string, _options_: PathsEqualizationOptions)** - equalizes two paths for morphing, supports multi-subpath paths; returns a tuple of two equalized _PathArrays_;
   ```js
   const [eq1, eq2] = SVGPathCommander.equalizePaths(
     "M0 0L100 0L50 100Z",
@@ -462,6 +467,11 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   );
   // eq1.length === eq2.length === 6
   ```
+  Multi-subpath paths are classified into outer contours and holes. Outer contours are matched with
+  outer contours and holes with holes first; an unmatched contour can then match an overlapping
+  contour of the other class. The paths are reversed as whole paths, so the outer/hole relationships
+  are preserved, and an unmatched contour receives a placeholder at its centroid instead of being
+  dropped.
 - **SVGPathCommander.equalizeSegments(_path1_: PathArray | string, _path2_: PathArray | string, _options_: EqualizationOptions)** - equalizes two single-subpath paths for morphing; returns a tuple of two equalized _MorphPathArrays_;
   ```js
   const [eq1, eq2] = SVGPathCommander.equalizeSegments(
@@ -470,16 +480,18 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   );
   // eq1.length === eq2.length === 5
   ```
-- **SVGPathCommander.equalize(_path1_: PathArray | string, _path2_: PathArray | string, _options_: EqualizeOptions)** - equalizes two paths for morphing, the recommended entry point: a path with a single sub-path is equalized on its own, a path with more sub-paths is split into sub-paths, the sub-paths are matched by their shape and every pair is equalized on its own; returns a tuple of two equalized _MorphPathArrays_;
+- **SVGPathCommander.equalize(_path1_: PathArray | string, _path2_: PathArray | string, _options_: EqualizeOptions)** - equalizes two paths for morphing, the recommended entry point: a path with a single sub-path is equalized on its own, a path with more sub-paths is split into sub-paths, the sub-paths are matched by their shape and every pair is equalized on its own; returns a tuple of two equalized _PathArrays_;
   ```js
   const [eq1, eq2] = SVGPathCommander.equalize("M0 0L100 0L50 100Z", "M0 0L100 0L100 100L0 100Z", {
     strategy: "arcLength",
   });
   // eq1.length === eq2.length === 5
   ```
-  The `points` option is the number of points of the result, the `strategy` option decides how the points are placed (`segment` splits the segments of the paths, `arcLength` spreads the points evenly over the length of the paths and keeps their corners), the `align` option turns the rotation of the points of the second path off, the `reverse` option decides what happens when the two paths draw in opposite directions (`true` reverses the second path, `false` leaves the paths as they are, `auto` reverses the path that leaves the two paths closest to each other), the `mode` option decides the type of the segments of the result (`auto` uses lines when both paths are polylines and curves otherwise) and the `close` option closes the result.
-- **SVGPathCommander.pathsIntersection(_path1_: string | PathArray, _path2_: string | PathArray)** - returns an array of intersection points between two paths;
+  The `points` option is the number of points of the result, the `strategy` option decides how the points are placed (`segment` splits the segments of the paths, `arcLength` distributes the points along the path length and keeps the source segment boundaries and corners when the requested count allows it), the `align` option turns the rotation of the points of the second path off, the `reverse` option decides what happens when the two paths draw in opposite directions (`true` reverses the second path, `false` leaves the paths as they are, `auto` reverses the path that leaves the two paths closest to each other), the `mode` option decides the type of the segments of the result (`auto` uses lines when both paths are polylines and curves otherwise) and the `close` option closes the result.
+- **SVGPathCommander.pathsIntersection(_path1_: string | PathArray, _path2_: string | PathArray, _justCount_?: boolean)** - returns the number of intersection points between two paths by default; pass `false` for `_justCount_` to return the intersection points instead;
   ```js
+  SVGPathCommander.pathsIntersection("M0 50C0 0,100 0,100 50", "M50 0C100 0,100 100,50 100");
+  // => 1
   SVGPathCommander.pathsIntersection("M0 50C0 0,100 0,100 50", "M50 0C100 0,100 100,50 100", false);
   // => [{ x: 80.4136, y: 19.5864, t1: 0.7262, t2: 0.2738 }]
   ```
@@ -536,13 +548,13 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   ```js
   SVGPathCommander.isMultiPath("M2 0H4ZM6 0H8Z"); // => true
   ```
-- **SVGPathCommander.isClosedPath(_path_: PathArray | string)** - checks if a path is closed;
+- **SVGPathCommander.isClosedPath(_path_: PathArray)** - checks if a path is closed;
   ```js
-  SVGPathCommander.isClosedPath("M0 0L10 0L10 10L0 10Z"); // => true
+  SVGPathCommander.isClosedPath([["M", 0, 0], ["L", 10, 0], ["L", 10, 10], ["Z"]]); // => true
   ```
-- **SVGPathCommander.samplePolygon(_path_: NormalArray, _sampleSize_: number)** - samples a polygon path into a given number of points;
+- **SVGPathCommander.samplePolygon(_path_: NormalArray)** - samples the endpoints of the path segments into a polygon approximation;
   ```js
-  SVGPathCommander.samplePolygon(SVGPathCommander.pathToAbsolute("M0 0L10 0L10 10Z"), 3);
+  SVGPathCommander.samplePolygon(SVGPathCommander.pathToAbsolute("M0 0L10 0L10 10Z"));
   // => [[0, 0], [10, 0], [10, 10], [0, 0]]
   ```
 - **SVGPathCommander.version** - the current library version.
@@ -583,85 +595,131 @@ SVGPathCommander.parsePathString("L10 10");
 A leading _relative_ moveto is the one exception: it is a pair of absolute coordinates, so it is
 rewritten as an absolute one — `parsePathString("m10 10")` answers `[["M", 10, 10]]`.
 
-None of the static methods modifies the data it is given: `roundPath`, `matchPaths` and
-`transformPath` all work on copies.
+The copy-based path processors and queries leave their source path unchanged: `roundPath`, `matchPaths` and
+`transformPath` all work on copies. `iterate()` is the explicit exception and updates the path array it
+receives. The chainable `SVGPathCommander` instance methods intentionally replace the path of their
+instance.
 
 ## Utility Functions
 
-All static methods are also exported as individual, tree-shakeable functions from the `svg-path-commander/util` subpath:
+The standalone tools are also exported as individual, tree-shakeable functions from the `svg-path-commander/util` entry, including the morphing and intersection tools:
 
 ```js
-import { parsePathString, getPathBBox, pathToAbsolute } from "svg-path-commander/util";
+import {
+  equalize,
+  getPathBBox,
+  parsePathString,
+  pathsIntersection,
+  resamplePath,
+} from "svg-path-commander/util";
 
 parsePathString("M0 0L50 0");
 // => [['M', 0, 0], ['L', 50, 0]]
 ```
 
-The morphing engine and the intersection engine have their own subpaths, so the `util` entry
-point does not ship them:
+| Entry point               | Holds                                                                                                                      |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `svg-path-commander`      | the `SVGPathCommander` class, its static methods and the public types                                                      |
+| `svg-path-commander/util` | every standalone tool — parsing, conversion, geometry, processing, morphing and intersection — in one tree-shakeable entry |
 
-```js
-import { equalize, resamplePath } from "svg-path-commander/morph";
-import { pathsIntersection } from "svg-path-commander/intersect";
-```
+The class holds every engine as a static field, so the main entry includes the morphing and intersection implementations. The utility entry exposes those tools as standalone functions, and a bundler drops the exports an application does not use.
 
-| Subpath                        | Holds                                                                                           |
-| ------------------------------ | ----------------------------------------------------------------------------------------------- |
-| `svg-path-commander`           | the `SVGPathCommander` class and every static method                                            |
-| `svg-path-commander/util`      | the tools — the tree-shakeable entry point                                                      |
-| `svg-path-commander/morph`     | `equalize`, `equalizePaths`, `equalizeSegments`, `resamplePath`, `fixPath`, `splitCubicSegment` |
-| `svg-path-commander/intersect` | `pathsIntersection`, `boundingBoxIntersect`, `isPointInsideBBox`                                |
+### Utility exports
 
-| Function                | Description                                                     |
-| ----------------------- | --------------------------------------------------------------- |
-| `parsePathString`       | Returns a `PathArray` from a path string                        |
-| `pathToString`          | Returns the string of a `PathArray`                             |
-| `pathToAbsolute`        | Returns a new `PathArray` with absolute coordinates             |
-| `pathToRelative`        | Returns a new `PathArray` with relative coordinates             |
-| `pathToCurve`           | Returns a new `PathArray` with `C` segments and absolute values |
-| `normalizePath`         | Returns a new `PathArray` without shorthand segments            |
-| `optimizePath`          | Returns a new `PathArray` with shortest-string segments         |
-| `simplifyPath`          | Returns a new `PathArray` simplified within a tolerance         |
-| `offsetPath`            | Returns a new `PathArray` offset along its normals              |
-| `resamplePath`          | Returns a new `PathArray` with evenly spread points             |
-| `reversePath`           | Returns a new `PathArray` with reversed segments                |
-| `reverseSubPath`        | Returns a new `PathArray` with one sub-path reversed            |
-| `joinPath`              | Returns a new `PathArray` with two paths joined                 |
-| `reverseCurve`          | Returns a new reversed `PathArray` of curve segments only       |
-| `transformPath`         | Returns a new `PathArray` with transformed segments             |
-| `roundPath`             | Returns a new `PathArray` with rounded values                   |
-| `splitPath`             | Returns an array of `PathArray` items                           |
-| `getTotalLength`        | Returns the total path length                                   |
-| `getPointAtLength`      | Returns the `{x,y}` point at a given distance                   |
-| `getPropertiesAtLength` | Returns the segment, length and frame properties at a distance  |
-| `getPropertiesAtPoint`  | Returns the closest point and segment for a given point         |
-| `getClosestPoint`       | Returns the `{x,y}` point closest to a given point              |
-| `getSegmentAtLength`    | Returns the segment at a given distance                         |
-| `getSegmentOfPoint`     | Returns the segment containing a given point                    |
-| `getPathBBox`           | Returns the path bounding box                                   |
-| `getPathArea`           | Returns the total area of a shape                               |
-| `getDrawDirection`      | Returns `true` if a shape draws clockwise                       |
-| `isPointInStroke`       | Checks if a point is along the stroke                           |
-| `isPointInPath`         | Checks if a point is inside the filled shape of a path          |
-| `isPointInsideBBox`     | Checks if a point is inside a bounding box                      |
-| `isPathArray`           | Checks if a value is a `PathArray`                              |
-| `isAbsoluteArray`       | Checks for absolute path commands only                          |
-| `isRelativeArray`       | Checks for relative path commands only                          |
-| `isNormalizedArray`     | Checks for normalized path commands only                        |
-| `isCurveArray`          | Checks for `M` and `C` path commands only                       |
-| `isPolygonArray`        | Checks if a `PathArray` is a closed polygon                     |
-| `isPolylineArray`       | Checks if a `PathArray` is an open polyline                     |
-| `isMultiPath`           | Checks if a path has multiple subpaths                          |
-| `isClosedPath`          | Checks if a path is closed                                      |
-| `isValidPath`           | Checks if a path string is valid                                |
-| `shapeToPath`           | Returns a new `<path>` element from a shape element             |
-| `shapeToPathArray`      | Returns a `PathArray` from a shape element                      |
-| `pathsIntersection`     | Returns the intersection points between two paths               |
-| `boundingBoxIntersect`  | Checks if two bounding boxes intersect                          |
-| `equalizePaths`         | Equalizes two paths for morphing                                |
-| `equalizeSegments`      | Equalizes two single-subpath paths for morphing                 |
-| `equalize`              | Equalizes two paths for morphing, the recommended entry point   |
+The `svg-path-commander/util` entry exports the parser, conversion, processing, geometry-query, morphing and intersection helpers without the class:
 
-The morphing functions and the intersection functions are exported from the `svg-path-commander/morph`
-and the `svg-path-commander/intersect` subpaths — they are not in the `svg-path-commander/util` one
-anymore.
+| Function                | Description                                                           |
+| ----------------------- | --------------------------------------------------------------------- |
+| `parsePathString`       | Returns a `PathArray` from a path string                              |
+| `pathToString`          | Returns the string of a `PathArray`                                   |
+| `pathToAbsolute`        | Returns a new `PathArray` with absolute coordinates                   |
+| `pathToRelative`        | Returns a new `PathArray` with relative coordinates                   |
+| `pathToCurve`           | Returns a new `PathArray` with `C` segments and absolute values       |
+| `normalizePath`         | Returns a new `PathArray` without shorthand segments                  |
+| `optimizePath`          | Returns a new `PathArray` with shortest-string segments               |
+| `simplifyPath`          | Returns a new `PathArray` simplified within a tolerance               |
+| `offsetPath`            | Returns a new `PathArray` offset along its normals                    |
+| `reversePath`           | Returns a new `PathArray` with reversed segments                      |
+| `reverseSubPath`        | Returns a new `PathArray` with one sub-path reversed                  |
+| `joinPath`              | Returns a new `PathArray` with two paths joined                       |
+| `reverseCurve`          | Returns a new reversed `PathArray` of curve segments only             |
+| `transformPath`         | Returns a new `PathArray` with transformed segments                   |
+| `roundPath`             | Returns a new `PathArray` with rounded values                         |
+| `splitPath`             | Returns an array of `PathArray` items                                 |
+| `getTotalLength`        | Returns the total path length                                         |
+| `getPointAtLength`      | Returns the `{x,y}` point at a given distance                         |
+| `getPropertiesAtLength` | Returns the segment, length and frame properties at a distance        |
+| `getPropertiesAtPoint`  | Returns the closest point and segment for a given point               |
+| `getClosestPoint`       | Returns the `{x,y}` point closest to a given point                    |
+| `getSegmentAtLength`    | Returns the segment at a given distance                               |
+| `getSegmentOfPoint`     | Returns the segment containing a given point                          |
+| `getPathBBox`           | Returns the path bounding box                                         |
+| `getPathArea`           | Returns the total area of a shape                                     |
+| `getDrawDirection`      | Returns `true` if a shape draws clockwise                             |
+| `isPointInStroke`       | Checks if a point is along the stroke                                 |
+| `isPointInPath`         | Checks if a point is inside the filled shape of a path                |
+| `isPathArray`           | Checks if a value is a `PathArray`                                    |
+| `isAbsoluteArray`       | Checks for absolute path commands only                                |
+| `isRelativeArray`       | Checks for relative path commands only                                |
+| `isNormalizedArray`     | Checks for normalized path commands only                              |
+| `isCurveArray`          | Checks for `M` and `C` path commands only                             |
+| `isPolygonArray`        | Checks if a `PathArray` is a closed polygon                           |
+| `isPolylineArray`       | Checks if a `PathArray` is an open polyline                           |
+| `isMultiPath`           | Checks if a path has multiple subpaths                                |
+| `isClosedPath`          | Checks if a path is closed                                            |
+| `isValidPath`           | Checks if a path string is valid                                      |
+| `shapeToPath`           | Returns a new `<path>` element from a shape element                   |
+| `shapeToPathArray`      | Returns a `PathArray` from a shape element                            |
+| `fixPath`               | Returns a copy of a path without an unnecessary `Z` segment           |
+| `splitCubicSegment`     | Splits a cubic Bézier segment into two cubic segments                 |
+| `equalize`              | Equalizes two paths for morphing, the recommended entry point         |
+| `equalizePaths`         | Equalizes two single- or multi-subpath paths for morphing             |
+| `equalizeSegments`      | Equalizes two single-subpath paths for morphing                       |
+| `resamplePath`          | Returns a new `PathArray` with points distributed along each sub-path |
+| `pathsIntersection`     | Returns the intersection count or points between two paths            |
+| `boundingBoxIntersect`  | Checks if two bounding boxes intersect                                |
+| `isPointInsideBBox`     | Checks if a point is inside a bounding box                            |
+
+The utility entry also exposes the following low-level tools:
+
+| Function             | Description                                                   |
+| -------------------- | ------------------------------------------------------------- |
+| `arcTools`           | Geometry helpers for elliptical arcs                          |
+| `bezierTools`        | Geometry helpers for generic Bézier curves                    |
+| `cubicTools`         | Geometry helpers for cubic Bézier curves                      |
+| `lineTools`          | Geometry helpers for straight lines                           |
+| `quadTools`          | Geometry helpers for quadratic Bézier curves                  |
+| `polygonTools`       | Geometry helpers for polygons                                 |
+| `distanceSquareRoot` | Returns the distance between two points                       |
+| `midPoint`           | Returns the point at a ratio between two points               |
+| `rotateVector`       | Rotates a 2D vector by an angle in radians                    |
+| `roundTo`            | Rounds a number to a number of decimal places                 |
+| `finalizeSegment`    | Finalizes a parsed path segment                               |
+| `invalidPathValue`   | Reports an invalid path value                                 |
+| `isArcCommand`       | Checks whether a command is an elliptical arc                 |
+| `isDigit`            | Checks whether a character is a decimal digit                 |
+| `isDigitStart`       | Checks whether a character can start a number                 |
+| `isMoveCommand`      | Checks whether a command is a moveto                          |
+| `isPathCommand`      | Checks whether a command is a valid path command              |
+| `isSpace`            | Checks whether a character is SVG path whitespace             |
+| `paramsCounts`       | Holds the parameter count of every path command               |
+| `paramsParser`       | Holds the mutable coordinates and controls used by the parser |
+| `PathParser`         | Provides the low-level path string scanner state              |
+| `scanFlag`           | Scans an elliptical-arc flag                                  |
+| `scanParam`          | Scans a numeric path parameter                                |
+| `scanSegment`        | Scans one path segment                                        |
+| `skipSpaces`         | Advances the parser past SVG path whitespace                  |
+| `distanceEpsilon`    | Holds the distance tolerance used by the point queries        |
+| `shapeParams`        | Holds the shape-specific attributes read by the shape tools   |
+| `getSVGMatrix`       | Builds a DOMMatrix-compatible transformation matrix           |
+| `iterate`            | Iterates over the segments of a path and updates it in place  |
+| `absolutizeSegment`  | Converts one segment to absolute coordinates                  |
+| `arcToCubic`         | Converts an elliptical arc to a cubic Bézier                  |
+| `lineToCubic`        | Converts a line to a cubic Bézier                             |
+| `normalizeSegment`   | Normalizes one path segment                                   |
+| `projection2d`       | Projects a 3D point into the SVG 2D coordinate system         |
+| `quadToCubic`        | Converts a quadratic Bézier to a cubic Bézier                 |
+| `relativizeSegment`  | Converts one segment to relative coordinates                  |
+| `roundSegment`       | Rounds the values of one segment                              |
+| `segmentToCubic`     | Converts one segment to a cubic Bézier when applicable        |
+| `shortenSegment`     | Converts one segment to its shortest equivalent command       |

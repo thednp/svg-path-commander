@@ -9,7 +9,7 @@
 
 ![image](./docs/assets/SVGPathCommander.svg)
 
-A modern set of Typescript tools for manipulating the `d` (description) attribute for _SVGPathElement_ items. The library is implementing modern JavaScript API to produce reusable path strings with lossless quality. In addition, you also have a powerful tool to convert other SVG shapes like `<circle>` or `<rect>` to `<path>`.
+A modern set of TypeScript tools for manipulating the `d` (description) attribute for _SVGPathElement_ items. The library provides a modern JavaScript-style API for reusable path strings with high-fidelity geometry; coordinates are rounded to four decimals by default, or left exact with `round: "off"`. In addition, you have a powerful tool to convert other SVG shapes like `<circle>` or `<rect>` to `<path>`.
 
 While you may find familiar tools inside, this library brings _**new additions**_:
 
@@ -17,7 +17,7 @@ While you may find familiar tools inside, this library brings _**new additions**
 - thanks to the community contributions we've implemented useful tools like `getPropertiesAtLength`, `getSegmentOfPoint` or `isPointInStroke`;
 - `getPropertiesAtLength` returns the frame of the path at a given length — the point, the unit tangent vector, the unit normal vector and the angle of the tangent in degrees;
 - `simplifyPath` reduces the number of points of a path with the Douglas-Peucker algorithm, within a tolerance you choose;
-- `resamplePath` spreads the points of a path evenly over its length, so the distance between two points is the same over the whole path, and the corners of the path are kept;
+- `resamplePath` distributes the points of every sub-path along its own length, keeps the source segment boundaries and corners when the requested count allows it, and never connects two sub-paths;
 - `offsetPath` offsets a path along its normals, with the joins and the caps of a stroke, so a path can be expanded or outlined;
 - `isPointInPath` tells if a point is inside a filled shape, with the `nonzero` and the `evenodd` fill rules of the SVG `fill-rule` attribute;
 - `isPointInStroke` tells if a point is along a path, or inside the band a stroke paints around it when you give it a width;
@@ -26,8 +26,8 @@ While you may find familiar tools inside, this library brings _**new additions**
 - a unique tool that can _reverse path draw direction_ for path strings with only 'C' path commands;
 - a new and unique tool to _apply transform functions to path commands_ via the modern _DOMMatrix_ API;
 - the geometry queries read a shared length table, so `getPropertiesAtLength`, `getPointAtLength` and the closest point search are linear in the number of segments instead of quadratic — a 4 000 segment path answers a length query in about half a millisecond and a closest point query in under two milliseconds;
-- the tools are split over three tree-shakeable entry points — the main one holds everything, `svg-path-commander/util` holds the tools, `svg-path-commander/morph` holds the morphing engine and `svg-path-commander/intersect` holds the intersection engine;
-- every tool has a defined answer for an empty or malformed path, and none of them touches the data you hand them.
+- the library has two entry points: the main entry holds the class and its static methods, while the tree-shakeable utility entry holds every standalone tool, including the morphing and intersection engines;
+- every tool has a defined answer for an empty or malformed path, and the copy-based path tools leave the source path unchanged.
 
 **The key differences with other libraries**:
 
@@ -97,23 +97,28 @@ import SVGPathCommander from "jsr:@thednp/svg-path-commander";
 
 # Entry Points
 
-The library ships four entry points, so a bundle only carries the tools it uses:
+The library ships two entry points, so a bundle only carries the tools it uses:
 
-| Entry point                    | Holds                                                                                                                 |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| `svg-path-commander`           | everything — the `SVGPathCommander` class and its static methods                                                      |
-| `svg-path-commander/util`      | the tools, without the class — the tree-shakeable entry point                                                         |
-| `svg-path-commander/morph`     | the morphing engine — `equalize`, `equalizePaths`, `equalizeSegments`, `resamplePath`, `fixPath`, `splitCubicSegment` |
-| `svg-path-commander/intersect` | the intersection engine — `pathsIntersection`, `boundingBoxIntersect`, `isPointInsideBBox`                            |
+| Entry point               | Holds                                                                                                                      |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `svg-path-commander`      | the `SVGPathCommander` class, its static methods and the public types                                                      |
+| `svg-path-commander/util` | every standalone tool — parsing, conversion, geometry, processing, morphing and intersection — in one tree-shakeable entry |
 
 ```ts
 import SVGPathCommander from "svg-path-commander";
-import { getPathBBox, pathToCurve } from "svg-path-commander/util";
-import { equalize } from "svg-path-commander/morph";
-import { pathsIntersection } from "svg-path-commander/intersect";
+import { equalize, getPathBBox, pathToCurve, pathsIntersection } from "svg-path-commander/util";
 ```
 
-The JSR package has the same subpaths: `jsr:@thednp/svg-path-commander/morph`.
+The JSR package has the same utility entry: `jsr:@thednp/svg-path-commander/util`.
+
+The main entry holds every engine as a static field, so the class and its static methods always
+include the morphing and intersection tools. The utility entry contains the same tools as standalone
+functions, and a bundler drops the exports an application does not use:
+
+| You need                              | Import                    |
+| ------------------------------------- | ------------------------- |
+| the class, with its chainable methods | `svg-path-commander`      |
+| standalone tools, without the class   | `svg-path-commander/util` |
 
 # CDN
 
@@ -236,7 +241,8 @@ SVGPathCommander.isAbsoluteArray([
 Use treeshake and create a custom function to apply a 3D transformation using static methods:
 
 ```ts
-import { parsePathString, getPathBBox, transformPath, pathToString } from "svg-path-commander";
+import { parsePathString, getPathBBox, transformPath, pathToString } from "svg-path-commander/util";
+import type { PathArray, TransformObject } from "svg-path-commander";
 
 function myTransformFn(pathInput: string | PathArray, transformObject: TransformObject) {
   const path = parsePathString(pathInput);
@@ -354,12 +360,18 @@ const mySimplifiedPath = SVGPathCommander.simplifyPath("M0 0L10 0L20 0L30 0", 1)
 // result => [["M", 0, 0], ["L", 30, 0]]
 ```
 
-Resample the path to a given number of points, spread evenly over its length:
+Resample every sub-path to a given number of points, distributed along its own length:
 
 ```js
 const myResampledPath = SVGPathCommander.resamplePath("M0 0L100 0L100 100", 3);
 // result => [["M", 0, 0], ["L", 100, 0], ["L", 100, 100]]
+
+const myResampledIcon = SVGPathCommander.resamplePath("M0 0L10 0M20 0L30 0", 2);
+// result => [["M", 0, 0], ["L", 10, 0], ["M", 20, 0], ["L", 30, 0]]
 ```
+
+The `count` is the number of points of every sub-path. The sub-paths stay separate, so resampling
+an icon never connects one part of it to another.
 
 Offset the path along its normals — the `side` is literal, the left side is the left
 normal of the direction of travel, and the `both` side is the outline of the stroke:
@@ -430,6 +442,11 @@ const [eq1, eq2] = SVGPathCommander.equalizePaths(
 // Both paths now have the same number of segments
 ```
 
+Multi-subpath paths keep their outer contours and holes. Outer contours are matched with outer
+contours and holes with holes first, then an unmatched contour can match an overlapping contour of
+the other class. The paths are reversed as whole paths, so their outer/hole relationships stay
+intact, and every unmatched contour receives a placeholder instead of being dropped.
+
 Equalize two paths for morphing — the recommended entry point, it picks the right
 strategy for the paths, aligns their points and normalizes their winding:
 
@@ -442,8 +459,9 @@ const [eq1, eq2] = SVGPathCommander.equalize("M0 0L100 0L50 100Z", "M0 0L100 0L1
 
 The `strategy` option decides how the points of the paths are placed: `segment`
 (the default) splits the segments of the paths, so the points of the result are
-the points of the paths, while `arcLength` spreads the points of the result
-evenly over the length of the paths and keeps their corners:
+the points of the paths, while `arcLength` distributes the result points along
+the path length and keeps the source segment boundaries and corners when the
+requested count allows it:
 
 ```js
 const [eq1, eq2] = SVGPathCommander.equalize("M0 0C50 100 100 100 150 0", "M0 0L150 0L150 100Z", {
@@ -456,7 +474,7 @@ const [eq1, eq2] = SVGPathCommander.equalize("M0 0C50 100 100 100 150 0", "M0 0L
 
 # WIKI
 
-For developer guidelines, and a complete list of static methods, head over to the [`wiki/`](wiki/) folder in this repository.
+For developer guidelines and the API reference, head over to the [`wiki/`](wiki/) folder in this repository.
 
 # What Is It For?
 
@@ -468,11 +486,12 @@ For developer guidelines, and a complete list of static methods, head over to th
 # Technical Considerations
 
 - the `optimize()` instance method will not merge path segments (for instance two or more cubic-bezier segments into one or more arc segments); however, the script will try to provide shorthand notations where possible, pick the shortest string for each segment, and generally try to deliver the best possible outcome;
-- all tools processing path segments will never round float values, however `pathToString`, `optimizePath` and especially `roundPath` will always round values to the default of 4 decimals; EG: 0.56676 => 0.567, 0.50 => 0.5; you can change the default option with `SVGPathCommander.options.round = 2` or remove the value rounding all together with `SVGPathCommander.options.round = false`; you can also control this feature via instance options;
+- most geometry and transformation tools preserve float values. `pathToString()` and `roundPath()` use 4 decimals by default, while static `optimizePath()` uses 2 decimals by default; e.g. `0.56676` becomes `0.5668` at 4 decimals and `0.57` at 2. Pass `"off"` to `pathToString()` or `roundPath()`, or set `SVGPathCommander.options.round = "off"`, to disable their rounding. An instance created with `{ round: "off" }` keeps exact coordinates in `toString()`, but `optimize()` still uses its 2-decimal optimizer;
 - the `getSVGMatrix` utility we developed will always compute the matrix by applying the transform functions in the following order: `translate`, `rotate`, `skew` and `scale`, which is the default composition/recomposition order specified in the W3C draft;
 - all 3d transformations as well as skews will convert `A` (arc) path commands to `C` (cubic bezier) due to the lack of resources;
 - while converting `A` segments to `C` segments is the shipped behavior, a validated arc-preserving alternative exists: an affine-transformed elliptical arc is still an exact elliptical arc, so `A` segments can be transformed directly via the singular value decomposition of the transformed ellipse shape matrix (radii and rotation from the eigenvalues/eigenvectors of the Gram matrix, sweep flag flipped for negative-determinant matrices). This works for any 2D matrix, and even for 3D matrices whenever the projection is orthographic (default `origin: [0,0,0]` — the `z = 0` plane is untouched by the matrix's z rows/columns, so only the 2x2 submatrix matters); the conversion to `C` is only mathematically required for perspective projections (non-zero `origin` z value or a matrix with perspective), where the arc image is a general conic. See `experiments/transformArc-tested.ts` for the implementation and rationale;
 - most tools included with **SVGPathCommander** should work in your Node.js apps, but feel free to report any issue;
+- the copy-based path tools leave the source path unchanged; `iterate()` is the explicit exception and updates the path array it receives, while the chainable instance methods intentionally replace the path of their instance;
 - other path commands like `R` (catmulRomBezier), `O`, `U` (ellipse and shorthand ellipse) are not present in the current draft and are not supported;
 - normalization can mean many things to many people and our library is developed to convert path command values to absolute and shorthand to longhand commands to provide a solid foundation for the main processing tools of our library;
 - when compared to the native methods like `SVGPathElement.getTotalLength()` or `SVGPathElement.getPointAtLength()`, the output of our static methods is within a [0.002 - 0.05] margin delta, but from our experience it's proven to be a more consistent outcome.

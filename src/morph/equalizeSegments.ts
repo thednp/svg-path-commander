@@ -21,7 +21,7 @@ import { isPolygonArray } from "../util/isPolygonArray.ts";
 import { isPolylineArray } from "../util/isPolylineArray.ts";
 import { getTotalLength } from "../util/getTotalLength.ts";
 import { roundPath } from "../process/roundPath.ts";
-import { getTableCornerCount, resampleFromTable } from "./resamplePath.ts";
+import { resampleFromTable } from "./resamplePath.ts";
 import { buildPathLengthTable } from "../util/pathLengthTable.ts";
 import type { PathLengthTable } from "../util/pathLengthTable.ts";
 
@@ -46,7 +46,7 @@ const equalizeSegmentsDefaults: EqualizationOptions = {
  * @param path - the path to read
  * @returns the start and the end point of the path
  */
-const getPathEnds = (path: MorphPathArray): { start: Point; end: Point } => {
+export const getPathEnds = (path: PathArray): { start: Point; end: Point } => {
   const first = path[0];
   const start = { x: first[1] as number, y: first[2] as number };
   let subStart = start;
@@ -75,15 +75,13 @@ const getPathEnds = (path: MorphPathArray): { start: Point; end: Point } => {
  * @param b - the second point
  * @returns the distance between the points
  */
-const getDistance = (a: Point, b: Point): number => Math.hypot(a.x - b.x, a.y - b.y);
+export const getDistance = (a: Point, b: Point): number => Math.hypot(a.x - b.x, a.y - b.y);
 
 /**
  * Returns the number of points the arc length strategy uses.
  *
  * The number of points of the result is the number of the segments of the
- * bigger path, so the result holds as much of the shape of the paths as
- * their own segments do. The corners of the paths are points of the result
- * too, so the number of points is raised when the corners do not fit.
+ * bigger path, so every source segment can have its own span in the result.
  *
  * @param table1 - the length table of the first path
  * @param table2 - the length table of the second path
@@ -97,14 +95,7 @@ const getArcLengthCount = (
 ): number => {
   if (typeof target === "number") return Math.max(2, Math.floor(target));
 
-  // the corners of the paths are points of the result, so the result needs
-  // at least one point more than the corners of the paths
-  return Math.max(
-    table1.measures.length,
-    table2.measures.length,
-    getTableCornerCount(table1) + 2,
-    getTableCornerCount(table2) + 2,
-  );
+  return Math.max(table1.measures.length, table2.measures.length, 2);
 };
 
 /**
@@ -136,12 +127,8 @@ export const equalizeSegments = (
     strategy,
     target: initialTarget,
   } = { ...equalizeSegmentsDefaults, ...initialCfg };
-  let p1 = normalizePath(path1) as MorphPathArray;
-  let p2 = normalizePath(path2) as MorphPathArray;
-
-  // fix paths
-  fixPath(p1);
-  fixPath(p2);
+  let p1 = fixPath(normalizePath(path1)) as MorphPathArray;
+  let p2 = fixPath(normalizePath(path2)) as MorphPathArray;
 
   const bothPoly =
     (isPolygonArray(p1) || isPolylineArray(p1)) && (isPolygonArray(p2) || isPolylineArray(p2));
@@ -167,13 +154,15 @@ export const equalizeSegments = (
   }
 
   if (strategy === "arcLength") {
-    // the points of the result are spread evenly over the length of the
-    // paths, so the paths are measured as they are
-    const table1 = buildPathLengthTable(p1);
-    const table2 = buildPathLengthTable(p2);
-    const count = getArcLengthCount(table1, table2, initialTarget);
     const resampleMode =
       mode === "curve" ? "curve" : mode === "line" ? "line" : bothPoly ? "line" : "curve";
+    // curve mode works on cubic source segments, so every result span can be
+    // an exact piece of one source curve
+    const source1 = resampleMode === "curve" ? pathToCurve(p1) : p1;
+    const source2 = resampleMode === "curve" ? pathToCurve(p2) : p2;
+    const table1 = buildPathLengthTable(source1);
+    const table2 = buildPathLengthTable(source2);
+    const count = getArcLengthCount(table1, table2, initialTarget);
     let equalP1 = resampleFromTable(table1, count, resampleMode);
     let equalP2 = resampleFromTable(table2, count, resampleMode);
 

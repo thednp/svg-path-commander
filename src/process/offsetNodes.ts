@@ -50,7 +50,13 @@ export const getOffsetNodes = (measures: SegmentMeasure[], steps: number): Offse
       const length = Math.sqrt(dx * dx + dy * dy);
       const tx = dx / length;
       const ty = dy / length;
-      nodes.push({ x: measure.startX, y: measure.startY, tx, ty, corner: !isFirst });
+      nodes.push({
+        x: measure.startX,
+        y: measure.startY,
+        tx,
+        ty,
+        corner: !isFirst,
+      });
       nodes.push({ x: measure.endX, y: measure.endY, tx, ty, corner: false });
       continue;
     }
@@ -80,7 +86,13 @@ export const getOffsetNodes = (measures: SegmentMeasure[], steps: number): Offse
   const last = measures[measures.length - 1];
   if (nodes.length && last && last.geometry[0] === "Z") {
     const first = nodes[0];
-    nodes.push({ x: first.x, y: first.y, tx: first.tx, ty: first.ty, corner: true });
+    nodes.push({
+      x: first.x,
+      y: first.y,
+      tx: first.tx,
+      ty: first.ty,
+      corner: true,
+    });
   }
 
   return nodes;

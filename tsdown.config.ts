@@ -12,8 +12,6 @@ const miniBanner = `/*! SVGPathCommander $package v${pkg.version} | ${pkg.author
 const labels: Record<string, string> = {
   index: "ESM",
   util: "UTIL",
-  morph: "MORPH",
-  intersect: "INTERSECT",
 };
 
 /**
@@ -104,8 +102,4 @@ export default defineConfig([
   },
   // UTIL
   esmConfig("src/util.ts", "UTIL"),
-  // MORPH
-  esmConfig("src/morph.ts", "MORPH"),
-  // INTERSECT
-  esmConfig("src/intersect.ts", "INTERSECT"),
 ]);

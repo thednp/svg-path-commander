@@ -8,8 +8,6 @@ import type { NormalArray, PointTuple } from "../types.ts";
  * Samples points from a path to form a polygon approximation.
  * Collects endpoints of each segment (M start + ends of L/C/etc).
  *
- * If `sampleSize` parameter is provided, it will return a polygon
- * equivalent to the original `PathArray`.
  * @param path `PolygonPathArray` or `CurvePathArray`
  * @returns Array of [x, y] points
  */

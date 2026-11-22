@@ -17,7 +17,7 @@
 
 `svg-path-commander` is a modern set of TypeScript tools for manipulating the `d` attribute of `SVGPathElement` items. The library:
 
-- parses any valid SVG path string (including shorthand commands) into a `PathArray` and serializes it back into a lossless path string;
+- parses any valid SVG path string (including shorthand commands) into a `PathArray` and serializes it with configurable precision (four decimals by default, or exact values with `round: "off"`);
 - is implemented as a chainable `SVGPathCommander` class with instance methods, while every tool is also exposed as a standalone static method;
 - converts between absolute / relative command sets, to cubic Bézier only (`pathToCurve`), and from other SVG shapes (`<circle>`, `<rect>`, `<polygon>`, `<polyline>`, `<line>`, `<ellipse>`) into `<path>` (`shapeToPath`);
 - applies any CSS / SVG transform function to path commands via the modern `DOMMatrix` API (`@thednp/dommatrix` shim), including 3D to 2D projections, with SVG-consistent transform origins;
@@ -25,17 +25,19 @@
 - provides more reliable and more accurate built-in `getBBox`, `getPointAtLength` and `getTotalLength` than the native methods, plus community tools like `getPropertiesAtLength`, `getSegmentOfPoint`, `isPointInStroke`, `pathsIntersection` and `boundingBoxIntersect`;
 - returns the frame of the path at a given length — `getPropertiesAtLength` answers with the point, the unit tangent vector, the unit normal vector (the left normal of the tangent) and the angle of the tangent in degrees, next to the segment metadata;
 - simplifies a path with the Douglas-Peucker algorithm — `simplifyPath` keeps the points that are needed to hold the shape of the path within a tolerance you choose, the result is a path of straight lines;
-- resamples a path to a given number of points — `resamplePath` spreads the points evenly over the length of the path and keeps its corners, so the shape of the path keeps its vertices;
+- resamples every sub-path of a path to a given number of points — `resamplePath` distributes the points along the length of each sub-path and keeps the source segment boundaries and corners when the requested count allows it, so the sub-paths stay separate and the shape of the path keeps its vertices;
+- removes a redundant closing segment without changing the source — `fixPath` returns a fixed copy of the path;
+- keeps complete geometry while morphing multi-subpath paths — outer contours and holes are matched with their own class first, an overlapping contour of the other class is the fallback, whole-path reversal preserves the outer/hole relationships, and unmatched contours receive placeholders instead of disappearing;
 - offsets a path along its normals — `offsetPath` shifts the path to one side or outlines the stroke around it, with the `miter`, `bevel` and `round` joins and the `butt`, `square` and `round` caps of SVG; the side is literal, the left side is the left normal of the direction of travel, and the offset is not cleaned up, so a distance larger than the local radius of curvature produces a self-crossing curve;
 - joins and splits the sub-paths of a path — `joinPath` concatenates two paths into one, `splitPath` cuts a path into its sub-paths and `reverseSubPath` reverses one of them;
 - tells if a point is inside a filled shape — `isPointInPath` tests the point against the flattened path with the `nonzero` or the `evenodd` fill rule of the SVG `fill-rule` attribute, and a point on the boundary of the shape is inside of it, the way the browser answers it with `isPointInFill()`;
 - tells if a point is along a path — `isPointInStroke` answers for the path itself, and with the `width` option for the band a stroke paints around it;
-- supports path morphing via `equalize` / `equalizePaths` / `equalizeSegments` and per-segment interpolation through `samplePath` / `splitPath`; the `equalize` facade is the recommended entry point, it aligns the points of the two paths, normalizes their winding and places their points with the `segment` or the `arcLength` strategy;
-- serves every geometry query from a shared length table — `getPropertiesAtLength`, `getPointAtLength` and the closest point search are linear in the number of segments instead of quadratic (a 4 000 segment path answers a length query in about 2 ms, and a closest point query in about 1 ms);
-- has a defined answer for an empty or malformed path: a zeroed bounding box, a `{x:0,y:0}` point, `false`, `undefined` or a synthetic `["M", 0, 0]` segment, depending on the tool — and no tool modifies the data it is given;
-- is built with [tsdown](https://tsdown.dev), producing ESM (`index.js`), UMD (`index.min.js`, global `SVGPathCommander`) and a static-methods-only `util.js` entry into `dist/`;
-- ships four entry points, so a bundle only carries the tools it uses: `svg-path-commander` (everything), `svg-path-commander/util` (the tools), `svg-path-commander/morph` (the morphing engine) and `svg-path-commander/intersect` (the intersection engine); the JSR package has the same subpaths;
-- is performance-oriented: allocation-free parsing and string output, a single-pass fast path for 2D transforms, and benchmarks against [SvgPath](https://github.com/fontello/svgpath) via `vpr bench` (results in the README);
+- supports path morphing via `equalize` / `equalizePaths` / `equalizeSegments`; the `equalize` facade is the recommended entry point, it aligns the points of the two paths, normalizes their winding and places their points with the `segment` or the `arcLength` strategy;
+- serves every geometry query from a shared length table — `getPropertiesAtLength`, `getPointAtLength` and the closest point search are linear in the number of segments instead of quadratic (a 4 000 segment path answers a length query in about half a millisecond and a closest point query in under two milliseconds);
+- has a defined answer for an empty or malformed path: a zeroed bounding box, a `{x:0,y:0}` point, `false`, `undefined` or a synthetic `["M", 0, 0]` segment, depending on the tool — the copy-based path tools leave their source path unchanged; `iterate()` is the explicit in-place helper, and the chainable instance methods intentionally update their instance;
+- is built with [tsdown](https://tsdown.dev), producing an ESM bundle (`index.js`), a UMD bundle (`index.min.js`, global `SVGPathCommander`) and one tree-shakeable utility bundle (`util.js`) into `dist/`;
+- ships two entry points, so a bundle only carries the tools it uses: `svg-path-commander` holds the class, its static methods and the public types, while `svg-path-commander/util` holds every standalone tool, including the morphing and intersection engines; the JSR package has the same utility entry;
+- is performance-oriented: a single-pass fast path for 2D transforms, reduced allocations in the parser and string converter, and benchmarks against [SvgPath](https://github.com/fontello/svgpath) via `vpr bench` (results in the README);
 - is JSR-ready: `deno.json` publishes the raw TypeScript source as `@thednp/svg-path-commander` with clean `deno check` / `deno lint` / `deno publish --dry-run`.
 
 ## Usage
@@ -44,23 +46,23 @@
 import SVGPathCommander from "svg-path-commander";
 
 const path = new SVGPathCommander("M0 0L100 0L50 100");
-path.flipX().toString(); // "M0 0L100 0L50 -100"
+path.flipX().toString(); // "M100 0H0L50 100"
 ```
 
 ```ts
 import { getPathBBox, pathToCurve } from "svg-path-commander/util";
 
-getPathBBox("M0 0L100 0L50 100"); // { x: 0, y: 0, width: 100, height: 100 }
+getPathBBox("M0 0L100 0L50 100"); // { x: 0, y: 0, x2: 100, y2: 100, width: 100, height: 100, cx: 50, cy: 50, cz: 150 }
 ```
 
 ```ts
-import { equalize } from "svg-path-commander/morph";
+import { equalize } from "svg-path-commander/util";
 
 const [eq1, eq2] = equalize("M0 0L100 0L50 100Z", "M0 0L100 0L100 100L0 100Z");
 ```
 
 ```ts
-import { pathsIntersection } from "svg-path-commander/intersect";
+import { pathsIntersection } from "svg-path-commander/util";
 
 pathsIntersection("M0 50C0 0,100 0,100 50", "M50 0C100 0,100 100,50 100", false);
 ```
@@ -76,23 +78,23 @@ offsetPath("M0 0L100 0", 10, { side: "both", join: "round", cap: "round" });
 
 ## API Overview
 
-**Constructor** — accepts an SVG path string, a `PathArray` (array of command segments) or a generic array of numbers / strings; optional `Options` (e.g. `transformOrigin`, `rounding`) validated against `defaultOptions`.
+**Constructor** — accepts a non-empty SVG path string and optional instance options (`round` and `origin`), validated against the default options.
 
-**Instance methods** — chainable: `parse`, `toString`, `flipX`, `flipY`, `transform`, `scale`, `rotate`, `translate`, `skew`, `skewX`, `skewY`, `reverse`, `reverseSubPath`, `join`, `reverseC`, `toAbsolute`, `toRelative`, `toCurve`, `optimize`, `round`, `normalize`, `simplify`, `offset`, `getPointAtLength`, `getPropertiesAtLength`, `getSegmentOfPoint`, `getIntersections`, `getBBox`, `getTotalLength`, `isPointInPath`, `isPointInStroke`.
+**Instance methods** — chainable path processors and queries: `toAbsolute`, `toRelative`, `toCurve`, `reverse`, `reverseSubPath`, `join`, `normalize`, `optimize`, `simplify`, `offset`, `transform`, `flipX`, `flipY`; query methods: `getBBox`, `getTotalLength`, `getPointAtLength`, `getPropertiesAtLength`, `isPointInPath`, `isPointInStroke`; plus `toString` and `dispose`.
 
-**Getters** — `bbox`, `length`, `string`, `segments`, `path`, `options`.
+**Getters** — `bbox` and `length`.
 
-**Static methods** — `parsePathString`, `pathToString`, `normalizePath`, `optimizePath`, `simplifyPath`, `offsetPath`, `resamplePath`, `pathToAbsolute`, `pathToRelative`, `pathToCurve`, `shapeToPath`, `shapeToPathArray`, `reversePath`, `reverseSubPath`, `joinPath`, `reverseCurve`, `transformPath`, `roundPath`, `splitPath`, `fixPath`, `getPathBBox`, `getPathArea`, `getDrawDirection`, `getTotalLength`, `getPointAtLength`, `getSegmentAtLength`, `getSegmentOfPoint`, `getPropertiesAtLength`, `getPropertiesAtPoint`, `getClosestPoint`, `isPointInStroke`, `isPointInPath`, `isValidPath`, `pathsIntersection`, `boundingBoxIntersect`, `equalize`, `equalizePaths`, `equalizeSegments`, plus the low-level tools in the `svg-path-commander/util` subpath entry.
+**Static methods** — the class exposes the parser, conversion, processing, geometry, shape, morphing and intersection tools as static fields, including `parsePathString`, `pathToString`, `pathToAbsolute`, `pathToRelative`, `pathToCurve`, `normalizePath`, `optimizePath`, `simplifyPath`, `offsetPath`, `reversePath`, `reverseSubPath`, `joinPath`, `transformPath`, `roundPath`, `splitPath`, `fixPath`, `getPathBBox`, `getPathArea`, `getDrawDirection`, `getTotalLength`, `getPointAtLength`, `getSegmentAtLength`, `getSegmentOfPoint`, `getPropertiesAtLength`, `getPropertiesAtPoint`, `getClosestPoint`, `isPointInStroke`, `isPointInPath`, `isValidPath`, `equalize`, `equalizePaths`, `equalizeSegments`, `resamplePath`, `pathsIntersection`, `boundingBoxIntersect` and `isPointInsideBBox`. The low-level tools are also available from the `svg-path-commander/util` subpath entry.
 
-**Entry points** — `svg-path-commander` holds the class and every static method, `svg-path-commander/util` holds the tools, `svg-path-commander/morph` holds the morphing engine (`equalize`, `equalizePaths`, `equalizeSegments`, `resamplePath`, `fixPath`, `splitCubicSegment`) and `svg-path-commander/intersect` holds the intersection engine (`pathsIntersection`, `boundingBoxIntersect`, `isPointInsideBBox`).
+**Entry points** — `svg-path-commander` holds the class, every static method and the public types; `svg-path-commander/util` holds every standalone tool, including the morphing engine (`equalize`, `equalizePaths`, `equalizeSegments`, `resamplePath`, `fixPath`, `splitCubicSegment`) and the intersection engine (`pathsIntersection`, `boundingBoxIntersect`, `isPointInsideBBox`).
 
-**Types** — `PathArray`, `PathSegment`, `PathCommand`, `AbsoluteCommand`, `RelativeCommand`, `NormalSegment`, `IteratorCallback`, `Options`, `TransformObject`, `PathBBox`, `ShapePath`, `ShapeAttrs`, `OffsetOptions`, `OffsetSide`, `OffsetJoin`, `OffsetCap`, `PointInPathOptions`, `FillRule`, `StrokeOptions`, `EqualizationOptions`, `EqualizeOptions`, and per-command segment aliases (`MSegment`, `LSegment`, `CSegment`, `ArcSegment`, ...).
+**Types** — `PathArray`, `PathSegment`, `PathCommand`, `AbsoluteCommand`, `RelativeCommand`, `NormalSegment`, `MorphPathArray`, `IteratorCallback`, `Options`, `TransformObject`, `PathBBox`, `ShapeTypes`, `ShapeOps`, `ShapeParams`, `OffsetOptions`, `OffsetSide`, `OffsetJoin`, `OffsetCap`, `PointInPathOptions`, `FillRule`, `StrokeOptions`, `EqualizationOptions`, `PathsEqualizationOptions`, `EqualizeOptions`, and per-command segment aliases (`MSegment`, `LSegment`, `CSegment`, `ArcSegment`, ...).
 
 ## Key Differences
 
 - Works in **Node.js** and browsers — no `SVGPathElement` required for path computation (the `@thednp/dommatrix` shim covers `DOMMatrix`).
-- All transformations are consistent with the SVG coordinate system, including `transformOrigin` for rotation.
+- All transformations are consistent with the SVG coordinate system, including an explicit transform origin for rotation.
 - The built-in `getBBox`, `getTotalLength` and `getPointAtLength` are implemented mathematically (arcs via Gauss-Legendre quadrature) and are more accurate than the native methods.
 - Static methods return safe defaults for empty / invalid input (e.g. `getPathBBox("")` returns a zeroed box) while the constructor throws a `TypeError` on invalid path strings.
-- The class API and the static methods share the same implementation, so behavior is identical whichever entry you use.
+- The class API and the standalone tools share their implementations, but their defaults can differ: static `optimizePath()` rounds to 2 decimals, while instance `optimize()` uses the instance `round` option and falls back to 2 decimals when rounding is off.
 - The version is exposed as `SVGPathCommander.version` and follows `package.json`.

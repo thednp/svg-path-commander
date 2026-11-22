@@ -202,19 +202,20 @@
           <input
             class="form-input d-inline wide"
             data-bs-toggle="tooltip"
-            data-title="Tolerance"
+            data-title="Tolerance (% of the shape diagonal)"
             type="number"
             name="tolerance"
             id="tolerance"
-            placeholder="Tolerance"
+            placeholder="Tolerance %"
             value="1"
             min="0.1"
-            step="0.5"
+            step="0.1"
           />
+          %
           <button
             type="button"
             data-bs-toggle="tooltip"
-            title="Simplify the path within a tolerance, the result is a polyline"
+            title="Simplify the path within a tolerance relative to its size, the result is a polyline"
             onclick="toSimplify()"
           >
             Simplify
@@ -907,9 +908,15 @@
       function toSimplify() {
         pathValue = inputTextArea.value || pathValue;
         try {
-          const tolerance = readNumber("tolerance", 1);
+          const percent = readNumber("tolerance", 1);
+          const { width, height } = SVGPathCommander.getPathBBox(pathValue);
+          const diagonal = Math.hypot(width, height);
+          const tolerance = diagonal ? (diagonal * percent) / 100 : 0.001;
           const simplified = pathToString(simplifyPath(pathValue, tolerance));
-          setResult(simplified);
+          setResult(
+            simplified,
+            `Tolerance: ${round(tolerance)} units (${percent}% of the shape diagonal)\n${simplified}`,
+          );
         } catch (error) {
           report(error.message);
         }

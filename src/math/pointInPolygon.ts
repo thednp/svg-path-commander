@@ -80,7 +80,9 @@ export const isPointOnPolygon = (polygon: Point[], point: Point, epsilon: number
 
   for (let i = 0; i < count; i += 1) {
     const j = (i + 1) % count;
-    if (distanceToSegment(point, polygon[i], polygon[j]) <= epsilon) return true;
+    if (distanceToSegment(point, polygon[i], polygon[j]) <= epsilon) {
+      return true;
+    }
   }
 
   return false;

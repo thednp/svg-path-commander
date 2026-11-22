@@ -6,3 +6,4 @@ TMP
 test/__screenshots__
 .vitest-attachments
 .vitest/
+.planning/

@@ -27,6 +27,17 @@ import { measureSegments } from "../src/util/measureSegments";
 import { segmentStringLength } from "../src/process/segmentStringLength";
 import { iterate } from "../src/process/iterate";
 import { distanceToSegment } from "../src/math/distanceToSegment";
+import {
+  boundingBoxIntersect as boundingBoxIntersectFromUtil,
+  equalize as equalizeFromUtil,
+  equalizePaths as equalizePathsFromUtil,
+  equalizeSegments as equalizeSegmentsFromUtil,
+  fixPath as fixPathFromUtil,
+  isPointInsideBBox as isPointInsideBBoxFromUtil,
+  pathsIntersection as pathsIntersectionFromUtil,
+  resamplePath as resamplePathFromUtil,
+  splitCubicSegment as splitCubicSegmentFromUtil,
+} from "../src/util.ts";
 import type {
   CSegment,
   IntersectionPoint,
@@ -75,6 +86,18 @@ describe("SVGPathCommander Static Methods", () => {
 
   beforeEach(async () => {
     wrapper.innerHTML = "";
+  });
+
+  test("Utility entry exports the morph and intersection tools", () => {
+    expect(fixPathFromUtil).to.equal(SVGPathCommander.fixPath);
+    expect(splitCubicSegmentFromUtil).to.equal(SVGPathCommander.splitCubicSegment);
+    expect(equalizeFromUtil).to.equal(SVGPathCommander.equalize);
+    expect(equalizePathsFromUtil).to.equal(SVGPathCommander.equalizePaths);
+    expect(equalizeSegmentsFromUtil).to.equal(SVGPathCommander.equalizeSegments);
+    expect(resamplePathFromUtil).to.equal(SVGPathCommander.resamplePath);
+    expect(pathsIntersectionFromUtil).to.equal(SVGPathCommander.pathsIntersection);
+    expect(boundingBoxIntersectFromUtil).to.equal(SVGPathCommander.boundingBoxIntersect);
+    expect(isPointInsideBBoxFromUtil).to.equal(SVGPathCommander.isPointInsideBBox);
   });
 
   test("Convert shape to path with incomplete values should return false", () => {
@@ -384,8 +407,11 @@ describe("SVGPathCommander Static Methods", () => {
       x: 30.072453006153214,
       y: 41.42818552481854,
     });
-    expect(propsPoint50.closest).to.deep.equal({ x: 30.07238133899532, y: 41.42817259194202 });
-    expect(propsPoint50.distance).to.equal(0.00007282472667645927);
+    // the closest point of a curve is found with an iterative search, so the
+    // answer is within a fraction of a unit of the exact one
+    expect(propsPoint50.closest.x).to.be.closeTo(30.07238230393877, 1e-5);
+    expect(propsPoint50.closest.y).to.be.closeTo(41.42816856828817, 1e-5);
+    expect(propsPoint50.distance).to.be.closeTo(0.00007270713203906828, 1e-8);
     expect(segmentMeta(propsPoint50.segment)).to.deep.equal({
       segment: ["C", 30, 90, 25, 10, 50, 10],
       index: 1,
@@ -395,8 +421,10 @@ describe("SVGPathCommander Static Methods", () => {
 
     // getPropertiesAtPoint last point
     const propsPoint400 = getPropertiesAtPoint(simpleShapes.initial[1], { x: 50, y: 10 });
-    expect(propsPoint400.closest).to.deep.equal({ x: 50.000003352761084, y: 10.000000000000481 });
-    expect(propsPoint400.distance).to.equal(0.0000033527610838746457);
+    // the point is on the path, at the join of two curves
+    expect(propsPoint400.closest.x).to.be.closeTo(50, 1e-5);
+    expect(propsPoint400.closest.y).to.be.closeTo(10, 1e-5);
+    expect(propsPoint400.distance).to.be.closeTo(0, 1e-5);
     expect(segmentMeta(propsPoint400.segment)).to.deep.equal({
       segment: ["s", 20, 80, 40, 80],
       index: 2,
@@ -459,10 +487,174 @@ describe("SVGPathCommander Static Methods", () => {
       y: 90,
     });
     // mid point
-    expect(getClosestPoint(simpleShapes.initial[3], { x: 9, y: 9 })).to.deep.equal({
-      x: 8.99551618007375,
-      y: 8.952969847534355,
+    // the closest point of an arc is found with an iterative search, so the
+    // answer is within a fraction of a unit of the exact one
+    const closest = getClosestPoint(simpleShapes.initial[3], { x: 9, y: 9 });
+    expect(closest.x).to.be.closeTo(8.995510575963724, 1e-5);
+    expect(closest.y).to.be.closeTo(8.95297038174109, 1e-5);
+  });
+
+  test(`Can find the closest point on a short path`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+    // the path is shorter than the old 8-unit scan step, so the scan has to
+    // be scaled with the length of the path to find the last segment
+    const path = "M7.759 2.722L12.968 3.144L5.288 5.065";
+    const props = getPropertiesAtPoint(path, {
+      x: 1.083779092102759,
+      y: 3.890545689621021,
     });
+    expect(props.closest).to.deep.equal({ x: 5.288, y: 5.065 });
+    expect(props.distance).to.be.closeTo(4.365182283658733, 1e-12);
+    expect(props.segment?.segment).to.deep.equal(["L", 5.288, 5.065]);
+  });
+
+  test(`Can find the closest point on a path without length`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+    const props = getPropertiesAtPoint("M10 10", { x: 11, y: 12 });
+    expect(props.closest).to.deep.equal({ x: 10, y: 10 });
+    expect(props.distance).to.be.closeTo(Math.sqrt(5), 1e-12);
+    expect(props.segment?.segment).to.deep.equal(["M", 10, 10]);
+  });
+
+  test(`Can find the closest point on a zero-length line`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+    const props = getPropertiesAtPoint("M0 0L10 0L10 0", { x: 10, y: 0 });
+    expect(props.closest).to.deep.equal({ x: 10, y: 0 });
+    expect(props.distance).to.equal(0);
+    expect(props.segment?.segment).to.deep.equal(["L", 10, 0]);
+  });
+
+  test(`Test closest point accuracy on a long path`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+    const length = 1e9;
+    const path = `M0 0L${length} 0C${length} -2 ${length + 2} -2 ${length + 2} 0C${length + 2} 2 ${length} 2 ${length} 0`;
+
+    const props = getPropertiesAtPoint(path, { x: length + 1, y: -0.5 });
+
+    expect(props.distance).to.be.closeTo(0.9142135624, 1e-6);
+  });
+
+  test(`Test closest point tie-breaking between parallel segments`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+
+    const props = getPropertiesAtPoint("M0 0L10 0M0 -4e-13L10 -4e-13", { x: 5, y: 1 });
+
+    expect(props.closest).to.deep.equal({ x: 5, y: 0 });
+    expect(props.distance).to.equal(1);
+  });
+
+  test(`Test closest point frame follows the exact projected segment`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+
+    const props = getPropertiesAtPoint("M0 0C0 1 0.2 1 0.2 0L1 0", { x: 0.5, y: 0 });
+
+    expect(props.closest.x).to.be.closeTo(0.5, 1e-12);
+    expect(props.closest.y).to.be.closeTo(0, 1e-12);
+    expect(props.distance).to.be.closeTo(0, 1e-12);
+    expect(props.segment?.segment).to.deep.equal(["L", 1, 0]);
+    expect(props.segment?.point.x).to.be.closeTo(0.5, 1e-12);
+    expect(props.segment?.point.y).to.be.closeTo(0, 1e-12);
+  });
+
+  test(`Can find the exact point inside a very short straight segment`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+
+    const props = getPropertiesAtPoint("M0 0L0.001 0M100 100L101 100", {
+      x: 0.0005,
+      y: 0,
+    });
+
+    expect(props.closest).to.deep.equal({ x: 0.0005, y: 0 });
+    expect(props.distance).to.equal(0);
+    expect(props.segment?.segment).to.deep.equal(["L", 0.001, 0]);
+    expect(props.segment?.point.x).to.be.closeTo(0.0005, 1e-12);
+    expect(props.segment?.point.y).to.be.closeTo(0, 1e-12);
+  });
+
+  test(`Can prefer an exact straight projection over a nearer sampled point`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+
+    const props = getPropertiesAtPoint("M-0.01 0L0.01 0M0 0.2002L0.001 0.2002", {
+      x: 0,
+      y: 0.1,
+    });
+
+    expect(props.closest.x).to.be.closeTo(0, 1e-9);
+    expect(props.closest.y).to.be.closeTo(0, 1e-12);
+    expect(props.distance).to.be.closeTo(0.1, 1e-12);
+    expect(props.segment?.segment).to.deep.equal(["L", 0.01, 0]);
+    expect(props.segment?.point.x).to.be.closeTo(0, 1e-9);
+    expect(props.segment?.point.y).to.be.closeTo(0, 1e-12);
+  });
+
+  test(`Test closest point on a zero-length moveto sub-path`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+
+    const props = getPropertiesAtPoint("M10 10M20 20", { x: 20, y: 20 });
+
+    expect(props.closest).to.deep.equal({ x: 20, y: 20 });
+    expect(props.distance).to.equal(0);
+    expect(props.segment?.segment).to.deep.equal(["M", 20, 20]);
+  });
+
+  test(`Test closest point segment on a zero-length moveto sub-path`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+
+    const props = getPropertiesAtPoint("M0 0L10 0ZM5 5Z", { x: 5, y: 5 });
+
+    expect(props.closest).to.deep.equal({ x: 5, y: 5 });
+    expect(props.distance).to.equal(0);
+    expect(props.segment?.segment).to.deep.equal(["M", 5, 5]);
+  });
+
+  test(`Test closest point with a non-finite query point`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+
+    const props = getPropertiesAtPoint("M0 0L10 0", { x: Number.NaN, y: 0 });
+
+    expect(props.closest).to.deep.equal({ x: 0, y: 0 });
+    expect(props.distance).to.equal(Number.POSITIVE_INFINITY);
+  });
+
+  test(`Can find a closer local minimum after the best scan sample`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+    // the first sub-path has the closest sample of the scan, but the second
+    // one has the closer exact minimum between two of its samples
+    const path = "M-50 1.4L50 1.4M-51.4 0.1L48.6 0.1";
+    const props = getPropertiesAtPoint(path, { x: 0, y: 0 });
+    expect(props.closest).to.deep.equal({ x: 0, y: 0.1 });
+    expect(props.distance).to.be.closeTo(0.1, 1e-12);
+    expect(props.segment?.segment).to.deep.equal(["L", 48.6, 0.1]);
+  });
+
+  test(`Can find the closest point on a short sub-path between long sub-paths`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+    const path = "M-50 1L1 1M0 0.1L0.2 0.1M-50 1L50 1";
+    const props = getPropertiesAtPoint(path, { x: 0.1, y: 0 });
+    expect(props.closest.x).to.be.closeTo(0.1, 1e-12);
+    expect(props.closest.y).to.be.closeTo(0.1, 1e-12);
+    expect(props.distance).to.be.closeTo(0.1, 1e-12);
+    expect(props.segment?.segment).to.deep.equal(["L", 0.2, 0.1]);
+  });
+
+  test(`Can find the closest point on a short curve sub-path between long sub-paths`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+    const path = "M-50 1L1 1M0 0.1Q0.1 0 0.2 0.1M-50 1L50 1";
+    const props = getPropertiesAtPoint(path, { x: 0.1, y: 0 });
+    expect(props.closest.x).to.be.closeTo(0.1, 1e-7);
+    expect(props.closest.y).to.be.closeTo(0.05, 1e-9);
+    expect(props.distance).to.be.closeTo(0.05, 1e-9);
+    expect(props.segment?.segment).to.deep.equal(["Q", 0.1, 0, 0.2, 0.1]);
+  });
+
+  test(`Can find the closest point on a short sub-path of a long path`, () => {
+    const { getPropertiesAtPoint } = SVGPathCommander;
+    const path = "M0 0L40000 0M20000 0.5L20001 0.5";
+    const props = getPropertiesAtPoint(path, { x: 20000.5, y: 0.6 });
+    expect(props.closest.x).to.be.closeTo(20000.5, 1e-12);
+    expect(props.closest.y).to.be.closeTo(0.5, 1e-12);
+    expect(props.distance).to.be.closeTo(0.1, 1e-12);
+    expect(props.segment?.segment).to.deep.equal(["L", 20001, 0.5]);
   });
 
   test(`Can find the closest point on the closing segment of a closed path`, () => {
@@ -1104,6 +1296,16 @@ describe("SVGPathCommander Static Methods", () => {
       ];
 
       expect(getPathSplits(path, 2)).to.deep.equal([1, 1]);
+      expect(
+        getPathSplits(
+          [
+            ["M", 0, 0],
+            ["L", 0, 0],
+            ["L", 10, 0],
+          ],
+          3,
+        ),
+      ).to.deep.equal([1, 1, 1]);
       expect(getPathSplits(path2, 20)).to.deep.equal([1, 4, 15]);
       expect(getPathSplits(path2, 30)).to.deep.equal([1, 7, 22]);
       expect(getPathSplits(path2, 50)).to.deep.equal([1, 12, 37]);
@@ -1423,6 +1625,55 @@ describe("SVGPathCommander Static Methods", () => {
       expect(getDrawDirection(eq1)).to.not.equal(getDrawDirection(eq2));
     });
 
+    test(`Can reverse the first whole path in the reverse auto mode`, () => {
+      const positive = "M0 0L10 0L0 10M200 200L201 200";
+      const negative = "M0 11L100 100L0 10M300 300L301 300";
+
+      const [eq1, eq2] = equalizePaths(positive, negative, { reverse: "auto" });
+
+      expect(eq1.length).to.equal(eq2.length);
+      expect(eq1[0]).to.deep.equal(["M", 0, 10]);
+    });
+
+    test(`Can reverse the second whole path in the reverse auto mode`, () => {
+      const positive = "M0 0L10 0L0 10M200 200L201 200";
+      const negative = "M100 100L100 0L0 0M300 300L301 300";
+
+      const [eq1, eq2] = equalizePaths(positive, negative, { reverse: "auto" });
+
+      expect(eq1.length).to.equal(eq2.length);
+      expect(eq2[0]).to.deep.equal(["M", 0, 0]);
+    });
+
+    test(`Can reverse the second whole path in the reverse true mode`, () => {
+      const positive = "M0 0L10 0L0 10M200 200L201 200";
+      const negative = "M100 100L100 0L0 0M300 300L301 300";
+
+      const [eq1, eq2] = equalizePaths(positive, negative, { reverse: true });
+
+      expect(eq1.length).to.equal(eq2.length);
+      expect(eq2[0]).to.deep.equal(["M", 0, 0]);
+    });
+
+    test(`Can do equalizePaths with multiple sub-paths and the reverse false option`, () => {
+      const source = "M0 0L10 0L0 10M20 20L21 20";
+      const target = "M0 0L0 10L10 0M30 30L31 30";
+
+      const [eq1, eq2] = equalizePaths(source, target, { reverse: false });
+
+      expect(eq1.length).to.equal(eq2.length);
+    });
+
+    test(`Can do equalizePaths with an empty path and multiple sub-paths`, () => {
+      const target = "M0 0L10 10M20 20L30 30";
+
+      const [eq1, eq2] = equalizePaths("", target, { reverse: "auto" });
+
+      expect(eq1.length).to.equal(eq2.length);
+      expect(eq1.filter((segment) => segment[0] === "M")).to.have.lengthOf(2);
+      expect(eq2.filter((segment) => segment[0] === "M")).to.have.lengthOf(2);
+    });
+
     test(`Can do equalizePaths with paths that draw the same way`, () => {
       const clockwise = "M0 0L0 10L10 10L10 0ZM20 20L20 30L30 30L30 20Z";
       const [eq1, eq2] = equalizePaths(clockwise, clockwise);
@@ -1502,7 +1753,81 @@ describe("SVGPathCommander Static Methods", () => {
       // third of the span
       expect(resampled).to.deep.equal([
         ["M", 0, 0],
-        ["C", 33.333333333333336, 0, 66.66666666666666, 0, 100, 0],
+        ["C", 33.33333333333333, 0, 66.66666666666666, 0, 100, 0],
+      ]);
+    });
+
+    test(`Can preserve the source curves when every segment has its own span`, () => {
+      const resampled = resamplePath("M0 0C50 0 50 100 100 100C150 100 150 0 200 0", 3, "curve");
+
+      expect(resampled).to.deep.equal([
+        ["M", 0, 0],
+        ["C", 50, 0, 50, 100, 100, 100],
+        ["C", 150, 100, 150, 0, 200, 0],
+      ]);
+    });
+
+    test(`Can preserve the fill of a rounded rectangle in curve mode`, () => {
+      const { isPointInPath } = SVGPathCommander;
+      const path =
+        "M2 0L14 0A2 2 0 0 1 16 2L16 14A2 2 0 0 1 14 16L2 16A2 2 0 0 1 0 14L0 2A2 2 0 0 1 2 0Z";
+
+      const resampled = resamplePath(path, 10, "curve");
+
+      expect(isPointInPath(resampled, { x: 0.575, y: 0.78125 })).to.be.true;
+    });
+
+    test(`Can resample curves without a direction at their ends`, () => {
+      const resampled = resamplePath(
+        "M0 0C0 0 50 50 100 0M200 200C250 250 300 200 300 200",
+        2,
+        "curve",
+      );
+
+      expect(resampled.filter((segment) => segment[0] === "M")).to.have.lengthOf(2);
+      expect((resampled[1] as CSegment).slice(-2)).to.deep.equal([100, 0]);
+      expect((resampled[3] as CSegment).slice(-2)).to.deep.equal([300, 200]);
+    });
+
+    test(`Can use a fallback curve without a direction at either end`, () => {
+      const resampled = resamplePath("M0 0C0 0 50 50 100 0C100 0 200 0 200 0", 2, "curve");
+
+      expect(resampled).to.have.lengthOf(2);
+      const curve = resampled[1] as CSegment;
+      expect(curve[1]).to.equal(0);
+      expect(curve[2]).to.equal(0);
+      expect(curve[3]).to.equal(200);
+      expect(curve[4]).to.equal(0);
+      expect(curve.slice(-2)).to.deep.equal([200, 0]);
+    });
+
+    test(`Can ignore a source boundary that is too close to the previous one`, () => {
+      const resampled = resamplePath("M0 0L0.000000002 0L0.0000000021 0L100 0", 4, "curve");
+
+      expect(resampled).to.have.lengthOf(4);
+      expect((resampled[1] as CSegment).slice(-2)).to.deep.equal([2e-9, 0]);
+      expect((resampled[2] as CSegment).slice(-2)[0]).to.be.greaterThan(2e-9);
+    });
+
+    test(`Can resample every sub-path of a path on its own`, () => {
+      const resampled = resamplePath("M0 0L10 0L10 10ZM20 0L30 0L30 10Z", 4, "line");
+      // the sub-paths stay separate, so the result does not connect them
+      expect(resampled).to.deep.equal([
+        ["M", 0, 0],
+        ["L", 10, 0],
+        ["L", 10, 10],
+        ["L", 0, 0],
+        ["M", 20, 0],
+        ["L", 30, 0],
+        ["L", 30, 10],
+        ["L", 20, 0],
+      ]);
+    });
+
+    test(`Can resample a moveto-only sub-path`, () => {
+      expect(resamplePath("M10 10M20 20", 4, "line")).to.deep.equal([
+        ["M", 10, 10],
+        ["M", 20, 20],
       ]);
     });
 
@@ -1555,6 +1880,13 @@ describe("SVGPathCommander Static Methods", () => {
         ["M", 0, 0],
         ["L", 0, 0],
       ]);
+    });
+
+    test(`Can resample every sub-path of a path in curve mode`, () => {
+      const resampled = resamplePath("M0 0C50 100 100 100 150 0M200 200L300 200", 3, "curve");
+      expect(resampled.filter((segment) => segment[0] === "M")).to.have.lengthOf(2);
+      expect(resampled).to.have.lengthOf(6);
+      expect(resampled.every((segment) => segment[0] === "M" || segment[0] === "C")).to.be.true;
     });
 
     test(`Can sample the polygon of a path with a quadratic segment`, () => {
@@ -1655,6 +1987,62 @@ describe("SVGPathCommander Static Methods", () => {
       expect(eq1.length).to.equal(4);
       expect(eq2.length).to.equal(4);
       expect(eq1.every((segment) => segment[0] === "M" || segment[0] === "L")).to.be.true;
+    });
+
+    test(`Can match an outer contour to a hole without adding a placeholder contour`, () => {
+      const source = "M0 0L10 0L10 10L0 10ZM2 2L8 2L8 8L2 8Z";
+      const target = "M0 0L10 0L10 10L0 10ZM4 4L14 4L14 14L4 14Z";
+
+      for (const strategy of ["segment", "arcLength"] as const) {
+        const [eq1, eq2] = equalize(source, target, { strategy });
+
+        expect(eq1.filter((segment) => segment[0] === "M")).to.have.lengthOf(2);
+        expect(eq2.filter((segment) => segment[0] === "M")).to.have.lengthOf(2);
+      }
+    });
+
+    test(`Can preserve the fill of holes in a multi-subpath equalization`, () => {
+      const { equalize, isPointInPath } = SVGPathCommander;
+      const outer = "M0 0L10 0L10 10L0 10Z";
+      const source = outer;
+      const target = `${outer}M2 2L2 8L8 8L8 2Z`;
+
+      const [eq1, eq2] = equalize(source, target, { reverse: "auto" });
+
+      expect(isPointInPath(source, { x: 5, y: 5 })).to.be.true;
+      expect(isPointInPath(target, { x: 5, y: 5 })).to.be.false;
+      expect(isPointInPath(eq1, { x: 5, y: 5 })).to.be.true;
+      expect(isPointInPath(eq2, { x: 5, y: 5 })).to.be.false;
+    });
+
+    test(`Test preserves the target hole when morphing a camera icon`, () => {
+      const { equalize, isPointInPath } = SVGPathCommander;
+      const source =
+        "M2 4a2 2 0 0 0 -2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-6a2 2 0 0 0 -2 -2h-1.172a2 2 0 0 1 -1.414 -0.586l-0.828 -0.828a2 2 0 0 0 -1.414 -0.586h-2.344a2 2 0 0 0 -1.414 0.586l-0.828 0.828a2 2 0 0 1 -1.414 0.586h-1.172zM10.5 8.5a2.5 2.5 0 0 0 -5 0a2.5 2.5 0 1 0 5 0zM2.5 6a0.5 0.5 0 0 1 0 -1a0.5 0.5 0 1 1 0 1zM11.5 8.5a3.5 3.5 0 1 1 -7 0a3.5 3.5 0 0 1 7 0z";
+      const target =
+        "M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2zm7.5 11h-4a.5.5 0 01-.5-.5v-4a.5.5 0 011 0v2.793l4.146-4.147a.5.5 0 01.708.708L6.707 10H9.5a.5.5 0 010 1z";
+
+      for (const strategy of ["segment", "arcLength"] as const) {
+        const [, equalTarget] = equalize(source, target, { strategy });
+
+        expect(isPointInPath(equalTarget, { x: 8, y: 8.7 })).to.be.false;
+        expect(isPointInPath(equalTarget, { x: 3, y: 12 })).to.be.true;
+      }
+    });
+
+    test(`Test preserves the target hole when morphing a pie chart`, () => {
+      const { equalize, isPointInPath } = SVGPathCommander;
+      const source =
+        "M15.98 8.51C15.6 14.66 8.71 18.08 3.58 14.68C3.27 14.47 2.98 14.25 2.71 14.01l5.5 -5.5h7.78zM2 13.3C1.75 13.02 1.53 12.73 1.33 12.43C-2.07 7.3 1.35 0.41 7.5 0.03V7.8L2 13.3ZM8.5 0.03C12.52 0.28 15.73 3.49 15.99 7.52H8.5V0.03Z";
+      const target =
+        "M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2zm7.5 11h-4a.5.5 0 01-.5-.5v-4a.5.5 0 011 0v2.793l4.146-4.147a.5.5 0 01.708.708L6.707 10H9.5a.5.5 0 010 1z";
+
+      for (const strategy of ["segment", "arcLength"] as const) {
+        const [, equalTarget] = equalize(source, target, { strategy });
+
+        expect(isPointInPath(equalTarget, { x: 8, y: 8.7 })).to.be.false;
+        expect(isPointInPath(equalTarget, { x: 3, y: 12 })).to.be.true;
+      }
     });
 
     test(`Can do equalize with the reverse auto mode`, () => {
@@ -2797,6 +3185,25 @@ describe("Morph and path utility fixes", () => {
       expect(pieces[0][0]).to.equal(0);
       expect(pieces[count - 1][2]).to.equal(90);
     });
+  });
+
+  test("Test fixPath returns a fixed copy without mutating its input", () => {
+    const path: PathArray = [["M", 0, 0], ["L", 10, 0], ["L", 0, 0], ["Z"]];
+    const original = JSON.parse(JSON.stringify(path));
+
+    const fixed = SVGPathCommander.fixPath(path);
+
+    expect(fixed).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 10, 0],
+      ["L", 0, 0],
+    ]);
+    expect(path).to.deep.equal(original);
+    expect(SVGPathCommander.fixPath("M0 0L10 0L0 0Z")).to.deep.equal([
+      ["M", 0, 0],
+      ["L", 10, 0],
+      ["L", 0, 0],
+    ]);
   });
 
   test("Can match paths without destroying the source arrays", () => {

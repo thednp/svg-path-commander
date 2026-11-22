@@ -21,7 +21,7 @@ returns => {
 */
 
 // direct access to methods
-let mySVGPCInit = new SVGPathCommander(pathString).flipX().toString();
+let mySVGPCFlipped = new SVGPathCommander(pathString).flipX().toString();
 // returns => "M100 0H50L0 50Z"
 ```
 
@@ -38,7 +38,7 @@ let mySVGPCInit = new SVGPathCommander(pathString);
 
 // or do whatever you want, perhaps you're a font creator?
 let mySVGPCString = new SVGPathCommander(pathString).flipX().optimize().toString();
-// returns => "M100 0H50L0 50Z"
+// returns => "M100 0H50L0 50z"
 ```
 
 # Main Methods Examples
@@ -60,7 +60,7 @@ mySVGPCInit.reverse().toString();
 
 // ONLY reverse subpaths and return the string path
 // if the shape has no sub-path, this call will produce no effect
-mySVGPCInit.reverse(1).toString();
+mySVGPCInit.reverse(true).toString();
 
 // converts to both absolute and relative then return the shorter segment string
 mySVGPCInit.optimize().toString();
@@ -68,9 +68,9 @@ mySVGPCInit.optimize().toString();
 
 // or return directly what you need
 // reverse subpaths and return the optimized pathString
-let myReversedPath = new SVGPathCommander(pathString).reverse(1).optimize().toString();
+let myReversedPath = new SVGPathCommander(pathString).reverse(true).optimize().toString();
 
-// flip the shape vertically and return the pathString
+// flip the shape horizontally and return the pathString
 mySVGPCInit.flipX().toString();
 
 // apply a skew transformation and return the pathString
@@ -81,13 +81,13 @@ mySVGPCInit.transform({ skew: 25 }).toString();
 
 ```js
 // disable rounding values
-let mySVGPath = new SVGPathCommander("M0 0L0 0", { round: "off" });
+let mySVGPathWithoutRounding = new SVGPathCommander("M0 0L0 0", { round: "off" });
 
 // OR set a certain amount of decimals
-let mySVGPath = new SVGPathCommander("M0 0L0 0", { round: 9 });
+let mySVGPathWithRounding = new SVGPathCommander("M0 0L0 0", { round: 9 });
 
 // Apply a 45deg rotation on Z axis and use a custom transform origin
-let mySVGPath = new SVGPathCommander("M0 0L50 0").transform({
+let myRotatedSVGPath = new SVGPathCommander("M0 0L50 0").transform({
   rotate: [0, 0, 45],
   origin: [25, 25],
 });
@@ -113,7 +113,7 @@ let myPathString = new SVGPathCommander("M0 0L0 0").transform(transformObject).t
 
 **3D Transformation Example**
 
-The `transformObject` can also set the **transform-origin** required for the transformation, if _origin_ property is not set, by default `50% 50%` of the shape's bounding box is used; _**absolute values**_ relative to a parent `SVGElement` are expected.
+The `transformObject` can also set the **transform-origin** required for the transformation. If the _origin_ property is not set, the default is `[0, 0, 0]`; _**absolute values**_ relative to a parent `SVGElement` are expected.
 
 ```js
 // define properties to apply a transformation for
@@ -225,9 +225,10 @@ const [eq1, eq2] = SVGPathCommander.equalize("M0 0L100 0L50 100Z", "M0 0L100 0L1
 // eq1.length === eq2.length
 ```
 
-With the `arcLength` strategy the points of the result are spread evenly over
-the length of the paths and their corners are kept, so the two paths keep
-their shape while they are morphed:
+With the `arcLength` strategy the points of the result are distributed along the
+length of the paths, and the source segment boundaries and corners are kept when
+the requested count allows it, so the two paths keep their shape while they are
+morphed:
 
 ```js
 const [eq1, eq2] = SVGPathCommander.equalize("M0 0C50 100 100 100 150 0", "M0 0L150 0L150 100Z", {
@@ -321,7 +322,7 @@ SVGPathCommander.isPointInStroke("M0 0L100 0", { x: 50, y: 5 }, { width: 10 });
 
 # Advanced Usage
 
-In most cases, you can import only the tools you need, without importing the entire library. All static methods are exposed as named exports from the tree-shakeable `svg-path-commander/util` entry, with proper TypeScript definitions.
+In most cases, you can import only the tools you need, without importing the entire library. Most static methods are exposed as named exports from the tree-shakeable `svg-path-commander/util` entry, with proper TypeScript definitions.
 
 ```js
 import { pathToAbsolute, pathToString } from "svg-path-commander/util";
@@ -329,12 +330,10 @@ import { pathToAbsolute, pathToString } from "svg-path-commander/util";
 let mySVGAbsolutePath = pathToString(pathToAbsolute(pathString));
 ```
 
-The morphing engine and the intersection engine have their own entries, so the `util` entry does not
-ship them:
+The morphing and intersection tools are included in the same tree-shakeable utility entry:
 
 ```js
-import { equalize, resamplePath } from "svg-path-commander/morph";
-import { pathsIntersection } from "svg-path-commander/intersect";
+import { equalize, pathsIntersection, resamplePath } from "svg-path-commander/util";
 ```
 
 Most important of these tools are already exported to global and are part of the [Static Methods](JavaScript-API.md#static-methods).

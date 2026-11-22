@@ -15,8 +15,8 @@ import { roundTo } from "./math/roundTo.ts";
 
 import type { PathArray, Point, PointTuple, TransformObjectValues } from "./types.ts";
 import type {
-  Options,
   OffsetOptions,
+  Options,
   PointInPathOptions,
   SegmentProperties,
   SimplifyOptions,

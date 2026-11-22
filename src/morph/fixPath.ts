@@ -6,7 +6,7 @@ import { isClosedPath } from "../util/isClosedPath.ts";
 
 /**
  * Checks a `PathArray` for an unnecessary `Z` segment
- * and removes it. The `PathArray` is modified in place.
+ * and returns a copy without it. The input is not modified.
  * In short, if the segment before `Z` extends to `M`,
  * the `Z` segment must be removed.
  *
@@ -16,9 +16,9 @@ import { isClosedPath } from "../util/isClosedPath.ts";
  * sub-path separately.
  *
  * @param pathInput the `pathArray` source
- * @returns void
+ * @returns the fixed path
  */
-export const fixPath = <T extends PathArray>(pathInput: T | string): void => {
+export const fixPath = <T extends PathArray>(pathInput: T | string): PathArray => {
   const pathArray = parsePathString(pathInput);
 
   /* istanbul ignore else */
@@ -33,4 +33,6 @@ export const fixPath = <T extends PathArray>(pathInput: T | string): void => {
       pathArray.splice(length - 1, 1);
     }
   }
+
+  return pathArray;
 };

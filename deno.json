@@ -21,8 +21,6 @@
   ],
   "exports": {
     ".": "./src/index.ts",
-    "./intersect": "./src/intersect.ts",
-    "./morph": "./src/morph.ts",
     "./util": "./src/util.ts"
   },
   "compilerOptions": {

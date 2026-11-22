@@ -67,9 +67,9 @@ Keep the `paths` filters of all three workflows in sync when adding a file that 
 | `main.ts`      | SVGPathCommander class (core, chainable instance methods)               |
 | `types.ts`     | TypeScript type definitions (PathCommand, PathSegment, PathArray, etc.) |
 | `interface.ts` | Interfaces (Options, TransformObject, PathBBox, shape attrs)            |
-| `util.ts`      | Re-export of the static methods (tree-shakeable entry)                  |
-| `morph.ts`     | Re-export of the morphing engine (tree-shakeable entry)                 |
-| `intersect.ts` | Re-export of the intersection engine (tree-shakeable entry)             |
+| `util.ts`      | Re-export of every standalone tool (tree-shakeable entry)               |
+| `morph.ts`     | Internal barrel for the morphing tools                                  |
+| `intersect.ts` | Internal barrel for the intersection tools                              |
 | `convert/`     | Path format conversion (absolute, relative, curve, string)              |
 | `parser/`      | SVG path string tokenizer/scanner                                       |
 | `process/`     | Manipulation algorithms (normalize, optimize, reverse, transform, etc.) |
@@ -78,27 +78,31 @@ Keep the `paths` filters of all three workflows in sync when adding a file that 
 | `util/`        | Query helpers (bbox, length, point-at-length, intersection, etc.)       |
 | `options/`     | Default configuration                                                   |
 
-The library ships four entry points, and every one of them is a barrel file of its own:
+The library ships two entry points:
 
-| Entry point                    | Source             | Holds                       |
-| ------------------------------ | ------------------ | --------------------------- |
-| `svg-path-commander`           | `src/index.ts`     | the class and all the types |
-| `svg-path-commander/util`      | `src/util.ts`      | the static methods          |
-| `svg-path-commander/morph`     | `src/morph.ts`     | the morphing engine         |
-| `svg-path-commander/intersect` | `src/intersect.ts` | the intersection engine     |
+| Entry point               | Source         | Holds                                           |
+| ------------------------- | -------------- | ----------------------------------------------- |
+| `svg-path-commander`      | `src/index.ts` | the class, its static methods and all the types |
+| `svg-path-commander/util` | `src/util.ts`  | every standalone tool                           |
 
-A new subpath entry point needs a matching entry in the `exports` map of `package.json` **and** in
-the `exports` map of `deno.json` — the JSR package has its own map.
+The utility entry includes the morphing and intersection tools through the internal `src/morph.ts` and
+`src/intersect.ts` barrels. The class holds every engine as a static field (`static equalize = equalize;`),
+so the main entry always includes those implementations. A bundler drops the unused standalone exports
+from the utility entry. The package and JSR exports maps must expose the same two entry points.
 
-The Douglas-Peucker simplification lives in `process/` and is built from three modules:
+The Douglas-Peucker simplification lives in `process/` and is built from four modules:
 
 | Module                      | Purpose                                                              |
 | --------------------------- | -------------------------------------------------------------------- |
 | `process/simplifyPath.ts`   | The public API — normalizes, splits and rebuilds the simplified path |
 | `process/samplePath.ts`     | Samples a normalized path along its own parameterization             |
 | `process/douglasPeucker.ts` | The Douglas-Peucker core — the indexes of the points to keep         |
+| `process/splitSubPaths.ts`  | Splits an already normalized path into its sub-paths                 |
 
-Only `simplifyPath` is public — it is re-exported from `src/util.ts`.
+Only `simplifyPath` is public — it is re-exported from `src/util.ts`. The internal
+`splitSubPaths` helper is shared with the resampler: it operates on an already normalized path and
+does not parse or absolutize it again. It is distinct from the public `splitPath`, whose contract is
+to parse a path of any command form and return absolute path arrays.
 
 The path offsetting lives in `process/` and is built from three modules:
 
@@ -134,10 +138,13 @@ The morphing toolkit lives in `morph/` and is built from four modules:
 | `morph/equalize.ts`         | The public facade — routes single and multi sub-path pairs to the right tool |
 | `morph/equalizePaths.ts`    | Splits the paths into sub-paths, matches them and equalizes every pair       |
 | `morph/equalizeSegments.ts` | Equalizes a single sub-path pair, with the `segment` or `arcLength` strategy |
-| `morph/resamplePath.ts`     | Resamples a path to a given number of points, spread evenly over its length  |
+| `morph/resamplePath.ts`     | Resamples every sub-path to a given number of points, spread over its length |
 
-`equalize` and `resamplePath` are public — they are re-exported from `src/morph.ts`, next to the
-`equalizeSegments` and `equalizePaths` they build on.
+`equalize` and `resamplePath` are public — they are re-exported through `src/morph.ts` and
+`src/util.ts`, next to the `equalizeSegments` and `equalizePaths` they build on. The public resampler
+uses the shared `splitSubPaths` helper: every sub-path is resampled on its own, `count` is the number
+of points of each sub-path, and the result never connects two sub-paths. The public result type is
+`PathArray`, because a multi-subpath result holds more than one `M` command.
 
 Two modules in `util/` are the backbone of the length machinery and are shared by every query:
 
@@ -236,12 +243,11 @@ all work on copies, and the transform origin is copied before it is written to.
 | ------------------- | -------------------------------------------------------- |
 | `dist/index.min.js` | UMD bundle (minified, browser-ready, includes dommatrix) |
 | `dist/index.js`     | ESM bundle (tree-shakeable, neutral platform)            |
-| `dist/util.js`      | The static methods (tree-shakeable)                      |
-| `dist/morph.js`     | The morphing engine (tree-shakeable)                     |
-| `dist/intersect.js` | The intersection engine (tree-shakeable)                 |
+| `dist/util.js`      | Every standalone tool (tree-shakeable)                   |
 | `dist/index.d.ts`   | Type declarations                                        |
 
-Every entry point is built on its own, so a bundle never depends on a chunk of another one.
+The main and utility entry points are built on their own, so a bundle never depends on a chunk of
+another one.
 
 ## Releases
 

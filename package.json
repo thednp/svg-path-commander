@@ -44,8 +44,6 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
-    "./intersect": "./dist/intersect.js",
-    "./morph": "./dist/morph.js",
     "./util": "./dist/util.js",
     "./package.json": "./package.json"
   },

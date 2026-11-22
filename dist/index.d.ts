@@ -1026,8 +1026,6 @@ declare const isValidPath: (pathString: string) => boolean;
  * Samples points from a path to form a polygon approximation.
  * Collects endpoints of each segment (M start + ends of L/C/etc).
  *
- * If `sampleSize` parameter is provided, it will return a polygon
- * equivalent to the original `PathArray`.
  * @param path `PolygonPathArray` or `CurvePathArray`
  * @returns Array of [x, y] points
  */
@@ -1444,7 +1442,7 @@ declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSe
 declare const simplifyPath: (pathInput: string | PathArray, options?: number | SimplifyOptions) => PathArray;
 /**
  * Checks a `PathArray` for an unnecessary `Z` segment
- * and removes it. The `PathArray` is modified in place.
+ * and returns a copy without it. The input is not modified.
  * In short, if the segment before `Z` extends to `M`,
  * the `Z` segment must be removed.
  *
@@ -1454,9 +1452,9 @@ declare const simplifyPath: (pathInput: string | PathArray, options?: number | S
  * sub-path separately.
  *
  * @param pathInput the `pathArray` source
- * @returns void
+ * @returns the fixed path
  */
-declare const fixPath: <T extends PathArray>(pathInput: T | string) => void;
+declare const fixPath: <T extends PathArray>(pathInput: T | string) => PathArray;
 /**
  * Split a cubic Bézier into two cubics at parameter t [0–1].
  *
@@ -1491,11 +1489,17 @@ declare const equalizeSegments: (path1: PathArray | string, path2: PathArray | s
 /**
  * Equalizes two paths for morphing (single/multi subpath).
  *
+ * Multi-subpath paths are reversed as whole paths, so an outer contour keeps
+ * its relationship with its holes. Matched contours are not reversed
+ * independently: a fallback pair between an outer contour and a hole can
+ * keep opposite winding and interpolate with a twist, because reversing that
+ * hole on its own would change the fill topology of the path.
+ *
  * @see https://minus-ze.ro/posts/morphing-arbitrary-paths-in-svg/
  * @param pathInput1 - First path string or PathArray
  * @param pathInput2 - Second path string or PathArray
  * @param initialCfg - Configuration options for equalization
- * @returns Tuple of two equalized MorphPathArrays
+ * @returns Tuple of two equalized PathArrays
  *
  * @example
  * ```ts
@@ -1503,7 +1507,7 @@ declare const equalizeSegments: (path1: PathArray | string, path2: PathArray | s
  * // eq1.length === eq2.length — ready for morphing
  * ```
  */
-declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: {}) => [MorphPathArray, MorphPathArray];
+declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: PathsEqualizationOptions) => [PathArray, PathArray];
 /**
  * Equalizes two paths for morphing.
  *
@@ -1513,19 +1517,23 @@ declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string
  *
  * A path with a single sub-path is equalized on its own, a path with more
  * sub-paths is split into sub-paths, the sub-paths are matched by their
- * shape and every pair is equalized on its own.
+ * shape and every pair is equalized on its own. Multi-subpath paths are
+ * reversed as whole paths, so an outer contour keeps its relationship with
+ * its holes. Matched contours are not reversed independently: a fallback
+ * pair between an outer contour and a hole can keep opposite winding and
+ * interpolate with a twist, because reversing that hole on its own would
+ * change the fill topology of the path.
  *
  * The `strategy` option decides how the points of the paths are placed:
  * - `segment` splits the segments of the paths, so the points of the result
  *   are the points of the paths;
- * - `arcLength` spreads the points of the result evenly over the length of
- *   the paths, so the distance between two points of the result is the same
- *   over the whole path. The corners of the paths are points of the result
- *   too, so the shape of the paths keeps its vertices.
+ * - `arcLength` distributes the points of the result along the length of
+ *   the paths. The source segment boundaries and corners are points of the
+ *   result too when the requested count allows it, so the shape of the paths
+ *   keeps its vertices.
  *
  * The `points` option is the number of points of the result. The automatic
- * mode uses the number of points of the bigger path, raised when the corners
- * of the paths do not fit.
+ * mode uses the number of points of the bigger path.
  *
  * The `reverse` option decides what happens when the two paths draw in
  * opposite directions: `true` reverses the second path, `false` leaves the
@@ -1537,7 +1545,7 @@ declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string
  * @param pathInput1 - First path string or PathArray
  * @param pathInput2 - Second path string or PathArray
  * @param initialCfg - Configuration options for equalization
- * @returns Tuple of two equalized MorphPathArrays
+ * @returns Tuple of two equalized PathArrays
  *
  * @example
  * ```ts
@@ -1545,22 +1553,25 @@ declare const equalizePaths: (pathInput1: string | PathArray, pathInput2: string
  * // eq1.length === eq2.length — ready for morphing
  * ```
  */
-declare const equalize: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: EqualizeOptions) => [MorphPathArray, MorphPathArray];
+declare const equalize: (pathInput1: string | PathArray, pathInput2: string | PathArray, initialCfg?: EqualizeOptions) => [PathArray, PathArray];
 /**
  * Resamples a path to a given number of points, spread evenly by length.
  *
  * The path is measured along its length and the points of the result are
  * spread evenly over it, so the distance between two points of the result
- * is the same over the whole path. The corners of the path are points of
- * the result too, so the shape of the path keeps its vertices.
+ * is the same over the whole path. The source segment boundaries are points
+ * of the result too, so the shape of the path keeps its vertices.
+ *
+ * Every sub-path of the path is resampled on its own, so the sub-paths of
+ * the result are the sub-paths of the source: a path with several sub-paths
+ * keeps its shape, the points of a sub-path are not shared with the others.
  *
  * The result is a polyline, or a path of cubic Bezier segments when the
- * curve mode is used: every cubic of the result starts at a point of the
- * path and ends at the next one, with the direction of the path at both
- * ends, so the curve of the path is kept.
+ * curve mode is used. Every cubic of the result is the exact piece of the
+ * source curve between two knots.
  *
  * @param pathInput - the target path string or PathArray
- * @param count - the number of points of the result
+ * @param count - the number of points of every sub-path of the result
  * @param mode - the type of the segments of the result
  * @returns the resampled path
  *
@@ -1570,7 +1581,7 @@ declare const equalize: (pathInput1: string | PathArray, pathInput2: string | Pa
  * // => [['M', 0, 0], ['L', 100, 0], ['L', 100, 100]]
  * ```
  */
-declare const resamplePath: (pathInput: string | PathArray, count: number, mode?: "line" | "curve") => MorphPathArray;
+declare const resamplePath: (pathInput: string | PathArray, count: number, mode?: "line" | "curve") => PathArray;
 /**
  * Finds intersection points between two paths.
  *
