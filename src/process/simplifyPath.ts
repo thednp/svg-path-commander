@@ -6,6 +6,7 @@ import { splitSubPaths } from "./splitSubPaths.ts";
 import { buildPathLengthTable } from "../util/pathLengthTable.ts";
 import { samplePath } from "./samplePath.ts";
 import { douglasPeucker } from "./douglasPeucker.ts";
+import { fitCubic } from "./fitCubic.ts";
 
 /**
  * The default tolerance of the simplification.
@@ -43,15 +44,15 @@ const SAMPLE_SHARE = 16;
 const ACCEPTANCE = 0.8;
 
 /**
- * Simplifies a path, with the Douglas-Peucker algorithm.
+ * Simplifies a path within a geometric tolerance.
  *
- * The path is sampled along its length and the points that are needed to
- * keep its shape within the tolerance are kept: the result is a path of
- * straight lines, one sub-path for every sub-path of the source.
+ * Straight-line runs are reduced with Douglas-Peucker. Curve runs are fitted
+ * with cubic Béziers, while arcs and original curves are preserved whenever
+ * fitting would not reduce the segment count. Every source sub-path and its
+ * closure are retained.
  *
- * The tolerance is the maximum distance between the result and the source:
- * every point of the source stays within the tolerance of the result. A
- * smaller tolerance keeps more points, a bigger one removes more.
+ * The tolerance is the target geometric error of the sampled fitting. A
+ * smaller tolerance keeps more detail, a bigger one removes more.
  *
  * @param pathInput - the target path string or PathArray
  * @param options - the tolerance of the simplification, or the options
@@ -79,23 +80,46 @@ export const simplifyPath = (
 
   const result: PathArray = [] as unknown as PathArray;
   for (const subPath of splitSubPaths(normalized)) {
+    const closed = subPath[subPath.length - 1][0] === "Z";
+    const straight = subPath
+      .slice(1)
+      .every(
+        (segment) =>
+          segment[0] === "L" ||
+          segment[0] === "Z" ||
+          (segment[0] === "A" && (segment[1] === 0 || segment[2] === 0)),
+      );
     const { totalLength } = buildPathLengthTable(subPath);
-    // the step between two samples of the path
     const step = Math.max(tolerance / SAMPLE_SHARE, totalLength / MAX_SAMPLES);
     const samples = samplePath(subPath, step);
-    const kept = douglasPeucker(samples, tolerance * ACCEPTANCE);
-
     const start = samples[0];
-    result.push(["M", start.x, start.y] as MSegment);
 
-    // a closed sub-path ends with the point it started at, the close
-    // segment takes its place
-    const closed = subPath[subPath.length - 1][0] === "Z";
-    const end = closed ? kept.length - 1 : kept.length;
-    for (let i = 1; i < end; i += 1) {
-      const point = samples[kept[i]];
-      result.push(["L", point.x, point.y] as LSegment);
+    if (straight) {
+      const kept = douglasPeucker(samples, tolerance * ACCEPTANCE);
+      result.push(["M", start.x, start.y] as MSegment);
+      const end = closed ? kept.length - 1 : kept.length;
+      for (let i = 1; i < end; i += 1) {
+        const point = samples[kept[i]];
+        result.push(["L", point.x, point.y] as LSegment);
+      }
+      if (closed) result.push(["Z"] as ZSegment);
+      continue;
     }
+
+    const originalCount = subPath.length - 1 - (closed ? 1 : 0);
+    const points = samples.filter(
+      (point, index) =>
+        index === 0 || point.x !== samples[index - 1].x || point.y !== samples[index - 1].y,
+    );
+    const curves =
+      originalCount > 1 && points.length > 1 ? fitCubic(points, tolerance * ACCEPTANCE) : [];
+
+    if (!curves.length || curves.length >= originalCount) {
+      result.push(...subPath);
+      continue;
+    }
+
+    result.push(["M", start.x, start.y] as MSegment, ...curves);
     if (closed) result.push(["Z"] as ZSegment);
   }
 

@@ -22,7 +22,7 @@ export type SegmentProperties = {
 
 /** The options of the path simplification. */
 export type SimplifyOptions = {
-  /** The maximum distance between the simplified path and the original one. @default 1 */
+  /** The target geometric error of the sampled fitting. @default 1 */
   tolerance?: number;
 };
 

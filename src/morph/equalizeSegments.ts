@@ -20,6 +20,7 @@ import { fixPath } from "./fixPath.ts";
 import { isPolygonArray } from "../util/isPolygonArray.ts";
 import { isPolylineArray } from "../util/isPolylineArray.ts";
 import { getTotalLength } from "../util/getTotalLength.ts";
+import { isClosedPath } from "../util/isClosedPath.ts";
 import { roundPath } from "../process/roundPath.ts";
 import { resampleFromTable } from "./resamplePath.ts";
 import { buildPathLengthTable } from "../util/pathLengthTable.ts";
@@ -32,7 +33,6 @@ const equalizeSegmentsDefaults: EqualizationOptions = {
   sampleSize: 10, // for line option
   roundValues: 4, // 4 decimals
   reverse: true,
-  close: false,
   target: undefined,
 };
 
@@ -127,8 +127,11 @@ export const equalizeSegments = (
     strategy,
     target: initialTarget,
   } = { ...equalizeSegmentsDefaults, ...initialCfg };
-  let p1 = fixPath(normalizePath(path1)) as MorphPathArray;
-  let p2 = fixPath(normalizePath(path2)) as MorphPathArray;
+  const normalized1 = normalizePath(path1);
+  const normalized2 = normalizePath(path2);
+  const shouldClose = close ?? (isClosedPath(normalized1) || isClosedPath(normalized2));
+  let p1 = fixPath(normalized1) as MorphPathArray;
+  let p2 = fixPath(normalized2) as MorphPathArray;
 
   const bothPoly =
     (isPolygonArray(p1) || isPolylineArray(p1)) && (isPolygonArray(p2) || isPolylineArray(p2));
@@ -174,7 +177,7 @@ export const equalizeSegments = (
       equalP2 = roundPath(equalP2, roundValues);
     }
 
-    if (close) {
+    if (shouldClose) {
       equalP1.push(["Z"] as never);
       equalP2.push(["Z"] as never);
     }
@@ -234,7 +237,7 @@ export const equalizeSegments = (
     equalP2 = roundPath(equalP2, roundValues);
   }
 
-  if (close) {
+  if (shouldClose) {
     equalP1.push(["Z"] as never);
     equalP2.push(["Z"] as never);
   }

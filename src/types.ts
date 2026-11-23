@@ -392,7 +392,7 @@ export interface PathEqualizationOptions {
   sampleSize?: number;
   /** The amount of decimals to round values to. */
   roundValues?: number;
-  /** Whether to close the path before equalization. */
+  /** Whether to close the path after equalization. By default, both paths are closed when either input is closed. */
   close?: boolean;
 }
 
@@ -410,7 +410,7 @@ export interface EqualizationOptions {
   roundValues?: number;
   /** Whether to reverse the second path before equalization. @default true */
   reverse?: boolean | "auto";
-  /** Whether to close the path before equalization. */
+  /** Whether to close the path after equalization. By default, both paths are closed when either input is closed. */
   close?: boolean;
   /** The target segment count for both paths. */
   target?: number;
@@ -433,7 +433,7 @@ export interface EqualizeOptions {
   mode?: "auto" | "line" | "curve";
   /** The amount of decimals to round values to. @default 4 */
   roundValues?: number;
-  /** Whether to close the paths before equalization. */
+  /** Whether to close the paths after equalization. By default, both paths are closed when either input is closed. */
   close?: boolean;
 }
 

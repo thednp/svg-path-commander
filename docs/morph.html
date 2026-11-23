@@ -16,14 +16,12 @@
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap.native@5.1.9/dist/bootstrap-native.min.js"></script>
     <style>
-      .morph {
-        transition:
-          d,
-          fill,
-          2s cubic-bezier(0.4, 0, 0.2, 1);
+      #progress {
+        vertical-align: middle;
+        width: min(16rem, 45vw);
       }
 
-      [contenteditable="true"]::before {
+      [contenteditable="true"]:empty::before {
         content: attr(data-placeholder);
         color: #999;
         font-style: italic;
@@ -88,18 +86,22 @@
       <div class="col col-lg">
         <div class="d-none d-md-block">
           <p><b>SVG Path Inputs</b></p>
+          <span id="path1Label">Source path</span>
           <div
             contenteditable="true"
             class="form-input"
             id="path1"
+            aria-labelledby="path1Label"
             data-placeholder="Paste your SVG path string here"
             spellcheck="false"
             style="max-height: 150px"
           ></div>
+          <span id="path2Label">Target path</span>
           <div
             contenteditable="true"
             class="form-input"
             id="path2"
+            aria-labelledby="path2Label"
             data-placeholder="Paste your SVG path string here"
             spellcheck="false"
             style="max-height: 150px"
@@ -172,20 +174,26 @@
           ></div>
         </div>
         <div class="d-none d-md-block">
-          <p><b>SVG Outputs</b></p>
+          <p><b>Equalized SVG Outputs</b></p>
+          <span id="equal1Label">Equalized source</span>
+          <button type="button" data-copy="equal1">Copy</button>
           <div
             contenteditable="true"
             class="form-input"
             id="equal1"
-            data-placeholder="Your SVG path string comes here"
+            aria-labelledby="equal1Label"
+            data-placeholder="Your equalized source path comes here"
             spellcheck="false"
             style="max-height: 150px"
           ></div>
+          <span id="equal2Label">Equalized target</span>
+          <button type="button" data-copy="equal2">Copy</button>
           <div
             contenteditable="true"
             class="form-input"
             id="equal2"
-            data-placeholder="Your SVG path string comes here"
+            aria-labelledby="equal2Label"
+            data-placeholder="Your equalized target path comes here"
             spellcheck="false"
             style="max-height: 150px"
           ></div>
@@ -193,12 +201,19 @@
       </div>
 
       <div class="col col-lg">
-        <p class="d-none d-md-block"><b>Test</b></p>
+        <p class="d-none d-md-block"><b>Interpolated Morph Preview</b></p>
         <div class="text-center">
-          <svg id="test-svg" viewBox="0 0 16 16">
-            <path class="morph" id="path" d="M0 0L0 0" fill="rgba(125,125,125,0.3)" />
+          <svg id="test-svg" viewBox="0 0 16 16" aria-label="Morph preview">
+            <path id="path" d="M0 0L0 0" fill="#2196f3" />
           </svg>
         </div>
+        <p>
+          <button type="button" id="playBtn">Pause</button>
+          <label for="progress">Progress</label>
+          <input id="progress" type="range" min="0" max="1000" value="0" />
+          <output id="progressValue" for="progress">0%</output>
+        </p>
+        <p id="morphStats" role="status" aria-live="polite"></p>
       </div>
     </div>
     <hr style="margin-top: 1.5rem" />
@@ -226,7 +241,11 @@
       // globalThis.SVGPathCommander = SVGPathCommander;
       let p1 = [];
       let p2 = [];
-      let currentPath = p1;
+      let progress = 0;
+      let direction = 1;
+      let lastTime = null;
+      let playing = !globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const duration = 3000;
       const equalize = SVGPathCommander.equalize,
         resamplePath = SVGPathCommander.resamplePath,
         getPathBBox = SVGPathCommander.getPathBBox,
@@ -243,6 +262,10 @@
         points = document.getElementById("points"),
         count = document.getElementById("count"),
         mode = document.getElementById("mode"),
+        playBtn = document.getElementById("playBtn"),
+        progressInput = document.getElementById("progress"),
+        progressValue = document.getElementById("progressValue"),
+        morphStats = document.getElementById("morphStats"),
         shapes = [
           // "M600,300 L0,0 L0,600 Z",
           // "M0,0 L600,0 L600,600 L0,600 Z",
@@ -263,108 +286,127 @@
           "M15.98 8.51C15.6 14.66 8.71 18.08 3.58 14.68C3.27 14.47 2.98 14.25 2.71 14.01l5.5 -5.5h7.78zM2 13.3C1.75 13.02 1.53 12.73 1.33 12.43C-2.07 7.3 1.35 0.41 7.5 0.03V7.8L2 13.3ZM8.5 0.03C12.52 0.28 15.73 3.49 15.99 7.52H8.5V0.03Z",
         ];
 
-      function getRandomShapes() {
-        // Pick first index
-        const firstIndex = Math.floor(Math.random() * shapes.length);
-
-        // Pick second index (different from first)
-        let secondIndex = Math.floor(Math.random() * shapes.length);
-        if (secondIndex === firstIndex) {
-          secondIndex += firstIndex === shapes.length - 1 ? -1 : 1;
-        }
-        // console.log({ firstIndex, secondIndex })
-        return [shapes[firstIndex], shapes[secondIndex]];
-        return [shapes[1], shapes[4]];
-        // return [shapes[0], shapes[1]];
+      function setPlaying(value) {
+        playing = value;
+        playBtn.textContent = playing ? "Pause" : "Play";
+        lastTime = null;
       }
 
-      function randomColor() {
-        //             green      blue       red        orange     indigo     pink       yellow
-        const colors = [
-            "#4CAF50",
-            "#2196F3",
-            "#e91b1f",
-            "#FF5722",
-            "#9C27B0",
-            "#ff1493",
-            "#ffd626",
-          ],
-          rn = (Math.random() * 7) >> 0;
-        return colors[rn];
+      function renderProgress(value) {
+        progress = Math.min(1, Math.max(0, value));
+        progressInput.value = Math.round(progress * 1000);
+        progressValue.textContent = `${Math.round(progress * 100)}%`;
+        if (!p1.length || p1.length !== p2.length) return;
+        const frame = p1.map((segment, index) =>
+          segment.map((value, valueIndex) =>
+            typeof value === "number" ? value + (p2[index][valueIndex] - value) * progress : value,
+          ),
+        );
+        pathElement.setAttribute("d", pathToString(frame));
       }
 
       function equalizeShapes() {
-        console.log("Equalizing paths...");
-        if (!path1.textContent.length) return console.log("Path 1 is missing or not valid");
-        if (!path2.textContent.length) return console.log("Path 2 is missing or not valid");
-        const options = {
-          strategy: strategy.value,
-        };
+        const options = { strategy: strategy.value };
         const pointCount = points.value.trim().toLowerCase();
         if (pointCount && pointCount !== "auto") {
           options.points = parseInt(pointCount, 10);
         }
         try {
           [p1, p2] = equalize(path1.innerText, path2.innerText, options);
+          const compatible = p1.every(
+            (segment, index) => segment[0] === p2[index][0] && segment.length === p2[index].length,
+          );
+          if (p1.length !== p2.length || !compatible) {
+            throw new Error("The equalized commands are not compatible");
+          }
+
+          const box1 = getPathBBox(path1.innerText);
+          const box2 = getPathBBox(path2.innerText);
+          const x = Math.min(box1.x, box2.x);
+          const y = Math.min(box1.y, box2.y);
+          const width = Math.max(box1.x2, box2.x2) - x;
+          const height = Math.max(box1.y2, box2.y2) - y;
+          svg.setAttribute("viewBox", `${x} ${y} ${Math.max(width, 1)} ${Math.max(height, 1)}`);
+
+          equal1.textContent = pathToString(p1);
+          equal2.textContent = pathToString(p2);
+          const subPaths = p1.filter((segment) => segment[0] === "M").length;
+          const closures = p1.filter((segment) => segment[0] === "Z").length;
+          morphStats.textContent = `${p1.length} segments · ${subPaths} sub-paths · ${closures} closures · identical commands`;
+          direction = 1;
+          lastTime = null;
+          renderProgress(0);
         } catch (error) {
+          p1 = [];
+          p2 = [];
           equal1.textContent = error.message;
           equal2.textContent = "";
-          return;
+          morphStats.textContent = error.message;
+          setPlaying(false);
         }
-
-        console.log(
-          "Equalized paths:",
-          "Path 1: " + p1.length + " segments,",
-          "Path 2: " + p2.length + " segments",
-        );
-        const { x: x1, y: y1, width: w1, height: h1 } = getPathBBox(path1.innerText);
-        const { x: x2, y: y2, width: w2, height: h2 } = getPathBBox(path2.innerText);
-        const [x, y, width, height] = [
-          Math.min(x1, x2),
-          Math.min(y1, y2),
-          Math.max(w1, w2),
-          Math.max(h1, h2),
-        ];
-
-        svg.setAttribute("viewBox", `0 0 ${Math.round(width + x)} ${Math.round(height + y)}`);
-
-        equal1.textContent = pathToString(p1);
-        equal2.textContent = pathToString(p2);
       }
 
       function resample() {
-        const pathString = path1.innerText;
-        if (!pathString.length) return console.log("Path 1 is missing or not valid");
         try {
-          const result = resamplePath(pathString, parseInt(count.value, 10), mode.value);
+          const result = resamplePath(path1.innerText, parseInt(count.value, 10), mode.value);
           resampled.textContent = pathToString(result);
         } catch (error) {
           resampled.textContent = error.message;
         }
       }
 
-      function translate() {
-        if (document.visibilityState === "hidden") return;
-        currentPath = currentPath === p1 ? p2 : p1;
-        if (currentPath.length) {
-          pathElement.setAttribute("d", pathToString(currentPath));
-          pathElement.setAttribute("fill", randomColor());
+      function animate(time) {
+        if (playing && document.visibilityState !== "hidden" && p1.length) {
+          if (lastTime !== null) {
+            progress += (direction * (time - lastTime)) / duration;
+            if (progress >= 1) {
+              progress = 1;
+              direction = -1;
+            } else if (progress <= 0) {
+              progress = 0;
+              direction = 1;
+            }
+            renderProgress(progress);
+          }
+          lastTime = time;
+        } else {
+          lastTime = null;
         }
+        requestAnimationFrame(animate);
       }
 
-      const [shape1, shape2] = getRandomShapes();
-      // const [shape1, shape2] = [shapes[3], shapes[2]];
-      path1.textContent = shape1;
-      path2.textContent = shape2;
+      path1.textContent = shapes[0];
+      path2.textContent = shapes[4];
+      playBtn.textContent = playing ? "Pause" : "Play";
 
       equalizeShapes();
       resample();
-      translate();
-
-      setInterval(translate, 3000);
+      requestAnimationFrame(animate);
 
       document.getElementById("equalizeBtn").onclick = equalizeShapes;
       document.getElementById("resampleBtn").onclick = resample;
+      playBtn.onclick = () => setPlaying(!playing);
+      progressInput.oninput = () => {
+        setPlaying(false);
+        renderProgress(Number(progressInput.value) / 1000);
+      };
+      document.addEventListener("visibilitychange", () => {
+        lastTime = null;
+      });
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.onclick = async () => {
+          const output = document.getElementById(button.dataset.copy);
+          try {
+            await navigator.clipboard.writeText(output.textContent);
+            button.textContent = "Copied";
+          } catch {
+            button.textContent = "Copy failed";
+          }
+          setTimeout(() => {
+            button.textContent = "Copy";
+          }, 1500);
+        };
+      });
     </script>
   </body>
 </html>

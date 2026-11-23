@@ -13,7 +13,6 @@ const equalizeDefaults: EqualizeOptions = {
   reverse: "auto",
   mode: "auto",
   roundValues: 4,
-  close: false,
 };
 
 /**
@@ -27,10 +26,9 @@ const equalizeDefaults: EqualizeOptions = {
  * sub-paths is split into sub-paths, the sub-paths are matched by their
  * shape and every pair is equalized on its own. Multi-subpath paths are
  * reversed as whole paths, so an outer contour keeps its relationship with
- * its holes. Matched contours are not reversed independently: a fallback
- * pair between an outer contour and a hole can keep opposite winding and
- * interpolate with a twist, because reversing that hole on its own would
- * change the fill topology of the path.
+ * its holes. Outer contours only match outer contours and holes only match
+ * holes: an unmatched contour collapses at its own centroid instead of
+ * taking the opposite fill role.
  *
  * The `strategy` option decides how the points of the paths are placed:
  * - `segment` splits the segments of the paths, so the points of the result

@@ -4587,7 +4587,7 @@ const roundCoordinate = (value, precision) => cleanZero(roundTo(value, precision
 * @param precision - the number of the decimals of the result
 * @returns the segments of the polyline
 */
-const toSegments = (points, closed, precision) => {
+const toSegments$1 = (points, closed, precision) => {
 	const last = points[points.length - 1];
 	const list = closed && points.length > 1 && samePoint(points[0], last) ? points.slice(0, -1) : points;
 	const segments = [];
@@ -4661,8 +4661,8 @@ const offsetPath = (pathInput, distance, options) => {
 				const rightArea = Math.abs(polygonArea(right));
 				const outer = leftArea >= rightArea ? left : right;
 				const inner = leftArea >= rightArea ? right : left;
-				result.push(...toSegments(outer, true, resolved.precision));
-				result.push(...toSegments([...inner].reverse(), true, resolved.precision));
+				result.push(...toSegments$1(outer, true, resolved.precision));
+				result.push(...toSegments$1([...inner].reverse(), true, resolved.precision));
 				continue;
 			}
 			const start = nodes[0];
@@ -4675,12 +4675,12 @@ const offsetPath = (pathInput, distance, options) => {
 				...[...right].reverse(),
 				...startCap
 			];
-			result.push(...toSegments(ring, true, resolved.precision));
+			result.push(...toSegments$1(ring, true, resolved.precision));
 			continue;
 		}
 		const side = resolved.side === "left" ? 1 : -1;
 		const polyline = buildSidePolyline(nodes, side, distance, resolved, closed);
-		result.push(...toSegments(polyline, closed, resolved.precision));
+		result.push(...toSegments$1(polyline, closed, resolved.precision));
 	}
 	return result;
 };
@@ -5514,6 +5514,157 @@ const douglasPeucker = (points, tolerance) => {
 	}
 	return points.map((_point, index) => index).filter((index) => keep[index]);
 };
+// src/process/fitCubic.ts
+const MAX_ITERATIONS = 4;
+const subtract = (a, b) => ({
+	x: a.x - b.x,
+	y: a.y - b.y
+});
+const add = (a, b) => ({
+	x: a.x + b.x,
+	y: a.y + b.y
+});
+const scale = (point, value) => ({
+	x: point.x * value,
+	y: point.y * value
+});
+const dot = (a, b) => a.x * b.x + a.y * b.y;
+const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const normalize = (point) => {
+	const length = Math.hypot(point.x, point.y);
+	return length ? scale(point, 1 / length) : {
+		x: 0,
+		y: 0
+	};
+};
+const negate = (point) => ({
+	x: -point.x,
+	y: -point.y
+});
+const chordParameters = (points) => {
+	const parameters = [0];
+	for (let i = 1; i < points.length; i += 1) parameters.push(parameters[i - 1] + distance(points[i - 1], points[i]));
+	const total = parameters[parameters.length - 1];
+	return parameters.map((parameter) => parameter / total);
+};
+const evaluate = (curve, t) => {
+	const u = 1 - t;
+	return add(add(scale(curve[0], u ** 3), scale(curve[1], 3 * u * u * t)), add(scale(curve[2], 3 * u * t * t), scale(curve[3], t ** 3)));
+};
+const generateCurve = (points, parameters, leftTangent, rightTangent) => {
+	const first = points[0];
+	const last = points[points.length - 1];
+	const segmentLength = distance(first, last);
+	if (points.length === 2) {
+		const handle = segmentLength / 3;
+		return [
+			first,
+			add(first, scale(leftTangent, handle)),
+			add(last, scale(rightTangent, handle)),
+			last
+		];
+	}
+	let c00 = 0;
+	let c01 = 0;
+	let c11 = 0;
+	let x0 = 0;
+	let x1 = 0;
+	for (let i = 0; i < points.length; i += 1) {
+		const t = parameters[i];
+		const u = 1 - t;
+		const b0 = u ** 3;
+		const b1 = 3 * u * u * t;
+		const b2 = 3 * u * t * t;
+		const b3 = t ** 3;
+		const a0 = scale(leftTangent, b1);
+		const a1 = scale(rightTangent, b2);
+		const tmp = subtract(points[i], add(scale(first, b0 + b1), scale(last, b2 + b3)));
+		c00 += dot(a0, a0);
+		c01 += dot(a0, a1);
+		c11 += dot(a1, a1);
+		x0 += dot(a0, tmp);
+		x1 += dot(a1, tmp);
+	}
+	const determinant = c00 * c11 - c01 * c01;
+	let alphaLeft = determinant ? (x0 * c11 - x1 * c01) / determinant : 0;
+	let alphaRight = determinant ? (c00 * x1 - c01 * x0) / determinant : 0;
+	const epsilon = 1e-6 * segmentLength;
+	if (alphaLeft < epsilon || alphaRight < epsilon) {
+		alphaLeft = segmentLength / 3;
+		alphaRight = alphaLeft;
+	}
+	return [
+		first,
+		add(first, scale(leftTangent, alphaLeft)),
+		add(last, scale(rightTangent, alphaRight)),
+		last
+	];
+};
+const findMaxError = (points, curve, parameters) => {
+	let error = 0;
+	let split = points.length >> 1;
+	for (let i = 1; i < points.length - 1; i += 1) {
+		const point = evaluate(curve, parameters[i]);
+		const current = (point.x - points[i].x) ** 2 + (point.y - points[i].y) ** 2;
+		if (current > error) {
+			error = current;
+			split = i;
+		}
+	}
+	return {
+		error,
+		split
+	};
+};
+const refineParameter = (curve, point, parameter) => {
+	const t = parameter;
+	const u = 1 - t;
+	const q = evaluate(curve, t);
+	const q1 = add(add(scale(subtract(curve[1], curve[0]), 3 * u * u), scale(subtract(curve[2], curve[1]), 6 * u * t)), scale(subtract(curve[3], curve[2]), 3 * t * t));
+	const q2 = add(scale(add(subtract(curve[2], scale(curve[1], 2)), curve[0]), 6 * u), scale(add(subtract(curve[3], scale(curve[2], 2)), curve[1]), 6 * t));
+	const difference = subtract(q, point);
+	const denominator = dot(q1, q1) + dot(q2, difference);
+	return denominator ? t - dot(q1, difference) / denominator : t;
+};
+const reparameterize = (curve, points, parameters) => parameters.map((parameter, index) => index === 0 || index === points.length - 1 ? parameter : refineParameter(curve, points[index], parameter));
+const toSegments = (curves) => curves.map((curve) => [
+	"C",
+	curve[1].x,
+	curve[1].y,
+	curve[2].x,
+	curve[2].y,
+	curve[3].x,
+	curve[3].y
+]);
+const fitCubic = (points, tolerance) => {
+	const error = tolerance * tolerance;
+	const curves = [];
+	const fit = (range, leftTangent, rightTangent) => {
+		const parameters = chordParameters(range);
+		let curve = generateCurve(range, parameters, leftTangent, rightTangent);
+		let maximum = findMaxError(range, curve, parameters);
+		if (maximum.error <= error || range.length === 2) {
+			curves.push(curve);
+			return;
+		}
+		let currentParameters = parameters;
+		for (let i = 0; i < MAX_ITERATIONS; i += 1) {
+			currentParameters = reparameterize(curve, range, currentParameters);
+			curve = generateCurve(range, currentParameters, leftTangent, rightTangent);
+			maximum = findMaxError(range, curve, currentParameters);
+			if (maximum.error <= error) {
+				curves.push(curve);
+				return;
+			}
+		}
+		const split = maximum.split;
+		const centerTangent = normalize(subtract(range[split - 1], range[split + 1]));
+		fit(range.slice(0, split + 1), leftTangent, centerTangent);
+		fit(range.slice(split), negate(centerTangent), rightTangent);
+	};
+	fit(points, normalize(subtract(points[1], points[0])), normalize(subtract(points[points.length - 2], points[points.length - 1])));
+	return toSegments(curves);
+};
 // src/process/simplifyPath.ts
 /**
 * The default tolerance of the simplification.
@@ -5547,15 +5698,15 @@ const SAMPLE_SHARE = 16;
 */
 const ACCEPTANCE = .8;
 /**
-* Simplifies a path, with the Douglas-Peucker algorithm.
+* Simplifies a path within a geometric tolerance.
 *
-* The path is sampled along its length and the points that are needed to
-* keep its shape within the tolerance are kept: the result is a path of
-* straight lines, one sub-path for every sub-path of the source.
+* Straight-line runs are reduced with Douglas-Peucker. Curve runs are fitted
+* with cubic Béziers, while arcs and original curves are preserved whenever
+* fitting would not reduce the segment count. Every source sub-path and its
+* closure are retained.
 *
-* The tolerance is the maximum distance between the result and the source:
-* every point of the source stays within the tolerance of the result. A
-* smaller tolerance keeps more points, a bigger one removes more.
+* The tolerance is the target geometric error of the sampled fitting. A
+* smaller tolerance keeps more detail, a bigger one removes more.
 *
 * @param pathInput - the target path string or PathArray
 * @param options - the tolerance of the simplification, or the options
@@ -5574,26 +5725,43 @@ const simplifyPath = (pathInput, options) => {
 	if (!normalized.length) return [];
 	const result = [];
 	for (const subPath of splitSubPaths(normalized)) {
+		const closed = subPath[subPath.length - 1][0] === "Z";
+		const straight = subPath.slice(1).every((segment) => segment[0] === "L" || segment[0] === "Z" || segment[0] === "A" && (segment[1] === 0 || segment[2] === 0));
 		const { totalLength } = buildPathLengthTable(subPath);
 		const step = Math.max(tolerance / SAMPLE_SHARE, totalLength / MAX_SAMPLES);
 		const samples = samplePath(subPath, step);
-		const kept = douglasPeucker(samples, tolerance * ACCEPTANCE);
 		const start = samples[0];
+		if (straight) {
+			const kept = douglasPeucker(samples, tolerance * ACCEPTANCE);
+			result.push([
+				"M",
+				start.x,
+				start.y
+			]);
+			const end = closed ? kept.length - 1 : kept.length;
+			for (let i = 1; i < end; i += 1) {
+				const point = samples[kept[i]];
+				result.push([
+					"L",
+					point.x,
+					point.y
+				]);
+			}
+			if (closed) result.push(["Z"]);
+			continue;
+		}
+		const originalCount = subPath.length - 1 - (closed ? 1 : 0);
+		const points = samples.filter((point, index) => index === 0 || point.x !== samples[index - 1].x || point.y !== samples[index - 1].y);
+		const curves = originalCount > 1 && points.length > 1 ? fitCubic(points, tolerance * ACCEPTANCE) : [];
+		if (!curves.length || curves.length >= originalCount) {
+			result.push(...subPath);
+			continue;
+		}
 		result.push([
 			"M",
 			start.x,
 			start.y
-		]);
-		const closed = subPath[subPath.length - 1][0] === "Z";
-		const end = closed ? kept.length - 1 : kept.length;
-		for (let i = 1; i < end; i += 1) {
-			const point = samples[kept[i]];
-			result.push([
-				"L",
-				point.x,
-				point.y
-			]);
-		}
+		], ...curves);
 		if (closed) result.push(["Z"]);
 	}
 	return result;
@@ -5941,28 +6109,28 @@ function getRotation(a, idx) {
 	}
 	return path;
 }
-/**
-* Returns the end coordinates of every segment of a path, flattened.
-*
-* @param path the path to read
-* @returns the end coordinates, two per segment
-*/
-const getEndCoordinates = (path) => {
-	const ends = [];
-	for (const segment of path) {
-		const end = segment.slice(-2);
-		ends.push(end[0], end[1]);
+const getSegmentDistanceSquared = (a, b) => {
+	let distance = 0;
+	for (let i = 1; i < a.length; i += 1) {
+		const delta = Number(a[i]) - Number(b[i]);
+		distance += delta * delta;
 	}
-	return ends;
+	return distance;
+};
+const getStartDistanceSquared = (a, b) => {
+	const dx = Number(a[a.length - 2]) - Number(b[b.length - 2]);
+	const dy = Number(a[a.length - 1]) - Number(b[b.length - 1]);
+	return dx * dx + dy * dy;
 };
 /**
 * Finds the rotation of `pathA` that matches `pathB` best by minimizing the sum
-* of squared distances between corresponding endpoints.
+* of squared distances between all corresponding coordinates, including the
+* control points of the curves.
 *
-* The rotations are not materialized: the endpoint of the segment at index `j` of
-* the rotation that starts at `idx` is the endpoint of the segment at index
-* `1 + ((idx + i - 1) mod pointCount)` of the source path, so the sum can be
-* computed from the source path alone.
+* The rotations are not materialized: the segment at index `j` of the rotation
+* that starts at `idx` is the segment at index `1 + ((idx + i - 1) mod
+* pointCount)` of the source path, so the sum can be computed from the source
+* path alone.
 *
 * A rotation whose running sum is already worse than the best rotation found so
 * far cannot become the best one — the terms of the sum are squared distances,
@@ -5980,14 +6148,10 @@ const getEndCoordinates = (path) => {
 const getBestRotationIndex = (pathA, pathB) => {
 	const pathLen = pathA.length;
 	const pointCount = pathLen - 1;
-	const endsA = getEndCoordinates(pathA);
-	const endsB = getEndCoordinates(pathB);
 	const firstTerms = [];
 	const order = [];
 	for (let idx = 0; idx < pathLen; idx++) {
-		const dx = endsA[idx * 2] - endsB[0];
-		const dy = endsA[idx * 2 + 1] - endsB[1];
-		firstTerms.push(dx * dx + dy * dy);
+		firstTerms.push(getStartDistanceSquared(pathA[idx], pathB[0]));
 		order.push(idx);
 	}
 	order.sort((a, b) => {
@@ -6004,9 +6168,7 @@ const getBestRotationIndex = (pathA, pathB) => {
 		if (sumDistSq > minDistanceSq) continue;
 		for (let i = 1; i < pathLen; i++) {
 			const j = 1 + (idx + i - 1) % pointCount;
-			const dx = endsA[j * 2] - endsB[i * 2];
-			const dy = endsA[j * 2 + 1] - endsB[i * 2 + 1];
-			sumDistSq += dx * dx + dy * dy;
+			sumDistSq += getSegmentDistanceSquared(pathA[j], pathB[i]);
 			if (sumDistSq > minDistanceSq) break;
 		}
 		if (sumDistSq < minDistanceSq || sumDistSq === minDistanceSq && idx < bestIndex) {
@@ -6017,8 +6179,8 @@ const getBestRotationIndex = (pathA, pathB) => {
 	return bestIndex;
 };
 /**
-* Finds the best rotation of pathA to match pathB by minimizing sum of squared distances
-* between corresponding endpoints.
+* Finds the best rotation of pathA to match pathB by minimizing the sum of squared distances
+* between corresponding coordinates, including curve control points.
 *
 * Works with both polygon (L) and curve (C) arrays.
 *
@@ -6034,15 +6196,7 @@ function getRotatedPath(pathA, pathB, computedRotations) {
 		for (let ri = 0; ri < computedRotations.length; ri++) {
 			const rotation = computedRotations[ri];
 			let sumDistSq = 0;
-			for (let i = 0; i < rotation.length; i++) {
-				const segA = rotation[i];
-				const segB = pathB[i];
-				const endA = segA.slice(-2);
-				const endB = segB.slice(-2);
-				const dx = endA[0] - endB[0];
-				const dy = endA[1] - endB[1];
-				sumDistSq += dx * dx + dy * dy;
-			}
+			for (let i = 0; i < rotation.length; i++) sumDistSq += getSegmentDistanceSquared(rotation[i], pathB[i]);
 			if (sumDistSq < minDistanceSq) {
 				minDistanceSq = sumDistSq;
 				bestIndex = ri;
@@ -6439,7 +6593,6 @@ const equalizeSegmentsDefaults = {
 	sampleSize: 10,
 	roundValues: 4,
 	reverse: true,
-	close: false,
 	target: void 0
 };
 /**
@@ -6522,8 +6675,11 @@ const equalizeSegments = (path1, path2, initialCfg = {}) => {
 		...equalizeSegmentsDefaults,
 		...initialCfg
 	};
-	let p1 = fixPath(normalizePath(path1));
-	let p2 = fixPath(normalizePath(path2));
+	const normalized1 = normalizePath(path1);
+	const normalized2 = normalizePath(path2);
+	const shouldClose = close ?? (isClosedPath(normalized1) || isClosedPath(normalized2));
+	let p1 = fixPath(normalized1);
+	let p2 = fixPath(normalized2);
 	const bothPoly = (isPolygonArray(p1) || isPolylineArray(p1)) && (isPolygonArray(p2) || isPolylineArray(p2));
 	const area1 = polygonArea(samplePolygon(p1));
 	const area2 = polygonArea(samplePolygon(p2));
@@ -6549,7 +6705,7 @@ const equalizeSegments = (path1, path2, initialCfg = {}) => {
 			equalP1 = roundPath(equalP1, roundValues);
 			equalP2 = roundPath(equalP2, roundValues);
 		}
-		if (close) {
+		if (shouldClose) {
 			equalP1.push(["Z"]);
 			equalP2.push(["Z"]);
 		}
@@ -6589,7 +6745,7 @@ const equalizeSegments = (path1, path2, initialCfg = {}) => {
 		equalP1 = roundPath(equalP1, roundValues);
 		equalP2 = roundPath(equalP2, roundValues);
 	}
-	if (close) {
+	if (shouldClose) {
 		equalP1.push(["Z"]);
 		equalP2.push(["Z"]);
 	}
@@ -6776,7 +6932,6 @@ const equalizePathsDefaults = {
 	strategy: "segment",
 	align: true,
 	roundValues: 4,
-	close: false,
 	sampleSize: 10
 };
 const getPrimaryOuter = (outers) => {
@@ -6793,10 +6948,9 @@ const getOuterDirection = (outers) => {
 * Equalizes two paths for morphing (single/multi subpath).
 *
 * Multi-subpath paths are reversed as whole paths, so an outer contour keeps
-* its relationship with its holes. Matched contours are not reversed
-* independently: a fallback pair between an outer contour and a hole can
-* keep opposite winding and interpolate with a twist, because reversing that
-* hole on its own would change the fill topology of the path.
+* its relationship with its holes. Outer contours only match outer contours
+* and holes only match holes: an unmatched contour collapses at its own
+* centroid instead of taking the opposite fill role.
 *
 * @see https://minus-ze.ro/posts/morphing-arbitrary-paths-in-svg/
 * @param pathInput1 - First path string or PathArray
@@ -6855,19 +7009,12 @@ const equalizePaths = (pathInput1, pathInput2, initialCfg = {}) => {
 	}
 	const outerMatches = matchPathFeatures(classified1.outers, classified2.outers);
 	const innerMatches = matchPathFeatures(classified1.inners, classified2.inners);
-	const outerToInner = matchPathFeatures(outerMatches.unmatchedFrom, innerMatches.unmatchedTo);
-	const innerToOuter = matchPathFeatures(innerMatches.unmatchedFrom, outerMatches.unmatchedTo);
-	const contourPairs = [
-		...outerMatches.pairs,
-		...innerMatches.pairs,
-		...outerToInner.pairs,
-		...innerToOuter.pairs
-	].map(([from, to]) => [from.path, to.path]);
-	for (const feature of [...outerToInner.unmatchedFrom, ...innerToOuter.unmatchedFrom]) {
+	const contourPairs = [...outerMatches.pairs, ...innerMatches.pairs].map(([from, to]) => [from.path, to.path]);
+	for (const feature of [...outerMatches.unmatchedFrom, ...innerMatches.unmatchedFrom]) {
 		const centroid = [feature.bbox.cx, feature.bbox.cy];
 		contourPairs.push([feature.path, createPlaceholder(centroid)]);
 	}
-	for (const feature of [...outerToInner.unmatchedTo, ...innerToOuter.unmatchedTo]) {
+	for (const feature of [...outerMatches.unmatchedTo, ...innerMatches.unmatchedTo]) {
 		const centroid = [feature.bbox.cx, feature.bbox.cy];
 		contourPairs.push([createPlaceholder(centroid), feature.path]);
 	}
@@ -6888,8 +7035,7 @@ const equalizeDefaults = {
 	align: true,
 	reverse: "auto",
 	mode: "auto",
-	roundValues: 4,
-	close: false
+	roundValues: 4
 };
 /**
 * Equalizes two paths for morphing.
@@ -6902,10 +7048,9 @@ const equalizeDefaults = {
 * sub-paths is split into sub-paths, the sub-paths are matched by their
 * shape and every pair is equalized on its own. Multi-subpath paths are
 * reversed as whole paths, so an outer contour keeps its relationship with
-* its holes. Matched contours are not reversed independently: a fallback
-* pair between an outer contour and a hole can keep opposite winding and
-* interpolate with a twist, because reversing that hole on its own would
-* change the fill topology of the path.
+* its holes. Outer contours only match outer contours and holes only match
+* holes: an unmatched contour collapses at its own centroid instead of
+* taking the opposite fill role.
 *
 * The `strategy` option decides how the points of the paths are placed:
 * - `segment` splits the segments of the paths, so the points of the result
@@ -7455,11 +7600,11 @@ var SVGPathCommander = class {
 		return this;
 	}
 	/**
-	* Simplify path with the Douglas-Peucker algorithm.
+	* Simplify a path within a geometric tolerance.
 	*
-	* The path is measured along its length and the points that are needed to
-	* keep its shape within the tolerance are kept: the result is a path of
-	* straight lines.
+	* Straight-line runs are reduced with Douglas-Peucker. Curve runs are
+	* fitted with cubic Béziers, while arcs and original curves are preserved
+	* whenever fitting would not reduce the segment count.
 	*
 	* @example
 	* ```ts
@@ -7776,7 +7921,7 @@ var SVGPathCommander = class {
 	static segmentToCubic = segmentToCubic;
 	/** Shorten a single segment of a `pathArray` object. */
 	static shortenSegment = shortenSegment;
-	/** Simplifies a path, with the Douglas-Peucker algorithm. */
+	/** Simplifies straight-line runs and curve runs while preserving sub-paths and closures. */
 	static simplifyPath = simplifyPath;
 	/** Split a path string or PathArray into an array of sub-paths. */
 	static splitPath = splitPath;

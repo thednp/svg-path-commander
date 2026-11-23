@@ -27,6 +27,8 @@ import { measureSegments } from "../src/util/measureSegments";
 import { segmentStringLength } from "../src/process/segmentStringLength";
 import { iterate } from "../src/process/iterate";
 import { distanceToSegment } from "../src/math/distanceToSegment";
+import { flattenPath } from "../src/process/flattenPath";
+import { fitCubic } from "../src/process/fitCubic";
 import {
   boundingBoxIntersect as boundingBoxIntersectFromUtil,
   equalize as equalizeFromUtil,
@@ -1256,6 +1258,15 @@ describe("SVGPathCommander Static Methods", () => {
       expect(getRotatedPath(p1, p2)).to.deep.equal(rotations[1]);
     });
 
+    test(`Can align cubic curves by their control points as well as their endpoints`, () => {
+      const path = parsePathString("M0 0C10 0 20 0 30 0C40 0 50 0 60 0") as MorphPathArray;
+      const reference = parsePathString("M0 0C40 0 50 0 30 0C10 0 20 0 60 0") as MorphPathArray;
+      const rotations = getRotations(path);
+
+      expect(getRotatedPath(path, reference)).to.deep.equal(rotations[1]);
+      expect(getRotatedPath(path, reference, rotations)).to.deep.equal(rotations[1]);
+    });
+
     test(`Can do equalizeSegments getRotatedPath with an empty path`, () => {
       // an empty path has no rotation, but the result still has to be well formed
       expect(
@@ -1433,8 +1444,8 @@ describe("SVGPathCommander Static Methods", () => {
         equalizeFixtures.curves.ellipse,
       );
       expect(eq1.length).to.equal(eq2.length);
-      expect(eq1.every((s) => s[0] === "M" || s[0] === "C")).to.be.true;
-      expect(eq2.every((s) => s[0] === "M" || s[0] === "C")).to.be.true;
+      expect(eq1.every((s) => s[0] === "M" || s[0] === "C" || s[0] === "Z")).to.be.true;
+      expect(eq2.every((s) => s[0] === "M" || s[0] === "C" || s[0] === "Z")).to.be.true;
     });
 
     test(`Can do equalizeSegments complex shapes`, () => {
@@ -1941,6 +1952,33 @@ describe("SVGPathCommander Static Methods", () => {
       expect(eq2[0][0]).to.equal("M");
     });
 
+    test(`Can preserve closed paths by default with both strategies`, () => {
+      for (const strategy of ["segment", "arcLength"] as const) {
+        const [eq1, eq2] = equalize(triangle, square, { strategy });
+
+        expect(eq1[eq1.length - 1]).to.deep.equal(["Z"]);
+        expect(eq2[eq2.length - 1]).to.deep.equal(["Z"]);
+        expect(eq1.length).to.equal(eq2.length);
+      }
+    });
+
+    test(`Can keep open paths open and honor the close opt-out`, () => {
+      const open1 = "M0 0L100 0L50 100";
+      const open2 = "M0 0L100 0L100 100L0 100";
+
+      const [openEq1, openEq2] = equalize(open1, open2);
+      expect(openEq1.some((segment) => segment[0] === "Z")).to.be.false;
+      expect(openEq2.some((segment) => segment[0] === "Z")).to.be.false;
+
+      const [closedEq1, closedEq2] = equalize(open1, triangle);
+      expect(closedEq1[closedEq1.length - 1]).to.deep.equal(["Z"]);
+      expect(closedEq2[closedEq2.length - 1]).to.deep.equal(["Z"]);
+
+      const [optOut1, optOut2] = equalize(triangle, square, { close: false });
+      expect(optOut1.some((segment) => segment[0] === "Z")).to.be.false;
+      expect(optOut2.some((segment) => segment[0] === "Z")).to.be.false;
+    });
+
     test(`Can do equalize with the arc length strategy`, () => {
       const [eq1, eq2] = equalize(triangle, square, { strategy: "arcLength" });
       expect(eq1.length).to.equal(eq2.length);
@@ -1951,8 +1989,8 @@ describe("SVGPathCommander Static Methods", () => {
 
     test(`Can do equalize with the arc length strategy and a number of points`, () => {
       const [eq1, eq2] = equalize(triangle, square, { strategy: "arcLength", points: 6 });
-      expect(eq1.length).to.equal(6);
-      expect(eq2.length).to.equal(6);
+      expect(eq1.length).to.equal(7);
+      expect(eq2.length).to.equal(7);
     });
 
     test(`Can do equalize with an empty path`, () => {
@@ -1974,8 +2012,10 @@ describe("SVGPathCommander Static Methods", () => {
         points: 4,
       });
       expect(eq1.length).to.equal(eq2.length);
-      expect(eq1.every((segment) => segment[0] === "M" || segment[0] === "C")).to.be.true;
-      expect(eq2.every((segment) => segment[0] === "M" || segment[0] === "C")).to.be.true;
+      expect(eq1.every((segment) => segment[0] === "M" || segment[0] === "C" || segment[0] === "Z"))
+        .to.be.true;
+      expect(eq2.every((segment) => segment[0] === "M" || segment[0] === "C" || segment[0] === "Z"))
+        .to.be.true;
     });
 
     test(`Can do equalize with the arc length strategy and the line mode`, () => {
@@ -1984,20 +2024,41 @@ describe("SVGPathCommander Static Methods", () => {
         mode: "line",
         points: 4,
       });
-      expect(eq1.length).to.equal(4);
-      expect(eq2.length).to.equal(4);
-      expect(eq1.every((segment) => segment[0] === "M" || segment[0] === "L")).to.be.true;
+      expect(eq1.length).to.equal(5);
+      expect(eq2.length).to.equal(5);
+      expect(eq1.every((segment) => segment[0] === "M" || segment[0] === "L" || segment[0] === "Z"))
+        .to.be.true;
     });
 
-    test(`Can match an outer contour to a hole without adding a placeholder contour`, () => {
+    test(`Can keep unmatched outer contours and holes in separate placeholder pairs`, () => {
       const source = "M0 0L10 0L10 10L0 10ZM2 2L8 2L8 8L2 8Z";
       const target = "M0 0L10 0L10 10L0 10ZM4 4L14 4L14 14L4 14Z";
 
       for (const strategy of ["segment", "arcLength"] as const) {
         const [eq1, eq2] = equalize(source, target, { strategy });
 
-        expect(eq1.filter((segment) => segment[0] === "M")).to.have.lengthOf(2);
-        expect(eq2.filter((segment) => segment[0] === "M")).to.have.lengthOf(2);
+        expect(eq1.filter((segment) => segment[0] === "M")).to.have.lengthOf(3);
+        expect(eq2.filter((segment) => segment[0] === "M")).to.have.lengthOf(3);
+      }
+    });
+
+    test(`Can preserve a target hole throughout a morph from separate outer contours`, () => {
+      const { isPointInPath } = SVGPathCommander;
+      const source =
+        "M15.98 8.51C15.6 14.66 8.71 18.08 3.58 14.68C3.27 14.47 2.98 14.25 2.71 14.01l5.5 -5.5h7.78zM2 13.3C1.75 13.02 1.53 12.73 1.33 12.43C-2.07 7.3 1.35 0.41 7.5 0.03V7.8L2 13.3ZM8.5 0.03C12.52 0.28 15.73 3.49 15.99 7.52H8.5V0.03Z";
+      const target =
+        "M16 8C16 4.134 12.418 1 8 1S0 4.134 0 8c0 1.759 0.744 3.369 1.969 4.6c-0.096 1.016 -0.416 2.13 -0.77 2.966c-0.078 0.185 0.072 0.394 0.272 0.362c2.256 -0.37 3.597 -0.938 4.18 -1.234A9.06 9.06 0 0 0 8 15c4.417 0 8 -3.134 8 -7zM7.194 6.766c0.087 0.123 0.163 0.259 0.227 0.4c0.427 0.948 0.392 2.377 -0.942 3.705a0.446 0.446 0 0 1 -0.612 0.009A0.405 0.405 0 0 1 5.856 10.293C6.274 9.876 6.528 9.462 6.665 9.072C6.396 9.237 6.077 9.332 5.735 9.332C4.775 9.333 4 8.587 4 7.667C4 6.747 4.776 6 5.734 6C6.005 6 6.262 6.06 6.49 6.166L6.498 6.17c0.168 0.07 0.326 0.182 0.468 0.323c0.084 0.083 0.161 0.174 0.227 0.272zM11 9.073C10.731 9.238 10.412 9.333 10.07 9.333C9.112 9.333 8.335 8.587 8.335 7.667C8.335 6.747 9.112 6 10.069 6c0.27 0 0.527 0.059 0.755 0.166l0.008 0.003c0.169 0.07 0.326 0.182 0.468 0.323c0.085 0.083 0.16 0.174 0.227 0.272c0.086 0.123 0.163 0.259 0.227 0.4c0.428 0.948 0.391 2.377 -0.942 3.705a0.446 0.446 0 0 1 -0.612 0.009a0.405 0.405 0 0 1 -0.01 -0.589c0.419 -0.416 0.671 -0.83 0.809 -1.221z";
+
+      for (const strategy of ["segment", "arcLength"] as const) {
+        const [from, to] = equalize(source, target, { strategy });
+        const middle = from.map((segment, index) =>
+          segment.map((value, valueIndex) =>
+            valueIndex === 0 ? value : (Number(value) + Number(to[index][valueIndex])) / 2,
+          ),
+        ) as PathArray;
+
+        expect(isPointInPath(middle, { x: 5.832, y: 8.499 })).to.be.false;
+        expect(isPointInPath(middle, { x: 10.166, y: 8.498 })).to.be.false;
       }
     });
 
@@ -2116,17 +2177,25 @@ describe("SVGPathCommander Static Methods", () => {
         points: 4,
       });
       expect(eq1.length).to.equal(eq2.length);
-      expect(eq1.every((segment) => segment[0] === "M" || segment[0] === "C")).to.be.true;
-      expect(eq2.every((segment) => segment[0] === "M" || segment[0] === "C")).to.be.true;
+      expect(eq1.every((segment) => segment[0] === "M" || segment[0] === "C" || segment[0] === "Z"))
+        .to.be.true;
+      expect(eq2.every((segment) => segment[0] === "M" || segment[0] === "C" || segment[0] === "Z"))
+        .to.be.true;
     });
 
     test(`Can do equalize with multiple sub-paths`, () => {
-      const [eq1, eq2] = equalize(
-        equalizeFixtures.multiSubpath.twoRects1,
-        equalizeFixtures.multiSubpath.twoRects2,
-        { strategy: "arcLength" },
-      );
-      expect(eq1.length).to.equal(eq2.length);
+      for (const strategy of ["segment", "arcLength"] as const) {
+        const [eq1, eq2] = equalize(
+          equalizeFixtures.multiSubpath.twoRects1,
+          equalizeFixtures.multiSubpath.twoRects2,
+          { strategy },
+        );
+
+        expect(eq1.length).to.equal(eq2.length);
+        expect(eq1.filter((segment) => segment[0] === "Z")).to.have.lengthOf(2);
+        expect(eq2.filter((segment) => segment[0] === "Z")).to.have.lengthOf(2);
+        expect(eq1.map((segment) => segment[0])).to.deep.equal(eq2.map((segment) => segment[0]));
+      }
     });
 
     test(`Can do equalize with multiple sub-paths and a number of points`, () => {
@@ -3736,53 +3805,79 @@ describe("Tangent, normal and angle at length", () => {
 });
 
 describe("Path simplification", () => {
-  const { simplifyPath, getTotalLength, getPointAtLength } = SVGPathCommander;
+  const { simplifyPath } = SVGPathCommander;
 
-  /**
-   * Returns the maximum distance between the points of a path and a polyline.
-   *
-   * @param path - the path to sample
-   * @param polyline - the polyline to measure against
-   * @returns the maximum distance
-   */
-  const maxDeviation = (path: string, polyline: PathArray): number => {
-    const points: { x: number; y: number }[] = [];
-    const length = getTotalLength(path);
-    const samples = 500;
-    for (let i = 0; i <= samples; i += 1) {
-      points.push(getPointAtLength(path, (length * i) / samples));
-    }
-
-    const segments: [{ x: number; y: number }, { x: number; y: number }][] = [];
-    let current = { x: 0, y: 0 };
-    let start = { x: 0, y: 0 };
-    for (const segment of polyline) {
-      const command = segment[0];
-      if (command === "M" || command === "m") {
-        current = { x: segment[1] as number, y: segment[2] as number };
-        start = current;
-      } else if (command === "L" || command === "l") {
-        const end = { x: segment[1] as number, y: segment[2] as number };
-        segments.push([current, end]);
-        current = end;
-      } else if (command === "Z" || command === "z") {
-        // the close segment returns to the start of the sub-path
-        segments.push([current, start]);
-        current = start;
+  const maxDeviation = (path: string, simplified: PathArray): number => {
+    const flatten = (input: string | PathArray) => {
+      const polygons = flattenPath(SVGPathCommander.pathToCurve(input), 0.001);
+      return {
+        points: polygons.flat(),
+        segments: polygons.flatMap((points) =>
+          points.slice(1).map((point, index) => [points[index], point] as const),
+        ),
+      };
+    };
+    const source = flatten(path);
+    const result = flatten(simplified);
+    const directedDistance = (
+      points: { x: number; y: number }[],
+      segments: (readonly [{ x: number; y: number }, { x: number; y: number }])[],
+    ) => {
+      let max = 0;
+      for (const point of points) {
+        let closest = Infinity;
+        for (const [from, to] of segments) {
+          closest = Math.min(closest, distanceToSegment(point, from, to));
+        }
+        max = Math.max(max, closest);
       }
-    }
+      return max;
+    };
 
-    let max = 0;
-    for (const point of points) {
-      // the distance to the polyline is the closest of its segments
-      let closest = Infinity;
-      for (const [from, to] of segments) {
-        closest = Math.min(closest, distanceToSegment(point, from, to));
-      }
-      max = Math.max(max, closest);
-    }
-    return max;
+    return Math.max(
+      directedDistance(source.points, result.segments),
+      directedDistance(result.points, source.segments),
+    );
   };
+
+  test("Can fit a two point range and a singular straight-line system", () => {
+    expect(
+      fitCubic(
+        [
+          { x: 0, y: 0 },
+          { x: 3, y: 0 },
+        ],
+        1,
+      ),
+    ).to.deep.equal([["C", 1, 0, 2, 0, 3, 0]]);
+    expect(
+      fitCubic(
+        [
+          { x: 0, y: 0 },
+          { x: 1, y: 0 },
+          { x: 2, y: 0 },
+        ],
+        1,
+      ),
+    ).to.deep.equal([["C", 2 / 3, 0, 2 - 2 / 3, 0, 2, 0]]);
+  });
+
+  test("Can fit a range with a collapsed center tangent", () => {
+    const fitted = fitCubic(
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 0, y: 0 },
+      ],
+      0.001,
+    );
+
+    expect(fitted.length).to.be.above(0);
+    expect(fitted.flat().every((value) => typeof value === "string" || Number.isFinite(value))).to
+      .be.true;
+  });
 
   test("Can simplify a straight line", () => {
     expect(simplifyPath("M0 0L10 0L20 0L30 0", 1)).to.deep.equal([
@@ -3841,17 +3936,65 @@ describe("Path simplification", () => {
     });
   });
 
-  test("Can remove the points of a curve that overshoots its chord", () => {
-    // the curve goes beyond the end of the chord and before its start
-    const path = "M0 0C300 100 300 100 200 0";
-    const simplified = simplifyPath(path, 1);
-    expect(simplified.length).to.be.above(2);
-    expect(maxDeviation(path, simplified)).to.be.at.most(1);
+  test("Can fit redundant curves with fewer cubic segments", () => {
+    const path = "M0 0C0 50 25 75 50 75C75 75 100 50 100 0";
+    const simplified = simplifyPath(path, 0.1);
 
-    const back = "M100 0C300 100 300 100 -100 0";
-    const simplifiedBack = simplifyPath(back, 1);
-    expect(simplifiedBack.length).to.be.above(2);
-    expect(maxDeviation(back, simplifiedBack)).to.be.at.most(1);
+    expect(simplified.map((segment) => segment[0])).to.deep.equal(["M", "C"]);
+    expect(simplified[0]).to.deep.equal(["M", 0, 0]);
+    expect(simplified[1].slice(-2)).to.deep.equal([100, 0]);
+    expect(maxDeviation(path, simplified)).to.be.at.most(0.1);
+  });
+
+  test("Can keep an already minimal arc and its geometry", () => {
+    expect(simplifyPath("M0 0A50 50 0 0 1 100 0", 1)).to.deep.equal([
+      ["M", 0, 0],
+      ["A", 50, 50, 0, 0, 1, 100, 0],
+    ]);
+  });
+
+  test("Can keep original curves when fitting cannot reduce their number", () => {
+    const paths = [
+      "M0 0C50 100 100 100 150 0",
+      "M0 0Q50 100 100 0",
+      "M0 0C0 50 25 75 50 75C75 75 100 50 100 0",
+    ];
+
+    for (const path of paths) {
+      expect(simplifyPath(path, 0.000001)).to.deep.equal(SVGPathCommander.normalizePath(path));
+    }
+  });
+
+  test("Can simplify a closed curve without flattening it", () => {
+    const path =
+      "M50 0C77.614 0 100 22.386 100 50C100 77.614 77.614 100 50 100C22.386 100 0 77.614 0 50C0 22.386 22.386 0 50 0Z";
+    const simplified = simplifyPath(path, 1);
+
+    expect(simplified.length).to.be.lessThan(SVGPathCommander.normalizePath(path).length);
+    expect(simplified[0]).to.deep.equal(["M", 50, 0]);
+    expect(simplified[simplified.length - 1]).to.deep.equal(["Z"]);
+    expect(simplified.slice(1, -1).every((segment) => segment[0] === "C")).to.be.true;
+    expect(maxDeviation(path, simplified)).to.be.at.most(1);
+  });
+
+  test("Can simplify curve sub-paths independently", () => {
+    const path = "M0 0C0 50 25 75 50 75C75 75 100 50 100 0M200 0A50 50 0 0 1 300 0";
+    const simplified = simplifyPath(path, 0.1);
+
+    expect(simplified.filter((segment) => segment[0] === "M")).to.have.lengthOf(2);
+    expect(simplified.some((segment) => segment[0] === "A")).to.be.true;
+    expect(simplified.some((segment) => segment[0] === "C")).to.be.true;
+    expect(maxDeviation(path, simplified)).to.be.at.most(0.1);
+  });
+
+  test("Can preserve a single curve that overshoots its chord", () => {
+    const paths = ["M0 0C300 100 300 100 200 0", "M100 0C300 100 300 100 -100 0"];
+
+    for (const path of paths) {
+      const simplified = simplifyPath(path, 1);
+      expect(simplified).to.deep.equal(SVGPathCommander.normalizePath(path));
+      expect(maxDeviation(path, simplified)).to.be.at.most(1);
+    }
   });
 
   test("A tiny tolerance keeps the corners of a path", () => {

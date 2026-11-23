@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.4.0] - 2026-11-22
+## [2.4.0] - 2026-11-23
 
 ### Breaking
 
@@ -15,6 +15,7 @@
 - `resamplePath()` returns a `PathArray` — a multi-subpath result holds one `M` command for every source sub-path, so the narrower `MorphPathArray` type could not describe the result. The single-subpath helper keeps its morph-specific type.
 - `equalize()` and `equalizePaths()` return `PathArray` tuples — a multi-subpath result holds one `M` command for every matched contour, so the narrower `MorphPathArray` type could not describe the result. `equalizeSegments()` keeps its morph-specific type because it only accepts single-subpath paths.
 - `fixPath()` returns the fixed path instead of `void` — the helper documents that it removes an unnecessary closing segment, but `parsePathString()` clones an array input, so the old in-place splice never reached the caller's array and the return value was `undefined`. The helper now returns a fixed copy and leaves the source path unchanged; `equalizeSegments()` consumes that copy, so the redundant `Z` is actually removed before equalization.
+- The morphing tools preserve input closure by default instead of leaving the result open — every closed contour now retains its `Z` command, open paths stay open, and a closed/open pair is closed on both sides to keep the commands compatible. Pass `close: false` to restore the previous open-result behavior.
 
 ### Added
 
@@ -68,6 +69,9 @@
 
 ### Fixed
 
+- `equalize()` preserves the input closure by default — closed contours keep their `Z` command through both strategies, including every contour of a multi-subpath result, so the final morph frame no longer acquires a spurious open-path join. Open inputs stay open, a closed/open pair is closed on both sides to keep the commands compatible, and `close: false` remains the explicit opt-out
+- Multi-subpath morphing matches outer contours only to outer contours and holes only to holes — an unmatched contour collapses at its own centroid instead of taking the opposite fill role, so target holes no longer disappear in the intermediate frames
+- Morph rotation scores every corresponding coordinate, including Bézier control points, instead of scoring only the endpoints — the arc-length strategy no longer chooses a rotation with matching vertices but twisted curve handles
 - `getPathBBox()` and `arcTools.getArcBBox()` answer the bounds of an arc correctly — the bounds were computed from the end point of the arc and the extrema of the ellipse, so the **start point of the arc was dropped** and the box of an arc did not contain the arc:
   ```js
   SVGPathCommander.arcTools.getArcBBox(0, 0, 50, 50, 0, 0, 1, 50, 50);
@@ -106,7 +110,7 @@
   ```
 - The `arcLength` strategy no longer bulges across the joints of the source path — the resampler fitted one cubic to a span that could cross several source segments, so the fitted curve departed from the source by as much as 0.456 units on the demo shapes. Each span is now the exact de Casteljau sub-curve of the source, and every source segment boundary is an arc-length knot, so the corners and the shape of the source are preserved.
 - The `arcLength` strategy keeps every sub-path separate and complete — the number of points is chosen for each sub-path, the source segment boundaries are kept whenever the requested count allows it, and an explicitly under-sampled sub-path uses the documented best-effort fallback instead of dropping geometry.
-- Multi-subpath morphing no longer drops an outer contour or a hole — same-class contours are matched first, then an unmatched outer contour can match an overlapping hole and an unmatched hole can match an overlapping outer contour. The paths are reversed as whole paths, so the outer/hole relationships are preserved, and an unmatched contour receives a placeholder at its centroid. All 42 ordered pairs of the demo shapes now keep their geometry and topology with both the `segment` and the `arcLength` strategy.
+- Multi-subpath morphing no longer drops an outer contour or a hole — outer contours only match outer contours and holes only match holes. The paths are reversed as whole paths, so the outer/hole relationships are preserved, and an unmatched contour receives a placeholder at its own centroid instead of taking the opposite fill role. All 42 ordered pairs of the demo shapes now keep their geometry and topology with both the `segment` and the `arcLength` strategy.
 - `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` no longer report a materially wrong distance on a very long path — the refinement precision had a relative floor, so a narrow curve feature could be missed on a path of millions of units. The refinement is now capped at an absolute precision of `1e-6` length units.
 - The exact straight-segment projection no longer replaces a nearer result with a slightly farther tie, and a zero-length moveto point is considered as a point projection. The returned segment metadata now belongs to the same measured segment as the reported closest point, including at moveto and closing-segment boundaries.
 - `getPropertiesAtPoint()`, `getClosestPoint()` and `isPointInStroke()` no longer miss the closest point of a path shorter than the old 8-unit scan step — the coarse scan is scaled with the length of the path, the end of the path is sampled explicitly, and a straight segment is answered with the exact projection of the query point:
@@ -153,7 +157,7 @@
   //      point: { x: 50, y: 0 }, tangent: { x: 1, y: 0 },
   //      normal: { x: 0, y: 1 }, angle: 0 }
   ```
-- `simplifyPath()` — the Douglas-Peucker simplification of a path: the path is measured along its length and the points that are needed to keep its shape within the tolerance are kept, the result is a path of straight lines, one sub-path for every sub-path of the source:
+- `simplifyPath()` — the curve-preserving simplification of a path: straight-line runs are reduced with Douglas-Peucker and curve runs are fitted with adaptive Schneider cubic Béziers. Arcs and original curves are retained whenever fitting would not reduce the segment count, and every source sub-path and closure is preserved:
   ```js
   SVGPathCommander.simplifyPath("M0 0L10 0L20 0L30 0", 1);
   // => [["M", 0, 0], ["L", 30, 0]]
@@ -168,7 +172,7 @@
   const [eq1, eq2] = SVGPathCommander.equalize("M0 0L100 0L50 100Z", "M0 0L100 0L100 100L0 100Z", {
     strategy: "arcLength",
   });
-  // eq1.length === eq2.length === 5 — ready for morphing
+  // eq1.length === eq2.length === 6 — ready for morphing
   ```
 - `resamplePath()` — the resampling of a path to a given number of points, distributed along its length: the source segment boundaries and corners are points of the result too when the requested count allows it, so the shape of the path keeps its vertices:
   ```js

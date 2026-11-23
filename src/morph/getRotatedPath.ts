@@ -6,7 +6,7 @@ import type {
   LSegment,
   MorphPathArray,
   MSegment,
-  PointTuple,
+  PathSegment,
   // PolylineArray,
   ZSegment,
 } from "../types.ts";
@@ -60,29 +60,30 @@ export function getRotations<T extends MorphPathArray>(a: T): T[] {
   return result;
 }
 
-/**
- * Returns the end coordinates of every segment of a path, flattened.
- *
- * @param path the path to read
- * @returns the end coordinates, two per segment
- */
-const getEndCoordinates = (path: MorphPathArray): number[] => {
-  const ends: number[] = [];
-  for (const segment of path) {
-    const end = segment.slice(-2) as PointTuple;
-    ends.push(end[0], end[1]);
+const getSegmentDistanceSquared = (a: PathSegment, b: PathSegment): number => {
+  let distance = 0;
+  for (let i = 1; i < a.length; i += 1) {
+    const delta = Number(a[i]) - Number(b[i]);
+    distance += delta * delta;
   }
-  return ends;
+  return distance;
+};
+
+const getStartDistanceSquared = (a: PathSegment, b: PathSegment): number => {
+  const dx = Number(a[a.length - 2]) - Number(b[b.length - 2]);
+  const dy = Number(a[a.length - 1]) - Number(b[b.length - 1]);
+  return dx * dx + dy * dy;
 };
 
 /**
  * Finds the rotation of `pathA` that matches `pathB` best by minimizing the sum
- * of squared distances between corresponding endpoints.
+ * of squared distances between all corresponding coordinates, including the
+ * control points of the curves.
  *
- * The rotations are not materialized: the endpoint of the segment at index `j` of
- * the rotation that starts at `idx` is the endpoint of the segment at index
- * `1 + ((idx + i - 1) mod pointCount)` of the source path, so the sum can be
- * computed from the source path alone.
+ * The rotations are not materialized: the segment at index `j` of the rotation
+ * that starts at `idx` is the segment at index `1 + ((idx + i - 1) mod
+ * pointCount)` of the source path, so the sum can be computed from the source
+ * path alone.
  *
  * A rotation whose running sum is already worse than the best rotation found so
  * far cannot become the best one — the terms of the sum are squared distances,
@@ -100,16 +101,11 @@ const getEndCoordinates = (path: MorphPathArray): number[] => {
 const getBestRotationIndex = <T extends MorphPathArray>(pathA: T, pathB: T): number => {
   const pathLen = pathA.length;
   const pointCount = pathLen - 1;
-  const endsA = getEndCoordinates(pathA);
-  const endsB = getEndCoordinates(pathB);
 
-  // the first term of the sum of every rotation
   const firstTerms: number[] = [];
   const order: number[] = [];
   for (let idx = 0; idx < pathLen; idx++) {
-    const dx = endsA[idx * 2] - endsB[0];
-    const dy = endsA[idx * 2 + 1] - endsB[1];
-    firstTerms.push(dx * dx + dy * dy);
+    firstTerms.push(getStartDistanceSquared(pathA[idx], pathB[0]));
     order.push(idx);
   }
   order.sort((a, b) => {
@@ -125,17 +121,11 @@ const getBestRotationIndex = <T extends MorphPathArray>(pathA: T, pathB: T): num
 
   for (const idx of order) {
     let sumDistSq = firstTerms[idx];
-    // the start of the rotation is already worse than the best rotation
     if (sumDistSq > minDistanceSq) continue;
 
     for (let i = 1; i < pathLen; i++) {
-      // the rotation starts at the end of the segment `idx` and continues with
-      // the segments that follow it, wrapping around the end of the path
       const j = 1 + ((idx + i - 1) % pointCount);
-      const dx = endsA[j * 2] - endsB[i * 2];
-      const dy = endsA[j * 2 + 1] - endsB[i * 2 + 1];
-      sumDistSq += dx * dx + dy * dy;
-      // the sum only grows, so this rotation cannot beat the best one
+      sumDistSq += getSegmentDistanceSquared(pathA[j], pathB[i]);
       if (sumDistSq > minDistanceSq) break;
     }
 
@@ -149,8 +139,8 @@ const getBestRotationIndex = <T extends MorphPathArray>(pathA: T, pathB: T): num
 };
 
 /**
- * Finds the best rotation of pathA to match pathB by minimizing sum of squared distances
- * between corresponding endpoints.
+ * Finds the best rotation of pathA to match pathB by minimizing the sum of squared distances
+ * between corresponding coordinates, including curve control points.
  *
  * Works with both polygon (L) and curve (C) arrays.
  *
@@ -178,17 +168,8 @@ export function getRotatedPath<T extends MorphPathArray>(
       const rotation = computedRotations[ri];
       let sumDistSq = 0;
 
-      // Compare endpoints of each segment (skip M, use end coords of L/C)
       for (let i = 0; i < rotation.length; i++) {
-        const segA = rotation[i];
-        const segB = pathB[i];
-
-        const endA = segA.slice(-2) as PointTuple;
-        const endB = segB.slice(-2) as PointTuple;
-
-        const dx = endA[0] - endB[0];
-        const dy = endA[1] - endB[1];
-        sumDistSq += dx * dx + dy * dy;
+        sumDistSq += getSegmentDistanceSquared(rotation[i], pathB[i]);
       }
 
       if (sumDistSq < minDistanceSq) {

@@ -22,7 +22,6 @@ const equalizePathsDefaults: PathsEqualizationOptions = {
   strategy: "segment", // "segment" | "arcLength"
   align: true,
   roundValues: 4, // 4 decimals
-  close: false,
   sampleSize: 10,
 };
 
@@ -44,10 +43,9 @@ const getOuterDirection = (outers: PathFeature[]): number => {
  * Equalizes two paths for morphing (single/multi subpath).
  *
  * Multi-subpath paths are reversed as whole paths, so an outer contour keeps
- * its relationship with its holes. Matched contours are not reversed
- * independently: a fallback pair between an outer contour and a hole can
- * keep opposite winding and interpolate with a twist, because reversing that
- * hole on its own would change the fill topology of the path.
+ * its relationship with its holes. Outer contours only match outer contours
+ * and holes only match holes: an unmatched contour collapses at its own
+ * centroid instead of taking the opposite fill role.
  *
  * @see https://minus-ze.ro/posts/morphing-arbitrary-paths-in-svg/
  * @param pathInput1 - First path string or PathArray
@@ -120,25 +118,18 @@ export const equalizePaths = (
 
   const outerMatches = matchPathFeatures(classified1.outers, classified2.outers);
   const innerMatches = matchPathFeatures(classified1.inners, classified2.inners);
-  const outerToInner = matchPathFeatures(outerMatches.unmatchedFrom, innerMatches.unmatchedTo);
-  const innerToOuter = matchPathFeatures(innerMatches.unmatchedFrom, outerMatches.unmatchedTo);
-  const featurePairs = [
-    ...outerMatches.pairs,
-    ...innerMatches.pairs,
-    ...outerToInner.pairs,
-    ...innerToOuter.pairs,
-  ];
+  const featurePairs = [...outerMatches.pairs, ...innerMatches.pairs];
   const contourPairs: [NormalArray, NormalArray][] = featurePairs.map(([from, to]) => [
     from.path,
     to.path,
   ]);
 
-  for (const feature of [...outerToInner.unmatchedFrom, ...innerToOuter.unmatchedFrom]) {
+  for (const feature of [...outerMatches.unmatchedFrom, ...innerMatches.unmatchedFrom]) {
     const centroid: PointTuple = [feature.bbox.cx, feature.bbox.cy];
     contourPairs.push([feature.path, createPlaceholder(centroid)]);
   }
 
-  for (const feature of [...outerToInner.unmatchedTo, ...innerToOuter.unmatchedTo]) {
+  for (const feature of [...outerMatches.unmatchedTo, ...innerMatches.unmatchedTo]) {
     const centroid: PointTuple = [feature.bbox.cx, feature.bbox.cy];
     contourPairs.push([createPlaceholder(centroid), feature.path]);
   }

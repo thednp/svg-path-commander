@@ -215,7 +215,7 @@
           <button
             type="button"
             data-bs-toggle="tooltip"
-            title="Simplify the path within a tolerance relative to its size, the result is a polyline"
+            title="Simplify the path within a tolerance relative to its size, preserving curves and arcs"
             onclick="toSimplify()"
           >
             Simplify
@@ -522,7 +522,18 @@
         <div class="text-center">
           <svg id="test-svg" viewBox="0 0 16 16">
             <path d="M0 0L0 0" fill="rgba(125,125,125,0.3)"></path>
+            <path
+              id="originalPath"
+              d="M0 0L0 0"
+              fill="none"
+              stroke="#ff5722"
+              stroke-width="1"
+              vector-effect="non-scaling-stroke"
+              visibility="hidden"
+              pointer-events="none"
+            ></path>
           </svg>
+          <p id="simplifyStats" role="status" aria-live="polite"></p>
         </div>
       </div>
     </div>
@@ -565,6 +576,8 @@
         } = SVGPathCommander,
         svg = document.getElementById("test-svg"),
         path = svg.children[0],
+        originalPath = document.getElementById("originalPath"),
+        simplifyStats = document.getElementById("simplifyStats"),
         inputTextArea = document.getElementById("t1"),
         joinTextArea = document.getElementById("t1b"),
         outputTextArea = document.getElementById("t2"),
@@ -848,6 +861,8 @@
 
       const removePointAtLength = () => {
         [...path.parentElement.getElementsByTagName("circle")].forEach((c) => c.remove());
+        originalPath.setAttribute("visibility", "hidden");
+        simplifyStats.textContent = "";
       };
 
       const removeAnnotations = () => {
@@ -912,11 +927,16 @@
           const { width, height } = SVGPathCommander.getPathBBox(pathValue);
           const diagonal = Math.hypot(width, height);
           const tolerance = diagonal ? (diagonal * percent) / 100 : 0.001;
-          const simplified = pathToString(simplifyPath(pathValue, tolerance));
+          const simplifiedPath = simplifyPath(pathValue, tolerance);
+          const simplified = pathToString(simplifiedPath);
           setResult(
             simplified,
             `Tolerance: ${round(tolerance)} units (${percent}% of the shape diagonal)\n${simplified}`,
           );
+          originalPath.setAttribute("d", pathValue);
+          originalPath.setAttribute("visibility", "visible");
+          const sourceCount = SVGPathCommander.parsePathString(pathValue).length;
+          simplifyStats.textContent = `${sourceCount} → ${simplifiedPath.length} segments · original outline / simplified fill`;
         } catch (error) {
           report(error.message);
         }

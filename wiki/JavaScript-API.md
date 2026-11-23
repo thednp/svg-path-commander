@@ -153,14 +153,14 @@ const opt = new SVGPathCommander(
 
 ### instance.simplify(_tolerance_: number | SimplifyOptions)
 
-Simplifies the path with the Douglas-Peucker algorithm: the path is measured along its length and the points that are needed to keep its shape within the tolerance are kept, the result is a path of straight lines, one sub-path for every sub-path of the source.
+Simplifies the path while preserving curves: straight-line runs are reduced with Douglas-Peucker and curve runs are fitted with adaptive Schneider cubic Béziers. Arcs and original curves are retained whenever fitting would not reduce the segment count, and every source sub-path and closure is preserved.
 
 ```js
 const simplified = new SVGPathCommander("M0 0L10 0L20 0L30 0").simplify(1).toString();
 // => "M0 0L30 0"
 ```
 
-The tolerance is the maximum distance between the result and the source: every point of the source stays within the tolerance of the result. A smaller tolerance keeps more points, a bigger one removes more. The tolerance defaults to `1` and it can be given as an object too:
+The tolerance is the target geometric error of the sampled fitting. A smaller tolerance keeps more detail, a bigger one removes more. The tolerance defaults to `1` and it can be given as an object too:
 
 ```js
 new SVGPathCommander("M0 0L10 0L20 0L30 0").simplify({ tolerance: 1 });
@@ -353,12 +353,12 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   SVGPathCommander.normalizePath("M2 0V16");
   // => [['M', 2, 0], ['L', 2, 16]]
   ```
-- **SVGPathCommander.simplifyPath(_path_: string | PathArray, _tolerance_: number | SimplifyOptions)** - returns a new _PathArray_ simplified with the Douglas-Peucker algorithm: the path is measured along its length and the points that are needed to keep its shape within the tolerance are kept, the result is a path of straight lines, one sub-path for every sub-path of the source;
+- **SVGPathCommander.simplifyPath(_path_: string | PathArray, _tolerance_: number | SimplifyOptions)** - returns a new _PathArray_ simplified while preserving curves: straight-line runs are reduced with Douglas-Peucker, curve runs are fitted with adaptive Schneider cubic Béziers, and arcs and original curves are retained whenever fitting would not reduce the segment count; every source sub-path and closure is preserved;
   ```js
   SVGPathCommander.simplifyPath("M0 0L10 0L20 0L30 0", 1);
   // => [['M', 0, 0], ['L', 30, 0]]
   ```
-  The tolerance is the maximum distance between the result and the source: every point of the source stays within the tolerance of the result. A smaller tolerance keeps more points, a bigger one removes more. The tolerance defaults to `1`.
+  The tolerance is the target geometric error of the sampled fitting. A smaller tolerance keeps more detail, a bigger one removes more. The tolerance defaults to `1`.
 - **SVGPathCommander.resamplePath(_path_: string | PathArray, _count_: number, _mode_: "line" | "curve")** - returns a new _PathArray_ with the given number of points for every sub-path, distributed along the length of that sub-path: the source segment boundaries and corners are kept when the requested count allows it, so the shape of the path keeps its vertices; the result is a polyline, or a path of exact cubic pieces of the source curves in the `curve` mode;
   ```js
   SVGPathCommander.resamplePath("M0 0L100 0L100 100", 3);
@@ -467,27 +467,26 @@ When using the distribution files, type in "SVGPathCommander." in your browser c
   );
   // eq1.length === eq2.length === 6
   ```
-  Multi-subpath paths are classified into outer contours and holes. Outer contours are matched with
-  outer contours and holes with holes first; an unmatched contour can then match an overlapping
-  contour of the other class. The paths are reversed as whole paths, so the outer/hole relationships
-  are preserved, and an unmatched contour receives a placeholder at its centroid instead of being
-  dropped.
+  Multi-subpath paths are classified into outer contours and holes. Outer contours only match outer
+  contours and holes only match holes. The paths are reversed as whole paths, so the outer/hole
+  relationships are preserved, and an unmatched contour receives a placeholder at its own centroid
+  instead of being dropped.
 - **SVGPathCommander.equalizeSegments(_path1_: PathArray | string, _path2_: PathArray | string, _options_: EqualizationOptions)** - equalizes two single-subpath paths for morphing; returns a tuple of two equalized _MorphPathArrays_;
   ```js
   const [eq1, eq2] = SVGPathCommander.equalizeSegments(
     "M0 0L100 0L50 100Z",
     "M0 0L100 0L100 100L0 100Z",
   );
-  // eq1.length === eq2.length === 5
+  // eq1.length === eq2.length === 6
   ```
 - **SVGPathCommander.equalize(_path1_: PathArray | string, _path2_: PathArray | string, _options_: EqualizeOptions)** - equalizes two paths for morphing, the recommended entry point: a path with a single sub-path is equalized on its own, a path with more sub-paths is split into sub-paths, the sub-paths are matched by their shape and every pair is equalized on its own; returns a tuple of two equalized _PathArrays_;
   ```js
   const [eq1, eq2] = SVGPathCommander.equalize("M0 0L100 0L50 100Z", "M0 0L100 0L100 100L0 100Z", {
     strategy: "arcLength",
   });
-  // eq1.length === eq2.length === 5
+  // eq1.length === eq2.length === 6
   ```
-  The `points` option is the number of points of the result, the `strategy` option decides how the points are placed (`segment` splits the segments of the paths, `arcLength` distributes the points along the path length and keeps the source segment boundaries and corners when the requested count allows it), the `align` option turns the rotation of the points of the second path off, the `reverse` option decides what happens when the two paths draw in opposite directions (`true` reverses the second path, `false` leaves the paths as they are, `auto` reverses the path that leaves the two paths closest to each other), the `mode` option decides the type of the segments of the result (`auto` uses lines when both paths are polylines and curves otherwise) and the `close` option closes the result.
+  The `points` option is the number of points of the result, the `strategy` option decides how the points are placed (`segment` splits the segments of the paths, `arcLength` distributes the points along the path length and keeps the source segment boundaries and corners when the requested count allows it), the `align` option turns the rotation of the points of the second path off, the `reverse` option decides what happens when the two paths draw in opposite directions (`true` reverses the second path, `false` leaves the paths as they are, `auto` reverses the path that leaves the two paths closest to each other), and the `mode` option decides the type of the segments of the result (`auto` uses lines when both paths are polylines and curves otherwise). Closed contours keep their `Z` commands by default, open paths stay open, and a mixed pair is closed on both sides; `close: false` leaves both results open.
 - **SVGPathCommander.pathsIntersection(_path1_: string | PathArray, _path2_: string | PathArray, _justCount_?: boolean)** - returns the number of intersection points between two paths by default; pass `false` for `_justCount_` to return the intersection points instead;
   ```js
   SVGPathCommander.pathsIntersection("M0 50C0 0,100 0,100 50", "M50 0C100 0,100 100,50 100");

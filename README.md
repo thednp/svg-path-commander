@@ -16,7 +16,7 @@ While you may find familiar tools inside, this library brings _**new additions**
 - the build in `getBBox`, `getPointAtLength` and `getTotalLength` are more reliable and much more accurate than the native methods, not to mention their high [performance](https://github.com/thednp/svg-path-commander/issues/44) ratings;
 - thanks to the community contributions we've implemented useful tools like `getPropertiesAtLength`, `getSegmentOfPoint` or `isPointInStroke`;
 - `getPropertiesAtLength` returns the frame of the path at a given length — the point, the unit tangent vector, the unit normal vector and the angle of the tangent in degrees;
-- `simplifyPath` reduces the number of points of a path with the Douglas-Peucker algorithm, within a tolerance you choose;
+- `simplifyPath` reduces straight-line runs with Douglas-Peucker and fits curve runs with fewer cubic Béziers, preserving arcs and original curves when fitting would not reduce the segment count;
 - `resamplePath` distributes the points of every sub-path along its own length, keeps the source segment boundaries and corners when the requested count allows it, and never connects two sub-paths;
 - `offsetPath` offsets a path along its normals, with the joins and the caps of a stroke, so a path can be expanded or outlined;
 - `isPointInPath` tells if a point is inside a filled shape, with the `nonzero` and the `evenodd` fill rules of the SVG `fill-rule` attribute;
@@ -442,10 +442,12 @@ const [eq1, eq2] = SVGPathCommander.equalizePaths(
 // Both paths now have the same number of segments
 ```
 
-Multi-subpath paths keep their outer contours and holes. Outer contours are matched with outer
-contours and holes with holes first, then an unmatched contour can match an overlapping contour of
-the other class. The paths are reversed as whole paths, so their outer/hole relationships stay
-intact, and every unmatched contour receives a placeholder instead of being dropped.
+Multi-subpath paths keep their outer contours and holes. Outer contours only match outer contours
+and holes only match holes. The paths are reversed as whole paths, so their outer/hole relationships
+stay intact, and every unmatched contour receives a placeholder at its own centroid instead of being
+dropped. Closed contours keep their `Z` commands by default, open paths stay open, and a mixed pair
+is closed on both sides to keep the commands compatible; pass `close: false` to leave both results
+open.
 
 Equalize two paths for morphing — the recommended entry point, it picks the right
 strategy for the paths, aligns their points and normalizes their winding:
@@ -469,7 +471,7 @@ const [eq1, eq2] = SVGPathCommander.equalize("M0 0C50 100 100 100 150 0", "M0 0L
   points: 8,
   mode: "curve",
 });
-// eq1.length === eq2.length === 8 — ready for morphing
+// eq1.length === eq2.length === 9 — ready for morphing
 ```
 
 # WIKI

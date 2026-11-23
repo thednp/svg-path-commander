@@ -501,11 +501,11 @@ export class SVGPathCommander {
   }
 
   /**
-   * Simplify path with the Douglas-Peucker algorithm.
+   * Simplify a path within a geometric tolerance.
    *
-   * The path is measured along its length and the points that are needed to
-   * keep its shape within the tolerance are kept: the result is a path of
-   * straight lines.
+   * Straight-line runs are reduced with Douglas-Peucker. Curve runs are
+   * fitted with cubic Béziers, while arcs and original curves are preserved
+   * whenever fitting would not reduce the segment count.
    *
    * @example
    * ```ts
@@ -837,7 +837,7 @@ export class SVGPathCommander {
   static segmentToCubic = segmentToCubic;
   /** Shorten a single segment of a `pathArray` object. */
   static shortenSegment = shortenSegment;
-  /** Simplifies a path, with the Douglas-Peucker algorithm. */
+  /** Simplifies straight-line runs and curve runs while preserving sub-paths and closures. */
   static simplifyPath = simplifyPath;
   /** Split a path string or PathArray into an array of sub-paths. */
   static splitPath = splitPath;

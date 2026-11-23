@@ -236,8 +236,14 @@ const [eq1, eq2] = SVGPathCommander.equalize("M0 0C50 100 100 100 150 0", "M0 0L
   points: 8,
   mode: "curve",
 });
-// eq1.length === eq2.length === 8
+// eq1.length === eq2.length === 9
 ```
+
+Closed contours keep their `Z` commands by default and open paths stay open. A
+closed/open pair is closed on both sides so the segment commands stay compatible;
+pass `close: false` to leave both results open. Multi-subpath paths match outer
+contours only with outer contours and holes only with holes. An unmatched contour
+receives a placeholder at its own centroid instead of being dropped.
 
 # Path Offsetting
 

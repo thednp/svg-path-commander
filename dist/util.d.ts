@@ -25,7 +25,7 @@ type SegmentProperties = {
 };
 /** The options of the path simplification. */
 type SimplifyOptions = {
-  /** The maximum distance between the simplified path and the original one. @default 1 */
+  /** The target geometric error of the sampled fitting. @default 1 */
   tolerance?: number;
 };
 /** The side of a path an offset is created on. */
@@ -411,7 +411,7 @@ interface EqualizationOptions {
   roundValues?: number;
   /** Whether to reverse the second path before equalization. @default true */
   reverse?: boolean | "auto";
-  /** Whether to close the path before equalization. */
+  /** Whether to close the path after equalization. By default, both paths are closed when either input is closed. */
   close?: boolean;
   /** The target segment count for both paths. */
   target?: number;
@@ -432,7 +432,7 @@ interface EqualizeOptions {
   mode?: "auto" | "line" | "curve";
   /** The amount of decimals to round values to. @default 4 */
   roundValues?: number;
-  /** Whether to close the paths before equalization. */
+  /** Whether to close the paths after equalization. By default, both paths are closed when either input is closed. */
   close?: boolean;
 }
 /**
@@ -1738,15 +1738,15 @@ export declare const segmentToCubic: (segment: PathSegment, params: ParserParams
  */
 export declare const shortenSegment: (segment: AbsoluteSegment, normalSegment: NormalSegment, params: ParserParams, prevCommand: PathCommand) => ShortSegment;
 /**
- * Simplifies a path, with the Douglas-Peucker algorithm.
+ * Simplifies a path within a geometric tolerance.
  *
- * The path is sampled along its length and the points that are needed to
- * keep its shape within the tolerance are kept: the result is a path of
- * straight lines, one sub-path for every sub-path of the source.
+ * Straight-line runs are reduced with Douglas-Peucker. Curve runs are fitted
+ * with cubic Béziers, while arcs and original curves are preserved whenever
+ * fitting would not reduce the segment count. Every source sub-path and its
+ * closure are retained.
  *
- * The tolerance is the maximum distance between the result and the source:
- * every point of the source stays within the tolerance of the result. A
- * smaller tolerance keeps more points, a bigger one removes more.
+ * The tolerance is the target geometric error of the sampled fitting. A
+ * smaller tolerance keeps more detail, a bigger one removes more.
  *
  * @param pathInput - the target path string or PathArray
  * @param options - the tolerance of the simplification, or the options
@@ -1800,10 +1800,9 @@ export declare function splitCubicSegment(x1: number, y1: number, x2: number, y2
  * sub-paths is split into sub-paths, the sub-paths are matched by their
  * shape and every pair is equalized on its own. Multi-subpath paths are
  * reversed as whole paths, so an outer contour keeps its relationship with
- * its holes. Matched contours are not reversed independently: a fallback
- * pair between an outer contour and a hole can keep opposite winding and
- * interpolate with a twist, because reversing that hole on its own would
- * change the fill topology of the path.
+ * its holes. Outer contours only match outer contours and holes only match
+ * holes: an unmatched contour collapses at its own centroid instead of
+ * taking the opposite fill role.
  *
  * The `strategy` option decides how the points of the paths are placed:
  * - `segment` splits the segments of the paths, so the points of the result
@@ -1855,10 +1854,9 @@ export declare const equalizeSegments: (path1: PathArray | string, path2: PathAr
  * Equalizes two paths for morphing (single/multi subpath).
  *
  * Multi-subpath paths are reversed as whole paths, so an outer contour keeps
- * its relationship with its holes. Matched contours are not reversed
- * independently: a fallback pair between an outer contour and a hole can
- * keep opposite winding and interpolate with a twist, because reversing that
- * hole on its own would change the fill topology of the path.
+ * its relationship with its holes. Outer contours only match outer contours
+ * and holes only match holes: an unmatched contour collapses at its own
+ * centroid instead of taking the opposite fill role.
  *
  * @see https://minus-ze.ro/posts/morphing-arbitrary-paths-in-svg/
  * @param pathInput1 - First path string or PathArray

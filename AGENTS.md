@@ -90,13 +90,14 @@ The utility entry includes the morphing and intersection tools through the inter
 so the main entry always includes those implementations. A bundler drops the unused standalone exports
 from the utility entry. The package and JSR exports maps must expose the same two entry points.
 
-The Douglas-Peucker simplification lives in `process/` and is built from four modules:
+The curve-preserving simplification lives in `process/` and is built from five modules:
 
 | Module                      | Purpose                                                              |
 | --------------------------- | -------------------------------------------------------------------- |
 | `process/simplifyPath.ts`   | The public API — normalizes, splits and rebuilds the simplified path |
 | `process/samplePath.ts`     | Samples a normalized path along its own parameterization             |
 | `process/douglasPeucker.ts` | The Douglas-Peucker core — the indexes of the points to keep         |
+| `process/fitCubic.ts`       | Adaptive Schneider cubic fitting for the sampled curve runs          |
 | `process/splitSubPaths.ts`  | Splits an already normalized path into its sub-paths                 |
 
 Only `simplifyPath` is public — it is re-exported from `src/util.ts`. The internal
